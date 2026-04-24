@@ -46,7 +46,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
         runModel: runIngestModel,
       });
       const worldId = randomUUID();
-      const stored = saveWorld({
+      const stored = await saveWorld({
         worldId,
         kind: "uploaded",
         bible: result.bible,
@@ -71,7 +71,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
       return reply.status(400).send({ error: body.error.flatten() });
     }
     const worldId = randomUUID();
-    const stored = saveWorld({
+    const stored = await saveWorld({
       worldId,
       kind: "created",
       bible: body.data.bible,
@@ -103,7 +103,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
         runModel: runIngestModel,
       });
       const worldId = randomUUID();
-      const stored = saveWorld({
+      const stored = await saveWorld({
         worldId,
         kind: "uploaded",
         bible: result.bible,
@@ -129,7 +129,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
   app.get("/worlds", async () => listWorlds());
 
   app.get<{ Params: { id: string } }>("/worlds/:id", async (req, reply) => {
-    const w = getWorld(req.params.id);
+    const w = await getWorld(req.params.id);
     if (!w) return reply.status(404).send({ error: "not_found" });
     return {
       worldId: w.worldId,

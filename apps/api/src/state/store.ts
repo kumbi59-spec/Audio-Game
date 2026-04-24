@@ -1,198 +1,92 @@
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
-import { SUNKEN_BELL_BIBLE } from "@audio-rpg/shared";
 import type { MemoryStore } from "@audio-rpg/gm-engine";
 import type { Session } from "../gm/orchestrator.js";
-import { verifySessionToken } from "./tokens.js";
+import { MemoryCampaignStore } from "./memory.js";
+import { PostgresCampaignStore } from "./postgres.js";
+import type { CampaignStore } from "./types.js";
 
 /**
- * Persistence layer. The MVP ships against Postgres + pgvector; this file
- * provides the interface and an in-memory implementation that the API
- * starts with so local dev works before the database is wired up.
- *
- * Replace the in-memory maps with Postgres-backed implementations in
- * apps/api/src/state/postgres.ts when the DB migration lands.
+ * Store dispatcher. When DATABASE_URL is set we use Postgres + pgvector;
+ * otherwise we fall back to the in-memory store so local dev works
+ * without any infrastructure. The rest of the API treats the returned
+ * interface as a black box.
  */
+let singleton: CampaignStore | null = null;
 
-export interface StoredWorld {
+export function getStore(): CampaignStore {
+  if (singleton) return singleton;
+  const databaseUrl = process.env["DATABASE_URL"];
+  singleton = databaseUrl
+    ? new PostgresCampaignStore(databaseUrl)
+    : new MemoryCampaignStore();
+  return singleton;
+}
+
+export function __resetStoreForTests(): void {
+  singleton = null;
+}
+
+// ------------------------------------------------------------------
+// Legacy thin wrappers. Existing routes call these instead of holding a
+// direct store reference; they remain stable as we swap in Postgres.
+// ------------------------------------------------------------------
+
+export async function saveWorld(args: {
   worldId: string;
   kind: "official" | "uploaded" | "created";
-  title: string;
   bible: GameBible;
-  createdAt: number;
   warnings?: string[];
+}) {
+  return getStore().saveWorld(args);
 }
 
-interface StoredCampaign {
+export async function getWorld(worldId: string) {
+  return getStore().getWorld(worldId);
+}
+
+export async function listWorlds() {
+  return getStore().listWorlds();
+}
+
+export async function seedCampaign(args: {
+  campaignId: string;
+  worldId: string;
+  title: string;
+  bible: GameBible;
   state: CampaignState;
-  bible: GameBible;
-  worldId: string;
-  title: string;
-  createdAt: number;
-  lastPresentedChoices: { id: string; label: string }[];
-  narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
+}) {
+  return getStore().seedCampaign(args);
 }
 
-const worlds = new Map<string, StoredWorld>();
-const campaigns = new Map<string, StoredCampaign>();
-
-// Seed the official sample world so it always shows up in the library.
-worlds.set("sunken_bell", {
-  worldId: "sunken_bell",
-  kind: "official",
-  title: SUNKEN_BELL_BIBLE.title,
-  bible: SUNKEN_BELL_BIBLE,
-  createdAt: 0,
-});
-
-export function saveWorld(args: {
-  worldId: string;
-  kind: StoredWorld["kind"];
-  bible: GameBible;
-  warnings?: string[];
-}): StoredWorld {
-  const stored: StoredWorld = {
-    worldId: args.worldId,
-    kind: args.kind,
-    title: args.bible.title,
-    bible: args.bible,
-    createdAt: Date.now(),
-    ...(args.warnings && args.warnings.length ? { warnings: args.warnings } : {}),
-  };
-  worlds.set(args.worldId, stored);
-  return stored;
+export async function getCampaignSummary(campaignId: string) {
+  return getStore().getCampaignSummary(campaignId);
 }
 
-export function getWorld(worldId: string): StoredWorld | null {
-  return worlds.get(worldId) ?? null;
-}
-
-export function listWorlds(): Pick<
-  StoredWorld,
-  "worldId" | "kind" | "title" | "createdAt"
->[] {
-  return Array.from(worlds.values())
-    .map(({ worldId, kind, title, createdAt }) => ({ worldId, kind, title, createdAt }))
-    .sort((a, b) => b.createdAt - a.createdAt);
+export async function listCampaigns() {
+  return getStore().listCampaigns();
 }
 
 export async function loadSession(
   campaignId: string,
   authToken: string,
 ): Promise<Session> {
-  if (!verifySessionToken(authToken, campaignId)) {
-    throw new Error("Invalid or expired session token.");
-  }
-  const existing = campaigns.get(campaignId);
-  if (!existing) {
-    throw new Error(`Campaign ${campaignId} not found.`);
-  }
-  return {
-    campaignId,
-    worldId: existing.worldId,
-    bible: existing.bible,
-    state: existing.state,
-    lastPresentedChoices: existing.lastPresentedChoices,
-  };
+  return getStore().loadSession(campaignId, authToken);
 }
-
-export function seedCampaign(args: {
-  campaignId: string;
-  worldId: string;
-  title: string;
-  bible: GameBible;
-  state: CampaignState;
-}): void {
-  campaigns.set(args.campaignId, {
-    bible: args.bible,
-    state: args.state,
-    worldId: args.worldId,
-    title: args.title,
-    createdAt: Date.now(),
-    lastPresentedChoices: [],
-    narrationLog: [],
-  });
-}
-
-export function getCampaignSummary(campaignId: string) {
-  const c = campaigns.get(campaignId);
-  if (!c) return null;
-  return {
-    campaignId,
-    worldId: c.worldId,
-    title: c.title,
-    state: c.state,
-    createdAt: c.createdAt,
-  };
-}
-
-export function listCampaigns() {
-  return Array.from(campaigns.entries())
-    .map(([campaignId, c]) => ({
-      campaignId,
-      worldId: c.worldId,
-      title: c.title,
-      sceneName: c.state.scene.name,
-      turnNumber: c.state.turn_number,
-      createdAt: c.createdAt,
-    }))
-    .sort((a, b) => b.createdAt - a.createdAt);
-}
-
-const memoryStore: MemoryStore = {
-  async recentTurns() {
-    return [];
-  },
-  async sceneSummaries() {
-    return [];
-  },
-  async searchTurns() {
-    return [];
-  },
-  async searchBible() {
-    return [];
-  },
-};
 
 export function getMemoryStore(): MemoryStore {
-  return memoryStore;
+  return getStore().memoryStore();
 }
 
 export function getPersistence() {
+  const store = getStore();
   return {
-    async persistTurn(args: {
-      campaignId: string;
-      turnNumber: number;
-      role: "gm" | "player";
-      text: string;
-    }) {
-      const c = campaigns.get(args.campaignId);
-      if (!c) return;
-      c.narrationLog.push({
-        turnNumber: args.turnNumber,
-        role: args.role,
-        text: args.text,
-      });
-      if (c.narrationLog.length > 200) {
-        c.narrationLog.splice(0, c.narrationLog.length - 200);
-      }
-    },
-    async persistState(campaignId: string, state: CampaignState) {
-      const existing = campaigns.get(campaignId);
-      if (existing) existing.state = state;
-    },
-    async persistPresentedChoices(
+    persistTurn: (args: Parameters<CampaignStore["persistTurn"]>[0]) =>
+      store.persistTurn(args),
+    persistState: (campaignId: string, state: CampaignState) =>
+      store.persistState(campaignId, state),
+    persistPresentedChoices: (
       campaignId: string,
       choices: { id: string; label: string }[],
-    ) {
-      setLastPresentedChoices(campaignId, choices);
-    },
+    ) => store.persistPresentedChoices(campaignId, choices),
   };
-}
-
-export function setLastPresentedChoices(
-  campaignId: string,
-  choices: { id: string; label: string }[],
-): void {
-  const c = campaigns.get(campaignId);
-  if (c) c.lastPresentedChoices = choices;
 }

@@ -1,0 +1,23 @@
+# Local development stack for Audio RPG.
+# Run: docker compose up -d postgres
+# Then export DATABASE_URL=postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: audio-rpg-postgres
+    environment:
+      POSTGRES_USER: audio_rpg
+      POSTGRES_PASSWORD: audio_rpg
+      POSTGRES_DB: audio_rpg
+    ports:
+      - "5432:5432"
+    volumes:
+      - audio_rpg_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audio_rpg -d audio_rpg"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  audio_rpg_pg:

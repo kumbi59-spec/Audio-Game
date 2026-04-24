@@ -31,7 +31,7 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
     if (!body.success) {
       return reply.status(400).send({ error: body.error.flatten() });
     }
-    const world = getWorld(body.data.worldId);
+    const world = await getWorld(body.data.worldId);
     if (!world) {
       return reply
         .status(404)
@@ -40,7 +40,7 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
 
     const campaignId = randomUUID();
     const state = startingStateForWorld(world.bible, body.data.worldId, body.data.characterName);
-    seedCampaign({
+    await seedCampaign({
       campaignId,
       worldId: world.worldId,
       title: world.bible.title,
@@ -60,7 +60,7 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
   app.get("/campaigns", async () => listCampaigns());
 
   app.get<{ Params: { id: string } }>("/campaigns/:id", async (req, reply) => {
-    const summary = getCampaignSummary(req.params.id);
+    const summary = await getCampaignSummary(req.params.id);
     if (!summary) return reply.status(404).send({ error: "not_found" });
     return summary;
   });

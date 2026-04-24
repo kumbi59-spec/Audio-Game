@@ -21,11 +21,13 @@
     "fastify": "4.28.1",
     "mammoth": "1.8.0",
     "pdf-parse": "1.1.1",
+    "pg": "8.13.0",
     "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/node": "20.14.10",
     "@types/pdf-parse": "1.1.4",
+    "@types/pg": "8.11.10",
     "tsx": "4.19.1",
     "typescript": "5.5.4",
     "vitest": "2.0.5"
