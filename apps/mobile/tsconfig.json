@@ -9,5 +9,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "app", "app.config.ts"]
+  "include": ["src", "app", "app.config.ts", "e2e", "playwright.config.ts"]
 }
