@@ -3,12 +3,14 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { registerCommands } from "@/voice/commandBus";
+import { installSpeechRecognizer } from "@/voice/install";
 // Loading the prefs store at app startup applies the default narrator
 // and cue settings to the underlying engines.
 import "@/prefs/store";
 
 export default function RootLayout(): JSX.Element {
   useEffect(() => {
+    void installSpeechRecognizer();
     // Global utility commands available on every screen.
     return registerCommands({
       "help|what can i do|list commands": () => {

@@ -5,6 +5,7 @@ import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import { registerSessionRoutes } from "./routes/session.js";
 import { registerCampaignRoutes } from "./routes/campaigns.js";
+import { registerSttRoutes } from "./routes/stt.js";
 import { registerTtsRoutes } from "./routes/tts.js";
 import { registerWorldRoutes } from "./routes/worlds.js";
 
@@ -29,6 +30,7 @@ export async function buildServer() {
   await registerWorldRoutes(app);
   await registerCampaignRoutes(app);
   await registerTtsRoutes(app);
+  await registerSttRoutes(app);
   await registerSessionRoutes(app);
 
   return app;
