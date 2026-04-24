@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["src", "app", "app.config.ts"],
-  "exclude": ["e2e", "playwright.config.ts", "src/**/*.native.ts"]
-}

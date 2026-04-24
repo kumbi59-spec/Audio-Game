@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "web:export": "expo export --platform web --output-dir web-build",
     "web:serve": "npx --yes http-server@14 web-build -p 8080 -s --proxy http://127.0.0.1:4000?",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "typecheck": "tsc --noEmit",
     "test": "echo 'no mobile tests yet' && exit 0",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium"
