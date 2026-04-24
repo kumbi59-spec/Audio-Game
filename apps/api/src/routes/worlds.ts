@@ -1,11 +1,36 @@
 import type { FastifyInstance } from "fastify";
+import type { GameBible as GameBibleT } from "@audio-rpg/shared";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { GameBible } from "@audio-rpg/shared";
 import { ingestBibleFromText } from "@audio-rpg/gm-engine";
-import { getWorld, listWorlds, saveWorld } from "../state/store.js";
+import { getStore, getWorld, listWorlds, saveWorld } from "../state/store.js";
 import { runIngestModel } from "../ingest/runner.js";
 import { extractBibleText } from "../ingest/extract.js";
+import { embedWorldBible } from "../embeddings/runner.js";
+import { getServerEmbedder } from "../embeddings/voyage.js";
+
+/**
+ * Kicks the embedding pipeline in the background. Never throws into the
+ * route handler — upload responses stay fast, failures go to the logger.
+ */
+function scheduleBibleEmbedding(
+  app: FastifyInstance,
+  worldId: string,
+  bible: GameBibleT,
+): void {
+  const { embedder, available } = getServerEmbedder();
+  if (!available) return;
+  void embedWorldBible({
+    store: getStore(),
+    embedder,
+    worldId,
+    bible,
+    log: (msg, meta) => app.log.info({ worldId, ...meta }, msg),
+  }).catch((err) => {
+    app.log.error({ err, worldId }, "world embedding failed");
+  });
+}
 
 const UploadBody = z.object({
   text: z.string().min(40).max(120_000),
@@ -52,6 +77,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
         bible: result.bible,
         warnings: result.warnings,
       });
+      scheduleBibleEmbedding(app, stored.worldId, stored.bible);
       return reply.status(202).send({
         worldId: stored.worldId,
         title: stored.title,
@@ -76,6 +102,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
       kind: "created",
       bible: body.data.bible,
     });
+    scheduleBibleEmbedding(app, stored.worldId, stored.bible);
     return reply.status(201).send({
       worldId: stored.worldId,
       title: stored.title,
@@ -112,6 +139,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
           ...result.warnings,
         ],
       });
+      scheduleBibleEmbedding(app, stored.worldId, stored.bible);
       return reply.status(202).send({
         worldId: stored.worldId,
         title: stored.title,

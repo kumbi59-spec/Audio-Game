@@ -50,13 +50,41 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   private async seedOfficial(client: PoolClient): Promise<void> {
-    // The Sunken Bible is the only out-of-the-box world; seed idempotently.
+    // The Sunken Bell is the only out-of-the-box world; seed idempotently.
     const { SUNKEN_BELL_BIBLE } = await import("@audio-rpg/shared");
     await client.query(
       `INSERT INTO worlds (world_id, kind, title, bible)
        VALUES ($1, 'official', $2, $3::jsonb)
        ON CONFLICT (world_id) DO NOTHING`,
       ["sunken_bell", SUNKEN_BELL_BIBLE.title, JSON.stringify(SUNKEN_BELL_BIBLE)],
+    );
+    // Note: embedding the official world is handled on first server tick
+    // via embedOfficialWorldIfMissing(), so bootstrap doesn't block on an
+    // embedding provider call.
+  }
+
+  async embedOfficialWorldIfMissing(
+    embed: (chunks: readonly string[]) => Promise<number[][]>,
+  ): Promise<void> {
+    await this.ready;
+    const { rows } = await this.pool.query<{ count: string }>(
+      `SELECT count(*) FROM world_chunks WHERE world_id = 'sunken_bell'`,
+    );
+    if (Number(rows[0]?.count ?? 0) > 0) return;
+    const { SUNKEN_BELL_BIBLE, } = await import("@audio-rpg/shared");
+    const { chunkBible } = await import("@audio-rpg/gm-engine");
+    const drafts = chunkBible(SUNKEN_BELL_BIBLE);
+    if (drafts.length === 0) return;
+    const vectors = await embed(drafts.map((d) => d.text));
+    if (vectors.length !== drafts.length) return;
+    await this.storeWorldChunks(
+      "sunken_bell",
+      drafts.map((d, i) => ({
+        text: d.text,
+        categories: d.categories,
+        metadata: d.metadata,
+        embedding: vectors[i]!,
+      })),
     );
   }
 
@@ -231,11 +259,61 @@ export class PostgresCampaignStore implements CampaignStore {
     };
   }
 
-  async persistTurn(args: PersistTurnArgs): Promise<void> {
+  async persistTurn(args: PersistTurnArgs): Promise<{ turnId: string | null }> {
+    await this.ready;
+    const { rows } = await this.pool.query<{ id: string }>(
+      `INSERT INTO turns (campaign_id, turn_number, role, text)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id`,
+      [args.campaignId, args.turnNumber, args.role, args.text],
+    );
+    return { turnId: rows[0]?.id ?? null };
+  }
+
+  async storeWorldChunks(
+    worldId: string,
+    chunks: {
+      text: string;
+      categories: string[];
+      metadata: Record<string, unknown>;
+      embedding: number[];
+    }[],
+  ): Promise<void> {
+    await this.ready;
+    if (chunks.length === 0) return;
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      // Replace any previous chunks for this world so re-embedding is
+      // idempotent and never duplicates.
+      await client.query(`DELETE FROM world_chunks WHERE world_id = $1`, [worldId]);
+      for (const c of chunks) {
+        await client.query(
+          `INSERT INTO world_chunks (world_id, chunk_text, categories, embedding, metadata)
+           VALUES ($1, $2, $3, $4::vector, $5::jsonb)`,
+          [
+            worldId,
+            c.text,
+            c.categories,
+            toVectorLiteral(c.embedding),
+            JSON.stringify(c.metadata),
+          ],
+        );
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  async storeTurnEmbedding(turnId: string, embedding: number[]): Promise<void> {
     await this.ready;
     await this.pool.query(
-      `INSERT INTO turns (campaign_id, turn_number, role, text) VALUES ($1, $2, $3, $4)`,
-      [args.campaignId, args.turnNumber, args.role, args.text],
+      `UPDATE turns SET embedding = $2::vector WHERE id = $1`,
+      [turnId, toVectorLiteral(embedding)],
     );
   }
 
@@ -261,13 +339,88 @@ export class PostgresCampaignStore implements CampaignStore {
     );
   }
 
+  /**
+   * Inject an embedder after construction. We can't take one in the ctor
+   * because DATABASE_URL is known before credentials are resolved; any
+   * queries that arrive before this is wired up return empty results.
+   */
+  setQueryEmbedder(embed: (text: string) => Promise<number[] | null>): void {
+    this.embedQuery = embed;
+  }
+
+  private embedQuery: (text: string) => Promise<number[] | null> = async () => null;
+
   memoryStore(): MemoryStore {
     return {
       recentTurns: (campaignId, n) => this.recentTurns(campaignId, n),
       sceneSummaries: (campaignId) => this.sceneSummaries(campaignId),
-      searchTurns: async () => [],
-      searchBible: async () => [],
+      searchTurns: (campaignId, query, k) => this.searchTurns(campaignId, query, k),
+      searchBible: (worldId, query, k) => this.searchBible(worldId, query, k),
     };
+  }
+
+  private async searchTurns(
+    campaignId: string,
+    query: string,
+    k: number,
+  ): Promise<MemoryTurn[]> {
+    await this.ready;
+    const vector = await this.embedQuery(query);
+    if (!vector) return [];
+    // Hybrid score: 0.7 cosine similarity + 0.3 recency (0..1 over the
+    // last 200 turns). Cheap to compute in SQL and keeps older-but-
+    // highly-relevant memories retrievable.
+    const { rows } = await this.pool.query<{
+      turn_number: number;
+      role: "gm" | "player";
+      text: string;
+    }>(
+      `WITH recent AS (
+         SELECT MAX(turn_number) AS latest FROM turns WHERE campaign_id = $1
+       )
+       SELECT t.turn_number, t.role, t.text
+         FROM turns t, recent r
+        WHERE t.campaign_id = $1
+          AND t.embedding IS NOT NULL
+     ORDER BY (0.7 * (1 - (t.embedding <=> $2::vector)))
+            + (0.3 * GREATEST(0, 1 - ((r.latest - t.turn_number) / 200.0))) DESC
+        LIMIT $3`,
+      [campaignId, toVectorLiteral(vector), k],
+    );
+    return rows.map((r) => ({
+      turnNumber: r.turn_number,
+      role: r.role,
+      text: r.text,
+    }));
+  }
+
+  private async searchBible(
+    worldId: string,
+    query: string,
+    k: number,
+  ): Promise<BibleChunk[]> {
+    await this.ready;
+    const vector = await this.embedQuery(query);
+    if (!vector) return [];
+    const { rows } = await this.pool.query<{
+      categories: string[];
+      chunk_text: string;
+      similarity: number;
+    }>(
+      `SELECT categories, chunk_text,
+              1 - (embedding <=> $2::vector) AS similarity
+         FROM world_chunks
+        WHERE world_id = $1
+          AND embedding IS NOT NULL
+     ORDER BY embedding <=> $2::vector
+        LIMIT $3`,
+      [worldId, toVectorLiteral(vector), k],
+    );
+    return rows.map((r) => ({
+      categories: r.categories,
+      text: r.chunk_text,
+      score: r.similarity,
+    }));
   }
 
   private async recentTurns(campaignId: string, n: number): Promise<MemoryTurn[]> {
@@ -308,8 +461,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 }
 
-/**
- * Imported here only to satisfy tsc when the BibleChunk type is referenced
- * in the MemoryStore return shape without being used.
- */
-export type _StrictUnused = BibleChunk;
+/** pgvector wants `[1,2,3]` text; node-postgres has no native adapter. */
+function toVectorLiteral(v: readonly number[]): string {
+  return `[${v.map((x) => (Number.isFinite(x) ? x.toString() : "0")).join(",")}]`;
+}

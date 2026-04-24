@@ -4,6 +4,7 @@ import type { Session } from "../gm/orchestrator.js";
 import { MemoryCampaignStore } from "./memory.js";
 import { PostgresCampaignStore } from "./postgres.js";
 import type { CampaignStore } from "./types.js";
+import { getServerEmbedder } from "../embeddings/voyage.js";
 
 /**
  * Store dispatcher. When DATABASE_URL is set we use Postgres + pgvector;
@@ -16,9 +17,23 @@ let singleton: CampaignStore | null = null;
 export function getStore(): CampaignStore {
   if (singleton) return singleton;
   const databaseUrl = process.env["DATABASE_URL"];
-  singleton = databaseUrl
-    ? new PostgresCampaignStore(databaseUrl)
-    : new MemoryCampaignStore();
+  if (databaseUrl) {
+    const pg = new PostgresCampaignStore(databaseUrl);
+    const { embedder, available } = getServerEmbedder();
+    if (available) {
+      pg.setQueryEmbedder(async (text) => {
+        const [vec] = await embedder.embed([text]);
+        return vec ?? null;
+      });
+      // Embed the bundled official world on the first tick so retrieval
+      // works without a manual re-save. Fire-and-forget; any failure
+      // just means searches over the sample world return empty.
+      void pg.embedOfficialWorldIfMissing((texts) => embedder.embed(texts));
+    }
+    singleton = pg;
+  } else {
+    singleton = new MemoryCampaignStore();
+  }
   return singleton;
 }
 
@@ -79,9 +94,22 @@ export function getMemoryStore(): MemoryStore {
 
 export function getPersistence() {
   const store = getStore();
+  const { embedder, available } = getServerEmbedder();
   return {
-    persistTurn: (args: Parameters<CampaignStore["persistTurn"]>[0]) =>
-      store.persistTurn(args),
+    persistTurn: async (args: Parameters<CampaignStore["persistTurn"]>[0]) => {
+      const { turnId } = await store.persistTurn(args);
+      if (available && turnId) {
+        // Fire-and-forget; do not delay the response.
+        void (async () => {
+          try {
+            const { embedTurn } = await import("../embeddings/runner.js");
+            await embedTurn({ store, embedder, turnId, text: args.text });
+          } catch {
+            /* already logged inside embedTurn */
+          }
+        })();
+      }
+    },
     persistState: (campaignId: string, state: CampaignState) =>
       store.persistState(campaignId, state),
     persistPresentedChoices: (

@@ -125,9 +125,9 @@ export class MemoryCampaignStore implements CampaignStore {
     };
   }
 
-  async persistTurn(args: PersistTurnArgs): Promise<void> {
+  async persistTurn(args: PersistTurnArgs): Promise<{ turnId: string | null }> {
     const c = this.campaigns.get(args.campaignId);
-    if (!c) return;
+    if (!c) return { turnId: null };
     c.narrationLog.push({
       turnNumber: args.turnNumber,
       role: args.role,
@@ -136,6 +136,16 @@ export class MemoryCampaignStore implements CampaignStore {
     if (c.narrationLog.length > 200) {
       c.narrationLog.splice(0, c.narrationLog.length - 200);
     }
+    return { turnId: null };
+  }
+
+  async storeWorldChunks(): Promise<void> {
+    /* no-op in the in-memory store; pgvector writes only make sense in
+       the Postgres implementation. */
+  }
+
+  async storeTurnEmbedding(): Promise<void> {
+    /* no-op */
   }
 
   async persistState(campaignId: string, state: CampaignState): Promise<void> {

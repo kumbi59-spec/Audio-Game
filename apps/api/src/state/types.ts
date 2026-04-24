@@ -60,12 +60,28 @@ export interface CampaignStore {
   listCampaigns(): Promise<StoredCampaignSummary[]>;
   loadSession(campaignId: string, authToken: string): Promise<Session>;
 
-  persistTurn(args: PersistTurnArgs): Promise<void>;
+  persistTurn(args: PersistTurnArgs): Promise<{ turnId: string | null }>;
   persistState(campaignId: string, state: CampaignState): Promise<void>;
   persistPresentedChoices(
     campaignId: string,
     choices: { id: string; label: string }[],
   ): Promise<void>;
+
+  /**
+   * Embedding sinks. No-op on the in-memory store; the Postgres store
+   * writes into world_chunks / turns.embedding. Callers pass already-
+   * computed vectors so the store stays decoupled from any provider.
+   */
+  storeWorldChunks(
+    worldId: string,
+    chunks: {
+      text: string;
+      categories: string[];
+      metadata: Record<string, unknown>;
+      embedding: number[];
+    }[],
+  ): Promise<void>;
+  storeTurnEmbedding(turnId: string, embedding: number[]): Promise<void>;
 
   memoryStore(): MemoryStore;
 }
