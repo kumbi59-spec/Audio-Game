@@ -9,9 +9,11 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as DocumentPicker from "expo-document-picker";
 import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
 import {
   createCampaign,
+  uploadWorldFromFile,
   uploadWorldFromText,
   type WorldDetail,
 } from "@/api/rest";
@@ -19,6 +21,13 @@ import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
 
 const MIN_CHARS = 60;
+const SUPPORTED_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+  "text/markdown",
+  "application/json",
+];
 
 export default function UploadBible(): JSX.Element {
   const router = useRouter();
@@ -33,9 +42,34 @@ export default function UploadBible(): JSX.Element {
     "Upload game bible",
     result
       ? `Parsed ${result.title}. Tap start adventure to play.`
-      : "Paste your bible text and tap parse. Direct file upload arrives in the next update.",
+      : "Pick a PDF, DOCX, Markdown, or text file, or paste your bible text below and tap parse.",
     headingRef,
   );
+
+  const pickFile = useCallback(async () => {
+    setError(null);
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: SUPPORTED_TYPES,
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+      if (picked.canceled || !picked.assets?.length) return;
+      const asset = picked.assets[0];
+      if (!asset) return;
+      setBusy(true);
+      const r = await uploadWorldFromFile({
+        uri: asset.uri,
+        name: asset.name,
+        ...(asset.mimeType ? { mimeType: asset.mimeType } : {}),
+      });
+      setResult(r);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not read that file.");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   const submit = useCallback(async () => {
     setError(null);
@@ -98,10 +132,29 @@ export default function UploadBible(): JSX.Element {
       {!result && (
         <>
           <Text style={styles.body}>
-            Paste a worldbuilding document — lore, rules, NPCs, locations.
-            We'll structure it into a playable world. Direct PDF and DOCX
-            uploads arrive in the next update.
+            Upload a PDF, DOCX, Markdown, or text file — or paste text
+            directly below. We'll extract and structure the world.
           </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={busy ? "Uploading…" : "Pick a file"}
+            accessibilityHint="Choose a PDF, DOCX, Markdown, or text file from your device."
+            accessibilityState={{ disabled: busy, busy }}
+            onPress={pickFile}
+            disabled={busy}
+            style={({ pressed }) => [
+              styles.primaryBtn,
+              pressed && styles.btnPressed,
+              busy && styles.btnDisabled,
+            ]}
+          >
+            {busy ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryBtnText}>Pick a file</Text>
+            )}
+          </Pressable>
+          <Text style={styles.divider}>— or paste —</Text>
           <View>
             <Text accessibilityRole="text" style={styles.label}>
               Title hint (optional)
@@ -238,6 +291,14 @@ const styles = StyleSheet.create({
   },
   textarea: { minHeight: 200 },
   counter: { marginTop: 4, color: "#6b7280", fontSize: 12 },
+  divider: {
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: 13,
+    marginVertical: 4,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
   primaryBtn: {
     minHeight: 56,
     borderRadius: 12,

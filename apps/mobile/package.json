@@ -16,6 +16,7 @@
     "@audio-rpg/shared": "workspace:*",
     "expo": "~51.0.28",
     "expo-av": "~14.0.7",
+    "expo-document-picker": "~12.0.2",
     "expo-haptics": "~13.0.1",
     "expo-router": "~3.5.23",
     "expo-speech": "~12.0.2",

@@ -105,6 +105,34 @@ export async function uploadWorldFromText(args: {
   });
 }
 
+export async function uploadWorldFromFile(args: {
+  uri: string;
+  name: string;
+  mimeType?: string;
+}): Promise<WorldDetail & { warnings: string[]; extracted?: { format: string; meta: { pages?: number; bytesIn: number } } }> {
+  const form = new FormData();
+  // React Native's FormData accepts { uri, name, type } objects.
+  form.append("file", {
+    uri: args.uri,
+    name: args.name,
+    type: args.mimeType ?? "application/octet-stream",
+  } as unknown as Blob);
+  const res = await fetch(`${apiBaseUrl()}/worlds/upload-file`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const detail = await safeReadError(res);
+    throw new Error(`${res.status} ${res.statusText}: ${detail}`);
+  }
+  return res.json() as Promise<
+    WorldDetail & {
+      warnings: string[];
+      extracted?: { format: string; meta: { pages?: number; bytesIn: number } };
+    }
+  >;
+}
+
 export async function createWorldFromBible(bible: GameBible): Promise<WorldDetail> {
   return http<WorldDetail>("/worlds", {
     method: "POST",

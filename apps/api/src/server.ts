@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import { registerSessionRoutes } from "./routes/session.js";
@@ -17,6 +18,9 @@ export async function buildServer() {
   await app.register(cors, {
     origin: config.allowedOrigins,
     credentials: true,
+  });
+  await app.register(multipart, {
+    limits: { fileSize: 20 * 1024 * 1024, files: 1 },
   });
   await app.register(websocket);
 

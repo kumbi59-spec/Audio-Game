@@ -5,6 +5,7 @@ import { GameBible } from "@audio-rpg/shared";
 import { ingestBibleFromText } from "@audio-rpg/gm-engine";
 import { getWorld, listWorlds, saveWorld } from "../state/store.js";
 import { runIngestModel } from "../ingest/runner.js";
+import { extractBibleText } from "../ingest/extract.js";
 
 const UploadBody = z.object({
   text: z.string().min(40).max(120_000),
@@ -14,6 +15,13 @@ const UploadBody = z.object({
 const CreateBody = z.object({
   bible: GameBible,
 });
+
+/** Minimal shape of a @fastify/multipart file handle we use here. */
+interface FileMultipart {
+  filename?: string;
+  mimetype?: string;
+  toBuffer(): Promise<Buffer>;
+}
 
 /**
  * Worlds REST. The ingest path runs the gm-engine ingestion pipeline
@@ -73,6 +81,49 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
       title: stored.title,
       bible: stored.bible,
     });
+  });
+
+  app.post("/worlds/upload-file", async (req, reply) => {
+    // Requires @fastify/multipart registered on the server instance.
+    const file = await (req as unknown as { file: () => Promise<FileMultipart | undefined> }).file();
+    if (!file) {
+      return reply.status(400).send({ error: "no_file" });
+    }
+    try {
+      const buffer = await file.toBuffer();
+      const extracted = await extractBibleText({
+        buffer,
+        ...(file.mimetype ? { mimeType: file.mimetype } : {}),
+        ...(file.filename ? { filename: file.filename } : {}),
+      });
+      const titleHint = file.filename?.replace(/\.(pdf|docx|md|txt|json)$/i, "").slice(0, 120);
+      const result = await ingestBibleFromText({
+        rawText: extracted.text,
+        ...(titleHint ? { titleHint } : {}),
+        runModel: runIngestModel,
+      });
+      const worldId = randomUUID();
+      const stored = saveWorld({
+        worldId,
+        kind: "uploaded",
+        bible: result.bible,
+        warnings: [
+          `Extracted ${extracted.format.toUpperCase()} (${extracted.meta.bytesIn} bytes${extracted.meta.pages ? `, ${extracted.meta.pages} pages` : ""}).`,
+          ...result.warnings,
+        ],
+      });
+      return reply.status(202).send({
+        worldId: stored.worldId,
+        title: stored.title,
+        bible: stored.bible,
+        warnings: stored.warnings ?? [],
+        extracted: { format: extracted.format, meta: extracted.meta },
+      });
+    } catch (err) {
+      app.log.error({ err }, "file ingest failed");
+      const message = err instanceof Error ? err.message : "File ingest failed.";
+      return reply.status(422).send({ error: "ingest_failed", message });
+    }
   });
 
   app.get("/worlds", async () => listWorlds());
