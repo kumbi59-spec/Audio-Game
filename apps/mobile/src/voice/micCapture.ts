@@ -1,12 +1,11 @@
 import { Platform } from "react-native";
-import {
-  ExpoAudioStreamModule,
-  addAudioEventListener,
-  type AudioEventPayload,
-  type EventSubscription,
-  type RecordingConfig,
-} from "./audioStream";
 import type { MicCapture } from "./deepgram";
+import type {
+  AudioEventPayload,
+  EventSubscription,
+  ExpoAudioStreamNative,
+  RecordingConfig,
+} from "./audioStream";
 
 /**
  * Platform-specific mic capture. Deepgram expects `linear16` PCM at
@@ -117,15 +116,30 @@ function makePcmWorkletUrl(): string {
 function createNativeMicCapture(): MicCapture {
   let subscription: EventSubscription | null = null;
   let active = false;
+  type NativeAudioModule = {
+    ExpoAudioStreamModule: ExpoAudioStreamNative;
+    addAudioEventListener: (
+      listener: (event: AudioEventPayload) => Promise<void>,
+    ) => EventSubscription;
+  };
+  let nativeAudio: NativeAudioModule | null = null;
+  const loadNativeAudio = (): NativeAudioModule => {
+    if (nativeAudio) return nativeAudio;
+    // Keep the native module out of the initial web bundle eval path.
+    nativeAudio = require("./audioStream") as NativeAudioModule;
+    return nativeAudio;
+  };
 
   return {
     async start(onChunk) {
-      const permission = await ExpoAudioStreamModule.requestPermissionsAsync();
+      const audio = loadNativeAudio();
+      const permission =
+        await audio.ExpoAudioStreamModule.requestPermissionsAsync();
       if (!permission?.granted) {
         throw new Error("Microphone permission denied.");
       }
 
-      subscription = addAudioEventListener(async (evt) => {
+      subscription = audio.addAudioEventListener(async (evt) => {
         if (!active) return;
         const bytes = extractPcmBytes(evt);
         if (bytes && bytes.byteLength > 0) onChunk(bytes);
@@ -153,12 +167,12 @@ function createNativeMicCapture(): MicCapture {
       };
 
       active = true;
-      await ExpoAudioStreamModule.startRecording(config);
+      await audio.ExpoAudioStreamModule.startRecording(config);
     },
     async stop() {
       active = false;
       try {
-        await ExpoAudioStreamModule.stopRecording();
+        await nativeAudio?.ExpoAudioStreamModule.stopRecording();
       } catch {
         /* best effort — the recognizer already closed the WS */
       }
