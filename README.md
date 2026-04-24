@@ -48,6 +48,19 @@ pnpm dev:mobile
 pnpm --filter @audio-rpg/api e2e
 ```
 
+## CI
+
+Three jobs run on every PR:
+
+- `build`: typecheck + unit + api integration against the in-memory store
+- `postgres-e2e`: same api integration suite against `pgvector/pgvector:pg16`
+- `web-e2e`: Playwright + axe-core against the built Expo web bundle
+
+A separate manually-dispatched workflow (`Credentialed E2E`) runs the CLI
+harness against real external providers (Anthropic + optional Voyage /
+ElevenLabs / Deepgram + real Postgres). Trigger it from the Actions tab —
+secrets live under a `credentialed` environment.
+
 ## Design pillars
 
 1. **Audio-first**. Most flows work without looking at the screen. Narration,
