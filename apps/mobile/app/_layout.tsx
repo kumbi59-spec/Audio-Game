@@ -3,6 +3,9 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { registerCommands } from "@/voice/commandBus";
+// Loading the prefs store at app startup applies the default narrator
+// and cue settings to the underlying engines.
+import "@/prefs/store";
 
 export default function RootLayout(): JSX.Element {
   useEffect(() => {

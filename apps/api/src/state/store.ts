@@ -1,4 +1,5 @@
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
+import { SUNKEN_BELL_BIBLE } from "@audio-rpg/shared";
 import type { MemoryStore } from "@audio-rpg/gm-engine";
 import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
@@ -8,21 +9,71 @@ import { verifySessionToken } from "./tokens.js";
  * provides the interface and an in-memory implementation that the API
  * starts with so local dev works before the database is wired up.
  *
- * Replace `inMemoryMemory` and `inMemoryPersistence` with real Postgres-
- * backed implementations in apps/api/src/state/postgres.ts when the DB
- * migration lands.
+ * Replace the in-memory maps with Postgres-backed implementations in
+ * apps/api/src/state/postgres.ts when the DB migration lands.
  */
+
+export interface StoredWorld {
+  worldId: string;
+  kind: "official" | "uploaded" | "created";
+  title: string;
+  bible: GameBible;
+  createdAt: number;
+  warnings?: string[];
+}
 
 interface StoredCampaign {
   state: CampaignState;
   bible: GameBible;
   worldId: string;
   title: string;
+  createdAt: number;
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
 }
 
+const worlds = new Map<string, StoredWorld>();
 const campaigns = new Map<string, StoredCampaign>();
+
+// Seed the official sample world so it always shows up in the library.
+worlds.set("sunken_bell", {
+  worldId: "sunken_bell",
+  kind: "official",
+  title: SUNKEN_BELL_BIBLE.title,
+  bible: SUNKEN_BELL_BIBLE,
+  createdAt: 0,
+});
+
+export function saveWorld(args: {
+  worldId: string;
+  kind: StoredWorld["kind"];
+  bible: GameBible;
+  warnings?: string[];
+}): StoredWorld {
+  const stored: StoredWorld = {
+    worldId: args.worldId,
+    kind: args.kind,
+    title: args.bible.title,
+    bible: args.bible,
+    createdAt: Date.now(),
+    ...(args.warnings && args.warnings.length ? { warnings: args.warnings } : {}),
+  };
+  worlds.set(args.worldId, stored);
+  return stored;
+}
+
+export function getWorld(worldId: string): StoredWorld | null {
+  return worlds.get(worldId) ?? null;
+}
+
+export function listWorlds(): Pick<
+  StoredWorld,
+  "worldId" | "kind" | "title" | "createdAt"
+>[] {
+  return Array.from(worlds.values())
+    .map(({ worldId, kind, title, createdAt }) => ({ worldId, kind, title, createdAt }))
+    .sort((a, b) => b.createdAt - a.createdAt);
+}
 
 export async function loadSession(
   campaignId: string,
@@ -56,6 +107,7 @@ export function seedCampaign(args: {
     state: args.state,
     worldId: args.worldId,
     title: args.title,
+    createdAt: Date.now(),
     lastPresentedChoices: [],
     narrationLog: [],
   });
@@ -69,7 +121,21 @@ export function getCampaignSummary(campaignId: string) {
     worldId: c.worldId,
     title: c.title,
     state: c.state,
+    createdAt: c.createdAt,
   };
+}
+
+export function listCampaigns() {
+  return Array.from(campaigns.entries())
+    .map(([campaignId, c]) => ({
+      campaignId,
+      worldId: c.worldId,
+      title: c.title,
+      sceneName: c.state.scene.name,
+      turnNumber: c.state.turn_number,
+      createdAt: c.createdAt,
+    }))
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 const memoryStore: MemoryStore = {
