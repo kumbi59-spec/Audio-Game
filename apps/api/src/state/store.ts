@@ -41,6 +41,19 @@ export function __resetStoreForTests(): void {
   singleton = null;
 }
 
+/**
+ * Cleanly release any pooled resources (e.g. Postgres connections). Used
+ * by the integration test suite in afterAll so the process exits cleanly
+ * in CI.
+ */
+export async function closeStore(): Promise<void> {
+  if (!singleton) return;
+  if (singleton instanceof PostgresCampaignStore) {
+    await singleton.close();
+  }
+  singleton = null;
+}
+
 // ------------------------------------------------------------------
 // Legacy thin wrappers. Existing routes call these instead of holding a
 // direct store reference; they remain stable as we swap in Postgres.

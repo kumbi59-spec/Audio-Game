@@ -3,6 +3,7 @@ import type { AddressInfo } from "node:net";
 import WebSocket from "ws";
 import type { GmTurn, ServerEvent } from "@audio-rpg/shared";
 import { buildServer } from "../server.js";
+import { closeStore } from "../state/store.js";
 
 /**
  * End-to-end loop test. Spins up the real Fastify server with an
@@ -58,6 +59,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await app.close();
+  await closeStore();
 });
 
 describe("session end-to-end", () => {
@@ -185,6 +187,65 @@ describe("session end-to-end", () => {
     ws.close();
   });
 
+  it("persists two sequential turns (exercises Postgres when DATABASE_URL is set)", async () => {
+    // Create a fresh campaign so we can observe the monotonic turn counter.
+    const res = await fetch(`http://${baseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Aer" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${baseUrl}/session`);
+    const completes: number[] = [];
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      const evt = JSON.parse(raw.toString("utf8")) as ServerEvent;
+      events.push(evt);
+      if (evt.type === "turn_complete") completes.push(evt.turnNumber);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    ws.send(
+      JSON.stringify({
+        type: "player_input",
+        input: { kind: "utility", command: "begin" },
+      }),
+    );
+    await waitForCompletion(completes, 1);
+
+    // A choice input from the list returned by the fake generator.
+    ws.send(
+      JSON.stringify({
+        type: "player_input",
+        input: { kind: "choice", choiceId: "c1" },
+      }),
+    );
+    await waitForCompletion(completes, 2);
+    ws.close();
+
+    expect(completes).toEqual([1, 2]);
+
+    // Fetch the campaign summary — asserts Postgres round-trip of state.
+    const summaryRes = await fetch(
+      `http://${baseUrl}/campaigns/${campaignId}`,
+    );
+    const summary = (await summaryRes.json()) as {
+      state: { turn_number: number; inventory: { name: string }[] };
+    };
+    expect(summary.state.turn_number).toBe(2);
+    expect(summary.state.inventory.length).toBeGreaterThan(0);
+  });
+
   it("rejects an invalid session token", async () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     await new Promise<void>((resolve, reject) => {
@@ -231,4 +292,17 @@ async function waitForEvent(
     await new Promise((r) => setTimeout(r, 20));
   }
   throw new Error(`timed out waiting for ${type}`);
+}
+
+async function waitForCompletion(
+  completes: number[],
+  turnNumber: number,
+  timeoutMs = 5000,
+): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (completes.includes(turnNumber)) return;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  throw new Error(`timed out waiting for turn_complete ${turnNumber}`);
 }
