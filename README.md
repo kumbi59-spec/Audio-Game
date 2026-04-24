@@ -42,6 +42,10 @@ pnpm dev:api
 
 # Mobile / web
 pnpm dev:mobile
+
+# End-to-end smoke test against a running server
+# (requires ANTHROPIC_API_KEY on the server; no external creds needed in CI)
+pnpm --filter @audio-rpg/api e2e
 ```
 
 ## Design pillars
