@@ -6,10 +6,11 @@
   "main": "./src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "tsx scripts/e2e.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.91.0",
@@ -28,8 +29,10 @@
     "@types/node": "20.14.10",
     "@types/pdf-parse": "1.1.4",
     "@types/pg": "8.11.10",
+    "@types/ws": "8.5.12",
     "tsx": "4.19.1",
     "typescript": "5.5.4",
-    "vitest": "2.0.5"
+    "vitest": "2.0.5",
+    "ws": "8.18.0"
   }
 }

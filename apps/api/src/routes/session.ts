@@ -1,7 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { ClientEvent, ServerEvent } from "@audio-rpg/shared";
-import { runTurn } from "../gm/orchestrator.js";
+import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
+
+export interface SessionRouteOptions {
+  /** Injected GM turn generator; defaults to the real Claude path. */
+  turnGenerator?: TurnGenerator;
+}
 
 /**
  * Per-campaign WebSocket. The client sends `join` + `player_input` events,
@@ -9,7 +14,10 @@ import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
  * `sound_cue`, `turn_complete`. Audio is fetched separately from the TTS
  * proxy keyed by turnId.
  */
-export async function registerSessionRoutes(app: FastifyInstance): Promise<void> {
+export async function registerSessionRoutes(
+  app: FastifyInstance,
+  options: SessionRouteOptions = {},
+): Promise<void> {
   app.get("/session", { websocket: true }, async (socket, req) => {
     app.log.info({ ip: req.ip }, "session connected");
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
@@ -85,7 +93,11 @@ export async function registerSessionRoutes(app: FastifyInstance): Promise<void>
           session = await runTurn(
             session,
             event.input,
-            { memory: getMemoryStore(), ...getPersistence() },
+            {
+              memory: getMemoryStore(),
+              ...getPersistence(),
+              ...(options.turnGenerator ? { generateTurn: options.turnGenerator } : {}),
+            },
             emit,
           );
         } catch (err) {

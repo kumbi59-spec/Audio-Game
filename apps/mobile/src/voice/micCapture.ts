@@ -1,6 +1,11 @@
 import { Platform } from "react-native";
-import { Audio } from "expo-av";
-import * as FileSystem from "expo-file-system";
+import {
+  ExpoAudioStreamModule,
+  addAudioEventListener,
+  type AudioEventPayload,
+  type EventSubscription,
+  type RecordingConfig,
+} from "./audioStream";
 import type { MicCapture } from "./deepgram";
 
 /**
@@ -11,22 +16,14 @@ import type { MicCapture } from "./deepgram";
  *  - Web (Chrome, Firefox, Safari): AudioWorklet pulls Float32 samples
  *    straight out of the audio graph, converts to Int16 LE, and posts
  *    each render quantum to the main thread. No native deps.
- *  - iOS: `expo-av` Recording configured for LinearPCM at 16 kHz,
- *    16-bit, mono. We poll the recording file every 250 ms, skip the
- *    44-byte WAV header on the first read, and forward the new bytes.
- *    Latency is ~250 ms, acceptable for the MVP utterance-based flow
- *    (the user tapes out a full sentence before we stop).
- *  - Android: native streaming PCM from expo-av isn't reliable — the
- *    encoder options don't expose raw 16-bit output. Android mic
- *    capture will throw with a clear message pointing at the
- *    @siteed/expo-audio-stream native module which is the accepted
- *    solution. Until that's integrated, Android falls back to the
- *    mock recognizer so the rest of the app keeps working.
+ *  - iOS + Android: @siteed/expo-audio-stream's native module emits
+ *    PCM chunks every 100 ms via addAudioEventListener. We decode the
+ *    base64 payload and forward the raw bytes to the recognizer —
+ *    same code path on both platforms, no file-polling hack.
  */
 export function createPlatformMicCapture(): MicCapture {
   if (Platform.OS === "web") return createWebMicCapture();
-  if (Platform.OS === "ios") return createIosMicCapture();
-  return createUnsupportedMicCapture(Platform.OS);
+  return createNativeMicCapture();
 }
 
 // ---------------------------------------------------------------------------
@@ -55,10 +52,6 @@ function createWebMicCapture(): MicCapture {
         },
         video: false,
       });
-      // Modern browsers honor sampleRate on AudioContext; this means the
-      // AudioWorklet's render quantum is already at 16 kHz. If the request
-      // is refused we'd fall through to the worklet doing a linear
-      // downsample — not worth the complexity for MVP; fail fast instead.
       audioCtx = new AudioContext({ sampleRate: 16000 });
       workletUrl = makePcmWorkletUrl();
       await audioCtx.audioWorklet.addModule(workletUrl);
@@ -118,110 +111,83 @@ function makePcmWorkletUrl(): string {
 }
 
 // ---------------------------------------------------------------------------
-// iOS: expo-av LinearPCM + file polling
+// iOS + Android: @siteed/expo-audio-stream
 // ---------------------------------------------------------------------------
 
-function createIosMicCapture(): MicCapture {
-  let recording: Audio.Recording | null = null;
-  let timer: ReturnType<typeof setInterval> | null = null;
-  let lastRead = WAV_HEADER_BYTES;
+function createNativeMicCapture(): MicCapture {
+  let subscription: EventSubscription | null = null;
+  let active = false;
 
   return {
     async start(onChunk) {
-      const perm = await Audio.requestPermissionsAsync();
-      if (!perm.granted) throw new Error("Microphone permission denied.");
+      const permission = await ExpoAudioStreamModule.requestPermissionsAsync();
+      if (!permission?.granted) {
+        throw new Error("Microphone permission denied.");
+      }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      subscription = addAudioEventListener(async (evt) => {
+        if (!active) return;
+        const bytes = extractPcmBytes(evt);
+        if (bytes && bytes.byteLength > 0) onChunk(bytes);
       });
 
-      recording = new Audio.Recording();
-      await recording.prepareToRecordAsync({
-        isMeteringEnabled: false,
-        android: {
-          // Android is not supported on this path — see createUnsupportedMicCapture.
-          extension: ".wav",
-          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
-        },
+      const config: RecordingConfig = {
+        sampleRate: 16000,
+        channels: 1,
+        encoding: "pcm_16bit",
+        interval: 100, // ms between audioData events — low latency for Deepgram
+        enableProcessing: false,
+        keepAwake: true,
+        showNotification: false,
         ios: {
-          extension: ".wav",
-          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
+          audioSession: {
+            category: "PlayAndRecord",
+            mode: "SpokenAudio",
+            categoryOptions: [
+              "AllowBluetooth",
+              "DefaultToSpeaker",
+              "MixWithOthers",
+            ],
+          },
         },
-        web: {
-          mimeType: "audio/wav",
-          bitsPerSecond: 256000,
-        },
-      });
-      await recording.startAsync();
-      lastRead = WAV_HEADER_BYTES;
+      };
 
-      timer = setInterval(() => {
-        void pumpBytes(recording, () => lastRead, (n) => {
-          lastRead = n;
-        }, onChunk);
-      }, 250);
+      active = true;
+      await ExpoAudioStreamModule.startRecording(config);
     },
     async stop() {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-      }
-      const rec = recording;
-      recording = null;
-      if (!rec) return;
+      active = false;
       try {
-        await rec.stopAndUnloadAsync();
+        await ExpoAudioStreamModule.stopRecording();
       } catch {
-        /* ignore; final bytes captured in the last pump tick */
+        /* best effort — the recognizer already closed the WS */
       }
-      // Flush anything the recorder wrote between the last tick and stop.
-      await pumpBytes(rec, () => lastRead, (n) => {
-        lastRead = n;
-      }, () => {
-        /* no-op: deepgram was told to close already */
-      });
+      subscription?.remove();
+      subscription = null;
     },
   };
 }
 
-const WAV_HEADER_BYTES = 44;
-
-async function pumpBytes(
-  recording: Audio.Recording | null,
-  getLastRead: () => number,
-  setLastRead: (n: number) => void,
-  emit: (chunk: ArrayBuffer) => void,
-): Promise<void> {
-  if (!recording) return;
-  const uri = recording.getURI();
-  if (!uri) return;
-  const info = await FileSystem.getInfoAsync(uri, { size: true });
-  if (!info.exists) return;
-  const currentSize =
-    "size" in info && typeof info.size === "number" ? info.size : 0;
-  const from = getLastRead();
-  if (currentSize <= from) return;
-  const length = currentSize - from;
-  const b64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-    position: from,
-    length,
-  });
-  setLastRead(currentSize);
-  const bytes = base64ToArrayBuffer(b64);
-  if (bytes.byteLength > 0) emit(bytes);
+/**
+ * The native module emits either a base64-encoded payload (iOS/Android) or
+ * a Float32Array buffer (rare — usually the web fallback path); convert to
+ * an Int16 LE ArrayBuffer that Deepgram can consume.
+ */
+function extractPcmBytes(evt: AudioEventPayload): ArrayBuffer | null {
+  if (typeof evt.encoded === "string" && evt.encoded.length > 0) {
+    return base64ToArrayBuffer(evt.encoded);
+  }
+  const buffer = evt.buffer;
+  if (buffer && buffer instanceof Float32Array) {
+    const out = new ArrayBuffer(buffer.length * 2);
+    const view = new DataView(out);
+    for (let i = 0; i < buffer.length; i++) {
+      const s = Math.max(-1, Math.min(1, buffer[i] ?? 0));
+      view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+    return out;
+  }
+  return null;
 }
 
 function base64ToArrayBuffer(b64: string): ArrayBuffer {
@@ -230,29 +196,12 @@ function base64ToArrayBuffer(b64: string): ArrayBuffer {
       ? atob(b64)
       : (
           globalThis as unknown as {
-            Buffer?: { from: (s: string, enc: string) => { toString: (enc: string) => string } };
+            Buffer?: {
+              from: (s: string, enc: string) => { toString: (enc: string) => string };
+            };
           }
         ).Buffer?.from(b64, "base64").toString("binary") ?? "";
   const out = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
   return out.buffer;
-}
-
-// ---------------------------------------------------------------------------
-// Unsupported platform fallback
-// ---------------------------------------------------------------------------
-
-function createUnsupportedMicCapture(osName: string): MicCapture {
-  return {
-    async start() {
-      throw new Error(
-        `Streaming mic capture is not yet wired for ${osName}. ` +
-          "Add @siteed/expo-audio-stream (or an equivalent native module) " +
-          "and implement createPlatformMicCapture for this platform.",
-      );
-    },
-    async stop() {
-      /* no-op */
-    },
-  };
 }

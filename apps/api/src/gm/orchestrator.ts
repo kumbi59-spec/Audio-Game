@@ -15,6 +15,12 @@ import {
 import { generateGmTurn } from "./claude.js";
 import { randomUUID } from "node:crypto";
 
+export type TurnGenerator = (args: {
+  bible: GameBible;
+  userPrompt: string;
+  onText?: (chunk: string) => void;
+}) => Promise<GmTurn>;
+
 export interface Session {
   campaignId: string;
   worldId: string;
@@ -25,6 +31,12 @@ export interface Session {
 
 export interface OrchestratorDeps {
   memory: MemoryStore;
+  /**
+   * Produces the next GM turn. Defaults to the real Claude-backed
+   * generator; tests inject a deterministic fake so the WebSocket
+   * path can be exercised without an Anthropic key.
+   */
+  generateTurn?: TurnGenerator;
   persistTurn: (args: {
     campaignId: string;
     turnNumber: number;
@@ -80,7 +92,8 @@ export async function runTurn(
     presentedChoices: session.lastPresentedChoices,
   });
 
-  const turn = await generateGmTurn({
+  const generate = deps.generateTurn ?? generateGmTurn;
+  const turn = await generate({
     bible: session.bible,
     userPrompt,
     onText: (chunk) => {

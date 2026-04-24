@@ -3,16 +3,24 @@ import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import { config } from "./config.js";
+import type { TurnGenerator } from "./gm/orchestrator.js";
 import { registerSessionRoutes } from "./routes/session.js";
 import { registerCampaignRoutes } from "./routes/campaigns.js";
 import { registerSttRoutes } from "./routes/stt.js";
 import { registerTtsRoutes } from "./routes/tts.js";
 import { registerWorldRoutes } from "./routes/worlds.js";
 
-export async function buildServer() {
+export interface BuildServerOptions {
+  /** Override the GM turn generator (tests inject a deterministic fake). */
+  turnGenerator?: TurnGenerator;
+  /** Override log level; defaults to LOG_LEVEL env or "info". */
+  logLevel?: string;
+}
+
+export async function buildServer(options: BuildServerOptions = {}) {
   const app = Fastify({
     logger: {
-      level: process.env["LOG_LEVEL"] ?? "info",
+      level: options.logLevel ?? process.env["LOG_LEVEL"] ?? "info",
     },
   });
 
@@ -31,7 +39,9 @@ export async function buildServer() {
   await registerCampaignRoutes(app);
   await registerTtsRoutes(app);
   await registerSttRoutes(app);
-  await registerSessionRoutes(app);
+  await registerSessionRoutes(app, {
+    ...(options.turnGenerator ? { turnGenerator: options.turnGenerator } : {}),
+  });
 
   return app;
 }
