@@ -10,7 +10,17 @@
     "experiments": {
       "typedRoutes": true
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "@siteed/expo-audio-stream",
+        {
+          "iosBackgroundModes": {
+            "useAudio": true
+          }
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.audiorpg.app",
