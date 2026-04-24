@@ -34,6 +34,10 @@ export interface OrchestratorDeps {
     input?: PlayerInput;
   }) => Promise<void>;
   persistState: (campaignId: string, state: CampaignState) => Promise<void>;
+  persistPresentedChoices?: (
+    campaignId: string,
+    choices: { id: string; label: string }[],
+  ) => Promise<void>;
 }
 
 /**
@@ -109,6 +113,9 @@ export async function runTurn(
     turn,
   });
   await deps.persistState(session.campaignId, nextState);
+  if (deps.persistPresentedChoices) {
+    await deps.persistPresentedChoices(session.campaignId, turn.presented_choices);
+  }
 
   emit({
     type: "turn_complete",

@@ -3,6 +3,8 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import { registerSessionRoutes } from "./routes/session.js";
+import { registerCampaignRoutes } from "./routes/campaigns.js";
+import { registerTtsRoutes } from "./routes/tts.js";
 
 export async function buildServer() {
   const app = Fastify({
@@ -19,6 +21,8 @@ export async function buildServer() {
 
   app.get("/health", async () => ({ ok: true }));
 
+  await registerCampaignRoutes(app);
+  await registerTtsRoutes(app);
   await registerSessionRoutes(app);
 
   return app;

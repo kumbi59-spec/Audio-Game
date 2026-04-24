@@ -19,5 +19,5 @@ jobs:
           node-version: 20.11.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
-      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api typecheck
+      - run: pnpm -r typecheck
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine test

@@ -8,7 +8,7 @@ export default function Library(): JSX.Element {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text ref={headingRef} accessibilityRole="header" accessibilityLevel={1} style={styles.h1}>
+      <Text ref={headingRef} accessibilityRole="header" aria-level={1} style={styles.h1}>
         Library
       </Text>
       <Text style={styles.body}>
