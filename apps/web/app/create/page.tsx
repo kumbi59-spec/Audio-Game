@@ -24,7 +24,7 @@ function CreateCharacterPage() {
 
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
-  const { setSession, setCharacter, setWorld } = useGameStore();
+  const { setSession, setCharacter, setWorld, setDbSessionId } = useGameStore();
 
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
@@ -107,6 +107,26 @@ function CreateCharacterPage() {
     setWorld(world);
     setCharacter(character);
     setSession(session);
+
+    // Persist to DB in the background (best-effort — game works without it)
+    const guestId = (() => {
+      const stored = localStorage.getItem("echoquest-guest-id");
+      if (stored) return stored;
+      const id = crypto.randomUUID();
+      localStorage.setItem("echoquest-guest-id", id);
+      return id;
+    })();
+
+    fetch("/api/game/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ guestId, worldId: world.id, character }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { sessionId?: string } | null) => {
+        if (data?.sessionId) setDbSessionId(data.sessionId);
+      })
+      .catch(() => undefined);
 
     // Generate opening narration via the server API route (keeps API key server-side)
     try {

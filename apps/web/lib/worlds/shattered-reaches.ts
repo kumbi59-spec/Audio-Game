@@ -127,4 +127,5 @@ Sound Design:
   ],
 };
 
-export const PREBUILT_WORLDS: WorldData[] = [SHATTERED_REACHES];
+import { MIREWOOD } from "./mirewood";
+export const PREBUILT_WORLDS: WorldData[] = [SHATTERED_REACHES, MIREWOOD];
