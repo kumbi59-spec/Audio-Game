@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ttsProvider      String  @default("browser")
+  ttsVoiceId       String?
+  ttsSpeed         Float   @default(1.0)
+  ttsPitch         Float   @default(1.0)
+  volume           Float   @default(1.0)
+  ambientEnabled   Boolean @default(true)
+  soundCuesEnabled Boolean @default(true)
+  highContrast     Boolean @default(false)
+  reducedMotion    Boolean @default(false)
+
+  sessions   GameSession[]
+  characters Character[]
+  worlds     World[]
+  gameBibles GameBible[]
+}
+
+model World {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  genre        String
+  tone         String
+  systemPrompt String
+  isPublic     Boolean  @default(false)
+  isPrebuilt   Boolean  @default(false)
+  imageUrl     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  ownerId     String?
+  owner       User?      @relation(fields: [ownerId], references: [id])
+  gameBibleId String?
+  gameBible   GameBible? @relation(fields: [gameBibleId], references: [id])
+
+  locations   Location[]
+  npcs        NPC[]
+  sessions    GameSession[]
+  libraryItem LibraryItem?
+
+  @@index([isPublic, isPrebuilt])
+}
+
+model GameBible {
+  id               String   @id @default(cuid())
+  originalName     String
+  mimeType         String
+  rawText          String
+  parsedData       String
+  processingStatus String   @default("pending")
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  uploaderId String
+  uploader   User    @relation(fields: [uploaderId], references: [id])
+  worlds     World[]
+}
+
+model LibraryItem {
+  id              String   @id @default(cuid())
+  title           String
+  author          String?
+  description     String
+  genre           String
+  coverImageUrl   String?
+  durationMinutes Int?
+  difficulty      String
+  tags            String
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  worldId String @unique
+  world   World  @relation(fields: [worldId], references: [id])
+}
+
+model Location {
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  shortDesc   String
+  ambientSound String?
+  connectedTo String
+  isDiscovered Boolean @default(false)
+  properties  String
+
+  worldId String
+  world   World  @relation(fields: [worldId], references: [id])
+  npcs    NPC[]
+}
+
+model NPC {
+  id               String  @id @default(cuid())
+  name             String
+  role             String
+  personality      String
+  voiceDescription String
+  relationship     String  @default("neutral")
+  isAlive          Boolean @default(true)
+  properties       String
+
+  worldId    String
+  world      World     @relation(fields: [worldId], references: [id])
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
+}
+
+model Character {
+  id        String   @id @default(cuid())
+  name      String
+  class     String
+  backstory String
+  stats     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  inventory InventoryItem[]
+  quests    Quest[]
+  sessions  GameSession[]
+}
+
+model InventoryItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  quantity    Int      @default(1)
+  properties  String
+  acquiredAt  DateTime @default(now())
+
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+}
+
+model Quest {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  status      String   @default("active")
+  objectives  String
+  reward      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+}
+
+model GameSession {
+  id           String   @id @default(cuid())
+  status       String   @default("active")
+  turnCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastPlayedAt DateTime @default(now())
+
+  worldId     String
+  world       World     @relation(fields: [worldId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+
+  gameState GameState?
+  history   GameHistoryEntry[]
+
+  @@index([userId, status])
+}
+
+model GameState {
+  id                String   @id @default(cuid())
+  currentLocationId String?
+  timeOfDay         String   @default("morning")
+  weather           String   @default("clear")
+  globalFlags       String
+  npcStates         String
+  memorySummary     String
+  lastUpdatedAt     DateTime @default(now())
+
+  sessionId String      @unique
+  session   GameSession @relation(fields: [sessionId], references: [id])
+}
+
+model GameHistoryEntry {
+  id         String   @id @default(cuid())
+  turnNumber Int
+  role       String
+  content    String
+  actionType String?
+  metadata   String
+  createdAt  DateTime @default(now())
+
+  sessionId String
+  session   GameSession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, turnNumber])
+}

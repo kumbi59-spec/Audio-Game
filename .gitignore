@@ -1,21 +1,59 @@
-node_modules
-dist
-build
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+
+# Expo / React Native
 .expo
 .expo-shared
-*.log
-.env
-.env.*
-!.env.example
-.DS_Store
-coverage
-.turbo
-.cache
-pnpm-lock.yaml.backup
+web-build
 ios/Pods
 android/.gradle
 android/build
 android/app/build
-web-build
-playwright-report
-test-results
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Databases
+*.db
+*.db-journal
+dev.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.env.local
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.turbo
+.cache
+pnpm-lock.yaml.backup
+
+# Test results
+playwright-report/
+test-results/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo

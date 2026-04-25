@@ -8,12 +8,13 @@
     "node": ">=20.11.0"
   },
   "scripts": {
-    "build": "pnpm -r --filter './packages/*' --filter './apps/api' build",
+    "build": "pnpm -r --filter './packages/*' --filter './apps/api' --filter './apps/web' build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "dev:api": "pnpm --filter @audio-rpg/api dev",
-    "dev:mobile": "pnpm --filter @audio-rpg/mobile start"
+    "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
+    "dev:web": "pnpm --filter @audio-rpg/web dev"
   },
   "devDependencies": {
     "typescript": "5.5.4"
