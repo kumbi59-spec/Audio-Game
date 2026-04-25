@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { ClientEvent, ServerEvent } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
+import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
 
 export interface SessionRouteOptions {
@@ -109,6 +110,28 @@ export async function registerSessionRoutes(
             recoverable: true,
           });
         }
+        return;
+      }
+
+      if (event.type === "request_recap") {
+        const memory = getMemoryStore();
+        try {
+          const recentTurns = await memory.recentTurns(session.campaignId, 6);
+          const summary = await generateRecap({ state: session.state, recentTurns });
+          emit({ type: "recap_ready", summary });
+        } catch (err) {
+          app.log.error({ err }, "recap generation failed");
+          emit({
+            type: "recap_ready",
+            summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
+          });
+        }
+        return;
+      }
+
+      if (event.type === "pause") {
+        // State is persisted after every turn — nothing extra to do.
+        socket.close();
         return;
       }
 

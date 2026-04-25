@@ -9,6 +9,7 @@ import { registerCampaignRoutes } from "./routes/campaigns.js";
 import { registerSttRoutes } from "./routes/stt.js";
 import { registerTtsRoutes } from "./routes/tts.js";
 import { registerWorldRoutes } from "./routes/worlds.js";
+import { registerWizardRoutes } from "./routes/wizard.js";
 
 export interface BuildServerOptions {
   /** Override the GM turn generator (tests inject a deterministic fake). */
@@ -36,6 +37,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
   app.get("/health", async () => ({ ok: true }));
 
   await registerWorldRoutes(app);
+  await registerWizardRoutes(app);
   await registerCampaignRoutes(app);
   await registerTtsRoutes(app);
   await registerSttRoutes(app);

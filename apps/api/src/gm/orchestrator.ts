@@ -12,8 +12,10 @@ import {
   buildTurnUserPrompt,
   type MemoryStore,
 } from "@audio-rpg/gm-engine";
-import { generateGmTurn } from "./claude.js";
+import { generateGmTurn, generateSceneSummary } from "./claude.js";
 import { randomUUID } from "node:crypto";
+
+const SCENE_SUMMARY_EVERY = 15;
 
 export type TurnGenerator = (args: {
   bible: GameBible;
@@ -49,6 +51,10 @@ export interface OrchestratorDeps {
   persistPresentedChoices?: (
     campaignId: string,
     choices: { id: string; label: string }[],
+  ) => Promise<void>;
+  persistSceneSummary?: (
+    campaignId: string,
+    summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ) => Promise<void>;
 }
 
@@ -128,6 +134,39 @@ export async function runTurn(
   await deps.persistState(session.campaignId, nextState);
   if (deps.persistPresentedChoices) {
     await deps.persistPresentedChoices(session.campaignId, turn.presented_choices);
+  }
+
+  // Periodically compress old turns into a scene summary to keep the active
+  // context window lean on long campaigns. Fire-and-forget so the player
+  // isn't blocked waiting for a second Claude call.
+  if (
+    deps.persistSceneSummary &&
+    nextState.turn_number > 0 &&
+    nextState.turn_number % SCENE_SUMMARY_EVERY === 0
+  ) {
+    void (async () => {
+      try {
+        const sceneNumber = Math.floor(nextState.turn_number / SCENE_SUMMARY_EVERY);
+        const batch = await deps.memory.recentTurns(
+          session.campaignId,
+          SCENE_SUMMARY_EVERY * 2,
+        );
+        const turnsToSummarize = batch.slice(0, SCENE_SUMMARY_EVERY);
+        if (turnsToSummarize.length === 0) return;
+        const result = await generateSceneSummary({
+          sceneName: nextState.scene.name,
+          sceneNumber,
+          turns: turnsToSummarize,
+        });
+        await deps.persistSceneSummary!(session.campaignId, {
+          sceneNumber,
+          summary: result.summary,
+          keyEvents: result.keyEvents,
+        });
+      } catch {
+        // Summarization is best-effort; never crash the game loop.
+      }
+    })();
   }
 
   emit({

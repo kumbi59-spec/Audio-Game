@@ -130,5 +130,3 @@ export async function POST(req: NextRequest) {
   });
 }
 
-// Required for multipart form data in Next.js
-export const config = { api: { bodyParser: false } };

@@ -20,6 +20,7 @@ import {
 } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
+import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 
 export default function Library(): JSX.Element {
   const router = useRouter();
@@ -47,9 +48,7 @@ export default function Library(): JSX.Element {
     }
   }, []);
 
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  useEffect(() => { void refresh(); }, [refresh]);
 
   const startWorld = useCallback(
     async (world: WorldSummary) => {
@@ -67,10 +66,7 @@ export default function Library(): JSX.Element {
           authToken: result.authToken,
         });
         sessionConnection.sendPlayerInput({ kind: "utility", command: "begin" });
-        router.push({
-          pathname: "/campaign/[id]",
-          params: { id: result.campaignId },
-        });
+        router.push({ pathname: "/campaign/[id]", params: { id: result.campaignId } });
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not start campaign.");
       } finally {
@@ -80,61 +76,42 @@ export default function Library(): JSX.Element {
     [router],
   );
 
-  useVoiceCommands({
-    "refresh|reload": () => {
-      void refresh();
-    },
-  });
+  useVoiceCommands({ "refresh|reload": () => { void refresh(); } });
 
   return (
     <ScrollView
+      style={styles.root}
       contentContainerStyle={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-      }
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={EQ.accent} />}
     >
-      <Text
-        ref={headingRef}
-        role="heading"
-        aria-level={1}
-        style={styles.h1}
-      >
+      <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
         Library
       </Text>
 
-      <Section title="Continue an adventure">
+      <Section title="CONTINUE ADVENTURE">
         {campaigns === null ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={EQ.accent} />
         ) : campaigns.length === 0 ? (
-          <Text style={styles.empty}>
-            No campaigns yet. Start one from a world below.
-          </Text>
+          <Text style={styles.empty}>No campaigns yet. Start one from a world below.</Text>
         ) : (
           campaigns.map((c) => (
             <Pressable
               key={c.campaignId}
               accessibilityRole="button"
               accessibilityLabel={`Resume ${c.title}, scene ${c.sceneName}, turn ${c.turnNumber}`}
-              onPress={() =>
-                router.push({
-                  pathname: "/campaign/[id]",
-                  params: { id: c.campaignId },
-                })
-              }
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              onPress={() => router.push({ pathname: "/campaign/[id]", params: { id: c.campaignId } })}
+              style={({ pressed }) => [styles.card, styles.cardActive, pressed && styles.cardPressed]}
             >
-              <Text style={styles.rowTitle}>{c.title}</Text>
-              <Text style={styles.rowMeta}>
-                {c.sceneName} · turn {c.turnNumber}
-              </Text>
+              <Text style={styles.cardTitle}>{c.title}</Text>
+              <Text style={styles.cardMeta}>{c.sceneName} · turn {c.turnNumber}</Text>
             </Pressable>
           ))
         )}
       </Section>
 
-      <Section title="Worlds">
+      <Section title="WORLDS">
         {worlds === null ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={EQ.accent} />
         ) : worlds.length === 0 ? (
           <Text style={styles.empty}>No worlds yet.</Text>
         ) : (
@@ -146,15 +123,14 @@ export default function Library(): JSX.Element {
               onPress={() => startWorld(w)}
               disabled={busyId !== null}
               style={({ pressed }) => [
-                styles.row,
-                pressed && styles.rowPressed,
-                busyId === w.worldId && styles.rowBusy,
+                styles.card,
+                pressed && styles.cardPressed,
+                busyId === w.worldId && styles.cardBusy,
               ]}
             >
-              <Text style={styles.rowTitle}>{w.title}</Text>
-              <Text style={styles.rowMeta}>
-                {kindLabel(w.kind)}
-                {busyId === w.worldId ? " · starting…" : ""}
+              <Text style={styles.cardTitle}>{w.title}</Text>
+              <Text style={styles.cardMeta}>
+                {kindLabel(w.kind)}{busyId === w.worldId ? " · starting…" : ""}
               </Text>
             </Pressable>
           ))
@@ -162,35 +138,22 @@ export default function Library(): JSX.Element {
       </Section>
 
       {error && (
-        <Text style={styles.error} accessibilityLiveRegion="assertive">
-          {error}
-        </Text>
+        <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
       )}
     </ScrollView>
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}): JSX.Element {
+function Section({ title, children }: { title: string; children: React.ReactNode }): JSX.Element {
   return (
     <View style={styles.section}>
-      <Text role="heading" aria-level={2} style={styles.h2}>
-        {title}
-      </Text>
+      <Text role="heading" aria-level={2} style={styles.sectionLabel}>{title}</Text>
       <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 }
 
-function describeContents(
-  worlds: WorldSummary[] | null,
-  campaigns: CampaignSummary[] | null,
-): string {
+function describeContents(worlds: WorldSummary[] | null, campaigns: CampaignSummary[] | null): string {
   if (worlds === null || campaigns === null) return "Loading your library.";
   const parts: string[] = [];
   if (campaigns.length === 0) parts.push("No saved campaigns.");
@@ -202,33 +165,39 @@ function describeContents(
 
 function kindLabel(kind: WorldSummary["kind"]): string {
   switch (kind) {
-    case "official":
-      return "official";
-    case "uploaded":
-      return "uploaded";
-    case "created":
-      return "you created";
+    case "official": return "Official";
+    case "uploaded": return "Uploaded";
+    case "created":  return "You created";
   }
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 16 },
-  h1: { fontSize: 32, fontWeight: "800" },
-  h2: { fontSize: 20, fontWeight: "700", marginBottom: 8 },
-  section: { marginTop: 8 },
-  sectionBody: { gap: 8 },
-  row: {
-    minHeight: 64,
-    borderRadius: 12,
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  root: { flex: 1, backgroundColor: EQ.bg },
+  container: { padding: SPACE[6], gap: SPACE[4] },
+  h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5 },
+  section: { gap: SPACE[3] },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: EQ.textFaint,
+    letterSpacing: 1.2,
+  },
+  sectionBody: { gap: SPACE[2] },
+  card: {
+    minHeight: TOUCH_MIN + 16,
+    borderRadius: R.xl,
+    backgroundColor: EQ.surface2,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    paddingHorizontal: SPACE[4],
+    paddingVertical: SPACE[3],
     justifyContent: "center",
   },
-  rowTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
-  rowMeta: { fontSize: 13, color: "#6b7280", marginTop: 2 },
-  rowPressed: { opacity: 0.7 },
-  rowBusy: { opacity: 0.5 },
-  empty: { color: "#6b7280", fontSize: 16 },
-  error: { color: "#b91c1c", fontWeight: "600", marginTop: 12 },
+  cardActive: { borderColor: EQ.accent },
+  cardTitle: { fontSize: FS.base, fontWeight: "700", color: EQ.text },
+  cardMeta: { fontSize: FS.xs, color: EQ.textMuted, marginTop: 3 },
+  cardPressed: { opacity: 0.7 },
+  cardBusy: { opacity: 0.5 },
+  empty: { color: EQ.textMuted, fontSize: FS.base },
+  error: { color: EQ.danger, fontWeight: "600", marginTop: SPACE[2] },
 });

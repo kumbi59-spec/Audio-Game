@@ -13,6 +13,7 @@ import { useVoiceCommands } from "@/voice/commandBus";
 import { createCampaign } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
+import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 
 export default function Home(): JSX.Element {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function Home(): JSX.Element {
 
   useLandmarkAnnounce(
     "Home",
-    "Tap or say start sample adventure to begin The Sunken Bell. Other options will arrive in upcoming updates.",
+    "Tap or say start new adventure to begin The Sunken Bell. Say library, create world, or upload game bible for other options.",
     headingRef,
   );
 
@@ -41,14 +42,8 @@ export default function Home(): JSX.Element {
         campaignId: result.campaignId,
         authToken: result.authToken,
       });
-      sessionConnection.sendPlayerInput({
-        kind: "utility",
-        command: "begin",
-      });
-      router.push({
-        pathname: "/campaign/[id]",
-        params: { id: result.campaignId },
-      });
+      sessionConnection.sendPlayerInput({ kind: "utility", command: "begin" });
+      router.push({ pathname: "/campaign/[id]", params: { id: result.campaignId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start a campaign.");
     } finally {
@@ -57,55 +52,95 @@ export default function Home(): JSX.Element {
   }, [router]);
 
   useVoiceCommands({
-    "start sample|sample adventure|begin sample|play sunken bell": () => {
+    "start sample|sample adventure|begin sample|play sunken bell|new adventure|start new": () => {
       void startSample();
     },
-    "library|my library": () => router.push("/library"),
+    "library|my library|browse": () => router.push("/library"),
     "create|create world|new world": () => router.push("/create"),
     "upload|upload bible|upload game bible": () => router.push("/upload"),
     "accessibility|settings": () => router.push("/settings/a11y"),
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text
-        ref={headingRef}
-        role="heading"
-        aria-level={1}
-        style={styles.h1}
-      >
-        Home
-      </Text>
+    <ScrollView contentContainerStyle={styles.container} style={styles.root}>
+      <View style={styles.header}>
+        <Text style={styles.brandLabel}>ECHOQUEST</Text>
+        <Text
+          ref={headingRef}
+          role="heading"
+          aria-level={1}
+          accessibilityLabel="Home"
+          style={styles.h1}
+        >
+          Your adventure{"\n"}awaits.
+        </Text>
+        <Text style={styles.tagline}>
+          Narrated interactive adventures, powered by AI.{"\n"}Accessible to everyone.
+        </Text>
+      </View>
 
-      <PrimaryAction
-        label={starting ? "Starting…" : "Start sample adventure"}
-        hint="Begin The Sunken Bell, a short gothic mystery"
+      <View style={styles.sectionLabel}>
+        <Text style={styles.sectionLabelText}>CONTINUE ADVENTURE</Text>
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={starting ? "Beginning your adventure…" : "Start sample adventure"}
+        accessibilityHint="Begin The Sunken Bell, a short gothic mystery"
+        accessibilityState={{ busy: starting, disabled: starting }}
         onPress={startSample}
         disabled={starting}
-        loading={starting}
-      />
-      <PrimaryAction
-        label="Library"
-        hint="Browse your saved campaigns and uploaded worlds"
-        onPress={() => router.push("/library")}
-      />
-      <PrimaryAction
-        label="Create world"
-        hint="Walk through a spoken wizard to design a new world"
-        onPress={() => router.push("/create")}
-      />
-      <PrimaryAction
-        label="Upload game bible"
-        hint="Turn a PDF, DOCX, or text file into a playable world"
-        onPress={() => router.push("/upload")}
-      />
+        style={({ pressed }) => [
+          styles.primaryBtn,
+          pressed && styles.btnPressed,
+          starting && styles.btnDisabled,
+        ]}
+      >
+        {starting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <>
+            <Text style={styles.primaryBtnTitle}>Start New Adventure</Text>
+            <Text style={styles.primaryBtnSub}>The Sunken Bell · gothic mystery</Text>
+          </>
+        )}
+      </Pressable>
 
-      <View style={styles.footerRow}>
-        <SecondaryAction
-          label="Accessibility"
-          onPress={() => router.push("/settings/a11y")}
+      <View style={[styles.sectionLabel, { marginTop: SPACE[4] }]}>
+        <Text style={styles.sectionLabelText}>EXPLORE</Text>
+      </View>
+
+      <View style={styles.grid}>
+        <NavCard
+          label="Browse Library"
+          sub="Your campaigns & worlds"
+          onPress={() => router.push("/library")}
+        />
+        <NavCard
+          label="Create World"
+          sub="Spoken wizard"
+          onPress={() => router.push("/create")}
+        />
+        <NavCard
+          label="Upload Bible"
+          accessibilityLabel="Upload game bible"
+          sub="PDF, DOCX, text"
+          onPress={() => router.push("/upload")}
+          wide
         />
       </View>
+
+      <View style={styles.footer}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Accessibility settings"
+          onPress={() => router.push("/settings/a11y")}
+          style={({ pressed }) => [styles.textLink, pressed && { opacity: 0.6 }]}
+        >
+          <Text style={styles.textLinkText}>Accessibility Settings</Text>
+        </Pressable>
+      </View>
+
       {error && (
         <Text style={styles.error} accessibilityLiveRegion="assertive">
           {error}
@@ -115,73 +150,105 @@ export default function Home(): JSX.Element {
   );
 }
 
-interface ActionProps {
-  label: string;
-  hint?: string;
-  onPress: () => void;
-  disabled?: boolean;
-  loading?: boolean;
-}
-
-function PrimaryAction({ label, hint, onPress, disabled, loading }: ActionProps): JSX.Element {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={hint}
-      accessibilityState={{ disabled: !!disabled, busy: !!loading }}
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [styles.primaryBtn, pressed && styles.btnPressed, disabled && styles.btnDisabled]}
-    >
-      {loading ? (
-        <ActivityIndicator color="#fff" />
-      ) : (
-        <Text style={styles.primaryBtnText}>{label}</Text>
-      )}
-    </Pressable>
-  );
-}
-
-function SecondaryAction({
+function NavCard({
   label,
+  accessibilityLabel,
+  sub,
   onPress,
-}: Omit<ActionProps, "hint">): JSX.Element {
+  wide,
+}: {
+  label: string;
+  accessibilityLabel?: string;
+  sub: string;
+  onPress: () => void;
+  wide?: boolean;
+}): JSX.Element {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityHint={sub}
       onPress={onPress}
-      style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
+      style={({ pressed }) => [
+        styles.navCard,
+        wide && styles.navCardWide,
+        pressed && styles.btnPressed,
+      ]}
     >
-      <Text style={styles.secondaryBtnText}>{label}</Text>
+      <Text style={styles.navCardLabel}>{label}</Text>
+      <Text style={styles.navCardSub}>{sub}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 16 },
-  h1: { fontSize: 36, fontWeight: "800", marginBottom: 16 },
+  root: { flex: 1, backgroundColor: EQ.bg },
+  container: { padding: SPACE[6], gap: SPACE[3] },
+
+  header: { gap: SPACE[2], marginBottom: SPACE[2] },
+  brandLabel: {
+    fontSize: FS.xs,
+    fontWeight: "600",
+    color: EQ.accent,
+    letterSpacing: 2,
+  },
+  h1: {
+    fontSize: FS.hero,
+    fontWeight: "700",
+    color: EQ.text,
+    letterSpacing: -0.5,
+    lineHeight: 40,
+  },
+  tagline: {
+    fontSize: FS.sm,
+    color: EQ.textMuted,
+    lineHeight: 20,
+  },
+
+  sectionLabel: { marginTop: SPACE[2] },
+  sectionLabelText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: EQ.textFaint,
+    letterSpacing: 1.2,
+  },
+
   primaryBtn: {
-    minHeight: 72,
-    borderRadius: 16,
-    backgroundColor: "#1f2937",
-    paddingHorizontal: 20,
+    minHeight: TOUCH_MIN + 16,
+    borderRadius: R.lg,
+    backgroundColor: EQ.accent,
+    paddingHorizontal: SPACE[5],
+    paddingVertical: SPACE[4],
     justifyContent: "center",
-    alignItems: "flex-start",
+    shadowColor: EQ.accent,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
   },
-  primaryBtnText: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  secondaryBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#1f2937",
-    paddingHorizontal: 16,
+  primaryBtnTitle: { color: "#fff", fontSize: FS.lg, fontWeight: "700" },
+  primaryBtnSub: { color: "rgba(255,255,255,0.65)", fontSize: FS.xs, marginTop: 3 },
+
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
+  navCard: {
+    flex: 1,
+    minWidth: "45%",
+    minHeight: TOUCH_MIN + 12,
+    backgroundColor: EQ.surface,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    padding: SPACE[4],
     justifyContent: "center",
   },
-  secondaryBtnText: { color: "#1f2937", fontSize: 18, fontWeight: "600" },
-  btnPressed: { opacity: 0.7 },
-  btnDisabled: { opacity: 0.5 },
-  footerRow: { marginTop: 24 },
-  error: { color: "#b91c1c", fontWeight: "600", marginTop: 12 },
+  navCardWide: { flexBasis: "100%", flexGrow: 0 },
+  navCardLabel: { fontSize: FS.sm, fontWeight: "700", color: EQ.text },
+  navCardSub: { fontSize: FS.xs, color: EQ.textMuted, marginTop: 3 },
+
+  footer: { alignItems: "center", marginTop: SPACE[4] },
+  textLink: { padding: SPACE[2] },
+  textLinkText: { color: EQ.accent, fontSize: FS.sm, fontWeight: "600" },
+
+  btnPressed: { opacity: 0.75 },
+  btnDisabled: { opacity: 0.4 },
+  error: { color: EQ.danger, fontWeight: "600", marginTop: SPACE[2] },
 });

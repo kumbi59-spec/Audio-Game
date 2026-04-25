@@ -339,6 +339,20 @@ export class PostgresCampaignStore implements CampaignStore {
     );
   }
 
+  async persistSceneSummary(
+    campaignId: string,
+    summary: { sceneNumber: number; summary: string; keyEvents: string[] },
+  ): Promise<void> {
+    await this.ready;
+    await this.pool.query(
+      `INSERT INTO scene_summaries (campaign_id, scene_number, summary, key_events)
+       VALUES ($1, $2, $3, $4::jsonb)
+       ON CONFLICT (campaign_id, scene_number)
+       DO UPDATE SET summary = EXCLUDED.summary, key_events = EXCLUDED.key_events`,
+      [campaignId, summary.sceneNumber, summary.summary, JSON.stringify(summary.keyEvents)],
+    );
+  }
+
   /**
    * Inject an embedder after construction. We can't take one in the ctor
    * because DATABASE_URL is known before credentials are resolved; any

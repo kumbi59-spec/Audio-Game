@@ -1,6 +1,8 @@
 
-
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["pdf-parse", "mammoth"],
+  },
   async headers() {
     return [
       {

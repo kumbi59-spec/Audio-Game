@@ -1,3 +1,5 @@
+export { ACCEPTED_MIME_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "./constants";
+
 const PDF_MIME = "application/pdf";
 const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -44,14 +46,3 @@ export async function extractText(
   return parseText(text, isMarkdown);
 }
 
-export const ACCEPTED_MIME_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
-  "text/plain",
-  "text/markdown",
-  "application/json",
-];
-
-export const ACCEPTED_EXTENSIONS = ".pdf,.docx,.doc,.txt,.md,.markdown,.json";
-export const MAX_FILE_BYTES = 10 * 1024 * 1024;

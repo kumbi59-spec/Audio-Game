@@ -20,9 +20,10 @@ import {
   type Draft,
   type WizardStep,
 } from "@/wizard/createWorldSteps";
-import { createCampaign, createWorldFromBible } from "@/api/rest";
+import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
+import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 
 export default function CreateWorld(): JSX.Element {
   const router = useRouter();
@@ -32,6 +33,8 @@ export default function CreateWorld(): JSX.Element {
   const [textInput, setTextInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
@@ -42,21 +45,38 @@ export default function CreateWorld(): JSX.Element {
     headingRef,
   );
 
-  // Speak the prompt when entering a step.
   useEffect(() => {
     if (!step) return;
     void speakOnce(`${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`);
-    return () => {
-      stopNarration();
-    };
+    return () => { stopNarration(); };
   }, [step, stepIndex]);
 
-  // Pre-fill the input box with the current draft value when navigating.
   useEffect(() => {
     if (!step) return;
     const current = draft[step.id];
     setTextInput(typeof current === "string" ? current : "");
   }, [stepIndex, step, draft]);
+
+  // Fetch Claude suggestions whenever we land on a freeform step
+  useEffect(() => {
+    if (!step || step.kind !== "freeform") {
+      setSuggestions([]);
+      return;
+    }
+    setSuggestions([]);
+    setLoadingSuggestions(true);
+    const draftSnapshot: Record<string, string> = {};
+    for (const key of Object.keys(draft)) {
+      const val = draft[key as keyof Draft];
+      if (typeof val === "string" && val.trim()) draftSnapshot[key] = val;
+    }
+    let cancelled = false;
+    void getWizardSuggestions(step.id, draftSnapshot)
+      .then((s) => { if (!cancelled) setSuggestions(s); })
+      .catch(() => { /* suggestions are optional — never block the wizard */ })
+      .finally(() => { if (!cancelled) setLoadingSuggestions(false); });
+    return () => { cancelled = true; };
+  }, [stepIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advance = useCallback(
     (value: string) => {
@@ -68,9 +88,7 @@ export default function CreateWorld(): JSX.Element {
       }
       setError(null);
       setDraft((d) => ({ ...d, [step.id]: trimmed }));
-      if (!isLast) {
-        setStepIndex((i) => i + 1);
-      }
+      if (!isLast) setStepIndex((i) => i + 1);
     },
     [step, isLast],
   );
@@ -101,10 +119,7 @@ export default function CreateWorld(): JSX.Element {
         authToken: campaign.authToken,
       });
       sessionConnection.sendPlayerInput({ kind: "utility", command: "begin" });
-      router.push({
-        pathname: "/campaign/[id]",
-        params: { id: campaign.campaignId },
-      });
+      router.push({ pathname: "/campaign/[id]", params: { id: campaign.campaignId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create world.");
     } finally {
@@ -129,53 +144,81 @@ export default function CreateWorld(): JSX.Element {
   useVoiceCommands({
     "back|previous": () => goBack(),
     "next|continue": () => advance(textInput),
-    "skip": () => {
-      if (step && step.kind === "freeform" && !step.required) {
-        advance("");
-      }
-    },
-    "repeat|read that again": () => {
-      if (step) void speakOnce(step.prompt);
-    },
-    "speak|microphone|mic": () => {
-      void speakAnswer();
-    },
+    "skip": () => { if (step && step.kind === "freeform" && !step.required) advance(""); },
+    "repeat|read that again": () => { if (step) void speakOnce(step.prompt); },
+    "speak|microphone|mic": () => { void speakAnswer(); },
   });
 
   if (!step) return <View />;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text
-        ref={headingRef}
-        role="heading"
-        aria-level={1}
-        style={styles.h1}
-      >
-        Create world
-      </Text>
-      <Text style={styles.progress}>
-        Step {stepIndex + 1} of {STEPS.length}
+    <ScrollView style={styles.root} contentContainerStyle={styles.container}>
+      <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
+        Create World
       </Text>
 
-      <Text accessibilityRole="text" style={styles.prompt}>
-        {step.prompt}
-      </Text>
+      {/* Step progress dots */}
+      <View style={styles.dots}>
+        {STEPS.map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              i === stepIndex && styles.dotActive,
+              i < stepIndex && styles.dotDone,
+            ]}
+          />
+        ))}
+      </View>
+      <Text style={styles.progress}>Step {stepIndex + 1} of {STEPS.length}</Text>
+
+      <Text accessibilityRole="text" style={styles.prompt}>{step.prompt}</Text>
       {step.kind === "freeform" && step.helper && (
         <Text style={styles.helper}>{step.helper}</Text>
       )}
 
       {step.kind === "freeform" ? (
-        <TextInput
-          accessibilityLabel={step.prompt}
-          accessibilityHint={step.helper}
-          style={styles.input}
-          value={textInput}
-          onChangeText={setTextInput}
-          editable={!busy}
-          autoFocus
-          multiline={step.id === "pitch" || step.id === "startingScenario"}
-        />
+        <>
+          <TextInput
+            accessibilityLabel={step.prompt}
+            accessibilityHint={step.helper}
+            style={[styles.input, (step.id === "pitch" || step.id === "startingScenario") && styles.inputMulti]}
+            value={textInput}
+            onChangeText={setTextInput}
+            editable={!busy}
+            autoFocus
+            multiline={step.id === "pitch" || step.id === "startingScenario"}
+            placeholderTextColor={EQ.textFaint}
+            placeholder="Type or speak your answer…"
+          />
+
+          {/* Claude suggestion chips */}
+          {(loadingSuggestions || suggestions.length > 0) && (
+            <View style={styles.suggestionsSection}>
+              <Text style={styles.suggestionsLabel}>
+                {loadingSuggestions ? "Getting ideas…" : "SUGGESTIONS"}
+              </Text>
+              {loadingSuggestions ? (
+                <ActivityIndicator color={EQ.accent} size="small" style={styles.suggestionSpinner} />
+              ) : (
+                <View style={styles.chips}>
+                  {suggestions.map((s, i) => (
+                    <Pressable
+                      key={i}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Use suggestion: ${s}`}
+                      onPress={() => { setTextInput(s); void speakOnce(s); }}
+                      disabled={busy}
+                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+                    >
+                      <Text style={styles.chipText}>{s}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </>
       ) : (
         <View style={styles.choices}>
           {step.options.map((opt) => (
@@ -184,43 +227,52 @@ export default function CreateWorld(): JSX.Element {
               accessibilityRole="button"
               accessibilityLabel={opt.label}
               onPress={() => advance(opt.value)}
-              style={({ pressed }) => [styles.choiceBtn, pressed && styles.btnPressed]}
+              style={({ pressed }) => [
+                styles.choiceBtn,
+                draft[step.id] === opt.value && styles.choiceBtnSelected,
+                pressed && styles.btnPressed,
+              ]}
               disabled={busy}
             >
-              <Text style={styles.choiceText}>{opt.label}</Text>
+              <Text style={[
+                styles.choiceText,
+                draft[step.id] === opt.value && styles.choiceTextSelected,
+              ]}>
+                {opt.label}
+              </Text>
             </Pressable>
           ))}
         </View>
       )}
 
-      <View style={styles.row}>
+      <View style={styles.nav}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Back"
           onPress={goBack}
           disabled={busy || stepIndex === 0}
           style={({ pressed }) => [
-            styles.secondaryBtn,
+            styles.navBtn,
             pressed && styles.btnPressed,
             (busy || stepIndex === 0) && styles.btnDisabled,
           ]}
         >
-          <Text style={styles.secondaryBtnText}>Back</Text>
+          <Text style={styles.navBtnText}>Back</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Speak my answer"
           onPress={speakAnswer}
           disabled={busy}
-          style={({ pressed }) => [styles.secondaryBtn, pressed && styles.btnPressed]}
+          style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed]}
         >
-          <Text style={styles.secondaryBtnText}>Mic</Text>
+          <Text style={styles.navBtnText}>Mic</Text>
         </Pressable>
         {step.kind === "freeform" && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={isLast ? "Finish and start adventure" : "Next"}
-            onPress={() => (isLast ? finish() : advance(textInput))}
+            accessibilityLabel={isLast ? "Finish and start adventure" : "Next step"}
+            onPress={() => (isLast ? void finish() : advance(textInput))}
             disabled={busy}
             style={({ pressed }) => [
               styles.primaryBtn,
@@ -231,25 +283,20 @@ export default function CreateWorld(): JSX.Element {
             {busy ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.primaryBtnText}>{isLast ? "Begin" : "Next"}</Text>
+              <Text style={styles.primaryBtnText}>{isLast ? "Begin Adventure" : "Next →"}</Text>
             )}
           </Pressable>
         )}
       </View>
 
       {error && (
-        <Text style={styles.error} accessibilityLiveRegion="assertive">
-          {error}
-        </Text>
+        <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
       )}
     </ScrollView>
   );
 }
 
-function matchChoice(
-  step: Extract<WizardStep, { kind: "choice" }>,
-  transcript: string,
-): string | null {
+function matchChoice(step: Extract<WizardStep, { kind: "choice" }>, transcript: string): string | null {
   const normalized = transcript.trim().toLowerCase();
   for (const o of step.options) {
     const label = o.label.toLowerCase();
@@ -265,50 +312,89 @@ function matchChoice(
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 16 },
-  h1: { fontSize: 32, fontWeight: "800" },
-  progress: { color: "#6b7280", fontSize: 14 },
-  prompt: { fontSize: 22, fontWeight: "700" },
-  helper: { fontSize: 15, color: "#4b5563" },
+  root: { flex: 1, backgroundColor: EQ.bg },
+  container: { padding: SPACE[6], gap: SPACE[4] },
+
+  h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5 },
+
+  dots: { flexDirection: "row", gap: SPACE[1], alignItems: "center" },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: EQ.surface3 },
+  dotActive: { width: 24, borderRadius: 4, backgroundColor: EQ.accent },
+  dotDone: { backgroundColor: EQ.accent2 },
+  progress: { fontSize: FS.xs, color: EQ.textFaint, letterSpacing: 0.5 },
+
+  prompt: { fontSize: FS.xl, fontWeight: "700", color: EQ.text, lineHeight: 28 },
+  helper: { fontSize: FS.sm, color: EQ.textMuted, lineHeight: 20, marginTop: -SPACE[2] },
+
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 18,
-    minHeight: 56,
+    borderColor: EQ.border,
+    borderRadius: R.lg,
+    paddingHorizontal: SPACE[4],
+    paddingVertical: SPACE[3],
+    fontSize: FS.lg,
+    minHeight: TOUCH_MIN + 12,
+    backgroundColor: EQ.surface2,
+    color: EQ.text,
   },
-  choices: { gap: 8 },
+  inputMulti: { minHeight: 120, textAlignVertical: "top" },
+
+  suggestionsSection: { gap: SPACE[2] },
+  suggestionsLabel: { fontSize: 10, fontWeight: "600", color: EQ.textFaint, letterSpacing: 1.2 },
+  suggestionSpinner: { alignSelf: "flex-start", marginTop: SPACE[1] },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
+  chip: {
+    borderRadius: R["3xl"],
+    borderWidth: 1,
+    borderColor: EQ.accent,
+    backgroundColor: EQ.accentBg,
+    paddingHorizontal: SPACE[3],
+    paddingVertical: SPACE[2],
+    maxWidth: "100%",
+  },
+  chipPressed: { opacity: 0.7 },
+  chipText: { color: EQ.accent, fontSize: FS.sm, lineHeight: 18 },
+
+  choices: { gap: SPACE[2] },
   choiceBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    backgroundColor: "#1f2937",
-    paddingHorizontal: 14,
+    minHeight: TOUCH_MIN + 8,
+    borderRadius: R.lg,
+    backgroundColor: EQ.surface2,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    paddingHorizontal: SPACE[4],
     justifyContent: "center",
   },
-  choiceText: { color: "#fff", fontSize: 17, fontWeight: "600" },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  choiceBtnSelected: { borderColor: EQ.accent, backgroundColor: EQ.accentBg },
+  choiceText: { color: EQ.text, fontSize: FS.base, fontWeight: "600" },
+  choiceTextSelected: { color: EQ.accent },
+
+  nav: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2], marginTop: SPACE[2] },
+  navBtn: {
+    minHeight: TOUCH_MIN,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface,
+    paddingHorizontal: SPACE[4],
+    justifyContent: "center",
+  },
+  navBtnText: { color: EQ.text, fontSize: FS.base, fontWeight: "600" },
   primaryBtn: {
     flexGrow: 1,
-    minHeight: 56,
-    borderRadius: 12,
-    backgroundColor: "#1f2937",
+    minHeight: TOUCH_MIN,
+    borderRadius: R.lg,
+    backgroundColor: EQ.accent,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: SPACE[4],
+    shadowColor: EQ.accent,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
   },
-  primaryBtnText: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  secondaryBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#1f2937",
-    paddingHorizontal: 14,
-    justifyContent: "center",
-  },
-  secondaryBtnText: { color: "#1f2937", fontSize: 16, fontWeight: "700" },
-  btnPressed: { opacity: 0.7 },
-  btnDisabled: { opacity: 0.5 },
-  error: { color: "#b91c1c", fontWeight: "600" },
+  primaryBtnText: { color: "#fff", fontSize: FS.base, fontWeight: "700" },
+  btnPressed: { opacity: 0.75 },
+  btnDisabled: { opacity: 0.4 },
+  error: { color: EQ.danger, fontWeight: "600" },
 });
