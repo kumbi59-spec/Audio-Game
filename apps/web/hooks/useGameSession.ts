@@ -15,6 +15,7 @@ export function useGameSession() {
     session,
     character,
     world,
+    dbSessionId,
     addNarrationEntry,
     setChoices,
     setIsGenerating,
@@ -73,7 +74,7 @@ export function useGameSession() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: abort.signal,
-          body: JSON.stringify({ action, session, character, world }),
+          body: JSON.stringify({ action, session, character, world, dbSessionId }),
         });
 
         if (!res.ok || !res.body) {
@@ -168,7 +169,7 @@ export function useGameSession() {
       }
     },
     [
-      session, character, world, addNarrationEntry, setChoices,
+      session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP,
       speakText, soundCuesEnabled,
     ]

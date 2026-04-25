@@ -7,10 +7,13 @@ interface GameStore {
   session: InMemorySession | null;
   character: CharacterData | null;
   world: WorldData | null;
+  /** DB-persisted session ID (null when running in-memory only) */
+  dbSessionId: string | null;
 
   setSession: (session: InMemorySession) => void;
   setCharacter: (character: CharacterData) => void;
   setWorld: (world: WorldData) => void;
+  setDbSessionId: (id: string | null) => void;
 
   addNarrationEntry: (entry: NarrationEntry) => void;
   setChoices: (choices: string[]) => void;
@@ -25,10 +28,12 @@ export const useGameStore = create<GameStore>((set) => ({
   session: null,
   character: null,
   world: null,
+  dbSessionId: null,
 
   setSession: (session) => set({ session }),
   setCharacter: (character) => set({ character }),
   setWorld: (world) => set({ world }),
+  setDbSessionId: (id) => set({ dbSessionId: id }),
 
   addNarrationEntry: (entry) =>
     set((state) => ({
@@ -85,7 +90,7 @@ export const useGameStore = create<GameStore>((set) => ({
       };
     }),
 
-  clearSession: () => set({ session: null, character: null, world: null }),
+  clearSession: () => set({ session: null, character: null, world: null, dbSessionId: null }),
 }));
 
 export function submitPlayerAction(_action: PlayerAction) {
