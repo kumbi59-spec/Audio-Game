@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { ClientEvent, ServerEvent } from "@audio-rpg/shared";
+import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
+import { tierFromToken } from "../auth/entitlements.js";
 
 export interface SessionRouteOptions {
   /** Injected GM turn generator; defaults to the real Claude path. */
@@ -22,6 +24,7 @@ export async function registerSessionRoutes(
   app.get("/session", { websocket: true }, async (socket, req) => {
     app.log.info({ ip: req.ip }, "session connected");
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
+    let turnLimit: number | null = null;
 
     const emit = (evt: ServerEvent): void => {
       const parsed = ServerEvent.safeParse(evt);
@@ -62,6 +65,8 @@ export async function registerSessionRoutes(
       if (event.type === "join") {
         try {
           session = await loadSession(event.campaignId, event.authToken);
+          const tier = event.tierToken ? tierFromToken(event.tierToken) : "free";
+          turnLimit = TIER_ENTITLEMENTS[tier].sessionTurnLimit;
           emit({
             type: "session_ready",
             campaignId: event.campaignId,
@@ -90,6 +95,15 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "player_input") {
+        if (turnLimit !== null && session.state.turn_number >= turnLimit) {
+          emit({
+            type: "error",
+            code: "turn_limit_reached",
+            message: `You've reached the ${turnLimit}-turn limit for the free plan. Upgrade to Storyteller for unlimited play.`,
+            recoverable: false,
+          });
+          return;
+        }
         try {
           session = await runTurn(
             session,
