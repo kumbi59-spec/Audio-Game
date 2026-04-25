@@ -26,7 +26,7 @@ export function buildSystemPrompt(bible: GameBible): string {
     "- `state_mutations` are the SINGLE source of truth for changes to inventory, quests, relationships, stats, flags, and codex. Never describe a state change in narration without also emitting the mutation.",
     "- `ruling_rationale` (optional, not narrated) briefly cites the rule or lore you applied when resolving a freeform action.",
     "- `sound_cues` pick from the enumerated set. Use sparingly.",
-    "- `narration_voice_plan` may assign spans of narration to distinct voice ids (e.g. narrator, or an NPC name) for multi-voice TTS.",
+    "- `narration_voice_plan` should tag NPC dialogue spans. When an NPC speaks dialogue, write it inline in the narration as `[NpcName]: \"their words here\"` (include the brackets and colon). Populate `narration_voice_plan` with an entry for each such span: `voice` = the NPC's name, `span` = [charStart, charEnd] of the full `[NpcName]: \"...\"` segment including brackets.",
     "",
     "## Accessibility-first narration rules",
     "- Never rely on visual layout. Describe what matters through sound, smell, touch, and action.",

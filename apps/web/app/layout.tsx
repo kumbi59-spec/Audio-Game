@@ -4,6 +4,7 @@ import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
+import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,6 +22,13 @@ export const metadata: Metadata = {
   title: "EchoQuest — Narrated AI Adventures",
   description:
     "An audio-first interactive RPG platform. Play narrated AI-driven adventures with an AI Game Master. Fully accessible for blind and visually impaired players.",
+  manifest: "/manifest.json",
+  themeColor: "#7c6af7",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "EchoQuest",
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +40,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${lora.variable}`}>
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <AudioAnnouncer>
+          <ServiceWorkerRegistrar />
           <SkipLinks />
           <FocusManager />
           {children}

@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { ChoiceOption, PlayerInput, SoundCue, StateMutation } from "./gm.js";
 
+export const VoiceRole = z.enum(["narrator", "voice_a", "voice_b", "voice_c"]);
+export type VoiceRole = z.infer<typeof VoiceRole>;
+
 /**
  * Server → client event stream over a per-campaign WebSocket.
  * Narration text arrives in chunks so the client can drive TTS in parallel
@@ -47,6 +50,14 @@ export const ServerEvent = z.discriminatedUnion("type", [
     code: z.string(),
     message: z.string(),
     recoverable: z.boolean().default(true),
+  }),
+  z.object({
+    type: z.literal("voice_plan"),
+    turnId: z.string(),
+    assignments: z.array(z.object({
+      npcName: z.string(),
+      voiceRole: z.enum(["voice_a", "voice_b", "voice_c"]),
+    })),
   }),
 ]);
 export type ServerEvent = z.infer<typeof ServerEvent>;

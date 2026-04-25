@@ -20,6 +20,8 @@ import {
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
 import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
+import { useCan } from "@/entitlements/store";
+import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
 const MIN_CHARS = 60;
 const SUPPORTED_TYPES = [
@@ -33,6 +35,8 @@ const SUPPORTED_TYPES = [
 export default function UploadBible(): JSX.Element {
   const router = useRouter();
   const headingRef = useRef<Text>(null);
+  const can = useCan();
+  const [paywallVisible, setPaywallVisible] = useState(false);
   const [titleHint, setTitleHint] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -48,6 +52,10 @@ export default function UploadBible(): JSX.Element {
   );
 
   const pickFile = useCallback(async () => {
+    if (!can.bibleUpload) {
+      setPaywallVisible(true);
+      return;
+    }
     setError(null);
     try {
       const picked = await DocumentPicker.getDocumentAsync({
@@ -73,6 +81,10 @@ export default function UploadBible(): JSX.Element {
   }, []);
 
   const submit = useCallback(async () => {
+    if (!can.bibleUpload) {
+      setPaywallVisible(true);
+      return;
+    }
     setError(null);
     if (text.trim().length < MIN_CHARS) {
       setError(`Please paste at least ${MIN_CHARS} characters of bible text.`);
@@ -275,6 +287,13 @@ export default function UploadBible(): JSX.Element {
           {error}
         </Text>
       )}
+
+      <UpgradePrompt
+        visible={paywallVisible}
+        requiredTier="storyteller"
+        featureName="Game Bible Upload"
+        onDismiss={() => setPaywallVisible(false)}
+      />
     </ScrollView>
   );
 }

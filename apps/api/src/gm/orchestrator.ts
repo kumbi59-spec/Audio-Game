@@ -175,6 +175,26 @@ export async function runTurn(
     turnNumber: nextState.turn_number,
   });
 
+  if (turn.narration_voice_plan.length > 0) {
+    const roleOrder = ["voice_a", "voice_b", "voice_c"] as const;
+    const npcRoles = new Map<string, "voice_a" | "voice_b" | "voice_c">();
+    for (const span of turn.narration_voice_plan) {
+      if (span.voice === "narrator" || npcRoles.has(span.voice)) continue;
+      const role = roleOrder[npcRoles.size];
+      if (role) npcRoles.set(span.voice, role);
+    }
+    if (npcRoles.size > 0) {
+      emit({
+        type: "voice_plan",
+        turnId,
+        assignments: Array.from(npcRoles.entries()).map(([npcName, voiceRole]) => ({
+          npcName,
+          voiceRole,
+        })),
+      });
+    }
+  }
+
   return {
     ...session,
     state: nextState,

@@ -15,6 +15,7 @@ import { apiBaseUrl } from "@/api/config";
 interface EnqueuedClip {
   text: string;
   voiceId: string;
+  voiceRole?: string;
   sound?: Audio.Sound;
   uri?: string;
 }
@@ -32,10 +33,10 @@ export class ElevenLabsNarrator {
     this.voiceId = voiceId;
   }
 
-  speak(text: string): void {
+  speak(text: string, voiceRole?: string): void {
     const trimmed = text.trim();
     if (!trimmed) return;
-    this.queue.push({ text: trimmed, voiceId: this.voiceId });
+    this.queue.push({ text: trimmed, voiceId: this.voiceId, voiceRole });
     if (!this.playing) void this.drain();
   }
 
@@ -84,7 +85,10 @@ export class ElevenLabsNarrator {
   }
 
   private async fetchClip(clip: EnqueuedClip): Promise<string> {
-    const url = `${apiBaseUrl()}/tts/stream?text=${encodeURIComponent(clip.text)}&voiceId=${encodeURIComponent(clip.voiceId)}`;
+    const voiceParam = clip.voiceRole
+      ? `voiceRole=${encodeURIComponent(clip.voiceRole)}`
+      : `voiceId=${encodeURIComponent(clip.voiceId)}`;
+    const url = `${apiBaseUrl()}/tts/stream?text=${encodeURIComponent(clip.text)}&${voiceParam}`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`TTS proxy returned ${res.status}`);
