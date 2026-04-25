@@ -1,12 +1,11 @@
 import { Platform } from "react-native";
-import {
-  ExpoAudioStreamModule,
-  addAudioEventListener,
-  type AudioEventPayload,
-  type EventSubscription,
-  type RecordingConfig,
-} from "./audioStream";
 import type { MicCapture } from "./deepgram";
+import type {
+  AudioEventPayload,
+  EventSubscription,
+  RecordingConfig,
+} from "./audioStream";
+import { ExpoAudioStreamModule, addAudioEventListener } from "./audioStream";
 
 /**
  * Platform-specific mic capture. Deepgram expects `linear16` PCM at
