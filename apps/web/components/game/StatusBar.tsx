@@ -33,7 +33,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       id={id}
       role="region"
       aria-label="Character status"
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs"
+      className="grid gap-2 rounded-lg border border-border bg-background/70 p-3 text-sm md:grid-cols-[auto,1fr,auto,auto]"
     >
       {/* HP */}
       <div
@@ -43,16 +43,13 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
         aria-valuemin={0}
         aria-valuemax={s.maxHp}
         aria-valuetext={`${s.hp} of ${s.maxHp} HP`}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1"
       >
         <span aria-hidden="true">❤️</span>
         <span className="font-mono">
           {s.hp}/{s.maxHp}
         </span>
-        <div
-          aria-hidden="true"
-          className="h-2 w-16 overflow-hidden rounded-full bg-muted"
-        >
+        <div aria-hidden="true" className="h-2 w-16 overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full transition-all ${
               hpPercent > 50
@@ -67,19 +64,25 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       </div>
 
       {/* Location */}
-      <div aria-label={`Location: ${location?.name ?? "Unknown"}`} className="flex items-center gap-1">
+      <div
+        aria-label={`Location: ${location?.name ?? "Unknown"}`}
+        className="flex items-center gap-1 rounded-md bg-muted/40 px-2 py-1"
+      >
         <span aria-hidden="true">📍</span>
         <span className="text-muted-foreground">{location?.shortDesc ?? "Unknown location"}</span>
       </div>
 
       {/* Time */}
-      <div aria-label={`Time: ${session.timeOfDay}`} className="flex items-center gap-1">
+      <div
+        aria-label={`Time: ${session.timeOfDay}`}
+        className="flex items-center gap-1 rounded-md bg-muted/40 px-2 py-1"
+      >
         <span aria-hidden="true">🕐</span>
         <span className="capitalize text-muted-foreground">{session.timeOfDay}</span>
       </div>
 
       {/* Turn count */}
-      <div aria-label={`Turn ${session.turnCount}`} className="ml-auto text-muted-foreground">
+      <div aria-label={`Turn ${session.turnCount}`} className="text-muted-foreground md:justify-self-end">
         Turn {session.turnCount}
       </div>
 
@@ -88,9 +91,9 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
         onClick={readStatusAloud}
         aria-label="Read character status aloud (S)"
         title="Read status aloud (S)"
-        className="ml-1 rounded p-1 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="justify-self-start rounded-md border border-border px-2 py-1 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:justify-self-end"
       >
-        <span aria-hidden="true">🔊</span>
+        <span aria-hidden="true">🔊 Read</span>
       </button>
     </div>
   );
