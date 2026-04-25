@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "@/lib/upload/file-router";
+import { ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "@/lib/upload/constants";
 
 interface Props {
   onFileSelected: (file: File) => void;
