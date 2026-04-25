@@ -24,10 +24,14 @@ import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/ap
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
 import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
+import { useCan } from "@/entitlements/store";
+import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
 export default function CreateWorld(): JSX.Element {
   const router = useRouter();
   const headingRef = useRef<Text>(null);
+  const can = useCan();
+  const [paywallVisible, setPaywallVisible] = useState(!can.worldWizard);
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [textInput, setTextInput] = useState("");
@@ -292,6 +296,16 @@ export default function CreateWorld(): JSX.Element {
       {error && (
         <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
       )}
+
+      <UpgradePrompt
+        visible={paywallVisible}
+        requiredTier="creator"
+        featureName="World Builder Wizard"
+        onDismiss={() => {
+          setPaywallVisible(false);
+          router.back();
+        }}
+      />
     </ScrollView>
   );
 }

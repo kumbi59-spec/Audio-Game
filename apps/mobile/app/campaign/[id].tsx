@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -16,6 +16,10 @@ import { feedNarration, speakOnce, stopNarration } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
 import { EQ, R, SPACE, FS, TOUCH_MIN, CHOICE_MIN } from "@/design/tokens";
+import { useCan } from "@/entitlements/store";
+import { AdBanner } from "@/entitlements/AdBanner";
+import { AiMinutesSheet } from "@/entitlements/AiMinutesSheet";
+import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
 export default function ActiveCampaign(): JSX.Element {
   const router = useRouter();
@@ -23,6 +27,9 @@ export default function ActiveCampaign(): JSX.Element {
   const headingRef = useRef<Text>(null);
   const scrollRef = useRef<ScrollView>(null);
   const session = useSession();
+  const can = useCan();
+  const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
+  const [upgradeVisible, setUpgradeVisible] = useState(false);
 
   useLandmarkAnnounce(
     "Active campaign",
@@ -57,6 +64,19 @@ export default function ActiveCampaign(): JSX.Element {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Show paywall when the free-tier turn limit is hit
+  useEffect(() => {
+    const limit = can.sessionTurnLimit;
+    const turn = session.state?.turn_number ?? 0;
+    if (limit !== null && turn >= limit) {
+      if (can.aiMinutesRemaining !== null && can.aiMinutesRemaining > 0) {
+        setMinutesSheetVisible(true);
+      } else {
+        setUpgradeVisible(true);
+      }
+    }
+  }, [session.state?.turn_number, can.sessionTurnLimit, can.aiMinutesRemaining]);
 
   const pickChoice = useCallback(
     (choiceId: string, label: string) => {
@@ -198,9 +218,22 @@ export default function ActiveCampaign(): JSX.Element {
         />
       </View>
 
+      <AdBanner onUpgradePress={() => setUpgradeVisible(true)} />
+
       {session.lastError && (
         <Text style={styles.error} accessibilityLiveRegion="assertive">{session.lastError}</Text>
       )}
+
+      <AiMinutesSheet
+        visible={minutesSheetVisible}
+        onDismiss={() => setMinutesSheetVisible(false)}
+      />
+      <UpgradePrompt
+        visible={upgradeVisible}
+        requiredTier="storyteller"
+        featureName="Unlimited Play"
+        onDismiss={() => setUpgradeVisible(false)}
+      />
     </View>
   );
 }

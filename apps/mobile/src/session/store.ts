@@ -6,6 +6,7 @@ import type {
   StateMutation,
 } from "@audio-rpg/shared";
 import { applyMutations } from "@audio-rpg/gm-engine";
+import { updateNpcVoiceMap } from "@/audio/narrator";
 
 export interface TranscriptEntry {
   id: string;
@@ -171,6 +172,14 @@ export const useSession = create<SessionSlice>((set, get) => ({
       case "error":
         set({ lastError: evt.message, awaitingGm: false });
         return;
+      case "voice_plan": {
+        const assignments: Record<string, "voice_a" | "voice_b" | "voice_c"> = {};
+        for (const a of evt.assignments) {
+          assignments[a.npcName] = a.voiceRole;
+        }
+        updateNpcVoiceMap(assignments);
+        return;
+      }
     }
   },
 }));
