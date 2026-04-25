@@ -1,32 +1,56 @@
+import { NextRequest, NextResponse } from "next/server";
+import { constructWebhookEvent, tierForPriceKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
+import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId } from "@/lib/db/queries/users";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { NextRequest, NextResponse } from "next/server";
-import { constructWebhookEvent } from "@/lib/payments/stripe";
-
 export async function POST(req: NextRequest) {
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
+
+  let event: Awaited<ReturnType<typeof constructWebhookEvent>>;
   try {
     const body = await req.text();
-    const sig = req.headers.get("stripe-signature") ?? "";
+    event = await constructWebhookEvent(body, sig);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Webhook error";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-    const event = await constructWebhookEvent(body, sig);
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as { metadata?: Record<string, string>; customer?: string; line_items?: unknown };
+      const userId = session.metadata?.["userId"];
+      const customerId = typeof session.customer === "string" ? session.customer : undefined;
+      if (userId && customerId) await setStripeCustomerId(userId, customerId);
+    }
 
-    switch (event.type) {
-      case "checkout.session.completed":
-        // TODO: update user tier in DB
-        console.log("TODO: update user tier in DB", event.data.object);
-        return NextResponse.json({ received: true });
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+      const sub = event.data.object as {
+        customer: string;
+        status: string;
+        items: { data: Array<{ price: { id: string } }> };
+        metadata?: Record<string, string>;
+      };
+      const customerId = sub.customer;
+      const user = await findUserByStripeCustomerId(customerId);
+      if (user && sub.status === "active") {
+        const priceId = sub.items.data[0]?.price.id ?? "";
+        const priceKey = (Object.entries(STRIPE_PRICES).find(([, v]) => v === priceId)?.[0] ?? "") as PriceKey | "";
+        if (priceKey) await updateUserTier(user.id, tierForPriceKey(priceKey));
+      }
+    }
 
-      case "customer.subscription.deleted":
-        // TODO: downgrade user to free in DB
-        console.log("TODO: downgrade user to free in DB", event.data.object);
-        return NextResponse.json({ received: true });
-
-      default:
-        return NextResponse.json({ received: true });
+    if (event.type === "customer.subscription.deleted") {
+      const sub = event.data.object as { customer: string };
+      const user = await findUserByStripeCustomerId(sub.customer);
+      if (user) await updateUserTier(user.id, "free");
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Webhook handler error:", err);
+    // Return 200 so Stripe doesn't retry — log the error for investigation
   }
+
+  return NextResponse.json({ received: true });
 }

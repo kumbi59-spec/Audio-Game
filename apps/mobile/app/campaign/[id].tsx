@@ -47,6 +47,8 @@ export default function ActiveCampaign(): JSX.Element {
         void playCue(evt.cue);
       } else if (evt.type === "recap_ready") {
         void speakOnce(evt.summary);
+      } else if (evt.type === "error" && evt.code === "turn_limit_reached") {
+        setUpgradeVisible(true);
       }
     });
     return unsub;

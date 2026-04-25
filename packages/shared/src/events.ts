@@ -68,6 +68,8 @@ export const ClientEvent = z.discriminatedUnion("type", [
     type: z.literal("join"),
     campaignId: z.string(),
     authToken: z.string(),
+    /** Signed tier token — if absent or invalid the session defaults to free tier limits. */
+    tierToken: z.string().optional(),
   }),
   z.object({
     type: z.literal("player_input"),

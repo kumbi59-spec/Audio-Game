@@ -38,6 +38,10 @@ function verifyTierToken(token: string): UserTier | null {
   return tier as UserTier;
 }
 
+export function tierFromToken(token: string): UserTier {
+  return verifyTierToken(token) ?? "free";
+}
+
 export function tierFromRequest(req: FastifyRequest): UserTier {
   const auth = req.headers["authorization"];
   if (!auth || !auth.startsWith("Bearer ")) return "free";

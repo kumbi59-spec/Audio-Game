@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import type { Tier } from "@audio-rpg/shared";
 
 export async function ensureGuestUser(guestId: string) {
   return prisma.user.upsert({
@@ -54,5 +55,30 @@ export async function createDbCharacter(
       name: data.name,
       backstory: data.backstory,
     },
+  });
+}
+
+export async function getUserTier(userId: string): Promise<string> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+  return user?.tier ?? "free";
+}
+
+export async function updateUserTier(userId: string, tier: Tier) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { tier },
+  });
+}
+
+export async function setStripeCustomerId(userId: string, customerId: string) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { stripeCustomerId: customerId },
+  });
+}
+
+export async function findUserByStripeCustomerId(customerId: string) {
+  return prisma.user.findFirst({
+    where: { stripeCustomerId: customerId },
   });
 }

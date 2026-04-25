@@ -3,29 +3,28 @@ import { createCheckoutSession, STRIPE_PRICES, type PriceKey } from "@/lib/payme
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as {
-      priceKey?: unknown;
-      successUrl?: string;
-      cancelUrl?: string;
-    };
-
+    const body = await req.json() as { priceKey?: string; successUrl?: string; cancelUrl?: string };
     const { priceKey, successUrl, cancelUrl } = body;
 
-    if (typeof priceKey !== "string" || !(priceKey in STRIPE_PRICES)) {
-      return NextResponse.json(
-        { error: `Invalid priceKey. Must be one of: ${Object.keys(STRIPE_PRICES).join(", ")}` },
-        { status: 400 },
-      );
+    if (!priceKey || !Object.keys(STRIPE_PRICES).includes(priceKey)) {
+      return NextResponse.json({ error: "Invalid priceKey." }, { status: 400 });
     }
 
+    const origin = req.headers.get("origin") ?? "http://localhost:3000";
+
+    // auth() will be wired up once the auth module is available
+    const session: null = null;
+
     const result = await createCheckoutSession(priceKey as PriceKey, {
-      successUrl: successUrl ?? `${req.nextUrl.origin}/billing/success`,
-      cancelUrl: cancelUrl ?? `${req.nextUrl.origin}/billing/cancel`,
+      successUrl: successUrl ?? `${origin}/?upgraded=true`,
+      cancelUrl: cancelUrl ?? `${origin}/`,
+      userId: (session as null | { user?: { id?: string } })?.user?.id,
+      userEmail: (session as null | { user?: { email?: string | null } })?.user?.email ?? undefined,
     });
 
-    return NextResponse.json({ url: result.url, sessionId: result.sessionId });
+    return NextResponse.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
+    const message = err instanceof Error ? err.message : "Checkout failed.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

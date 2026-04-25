@@ -17,7 +17,7 @@ export class SessionConnection {
   private readonly url = apiWebSocketUrl("/session");
   private readonly onEvent: ((e: ServerEvent) => void)[] = [];
 
-  async connect(args: { campaignId: string; authToken: string }): Promise<void> {
+  async connect(args: { campaignId: string; authToken: string; tierToken?: string }): Promise<void> {
     await this.close();
     const socket = new WebSocket(this.url);
     this.socket = socket;
@@ -53,6 +53,7 @@ export class SessionConnection {
       type: "join",
       campaignId: args.campaignId,
       authToken: args.authToken,
+      ...(args.tierToken ? { tierToken: args.tierToken } : {}),
     });
 
     const evt = await ready;
