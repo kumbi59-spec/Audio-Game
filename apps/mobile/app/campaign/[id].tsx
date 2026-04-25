@@ -15,13 +15,13 @@ import { sessionConnection } from "@/session/connection";
 import { feedNarration, speakOnce, stopNarration } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
+import { EQ, R, SPACE, FS, TOUCH_MIN, CHOICE_MIN } from "@/design/tokens";
 
 export default function ActiveCampaign(): JSX.Element {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const headingRef = useRef<Text>(null);
   const scrollRef = useRef<ScrollView>(null);
-
   const session = useSession();
 
   useLandmarkAnnounce(
@@ -32,24 +32,23 @@ export default function ActiveCampaign(): JSX.Element {
     headingRef,
   );
 
-  // Drive narration TTS off the streaming transcript.
   useEffect(() => {
     const unsub = sessionConnection.onServerEvent((evt) => {
       if (evt.type === "narration_chunk") {
         feedNarration(evt.text, evt.done);
       } else if (evt.type === "sound_cue") {
         void playCue(evt.cue);
+      } else if (evt.type === "recap_ready") {
+        void speakOnce(evt.summary);
       }
     });
     return unsub;
   }, []);
 
-  // Auto-scroll to the latest entry.
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [session.transcript.length]);
 
-  // Stop any in-flight narration when leaving the screen.
   useEffect(() => {
     return () => {
       stopNarration();
@@ -77,10 +76,7 @@ export default function ActiveCampaign(): JSX.Element {
     if (matchedNumber?.[1]) {
       const idx = wordToIndex(matchedNumber[1]);
       const choice = session.choices[idx];
-      if (choice) {
-        pickChoice(choice.id, choice.label);
-        return;
-      }
+      if (choice) { pickChoice(choice.id, choice.label); return; }
     }
     session.appendPlayer(transcript);
     sessionConnection.sendPlayerInput({ kind: "freeform", text: transcript });
@@ -91,41 +87,28 @@ export default function ActiveCampaign(): JSX.Element {
       const last = [...session.transcript].reverse().find((t) => t.role === "gm");
       if (last) void speakOnce(last.text);
     },
-    "summarize|where am i|what just happened": () => {
-      sessionConnection.requestRecap();
-    },
+    "summarize|where am i|what just happened": () => sessionConnection.requestRecap(),
     "what are my options|list choices": () => {
-      const list = session.choices
-        .map((c, i) => `${i + 1}: ${c.label}.`)
-        .join(" ");
+      const list = session.choices.map((c, i) => `${i + 1}: ${c.label}.`).join(" ");
       void speakOnce(list || "No choices yet.");
     },
     "inventory|what do i have": () => {
       const inv = session.state?.inventory ?? [];
-      const list =
-        inv.length === 0
-          ? "Your bag is empty."
-          : inv.map((i) => `${i.quantity} ${i.name}`).join(", ");
-      void speakOnce(list);
+      void speakOnce(inv.length === 0 ? "Your bag is empty." : inv.map((i) => `${i.quantity} ${i.name}`).join(", "));
     },
     "save|save and pause|pause": () => {
       sessionConnection.pause();
       void speakOnce("Paused. Returning home.");
       router.replace("/");
     },
-    "do something else|custom action|speak": () => {
-      void speakFreeform();
-    },
+    "do something else|custom action|speak": () => { void speakFreeform(); },
   });
 
   if (!session.connected || !session.state) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator
-          accessibilityLabel="Connecting to your campaign."
-          size="large"
-        />
-        <Text style={styles.body} accessibilityLiveRegion="polite">
+        <ActivityIndicator color={EQ.accent} size="large" accessibilityLabel="Connecting to your campaign." />
+        <Text style={styles.connectingText} accessibilityLiveRegion="polite">
           Connecting to your campaign…
         </Text>
       </View>
@@ -136,28 +119,26 @@ export default function ActiveCampaign(): JSX.Element {
 
   return (
     <View style={styles.container}>
-      <Text
-        ref={headingRef}
-        role="heading"
-        aria-level={1}
-        style={styles.h1}
-      >
-        {session.title}
-      </Text>
-      <Text style={styles.scene}>Scene: {session.state.scene.name}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
+          {session.title}
+        </Text>
+        <Text style={styles.scene}>{session.state.scene.name}</Text>
+      </View>
 
-      <ScrollView ref={scrollRef} style={styles.transcript}>
+      {/* Transcript / narration area */}
+      <ScrollView ref={scrollRef} style={styles.transcript} contentContainerStyle={styles.transcriptContent}>
         {session.transcript.map((t) => (
           <View
             key={t.id}
-            style={[
-              styles.bubble,
-              t.role === "gm" ? styles.bubbleGm : styles.bubblePlayer,
-            ]}
+            style={[styles.bubble, t.role === "gm" ? styles.bubbleGm : styles.bubblePlayer]}
             accessibilityRole="text"
             accessibilityLabel={`${t.role === "gm" ? "Narrator" : "You"}: ${t.text}`}
           >
-            <Text style={styles.bubbleText}>{t.text}</Text>
+            <Text style={t.role === "gm" ? styles.bubbleTextGm : styles.bubbleTextPlayer}>
+              {t.text}
+            </Text>
           </View>
         ))}
         {session.awaitingGm && !lastGm?.streaming && (
@@ -167,87 +148,71 @@ export default function ActiveCampaign(): JSX.Element {
         )}
       </ScrollView>
 
-      <View style={styles.choices}>
-        {session.choices.map((c, i) => (
-          <Pressable
-            key={c.id}
-            accessibilityRole="button"
-            accessibilityLabel={`Choice ${i + 1}: ${c.label}`}
-            onPress={() => pickChoice(c.id, c.label)}
-            style={({ pressed }) => [styles.choiceBtn, pressed && styles.btnPressed]}
-            disabled={session.awaitingGm}
-          >
-            <Text style={styles.choiceText}>{`${i + 1}. ${c.label}`}</Text>
-          </Pressable>
-        ))}
-        {session.acceptsFreeform && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Do something else. Speak a custom action."
-            onPress={speakFreeform}
-            disabled={session.awaitingGm}
-            style={({ pressed }) => [styles.freeformBtn, pressed && styles.btnPressed]}
-          >
-            <Text style={styles.freeformText}>Do something else</Text>
-          </Pressable>
-        )}
+      {/* Choices */}
+      {session.choices.length > 0 && (
+        <View style={styles.choicesSection}>
+          <Text style={styles.choicesLabel}>CHOOSE YOUR ACTION</Text>
+          <View style={styles.choices}>
+            {session.choices.map((c, i) => (
+              <Pressable
+                key={c.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Option ${i + 1} of ${session.choices.length}: ${c.label}`}
+                onPress={() => pickChoice(c.id, c.label)}
+                style={({ pressed }) => [styles.choiceBtn, pressed && styles.choiceBtnPressed]}
+                disabled={session.awaitingGm}
+              >
+                <View style={styles.choiceBadge}>
+                  <Text style={styles.choiceBadgeText}>{i + 1}</Text>
+                </View>
+                <Text style={styles.choiceText}>{c.label}</Text>
+              </Pressable>
+            ))}
+            {session.acceptsFreeform && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Do something else. Speak a custom action."
+                onPress={speakFreeform}
+                disabled={session.awaitingGm}
+                style={({ pressed }) => [styles.freeformBtn, pressed && styles.choiceBtnPressed]}
+              >
+                <View style={[styles.choiceBadge, styles.choiceBadgeFreeform]}>
+                  <Text style={[styles.choiceBadgeText, { color: EQ.accent }]}>…</Text>
+                </View>
+                <Text style={styles.freeformText}>Do something else</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+
+      {/* Dock */}
+      <View style={styles.dock}>
+        <DockButton label="Mic" hint="Speak a choice or action" onPress={speakFreeform} />
+        <DockButton label="Repeat" hint="Replay last narration" onPress={() => { if (lastGm) void speakOnce(lastGm.text); }} />
+        <DockButton label="Recap" hint="Summarize the scene so far" onPress={() => sessionConnection.requestRecap()} />
+        <DockButton
+          label="Exit"
+          hint="Save and return home"
+          onPress={() => { sessionConnection.pause(); router.replace("/"); }}
+        />
       </View>
 
-      <View style={styles.dock}>
-        <DockButton
-          label="Mic"
-          hint="Speak a choice or a custom action"
-          onPress={speakFreeform}
-        />
-        <DockButton
-          label="Repeat"
-          hint="Replay the last narration"
-          onPress={() => {
-            if (lastGm) void speakOnce(lastGm.text);
-          }}
-        />
-        <DockButton
-          label="Recap"
-          hint="Summarize the scene so far"
-          onPress={() => sessionConnection.requestRecap()}
-        />
-        <DockButton
-          label="Save & exit"
-          hint="Save and return home"
-          onPress={() => {
-            sessionConnection.pause();
-            router.replace("/");
-          }}
-        />
-      </View>
       {session.lastError && (
-        <Text style={styles.error} accessibilityLiveRegion="assertive">
-          {session.lastError}
-        </Text>
+        <Text style={styles.error} accessibilityLiveRegion="assertive">{session.lastError}</Text>
       )}
-      <Text style={styles.meta} accessibilityLabel={`Campaign id ${id}`}>
-        id: {id}
-      </Text>
     </View>
   );
 }
 
-function DockButton({
-  label,
-  hint,
-  onPress,
-}: {
-  label: string;
-  hint: string;
-  onPress: () => void;
-}): JSX.Element {
+function DockButton({ label, hint, onPress }: { label: string; hint: string; onPress: () => void }): JSX.Element {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
       onPress={onPress}
-      style={({ pressed }) => [styles.dockBtn, pressed && styles.btnPressed]}
+      style={({ pressed }) => [styles.dockBtn, pressed && styles.dockBtnPressed]}
     >
       <Text style={styles.dockBtnText}>{label}</Text>
     </Pressable>
@@ -256,72 +221,104 @@ function DockButton({
 
 function wordToIndex(word: string): number {
   switch (word.toLowerCase()) {
-    case "one":
-    case "1":
-      return 0;
-    case "two":
-    case "2":
-      return 1;
-    case "three":
-    case "3":
-      return 2;
-    case "four":
-    case "4":
-      return 3;
-    case "five":
-    case "5":
-      return 4;
-    default:
-      return -1;
+    case "one":   case "1": return 0;
+    case "two":   case "2": return 1;
+    case "three": case "3": return 2;
+    case "four":  case "4": return 3;
+    case "five":  case "5": return 4;
+    default: return -1;
   }
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 12 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", gap: 12 },
-  h1: { fontSize: 28, fontWeight: "800" },
-  scene: { fontSize: 16, color: "#4b5563" },
-  transcript: { flex: 1, borderRadius: 12, backgroundColor: "#f3f4f6" },
-  bubble: {
-    margin: 8,
-    padding: 12,
-    borderRadius: 12,
+  container: { flex: 1, backgroundColor: EQ.bg },
+  center: { flex: 1, backgroundColor: EQ.bg, justifyContent: "center", alignItems: "center", gap: SPACE[3] },
+  connectingText: { fontSize: FS.lg, color: EQ.textMuted, lineHeight: 26 },
+
+  header: { padding: SPACE[4], paddingBottom: SPACE[2], borderBottomWidth: 1, borderBottomColor: EQ.border2 },
+  h1: { fontSize: FS["2xl"], fontWeight: "700", color: EQ.text, letterSpacing: -0.3 },
+  scene: { fontSize: FS.xs, color: EQ.accent, marginTop: 3, letterSpacing: 0.5 },
+
+  transcript: { flex: 1 },
+  transcriptContent: { padding: SPACE[4], gap: SPACE[3] },
+  bubble: { borderRadius: R.xl, padding: SPACE[3] },
+  bubbleGm: { backgroundColor: EQ.surface2 },
+  bubblePlayer: { backgroundColor: EQ.accentBg, alignSelf: "flex-end", maxWidth: "85%" },
+  bubbleTextGm: {
+    fontSize: FS.md,
+    lineHeight: 26,
+    color: EQ.text,
   },
-  bubbleGm: { backgroundColor: "#fff" },
-  bubblePlayer: { backgroundColor: "#dbeafe", alignSelf: "flex-end" },
-  bubbleText: { fontSize: 17, lineHeight: 25 },
-  thinking: { padding: 12, fontStyle: "italic", color: "#6b7280" },
-  choices: { gap: 8 },
+  bubbleTextPlayer: { fontSize: FS.base, color: EQ.accent2, lineHeight: 22 },
+  thinking: { padding: SPACE[3], fontStyle: "italic", color: EQ.textFaint, fontSize: FS.sm },
+
+  choicesSection: { borderTopWidth: 1, borderTopColor: EQ.border2, paddingTop: SPACE[2] },
+  choicesLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: EQ.textFaint,
+    letterSpacing: 1,
+    paddingHorizontal: SPACE[4],
+    paddingBottom: SPACE[2],
+  },
+  choices: { gap: SPACE[2], paddingHorizontal: SPACE[3] },
   choiceBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    backgroundColor: "#1f2937",
-    paddingHorizontal: 14,
-    justifyContent: "center",
+    minHeight: CHOICE_MIN,
+    borderRadius: R.md,
+    backgroundColor: EQ.surface2,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    paddingHorizontal: SPACE[3],
+    paddingVertical: SPACE[3],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE[3],
   },
-  choiceText: { color: "#fff", fontSize: 17, fontWeight: "600" },
+  choiceBtnPressed: { borderColor: EQ.accent, opacity: 0.85 },
+  choiceBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: R.sm,
+    backgroundColor: EQ.surface3,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  choiceBadgeFreeform: { backgroundColor: EQ.accentBg, borderWidth: 1, borderColor: EQ.accent },
+  choiceBadgeText: { fontSize: 11, fontWeight: "700", color: EQ.textMuted },
+  choiceText: { fontSize: FS.sm, color: EQ.text, flex: 1, lineHeight: 20 },
   freeformBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#1f2937",
-    paddingHorizontal: 14,
-    justifyContent: "center",
+    minHeight: TOUCH_MIN,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    paddingHorizontal: SPACE[3],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SPACE[3],
   },
-  freeformText: { color: "#1f2937", fontSize: 17, fontWeight: "700" },
-  dock: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  freeformText: { fontSize: FS.sm, color: EQ.accent, fontWeight: "600" },
+
+  dock: {
+    flexDirection: "row",
+    gap: SPACE[2],
+    padding: SPACE[3],
+    borderTopWidth: 1,
+    borderTopColor: EQ.border2,
+    backgroundColor: EQ.bg2,
+  },
   dockBtn: {
-    flexGrow: 1,
-    minHeight: 56,
-    borderRadius: 12,
-    backgroundColor: "#1f2937",
+    flex: 1,
+    minHeight: TOUCH_MIN,
+    borderRadius: R.md,
+    backgroundColor: EQ.surface,
+    borderWidth: 1,
+    borderColor: EQ.border,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 12,
   },
-  dockBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  btnPressed: { opacity: 0.7 },
-  body: { fontSize: 18, lineHeight: 26 },
-  error: { color: "#b91c1c", fontWeight: "600" },
-  meta: { fontSize: 12, color: "#9ca3af" },
+  dockBtnPressed: { borderColor: EQ.accent, backgroundColor: EQ.accentBg },
+  dockBtnText: { color: EQ.textMuted, fontSize: 12, fontWeight: "600" },
+
+  error: { color: EQ.danger, fontWeight: "600", padding: SPACE[3] },
 });

@@ -68,7 +68,8 @@ CREATE TABLE IF NOT EXISTS scene_summaries (
   summary      text NOT NULL,
   key_events   jsonb NOT NULL DEFAULT '[]'::jsonb,
   embedding    vector(1024),
-  created_at   timestamptz NOT NULL DEFAULT now()
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (campaign_id, scene_number)
 );
 
 CREATE INDEX IF NOT EXISTS scene_summaries_campaign_idx ON scene_summaries (campaign_id, scene_number);

@@ -10,6 +10,7 @@ import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
 import { usePrefs } from "@/prefs/store";
 import { speakOnce } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
+import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 
 export default function AccessibilityCenter(): JSX.Element {
   const headingRef = useRef<Text>(null);
@@ -22,27 +23,37 @@ export default function AccessibilityCenter(): JSX.Element {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text
-        ref={headingRef}
-        role="heading"
-        aria-level={1}
-        style={styles.h1}
-      >
-        Accessibility center
+    <ScrollView style={styles.root} contentContainerStyle={styles.container}>
+      <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
+        Accessibility
       </Text>
 
+      <SectionLabel>AUDIO</SectionLabel>
+
       <Toggle
-        label="Narrator (spoken narration)"
+        label="Narrator"
+        hint="Spoken narration for all game text"
         value={prefs.narratorEnabled}
         onChange={(v) => {
           prefs.setNarratorEnabled(v);
           if (v) void speakOnce("Narrator on.");
         }}
       />
+      <Toggle
+        label="Sound cues"
+        hint="Short sounds for game events"
+        value={prefs.soundCuesEnabled}
+        onChange={(v) => {
+          prefs.setSoundCuesEnabled(v);
+          if (v) void playCue("success");
+        }}
+      />
 
       <View style={styles.row}>
-        <Text style={styles.label}>Speech rate</Text>
+        <View style={styles.rowInfo}>
+          <Text style={styles.label}>Speech rate</Text>
+          <Text style={styles.hint}>Narration playback speed</Text>
+        </View>
         <View style={styles.rateRow}>
           <RateButton
             label="Slower"
@@ -52,7 +63,7 @@ export default function AccessibilityCenter(): JSX.Element {
             }}
           />
           <Text style={styles.rateValue} accessibilityLiveRegion="polite">
-            {prefs.speechRate.toFixed(1)}x
+            {prefs.speechRate.toFixed(1)}×
           </Text>
           <RateButton
             label="Faster"
@@ -64,56 +75,58 @@ export default function AccessibilityCenter(): JSX.Element {
         </View>
       </View>
 
+      <SectionLabel>DISPLAY</SectionLabel>
+
       <Toggle
-        label="Sound cues"
-        value={prefs.soundCuesEnabled}
-        onChange={(v) => {
-          prefs.setSoundCuesEnabled(v);
-          if (v) void playCue("success");
-        }}
+        label="High contrast"
+        hint="Stronger colour contrast throughout"
+        value={prefs.highContrast}
+        onChange={prefs.setHighContrast}
       />
+      <Toggle
+        label="Reduce motion"
+        hint="Disable animations and transitions"
+        value={prefs.reduceMotion}
+        onChange={prefs.setReduceMotion}
+      />
+
+      <SectionLabel>INTERACTION</SectionLabel>
 
       <Toggle
         label="Haptic feedback"
+        hint="Vibrate on choices, saves, and danger events"
         value={prefs.hapticsEnabled}
         onChange={(v) => {
           prefs.setHapticsEnabled(v);
           if (v) void playCue("discovery");
         }}
       />
-
-      <Toggle
-        label="High contrast"
-        value={prefs.highContrast}
-        onChange={prefs.setHighContrast}
-      />
-
-      <Toggle
-        label="Reduce motion"
-        value={prefs.reduceMotion}
-        onChange={prefs.setReduceMotion}
-      />
-
       <Toggle
         label="Audio-only mode"
+        hint="Hide all non-essential visual elements"
         value={prefs.audioOnly}
         onChange={prefs.setAudioOnly}
       />
 
       <Text style={styles.note}>
-        All accessibility features are free on every plan and never gated by
-        a paywall.
+        All accessibility features are free on every plan and never gated by a paywall.
       </Text>
     </ScrollView>
   );
 }
 
+function SectionLabel({ children }: { children: string }): JSX.Element {
+  return <Text style={styles.sectionLabel}>{children}</Text>;
+}
+
 function Toggle({
   label,
+  hint,
   value,
   onChange,
 }: {
   label: string;
+  hint?: string;
   value: boolean;
   onChange: (v: boolean) => void;
 }): JSX.Element {
@@ -121,11 +134,15 @@ function Toggle({
     <Pressable
       role="switch"
       accessibilityLabel={label}
+      accessibilityHint={hint}
       accessibilityState={{ checked: value }}
       onPress={() => onChange(!value)}
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
     >
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.rowInfo}>
+        <Text style={styles.label}>{label}</Text>
+        {hint && <Text style={styles.hint}>{hint}</Text>}
+      </View>
       <View style={[styles.track, value ? styles.trackOn : styles.trackOff]}>
         <View style={[styles.thumb, value ? styles.thumbOn : styles.thumbOff]} />
       </View>
@@ -133,13 +150,7 @@ function Toggle({
   );
 }
 
-function RateButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}): JSX.Element {
+function RateButton({ label, onPress }: { label: string; onPress: () => void }): JSX.Element {
   return (
     <Pressable
       accessibilityRole="button"
@@ -153,27 +164,46 @@ function RateButton({
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 12 },
-  h1: { fontSize: 32, fontWeight: "800", marginBottom: 8 },
+  root: { flex: 1, backgroundColor: EQ.bg },
+  container: { padding: SPACE[6], gap: SPACE[2] },
+
+  h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5, marginBottom: SPACE[3] },
+
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: EQ.textFaint,
+    letterSpacing: 1.2,
+    marginTop: SPACE[4],
+    marginBottom: SPACE[1],
+  },
+
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 56,
-    paddingVertical: 8,
+    minHeight: TOUCH_MIN,
+    paddingVertical: SPACE[3],
+    borderBottomWidth: 1,
+    borderBottomColor: EQ.border2,
   },
-  label: { fontSize: 17, fontWeight: "600", color: "#111827", flex: 1, paddingRight: 12 },
-  rateRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  rateValue: { fontSize: 16, fontWeight: "700", minWidth: 48, textAlign: "center" },
+  rowInfo: { flex: 1, paddingRight: SPACE[3] },
+  label: { fontSize: FS.base, fontWeight: "600", color: EQ.text },
+  hint: { fontSize: FS.xs, color: EQ.textFaint, marginTop: 2 },
+
+  rateRow: { flexDirection: "row", alignItems: "center", gap: SPACE[2] },
+  rateValue: { fontSize: FS.base, fontWeight: "700", color: EQ.text, minWidth: 40, textAlign: "center" },
   rateBtn: {
-    minHeight: 44,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#1f2937",
+    minHeight: TOUCH_MIN,
+    paddingHorizontal: SPACE[3],
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface,
     justifyContent: "center",
   },
-  rateBtnText: { color: "#1f2937", fontWeight: "700" },
+  rateBtnText: { color: EQ.text, fontWeight: "700", fontSize: FS.sm },
+
   track: {
     width: 51,
     height: 31,
@@ -181,19 +211,20 @@ const styles = StyleSheet.create({
     padding: 2,
     justifyContent: "center",
   },
-  trackOff: { backgroundColor: "#d1d5db" },
-  trackOn: { backgroundColor: "#4f46e5" },
+  trackOff: { backgroundColor: EQ.surface3 },
+  trackOn: { backgroundColor: EQ.accent },
   thumb: {
     width: 27,
     height: 27,
     borderRadius: 14,
     backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
     shadowOffset: { width: 0, height: 1 },
   },
   thumbOff: { alignSelf: "flex-start" },
   thumbOn: { alignSelf: "flex-end" },
-  note: { color: "#6b7280", marginTop: 16, fontSize: 14 },
+
+  note: { color: EQ.textFaint, marginTop: SPACE[6], fontSize: FS.sm, lineHeight: 20 },
 });

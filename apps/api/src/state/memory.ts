@@ -15,6 +15,7 @@ interface MemCampaign extends StoredCampaign {
   bible: GameBible;
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
+  sceneSummaries: { sceneNumber: number; summary: string; keyEvents: string[] }[];
 }
 
 /**
@@ -85,6 +86,7 @@ export class MemoryCampaignStore implements CampaignStore {
       createdAt: Date.now(),
       lastPresentedChoices: [],
       narrationLog: [],
+      sceneSummaries: [],
     });
   }
 
@@ -161,13 +163,42 @@ export class MemoryCampaignStore implements CampaignStore {
     if (existing) existing.lastPresentedChoices = choices;
   }
 
+  async persistSceneSummary(
+    campaignId: string,
+    summary: { sceneNumber: number; summary: string; keyEvents: string[] },
+  ): Promise<void> {
+    const existing = this.campaigns.get(campaignId);
+    if (!existing) return;
+    const idx = existing.sceneSummaries.findIndex(
+      (s) => s.sceneNumber === summary.sceneNumber,
+    );
+    if (idx >= 0) {
+      existing.sceneSummaries[idx] = summary;
+    } else {
+      existing.sceneSummaries.push(summary);
+    }
+  }
+
   memoryStore(): MemoryStore {
+    const self = this;
     return {
-      async recentTurns() {
-        return [];
+      async recentTurns(campaignId: string, n: number) {
+        const c = self.campaigns.get(campaignId);
+        if (!c) return [];
+        return c.narrationLog.slice(-n).map((t) => ({
+          turnNumber: t.turnNumber,
+          role: t.role,
+          text: t.text,
+        }));
       },
-      async sceneSummaries() {
-        return [];
+      async sceneSummaries(campaignId: string) {
+        const c = self.campaigns.get(campaignId);
+        if (!c) return [];
+        return c.sceneSummaries.map((s) => ({
+          sceneNumber: s.sceneNumber,
+          summary: s.summary,
+          keyEvents: s.keyEvents,
+        }));
       },
       async searchTurns() {
         return [];

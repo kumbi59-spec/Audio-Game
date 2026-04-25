@@ -19,6 +19,7 @@ import {
 } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
+import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 
 const MIN_CHARS = 60;
 const SUPPORTED_TYPES = [
@@ -119,14 +120,14 @@ export default function UploadBible(): JSX.Element {
   }, [result, router]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.container}>
       <Text
         ref={headingRef}
         role="heading"
         aria-level={1}
         style={styles.h1}
       >
-        Upload game bible
+        Upload Bible
       </Text>
 
       {!result && (
@@ -135,6 +136,7 @@ export default function UploadBible(): JSX.Element {
             Upload a PDF, DOCX, Markdown, or text file — or paste text
             directly below. We'll extract and structure the world.
           </Text>
+
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={busy ? "Uploading…" : "Pick a file"}
@@ -154,8 +156,10 @@ export default function UploadBible(): JSX.Element {
               <Text style={styles.primaryBtnText}>Pick a file</Text>
             )}
           </Pressable>
+
           <Text style={styles.divider}>— or paste —</Text>
-          <View>
+
+          <View style={styles.fieldGroup}>
             <Text accessibilityRole="text" style={styles.label}>
               Title hint (optional)
             </Text>
@@ -166,12 +170,13 @@ export default function UploadBible(): JSX.Element {
               value={titleHint}
               onChangeText={setTitleHint}
               placeholder="The Hollow Kingdom"
+              placeholderTextColor={EQ.textFaint}
               maxLength={120}
               editable={!busy}
             />
           </View>
 
-          <View>
+          <View style={styles.fieldGroup}>
             <Text accessibilityRole="text" style={styles.label}>
               Bible text
             </Text>
@@ -182,6 +187,7 @@ export default function UploadBible(): JSX.Element {
               value={text}
               onChangeText={setText}
               placeholder="Paste your worldbuilding text here…"
+              placeholderTextColor={EQ.textFaint}
               multiline
               numberOfLines={12}
               textAlignVertical="top"
@@ -218,18 +224,17 @@ export default function UploadBible(): JSX.Element {
           <Text role="heading" aria-level={2} style={styles.h2}>
             {result.title}
           </Text>
-          {result.bible.pitch && <Text style={styles.body}>{result.bible.pitch}</Text>}
-          <Text style={styles.body}>
-            Style: {result.bible.style_mode}. Found{" "}
-            {result.bible.entities.length} named entities.
+          {result.bible.pitch && (
+            <Text style={styles.body}>{result.bible.pitch}</Text>
+          )}
+          <Text style={styles.meta}>
+            Style: {result.bible.style_mode} · {result.bible.entities.length} named entities
           </Text>
           {result.warnings.length > 0 && (
             <View style={styles.warnBox} accessibilityRole="alert">
               <Text style={styles.warnTitle}>Warnings</Text>
               {result.warnings.map((w) => (
-                <Text key={w} style={styles.warnText}>
-                  • {w}
-                </Text>
+                <Text key={w} style={styles.warnText}>• {w}</Text>
               ))}
             </View>
           )}
@@ -275,58 +280,79 @@ export default function UploadBible(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 16 },
-  h1: { fontSize: 32, fontWeight: "800" },
-  h2: { fontSize: 24, fontWeight: "800" },
-  body: { fontSize: 17, lineHeight: 24 },
-  label: { fontSize: 14, fontWeight: "600", marginBottom: 6, color: "#374151" },
+  root: { flex: 1, backgroundColor: EQ.bg },
+  container: { padding: SPACE[6], gap: SPACE[4] },
+
+  h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5 },
+  h2: { fontSize: FS["2xl"], fontWeight: "700", color: EQ.text, letterSpacing: -0.3 },
+
+  body: { fontSize: FS.md, color: EQ.textMuted, lineHeight: 26 },
+  meta: { fontSize: FS.sm, color: EQ.textFaint, lineHeight: 20 },
+
+  fieldGroup: { gap: SPACE[1] },
+  label: { fontSize: FS.sm, fontWeight: "600", color: EQ.textMuted },
+
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    minHeight: 48,
+    borderColor: EQ.border,
+    borderRadius: R.lg,
+    paddingHorizontal: SPACE[4],
+    paddingVertical: SPACE[3],
+    fontSize: FS.base,
+    minHeight: TOUCH_MIN + 12,
+    backgroundColor: EQ.surface2,
+    color: EQ.text,
   },
-  textarea: { minHeight: 200 },
-  counter: { marginTop: 4, color: "#6b7280", fontSize: 12 },
+  textarea: { minHeight: 200, textAlignVertical: "top" },
+  counter: { fontSize: FS.xs, color: EQ.textFaint, marginTop: SPACE[1] },
+
   divider: {
     textAlign: "center",
-    color: "#6b7280",
-    fontSize: 13,
-    marginVertical: 4,
+    color: EQ.textFaint,
+    fontSize: FS.xs,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
+
   primaryBtn: {
-    minHeight: 56,
-    borderRadius: 12,
-    backgroundColor: "#1f2937",
+    minHeight: TOUCH_MIN + 12,
+    borderRadius: R.lg,
+    backgroundColor: EQ.accent,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACE[5],
+    shadowColor: EQ.accent,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
   },
-  primaryBtnText: { color: "#fff", fontSize: 18, fontWeight: "700" },
+  primaryBtnText: { color: "#fff", fontSize: FS.lg, fontWeight: "700" },
+
   secondaryBtn: {
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#1f2937",
+    minHeight: TOUCH_MIN,
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: SPACE[5],
   },
-  secondaryBtnText: { color: "#1f2937", fontSize: 16, fontWeight: "700" },
-  btnPressed: { opacity: 0.7 },
-  btnDisabled: { opacity: 0.5 },
+  secondaryBtnText: { color: EQ.textMuted, fontSize: FS.base, fontWeight: "600" },
+
+  btnPressed: { opacity: 0.75 },
+  btnDisabled: { opacity: 0.4 },
+
   warnBox: {
-    backgroundColor: "#fef3c7",
-    borderRadius: 10,
-    padding: 12,
-    gap: 4,
+    backgroundColor: "rgba(245,158,11,0.12)",
+    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.3)",
+    padding: SPACE[4],
+    gap: SPACE[1],
   },
-  warnTitle: { fontWeight: "700", color: "#92400e" },
-  warnText: { color: "#92400e" },
-  error: { color: "#b91c1c", fontWeight: "600" },
+  warnTitle: { fontWeight: "700", color: EQ.warning, fontSize: FS.sm },
+  warnText: { color: EQ.warning, fontSize: FS.sm, lineHeight: 20, opacity: 0.85 },
+
+  error: { color: EQ.danger, fontWeight: "600" },
 });

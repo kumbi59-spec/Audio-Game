@@ -129,5 +129,9 @@ export function getPersistence() {
       campaignId: string,
       choices: { id: string; label: string }[],
     ) => store.persistPresentedChoices(campaignId, choices),
+    persistSceneSummary: (
+      campaignId: string,
+      summary: { sceneNumber: number; summary: string; keyEvents: string[] },
+    ) => store.persistSceneSummary(campaignId, summary),
   };
 }
