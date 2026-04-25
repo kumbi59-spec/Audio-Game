@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Audio RPG",
+    "slug": "audio-rpg",
+    "scheme": "audiorpg",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "@siteed/expo-audio-stream",
+        {
+          "iosBackgroundModes": {
+            "useAudio": true
+          }
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.audiorpg.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Audio RPG listens for your spoken choices and custom actions so you can play without looking at the screen.",
+        "NSSpeechRecognitionUsageDescription": "Speech recognition turns your voice into game actions.",
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "com.audiorpg.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

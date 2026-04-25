@@ -7,18 +7,44 @@ node_modules/
 .next/
 out/
 
-# Prisma
+# Expo / React Native
+.expo
+.expo-shared
+web-build
+ios/Pods
+android/.gradle
+android/build
+android/app/build
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# Databases
 *.db
 *.db-journal
 dev.db
 
-# Environment variables (never commit secrets)
+# Environment variables
+.env
+.env.*
+!.env.example
 .env.local
 .env*.local
 
-# TypeScript build cache
-tsconfig.tsbuildinfo
-*.tsbuildinfo
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.turbo
+.cache
+pnpm-lock.yaml.backup
+
+# Test results
+playwright-report/
+test-results/
 
 # OS files
 .DS_Store
@@ -27,3 +53,7 @@ Thumbs.db
 # Editors
 .vscode/
 .idea/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo

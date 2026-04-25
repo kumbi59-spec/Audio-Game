@@ -1,52 +1,26 @@
 {
-  "name": "audio-game",
-  "version": "0.1.0",
+  "name": "audio-rpg",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+  "version": "0.0.0",
+  "description": "Accessibility-first audio RPG platform. Audible meets AI Game Master.",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20.11.0"
   },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.24.3",
-    "@prisma/client": "^5.14.0",
-    "@radix-ui/react-accessible-icon": "^1.1.0",
-    "@radix-ui/react-dialog": "^1.1.1",
-    "@radix-ui/react-progress": "^1.1.0",
-    "@radix-ui/react-select": "^2.1.1",
-    "@radix-ui/react-slider": "^1.2.0",
-    "@radix-ui/react-tabs": "^1.1.0",
-    "@radix-ui/react-tooltip": "^1.1.2",
-    "@radix-ui/react-visually-hidden": "^1.1.0",
-    "clsx": "^2.1.1",
-    "framer-motion": "^11.3.19",
-    "mammoth": "^1.7.2",
-    "marked": "^12.0.0",
-    "next": "14.2.5",
-    "pdf-parse": "^1.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.3.0",
-    "zod": "^3.23.8",
-    "zustand": "^4.5.4"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' --filter './apps/api' --filter './apps/web' build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "dev:api": "pnpm --filter @audio-rpg/api dev",
+    "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
+    "dev:web": "pnpm --filter @audio-rpg/web dev"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
-    "@types/pdf-parse": "^1.1.4",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5",
-    "eslint-plugin-jsx-a11y": "^6.9.0",
-    "postcss": "^8.4.39",
-    "prisma": "^5.14.0",
-    "tailwindcss": "^3.4.6",
-    "typescript": "^5.4.5"
+    "typescript": "5.5.4"
   }
 }
