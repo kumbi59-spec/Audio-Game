@@ -6,11 +6,12 @@ import type { PlayerAction } from "@/types/game";
 
 interface ActionInputProps {
   onAction: (action: PlayerAction) => void;
+  choices?: string[];
   disabled?: boolean;
   id?: string;
 }
 
-export function ActionInput({ onAction, disabled = false, id = "action-input" }: ActionInputProps) {
+export function ActionInput({ onAction, choices = [], disabled = false, id = "action-input" }: ActionInputProps) {
   const [text, setText] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,9 +68,10 @@ export function ActionInput({ onAction, disabled = false, id = "action-input" }:
       <div className="flex justify-center">
         <VoiceCommandListener
           onAction={handleVoiceAction}
-          onChoiceSelect={(i) =>
-            onAction({ type: "choice", content: `Option ${i + 1}`, choiceIndex: i })
-          }
+          onChoiceSelect={(i) => {
+            const label = choices[i] ?? `Option ${i + 1}`;
+            onAction({ type: "choice", content: label, choiceIndex: i });
+          }}
           isActive={!disabled}
         />
       </div>

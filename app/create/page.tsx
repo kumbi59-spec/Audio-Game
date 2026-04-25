@@ -8,7 +8,6 @@ import { useAudioStore } from "@/store/audio-store";
 import { useGameStore } from "@/store/game-store";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 import { CLASS_DESCRIPTIONS } from "@/types/character";
-import { generateOpeningNarration } from "@/lib/ai/gm-engine";
 import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import Link from "next/link";
@@ -109,9 +108,15 @@ function CreateCharacterPage() {
     setCharacter(character);
     setSession(session);
 
-    // Generate opening narration via the server action
+    // Generate opening narration via the server API route (keeps API key server-side)
     try {
-      const opening = await generateOpeningNarration(world, character);
+      const res = await fetch("/api/game/opening", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ world, character }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const opening = await res.json();
 
       // Update the session with the opening narration in the game store
       useGameStore.setState((s) => ({

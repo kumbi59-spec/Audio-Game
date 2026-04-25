@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
 import { ActionInput } from "./ActionInput";
@@ -10,7 +10,7 @@ import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
-import { speak } from "@/lib/audio/tts-provider";
+import { speak, isSpeaking } from "@/lib/audio/tts-provider";
 import type { PlayerAction } from "@/types/game";
 
 export function GameShell() {
@@ -18,6 +18,12 @@ export function GameShell() {
     useGameSession();
   const { ttsSpeed, volume } = useAudioStore();
   const inputRef = useRef<HTMLElement | null>(null);
+  const [speaking, setSpeaking] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAction = useCallback(
     (action: PlayerAction) => {
@@ -75,7 +81,7 @@ export function GameShell() {
         onFocusInput={handleFocusInput}
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
-        isSpeaking={false}
+        isSpeaking={speaking}
       />
 
       <main
@@ -111,6 +117,7 @@ export function GameShell() {
         <div ref={(el) => { inputRef.current = el; }}>
           <ActionInput
             onAction={handleAction}
+            choices={session.choices}
             disabled={session.isGenerating}
           />
         </div>

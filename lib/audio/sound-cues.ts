@@ -64,8 +64,6 @@ export function playAmbient(track: string, volume = 0.25): void {
   const file = AMBIENT_FILES[track];
   if (!file) return;
 
-  if (ambientAudio && !ambientAudio.paused) return;
-
   try {
     stopAmbient();
     ambientAudio = new Audio(file);
