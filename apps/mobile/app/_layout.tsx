@@ -27,8 +27,7 @@ export default function RootLayout(): JSX.Element {
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
-          headerShown: true,
-          headerTitleStyle: { fontSize: 22, fontWeight: "700" },
+          headerShown: false,
         }}
       />
     </SafeAreaProvider>
