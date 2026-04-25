@@ -122,7 +122,7 @@ export default function UploadBible(): JSX.Element {
     <ScrollView contentContainerStyle={styles.container}>
       <Text
         ref={headingRef}
-        accessibilityRole="header"
+        role="heading"
         aria-level={1}
         style={styles.h1}
       >
@@ -215,7 +215,7 @@ export default function UploadBible(): JSX.Element {
 
       {result && (
         <>
-          <Text accessibilityRole="header" aria-level={2} style={styles.h2}>
+          <Text role="heading" aria-level={2} style={styles.h2}>
             {result.title}
           </Text>
           {result.bible.pitch && <Text style={styles.body}>{result.bible.pitch}</Text>}

@@ -138,7 +138,7 @@ export default function ActiveCampaign(): JSX.Element {
     <View style={styles.container}>
       <Text
         ref={headingRef}
-        accessibilityRole="header"
+        role="heading"
         aria-level={1}
         style={styles.h1}
       >
