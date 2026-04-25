@@ -28,25 +28,25 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
 
   return (
     <nav aria-label="Available choices">
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="mb-2 text-base font-semibold text-foreground">
         What do you do?
       </h2>
-      <ol ref={listRef} className="flex flex-col gap-2">
+      <ol ref={listRef} className="flex flex-col gap-2.5">
         {choices.map((choice, i) => (
           <li key={i}>
             <button
               onClick={() => onSelect(i, choice)}
               disabled={disabled}
               aria-label={`Option ${i + 1}: ${choice}`}
-              className="flex w-full items-center gap-3 rounded-lg border border-border bg-secondary px-4 py-3 text-left text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+              className="flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
             >
               <span
                 aria-hidden="true"
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground"
+                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
               >
                 {i + 1}
               </span>
-              <span>{choice}</span>
+              <span className="pr-1">{choice}</span>
             </button>
           </li>
         ))}

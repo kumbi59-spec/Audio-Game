@@ -86,7 +86,7 @@ export function GameShell() {
 
       <main
         id="main-content"
-        className="flex h-full flex-col gap-3 p-3 md:p-4"
+        className="mx-auto flex h-full w-full max-w-4xl flex-col gap-3 p-3 md:gap-4 md:p-4"
         aria-label={`${world.name} — Active game session`}
       >
         {/* World title */}
@@ -95,10 +95,15 @@ export function GameShell() {
         </h1>
 
         {/* Status bar */}
-        <StatusBar character={character} session={session} world={world} />
-
-        {/* Audio controls */}
-        <AudioControls onReplayLast={replayLast} />
+        <details className="rounded-xl border border-border bg-muted/25 p-2">
+          <summary className="cursor-pointer list-none rounded-md px-2 py-2 text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            Session tools (status, voice, and sound settings)
+          </summary>
+          <div className="mt-3 space-y-3">
+            <StatusBar character={character} session={session} world={world} />
+            <AudioControls onReplayLast={replayLast} />
+          </div>
+        </details>
 
         {/* Narration */}
         <NarrationPanel

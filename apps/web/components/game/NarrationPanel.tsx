@@ -22,7 +22,7 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
       aria-live="polite"
       aria-relevant="additions"
       ref={regionRef}
-      className="flex-1 overflow-y-auto rounded-xl border p-4 md:p-6"
+      className="max-h-52 overflow-y-auto rounded-xl border p-4 md:max-h-72 md:p-6"
       style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
     >
       {entries.length === 0 && (
