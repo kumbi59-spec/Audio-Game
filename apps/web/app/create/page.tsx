@@ -6,6 +6,8 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useGameStore } from "@/store/game-store";
+import { useCanWeb } from "@/store/entitlements-store";
+import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 import { CLASS_DESCRIPTIONS } from "@/types/character";
 import type { CharacterClass, CharacterData } from "@/types/character";
@@ -25,12 +27,18 @@ function CreateCharacterPage() {
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
   const { setSession, setCharacter, setWorld, setDbSessionId } = useGameStore();
+  const can = useCanWeb();
 
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
   const [backstory, setBackstory] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  useEffect(() => {
+    if (!can.worldWizard) setPaywallOpen(true);
+  }, [can.worldWizard]);
 
   useEffect(() => {
     const msg = `Character creation for ${world.name}. Step 1: Enter your character's name.`;
@@ -326,6 +334,12 @@ function CreateCharacterPage() {
           </section>
         )}
       </div>
+      <UpgradeModal
+        open={paywallOpen}
+        requiredTier="creator"
+        featureName="World Builder Wizard"
+        onClose={() => { setPaywallOpen(false); router.push("/"); }}
+      />
     </div>
   );
 }

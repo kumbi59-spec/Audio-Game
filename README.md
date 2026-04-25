@@ -13,6 +13,8 @@ blind and low-vision players as a first-class audience.
 | In-memory + Postgres/pgvector state stores | ✅ |
 | Game Bible upload (PDF, DOCX, TXT, MD, JSON) | ✅ |
 | World Builder Wizard with Claude suggestions | ✅ |
+| Per-NPC ElevenLabs voice routing | ✅ |
+| PWA service worker + offline fallback | ✅ |
 | EchoQuest design system (midnight-navy, violet accent) | ✅ |
 | Expo mobile app (iOS / Android / Web) | ✅ |
 | Next.js 14 web app (streaming, Radix UI) | ✅ |
@@ -21,6 +23,9 @@ blind and low-vision players as a first-class audience.
 | Sound cues + haptics | ✅ |
 | Scene summarization (every 15 turns) | ✅ |
 | Spoken recap on demand | ✅ |
+| Subscription tiers + entitlement enforcement | ✅ |
+| Stripe checkout stubs (web) | ✅ |
+| RevenueCat purchase stubs (mobile) | ✅ |
 | Accessibility layer (ARIA, landmark announcements, 44 px targets) | ✅ |
 | Playwright + axe-core CI | ✅ |
 | Postgres + pgvector CI | ✅ |
@@ -104,6 +109,75 @@ Step 9 — Opening     → Claude suggests: opening scene hooks
 Step 10 — Name       → Claude suggests: character names matching the world
 ```
 
+## Monetization
+
+### Subscription tiers
+
+| Tier | Price | AI time | Ads | Key features |
+|---|---|---|---|---|
+| Free | $0 | 60 min included; buy packs | Yes | 3 prebuilt campaigns, browser TTS, voice nav, full keyboard |
+| Storyteller | $9/mo or $79/yr | Unlimited | No | ElevenLabs multi-voice narration, Game Bible upload, unlimited saves |
+| Creator | $19/mo or $159/yr | Unlimited | No | World Builder Wizard, Claude-assisted world design, public publishing |
+| Enterprise | Custom | Unlimited | No | Institutional licensing, custom a11y integrations, priority support |
+
+**Accessibility features (narrator, voice commands, keyboard nav, screen reader support) are free on every plan, forever.**
+
+### AI minute credit packs (free tier top-up)
+
+| Pack | Minutes | Price |
+|---|---|---|
+| Starter | 60 min | $1.99 |
+| Best value | 3 hours | $4.99 |
+| Power player | 10 hours | $14.99 |
+
+### Entitlement enforcement
+
+Server-side enforcement lives in `apps/api/src/auth/entitlements.ts`. Every request to a gated route must carry:
+
+```
+Authorization: Bearer <tier>.<nonce>.<sig>
+```
+
+The token is a HMAC-SHA256-signed claim issued by `POST /auth/token` (development only — swap with your auth provider in production). Missing or invalid tokens default to the free tier.
+
+Gated routes:
+- `POST /worlds/upload` and `POST /worlds/upload-file` — requires **Storyteller**
+- `POST /worlds` (wizard create) and `POST /wizard/suggest` — requires **Creator**
+
+Client-side gates mirror this in both apps:
+- Mobile: `useCan()` from `apps/mobile/src/entitlements/store.ts`
+- Web: `useCanWeb()` from `apps/web/store/entitlements-store.ts`
+
+Both show an `UpgradePrompt` / `UpgradeModal` paywall sheet when a gated feature is accessed without the required tier.
+
+### Payment integration
+
+**Web (Stripe)** — stubs in `apps/web/lib/payments/stripe.ts` and `apps/web/app/api/payments/`:
+1. `npm install stripe`
+2. Fill in `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and price IDs in `.env.local`
+3. Replace the stub bodies in `stripe.ts` with real `stripe.checkout.sessions.create(...)` calls
+4. Wire the webhook handler to update the user's tier in the DB
+
+**Mobile (RevenueCat)** — stubs in `apps/mobile/src/entitlements/purchases.ts`:
+1. `npx expo install react-native-purchases`
+2. Fill in `REVENUECAT_APPLE_API_KEY` / `REVENUECAT_GOOGLE_API_KEY` in your Expo secrets
+3. Replace stub bodies following the TODO comments
+
+### ElevenLabs voice configuration
+
+Per-NPC voice routing assigns up to three distinct ElevenLabs voices to characters in a scene. Configure via env vars:
+
+| Variable | Default voice ID | Role |
+|---|---|---|
+| `ELEVENLABS_VOICE_NARRATOR` | Rachel (`21m00Tcm4TlvDq8ikWAM`) | Narrator / non-dialogue prose |
+| `ELEVENLABS_VOICE_A` | Domi (`AZnzlk1XvdvUeBnXmlld`) | First NPC speaking in a scene |
+| `ELEVENLABS_VOICE_B` | Arnold (`VR6AewLTigWG4xSOukaG`) | Second NPC speaking in a scene |
+| `ELEVENLABS_VOICE_C` | Adam (`pNInz6obpgDQGcFmaJgB`) | Third NPC speaking in a scene |
+
+The GM formats NPC dialogue inline as `[NpcName]: "their words"`. The narrator detects this pattern during streaming and routes each segment to the correct ElevenLabs voice ID via the `voiceRole` query param on `GET /tts`.
+
+`GET /tts/voices` returns the currently configured role → voice ID map.
+
 ## Run CI locally
 
 ```bash
@@ -161,3 +235,10 @@ secrets live under a `credentialed` environment.
 | `apps/api/src/gm/claude.ts` | All Claude calls (GM, recap, summary, wizard) |
 | `apps/mobile/src/design/tokens.ts` | EchoQuest design tokens |
 | `apps/mobile/app/create.tsx` | World Builder Wizard with suggestion chips |
+| `packages/shared/src/entitlements.ts` | Tier definitions, entitlement flags, pricing, AI packs |
+| `apps/api/src/auth/entitlements.ts` | Server-side tier enforcement (preHandler factory) |
+| `apps/api/src/routes/auth.ts` | Dev token issuer (`POST /auth/token`) |
+| `apps/mobile/src/entitlements/` | Mobile paywall sheets, ad banner, RevenueCat stub |
+| `apps/web/store/entitlements-store.ts` | Web entitlement Zustand store |
+| `apps/web/components/entitlements/UpgradeModal.tsx` | Web paywall dialog |
+| `apps/web/lib/payments/stripe.ts` | Stripe checkout stub |

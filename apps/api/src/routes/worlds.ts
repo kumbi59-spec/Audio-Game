@@ -9,6 +9,7 @@ import { runIngestModel } from "../ingest/runner.js";
 import { extractBibleText } from "../ingest/extract.js";
 import { embedWorldBible } from "../embeddings/runner.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
+import { requireTier } from "../auth/entitlements.js";
 
 /**
  * Kicks the embedding pipeline in the background. Never throws into the
@@ -59,7 +60,7 @@ interface FileMultipart {
  * GET  /worlds/:id      -> { worldId, kind, title, bible, warnings? }
  */
 export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/worlds/upload", async (req, reply) => {
+  app.post("/worlds/upload", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     const body = UploadBody.safeParse(req.body);
     if (!body.success) {
       return reply.status(400).send({ error: body.error.flatten() });
@@ -91,7 +92,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  app.post("/worlds", async (req, reply) => {
+  app.post("/worlds", { preHandler: requireTier("creator") }, async (req, reply) => {
     const body = CreateBody.safeParse(req.body);
     if (!body.success) {
       return reply.status(400).send({ error: body.error.flatten() });
@@ -110,7 +111,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
     });
   });
 
-  app.post("/worlds/upload-file", async (req, reply) => {
+  app.post("/worlds/upload-file", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     // Requires @fastify/multipart registered on the server instance.
     const file = await (req as unknown as { file: () => Promise<FileMultipart | undefined> }).file();
     if (!file) {
