@@ -11,11 +11,6 @@ export interface HistoryEntry {
   turnNumber: number;
 }
 
-/**
- * Compresses a batch of old history entries into a compact summary paragraph.
- * The summary is prepended to the context window so the GM retains world-state
- * knowledge even after raw history has been trimmed.
- */
 export async function summarizeHistory(
   entries: HistoryEntry[],
   existingSummary: string,

@@ -32,7 +32,6 @@ const ActionSchema = z.object({
   }),
   character: z.unknown(),
   world: z.unknown(),
-  // Optional: if present, persist each turn to the DB session
   dbSessionId: z.string().optional(),
 });
 
@@ -66,7 +65,6 @@ export async function POST(req: NextRequest) {
         for await (const evt of streamGMTurn(action, session, character, world)) {
           send(evt.type, evt.data);
 
-          // Collect the full narration for DB persistence
           if (evt.type === "narration_chunk" && typeof evt.data === "string") {
             fullNarration += evt.data;
           }
@@ -75,7 +73,6 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Persist to DB if a DB session ID was provided
         if (dbSessionId) {
           try {
             const { persistTurn, updateGameState, incrementTurnCount, countHistoryEntries } =
@@ -94,7 +91,6 @@ export async function POST(req: NextRequest) {
               incrementTurnCount(dbSessionId),
             ]);
 
-            // Apply state changes to DB
             if (Object.keys(stateChanges).length > 0 || session.currentLocationId !== null) {
               const flagPatch = (stateChanges as { flags?: Record<string, unknown> }).flags;
               await updateStateInDb(dbSessionId, {
@@ -107,7 +103,6 @@ export async function POST(req: NextRequest) {
               });
             }
 
-            // Check if we should summarize old history
             const historyCount = await countHistoryEntries(dbSessionId);
             if (historyCount >= SUMMARIZE_THRESHOLD) {
               const { getOldestHistoryEntries } = await import("@/lib/db/queries/sessions");

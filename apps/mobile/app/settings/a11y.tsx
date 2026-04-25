@@ -3,7 +3,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
@@ -26,7 +25,7 @@ export default function AccessibilityCenter(): JSX.Element {
     <ScrollView contentContainerStyle={styles.container}>
       <Text
         ref={headingRef}
-        accessibilityRole="header"
+        role="heading"
         aria-level={1}
         style={styles.h1}
       >
@@ -119,15 +118,18 @@ function Toggle({
   onChange: (v: boolean) => void;
 }): JSX.Element {
   return (
-    <View
-      style={styles.row}
-      accessibilityRole="switch"
+    <Pressable
+      role="switch"
       accessibilityLabel={label}
       accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
+      style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}
     >
       <Text style={styles.label}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} />
-    </View>
+      <View style={[styles.track, value ? styles.trackOn : styles.trackOff]}>
+        <View style={[styles.thumb, value ? styles.thumbOn : styles.thumbOff]} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -172,5 +174,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   rateBtnText: { color: "#1f2937", fontWeight: "700" },
+  track: {
+    width: 51,
+    height: 31,
+    borderRadius: 16,
+    padding: 2,
+    justifyContent: "center",
+  },
+  trackOff: { backgroundColor: "#d1d5db" },
+  trackOn: { backgroundColor: "#4f46e5" },
+  thumb: {
+    width: 27,
+    height: 27,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  thumbOff: { alignSelf: "flex-start" },
+  thumbOn: { alignSelf: "flex-end" },
   note: { color: "#6b7280", marginTop: 16, fontSize: 14 },
 });

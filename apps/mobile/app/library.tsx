@@ -95,7 +95,7 @@ export default function Library(): JSX.Element {
     >
       <Text
         ref={headingRef}
-        accessibilityRole="header"
+        role="heading"
         aria-level={1}
         style={styles.h1}
       >
@@ -179,7 +179,7 @@ function Section({
 }): JSX.Element {
   return (
     <View style={styles.section}>
-      <Text accessibilityRole="header" aria-level={2} style={styles.h2}>
+      <Text role="heading" aria-level={2} style={styles.h2}>
         {title}
       </Text>
       <View style={styles.sectionBody}>{children}</View>

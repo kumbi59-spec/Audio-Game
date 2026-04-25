@@ -148,7 +148,7 @@ export default function CreateWorld(): JSX.Element {
     <ScrollView contentContainerStyle={styles.container}>
       <Text
         ref={headingRef}
-        accessibilityRole="header"
+        role="heading"
         aria-level={1}
         style={styles.h1}
       >

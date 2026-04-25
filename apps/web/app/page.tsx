@@ -19,10 +19,9 @@ const MODES = [
     id: "upload",
     title: "Upload a Game Bible",
     description:
-      "Upload a PDF, DOCX, or text file — your rules, lore, and setting — and we'll turn it into a playable world.",
+      "Upload a PDF, DOCX, or text file — your rules, lore, and setting — and the AI will turn it into a playable world.",
     href: "/worlds/new/upload",
-    available: false,
-    comingSoon: true,
+    available: true,
   },
   {
     id: "create",
