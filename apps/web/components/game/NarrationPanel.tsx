@@ -22,10 +22,11 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
       aria-live="polite"
       aria-relevant="additions"
       ref={regionRef}
-      className="flex-1 overflow-y-auto rounded-xl border border-border bg-background/50 p-4 md:p-6"
+      className="flex-1 overflow-y-auto rounded-xl border p-4 md:p-6"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
     >
       {entries.length === 0 && (
-        <p className="text-muted-foreground italic">
+        <p className="italic" style={{ color: "var(--text-muted)" }}>
           Your adventure awaits. Make a choice below to begin.
         </p>
       )}
@@ -34,11 +35,19 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
           key={entry.id}
           className={`mb-4 leading-relaxed ${
             entry.type === "player_action"
-              ? "font-mono text-sm text-accent-foreground/80 before:content-['>_']"
+              ? "font-mono text-sm before:content-['>_']"
               : entry.type === "system"
-              ? "text-sm text-muted-foreground italic"
-              : "text-base text-foreground"
+              ? "text-sm italic"
+              : "narration text-base"
           }`}
+          style={{
+            color:
+              entry.type === "player_action"
+                ? "var(--accent)"
+                : entry.type === "system"
+                ? "var(--text-muted)"
+                : "var(--text)",
+          }}
         >
           {entry.type === "narration"
             ? entry.text.split("\n\n").map((para, i) => (
@@ -54,15 +63,16 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
         <div
           role="status"
           aria-label="Game Master is responding"
-          className="flex items-center gap-2 text-sm text-muted-foreground"
+          className="flex items-center gap-2 text-sm"
+          style={{ color: "var(--text-muted)" }}
         >
           <span
             aria-hidden="true"
             className="inline-flex gap-1"
           >
-            <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: "var(--accent)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: "var(--accent)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full" style={{ backgroundColor: "var(--accent)" }} />
           </span>
           <span>The Game Master is narrating…</span>
         </div>

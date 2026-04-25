@@ -6,17 +6,18 @@ blind and low-vision players as a first-class audience.
 
 ## Status
 
-Phase 0 foundations — monorepo scaffold, shared schemas, GM engine core,
-Fastify API with session WebSocket, Expo app skeleton with accessibility
-primitives. See `docs/plan.md` (copied from the approved build plan) for the
-full product spec, architecture, and roadmap.
+MVP complete — full AI Game Master pipeline, accessibility layer, one prebuilt
+world ("The Shattered Reaches"), and a Next.js web app. The Expo mobile app
+has the same routes in React Native. See the PR history for a detailed
+feature log.
 
 ## Workspace layout
 
 ```
 apps/
-  api/       Fastify + Anthropic orchestration + TTS proxy (Phase 1)
-  mobile/    Expo (iOS / Android / Web) with accessibility-first UI
+  api/       Fastify + Anthropic orchestration + TTS proxy
+  mobile/    Expo (iOS / Android / Web) — accessibility-first React Native
+  web/       Next.js 14 (App Router) — streaming AI GM, browser TTS, Radix UI
 packages/
   shared/    Zod schemas — GM turn, Game Bible, session events, state
   gm-engine/ Pure TS — state reducer, prompt assembly, memory retrieval
@@ -24,28 +25,56 @@ packages/
 
 ## Prerequisites
 
-- Node 20.11+
-- pnpm 9
-- An Anthropic API key in `.env` (see `.env.example`)
-- (Later) Postgres with `pgvector`, Redis, ElevenLabs + Deepgram keys
+- Node ≥ 20.11
+- pnpm 9 (`npm i -g pnpm@9`)
+- An Anthropic API key
 
-## Quick start
+## Quick start — Next.js web app
 
 ```bash
+# 1. Clone and install
+git clone <repo>
+cd Audio-Game
 pnpm install
-pnpm typecheck
-pnpm test
 
-# API
-cp .env.example .env  # fill in ANTHROPIC_API_KEY
-pnpm dev:api
+# 2. Configure environment
+cp .env.example apps/web/.env.local
+# Open apps/web/.env.local and set:
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   DATABASE_URL=file:./dev.db    (already set — SQLite, no Postgres needed)
 
-# Mobile / web
-pnpm dev:mobile
+# 3. Set up the database
+pnpm --filter @audio-rpg/web db:generate   # generate Prisma client
+pnpm --filter @audio-rpg/web db:push       # create SQLite schema
 
-# End-to-end smoke test against a running server
-# (requires ANTHROPIC_API_KEY on the server; no external creds needed in CI)
-pnpm --filter @audio-rpg/api e2e
+# 4. Start the dev server
+pnpm dev:web
+# → http://localhost:3000
+```
+
+The home page announces itself via browser TTS and loads the prebuilt world
+"The Shattered Reaches". All navigation works by keyboard alone (1–9 for
+choices, V for voice, H for help, R to replay narration).
+
+## Quick start — Expo mobile app
+
+```bash
+# Requires Expo CLI and either a simulator or the Expo Go app
+pnpm install
+cp .env.example .env          # fill in ANTHROPIC_API_KEY + PORT=4000
+pnpm dev:api                  # start the Fastify API in one terminal
+pnpm dev:mobile               # start Expo in another
+```
+
+## Run CI locally
+
+```bash
+pnpm typecheck                 # type-check all six workspace packages
+pnpm test                      # unit + in-memory integration tests
+
+# Web e2e (Playwright + axe-core) — requires Chromium
+pnpm --filter @audio-rpg/mobile test:e2e:install   # one-time Chromium install
+pnpm --filter @audio-rpg/mobile test:e2e
 ```
 
 ## CI
@@ -74,7 +103,7 @@ secrets live under a `credentialed` environment.
 
 ## Learn more
 
-- Full plan: `/root/.claude/plans/here-s-a-strong-build-sleepy-rocket.md`
+- Full plan: `/root/.claude/plans/here-s-a-strong-build-groovy-toucan.md`
 - GM turn contract: `packages/shared/src/gm.ts`
 - State reducer: `packages/gm-engine/src/reducer.ts`
 - Session WebSocket: `apps/api/src/routes/session.ts`

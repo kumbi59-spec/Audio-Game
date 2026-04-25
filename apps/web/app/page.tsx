@@ -10,16 +10,16 @@ const MODES = [
   {
     id: "prebuilt",
     title: "Play a Story",
-    emoji: "📖",
-    description: "Choose from our library of interactive audio adventures guided by an AI Game Master.",
+    description:
+      "Choose from our library of narrated AI adventures guided by an AI Game Master.",
     href: "/library",
     available: true,
   },
   {
     id: "upload",
     title: "Upload a Game Bible",
-    emoji: "📤",
-    description: "Upload a PDF, DOCX, or text file — your rules, lore, and setting — and we'll turn it into a playable world.",
+    description:
+      "Upload a PDF, DOCX, or text file — your rules, lore, and setting — and we'll turn it into a playable world.",
     href: "/worlds/new/upload",
     available: false,
     comingSoon: true,
@@ -27,8 +27,8 @@ const MODES = [
   {
     id: "create",
     title: "Create Your World",
-    emoji: "🌍",
-    description: "Build a custom world step by step with an audio-guided wizard. Play in it immediately.",
+    description:
+      "Build a custom world step by step with an audio-guided wizard. Play in it immediately.",
     href: "/worlds/new/wizard",
     available: false,
     comingSoon: true,
@@ -42,7 +42,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const welcome =
-      "Welcome to Audio RPG. Home screen. 3 modes available: Play a Story, Upload a Game Bible, or Create Your World. Use Tab to navigate or press a number key.";
+      "Welcome to EchoQuest. Home screen. Three modes available: Play a Story, Upload a Game Bible, or Create Your World. Use Tab to navigate or press a number key.";
     announce(welcome);
     speak(welcome, { rate: ttsSpeed, volume });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -50,18 +50,22 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Hero */}
-      <header className="flex flex-col items-center justify-center px-6 py-16 text-center">
-        <p aria-hidden="true" className="mb-4 text-5xl">🎙️</p>
+      <header className="flex flex-col items-center justify-center px-6 py-16 text-center animate-fade-slide-in">
         <h1
           className="mb-4 text-3xl font-bold tracking-tight md:text-4xl"
+          style={{ color: "var(--text)" }}
           data-focus-on-mount
           tabIndex={-1}
         >
-          Audio RPG
+          EchoQuest
         </h1>
-        <p className="max-w-lg text-base text-muted-foreground md:text-lg">
-          An audio-first interactive storytelling platform with an AI Game Master.
-          Fully accessible. Built for blind and sighted adventurers alike.
+        <p
+          className="max-w-lg text-base md:text-lg"
+          style={{ color: "var(--text-muted)" }}
+        >
+          An audio-first interactive storytelling platform with an AI Game
+          Master. Fully accessible. Built for blind and sighted adventurers
+          alike.
         </p>
       </header>
 
@@ -75,30 +79,44 @@ export default function HomePage() {
                 key={mode.id}
                 className={`relative rounded-xl border p-6 transition-colors ${
                   mode.available
-                    ? "border-border bg-secondary hover:border-primary hover:bg-accent cursor-pointer"
-                    : "border-border/50 bg-secondary/50 cursor-not-allowed opacity-60"
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-60"
                 }`}
+                style={{
+                  borderColor: "var(--border)",
+                  backgroundColor: "var(--surface)",
+                }}
               >
                 <button
                   onClick={() => mode.available && router.push(mode.href)}
                   disabled={!mode.available}
                   aria-label={`${mode.title}${mode.comingSoon ? " (coming soon)" : ""}. ${mode.description}. Press ${i + 1} to select.`}
                   aria-describedby={`mode-desc-${mode.id}`}
-                  className="absolute inset-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="absolute inset-0 rounded-xl"
+                  style={{ minHeight: "unset" }}
                 />
-                <div aria-hidden="true" className="mb-3 text-3xl">
-                  {mode.emoji}
-                </div>
-                <h3 className="mb-1 font-semibold">{mode.title}</h3>
+                <h3
+                  className="mb-1 font-semibold"
+                  style={{ color: "var(--text)" }}
+                >
+                  {mode.title}
+                </h3>
                 <p
                   id={`mode-desc-${mode.id}`}
-                  className="text-sm text-muted-foreground"
+                  className="text-sm"
+                  style={{ color: "var(--text-muted)" }}
                 >
                   {mode.description}
                 </p>
                 {mode.comingSoon && (
-                  <span className="mt-3 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    Coming soon
+                  <span
+                    className="mt-3 inline-block rounded-full px-2 py-0.5 text-xs"
+                    style={{
+                      backgroundColor: "var(--surface-2)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    COMING SOON
                   </span>
                 )}
               </article>
@@ -109,20 +127,42 @@ export default function HomePage() {
         {/* Accessibility note */}
         <section
           aria-label="Accessibility information"
-          className="mx-auto mt-12 max-w-3xl rounded-xl border border-border bg-muted/30 p-6"
+          className="mx-auto mt-12 max-w-3xl rounded-xl border p-6"
+          style={{
+            borderColor: "var(--border)",
+            backgroundColor: "var(--surface)",
+          }}
         >
-          <h2 className="mb-2 font-semibold">Accessibility-first</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2
+            className="mb-2 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "var(--text-muted)" }}
+          >
+            ACCESSIBILITY
+          </h2>
+          <p className="text-sm" style={{ color: "var(--text-muted)" }}>
             Every feature works by voice, keyboard, and screen reader. Press{" "}
-            <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">H</kbd>{" "}
-            at any time for keyboard shortcuts. Audio narration plays automatically.
-            Adjust speed and voice in the audio controls during play.
+            <kbd
+              className="rounded px-1.5 py-0.5 font-mono text-xs"
+              style={{
+                backgroundColor: "var(--surface-2)",
+                color: "var(--text)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              H
+            </kbd>{" "}
+            at any time for keyboard shortcuts. Audio narration plays
+            automatically. Adjust speed and voice in the audio controls during
+            play.
           </p>
         </section>
       </main>
 
-      <footer className="px-6 py-4 text-center text-xs text-muted-foreground">
-        <p>Audio RPG — Powered by Claude AI · Audio-first interactive storytelling</p>
+      <footer
+        className="px-6 py-4 text-center text-xs"
+        style={{ color: "var(--text-subtle)" }}
+      >
+        <p>EchoQuest — Powered by Claude AI · Audio-first interactive storytelling</p>
       </footer>
     </div>
   );

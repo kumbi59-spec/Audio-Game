@@ -2,51 +2,163 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 20 14% 4%;
-    --foreground: 60 9% 92%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 20 14% 10%;
-    --secondary-foreground: 60 9% 85%;
-    --muted: 20 14% 12%;
-    --muted-foreground: 60 9% 60%;
-    --accent: 262 83% 20%;
-    --accent-foreground: 60 9% 92%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 20 14% 16%;
-    --input: 20 14% 14%;
-    --ring: 262 83% 58%;
-    --radius: 0.5rem;
-  }
+/* ─── EchoQuest Design Tokens ─────────────────────────────────────────────── */
 
-  .high-contrast {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    --primary: 60 100% 50%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 80%;
-    --border: 0 0% 40%;
-    --ring: 60 100% 50%;
+:root {
+  /* Surfaces */
+  --bg:           #080b12;
+  --surface:      #111827;
+  --surface-2:    #1a2236;
+  --surface-3:    #232d45;
+
+  /* Text */
+  --text:         #e8e6f0;
+  --text-muted:   #8b8fa8;
+  --text-subtle:  #525873;
+
+  /* Brand / accent */
+  --accent:       #7c6af7;
+  --accent-hover: #9580ff;
+  --accent-dim:   rgba(124, 106, 247, 0.15);
+
+  /* Semantic */
+  --success:      #34d399;
+  --warning:      #fbbf24;
+  --danger:       #f87171;
+  --info:         #60a5fa;
+
+  /* Borders */
+  --border:       #2a3352;
+  --border-muted: #1e2740;
+
+  /* Focus ring */
+  --focus-ring:   #7c6af7;
+
+  /* Legacy aliases (keep Tailwind utilities working) */
+  --background:   var(--bg);
+  --foreground:   var(--text);
+  --primary:      var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary:    var(--surface);
+  --secondary-foreground: var(--text);
+  --muted:        var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --ring:         var(--focus-ring);
+  --radius:       0.5rem;
+}
+
+/* Light theme */
+.theme-light {
+  --bg:           #f4f2ff;
+  --surface:      #ffffff;
+  --surface-2:    #eeecfa;
+  --surface-3:    #e5e2f5;
+  --text:         #1a1730;
+  --text-muted:   #5c5880;
+  --text-subtle:  #9490b0;
+  --accent:       #5a47f0;
+  --accent-hover: #4535dc;
+  --accent-dim:   rgba(90, 71, 240, 0.12);
+  --border:       #d4d0ee;
+  --border-muted: #e8e6f6;
+  --success:      #059669;
+  --warning:      #d97706;
+  --danger:       #dc2626;
+  --info:         #2563eb;
+}
+
+/* High-contrast override */
+.theme-high-contrast {
+  --bg:           #000000;
+  --surface:      #0d0d0d;
+  --surface-2:    #1a1a1a;
+  --surface-3:    #262626;
+  --text:         #ffffff;
+  --text-muted:   #cccccc;
+  --text-subtle:  #999999;
+  --accent:       #ffff00;
+  --accent-hover: #ffff66;
+  --accent-dim:   rgba(255, 255, 0, 0.15);
+  --border:       #666666;
+  --border-muted: #444444;
+  --focus-ring:   #ffff00;
+}
+
+/* ─── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+@keyframes revealWord {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes echoQuestPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ─── Base styles ─────────────────────────────────────────────────────────── */
+
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-inter, system-ui, sans-serif);
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Ensure minimum 44x44px touch targets on mobile */
+  /* Narration text uses serif */
+  .narration,
+  [data-narration] {
+    font-family: var(--font-lora, Georgia, serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+  }
+
+  /* 3-pixel focus ring — high visibility for keyboard / AT users */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* 44 × 44 px minimum touch targets */
   button,
   [role="button"],
   a,
@@ -60,13 +172,41 @@
     min-height: auto;
   }
 
-  /* High-visibility focus ring for keyboard users */
-  :focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
+  /* Borders default to design-token colour */
+  * {
+    border-color: var(--border);
+  }
+}
+
+/* ─── Utility classes ─────────────────────────────────────────────────────── */
+
+@layer utilities {
+  /* Animation helpers */
+  .animate-fade-slide-in  { animation: fadeSlideIn 0.4s ease-out both; }
+  .animate-reveal-word    { animation: revealWord  0.35s ease-out both; }
+  .animate-shimmer        { animation: shimmer 2s linear infinite; }
+  .animate-echo-pulse     { animation: echoQuestPulse 2s ease-in-out infinite; }
+  .animate-bounce-subtle  { animation: bounce 1.4s ease-in-out infinite; }
+
+  /* Shimmer loading skeleton */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--surface) 25%,
+      var(--surface-2) 50%,
+      var(--surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s linear infinite;
+    border-radius: 4px;
   }
 
-  /* Screen reader only */
+  /* Accent glow (for active states) */
+  .glow-accent {
+    box-shadow: 0 0 0 3px var(--accent-dim), 0 4px 20px var(--accent-dim);
+  }
+
+  /* Screen-reader only */
   .sr-only {
     position: absolute;
     width: 1px;
@@ -79,23 +219,24 @@
     border-width: 0;
   }
 
-  /* Reduce motion for users who prefer it */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    ::before,
-    ::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-
-  /* Large text mode */
+  /* Large-text mode */
   .large-text {
     font-size: 1.125rem;
     line-height: 1.75;
   }
-
   .large-text h1 { font-size: 2rem; }
   .large-text h2 { font-size: 1.5rem; }
+}
+
+/* ─── Reduced-motion collapse ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
