@@ -69,6 +69,7 @@ export default function Home(): JSX.Element {
           ref={headingRef}
           role="heading"
           aria-level={1}
+          accessibilityLabel="Home"
           style={styles.h1}
         >
           Your adventure{"\n"}awaits.
@@ -84,7 +85,7 @@ export default function Home(): JSX.Element {
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={starting ? "Beginning your adventure…" : "Start New Adventure"}
+        accessibilityLabel={starting ? "Beginning your adventure…" : "Start sample adventure"}
         accessibilityHint="Begin The Sunken Bell, a short gothic mystery"
         accessibilityState={{ busy: starting, disabled: starting }}
         onPress={startSample}
@@ -122,6 +123,7 @@ export default function Home(): JSX.Element {
         />
         <NavCard
           label="Upload Bible"
+          accessibilityLabel="Upload game bible"
           sub="PDF, DOCX, text"
           onPress={() => router.push("/upload")}
           wide
@@ -150,11 +152,13 @@ export default function Home(): JSX.Element {
 
 function NavCard({
   label,
+  accessibilityLabel,
   sub,
   onPress,
   wide,
 }: {
   label: string;
+  accessibilityLabel?: string;
   sub: string;
   onPress: () => void;
   wide?: boolean;
@@ -162,7 +166,7 @@ function NavCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={sub}
       onPress={onPress}
       style={({ pressed }) => [

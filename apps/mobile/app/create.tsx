@@ -20,7 +20,7 @@ import {
   type Draft,
   type WizardStep,
 } from "@/wizard/createWorldSteps";
-import { createCampaign, createWorldFromBible } from "@/api/rest";
+import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
 import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
@@ -33,6 +33,8 @@ export default function CreateWorld(): JSX.Element {
   const [textInput, setTextInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
@@ -54,6 +56,27 @@ export default function CreateWorld(): JSX.Element {
     const current = draft[step.id];
     setTextInput(typeof current === "string" ? current : "");
   }, [stepIndex, step, draft]);
+
+  // Fetch Claude suggestions whenever we land on a freeform step
+  useEffect(() => {
+    if (!step || step.kind !== "freeform") {
+      setSuggestions([]);
+      return;
+    }
+    setSuggestions([]);
+    setLoadingSuggestions(true);
+    const draftSnapshot: Record<string, string> = {};
+    for (const key of Object.keys(draft)) {
+      const val = draft[key as keyof Draft];
+      if (typeof val === "string" && val.trim()) draftSnapshot[key] = val;
+    }
+    let cancelled = false;
+    void getWizardSuggestions(step.id, draftSnapshot)
+      .then((s) => { if (!cancelled) setSuggestions(s); })
+      .catch(() => { /* suggestions are optional — never block the wizard */ })
+      .finally(() => { if (!cancelled) setLoadingSuggestions(false); });
+    return () => { cancelled = true; };
+  }, [stepIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advance = useCallback(
     (value: string) => {
@@ -155,18 +178,47 @@ export default function CreateWorld(): JSX.Element {
       )}
 
       {step.kind === "freeform" ? (
-        <TextInput
-          accessibilityLabel={step.prompt}
-          accessibilityHint={step.helper}
-          style={[styles.input, (step.id === "pitch" || step.id === "startingScenario") && styles.inputMulti]}
-          value={textInput}
-          onChangeText={setTextInput}
-          editable={!busy}
-          autoFocus
-          multiline={step.id === "pitch" || step.id === "startingScenario"}
-          placeholderTextColor={EQ.textFaint}
-          placeholder="Type or speak your answer…"
-        />
+        <>
+          <TextInput
+            accessibilityLabel={step.prompt}
+            accessibilityHint={step.helper}
+            style={[styles.input, (step.id === "pitch" || step.id === "startingScenario") && styles.inputMulti]}
+            value={textInput}
+            onChangeText={setTextInput}
+            editable={!busy}
+            autoFocus
+            multiline={step.id === "pitch" || step.id === "startingScenario"}
+            placeholderTextColor={EQ.textFaint}
+            placeholder="Type or speak your answer…"
+          />
+
+          {/* Claude suggestion chips */}
+          {(loadingSuggestions || suggestions.length > 0) && (
+            <View style={styles.suggestionsSection}>
+              <Text style={styles.suggestionsLabel}>
+                {loadingSuggestions ? "Getting ideas…" : "SUGGESTIONS"}
+              </Text>
+              {loadingSuggestions ? (
+                <ActivityIndicator color={EQ.accent} size="small" style={styles.suggestionSpinner} />
+              ) : (
+                <View style={styles.chips}>
+                  {suggestions.map((s, i) => (
+                    <Pressable
+                      key={i}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Use suggestion: ${s}`}
+                      onPress={() => { setTextInput(s); void speakOnce(s); }}
+                      disabled={busy}
+                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+                    >
+                      <Text style={styles.chipText}>{s}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </>
       ) : (
         <View style={styles.choices}>
           {step.options.map((opt) => (
@@ -286,6 +338,22 @@ const styles = StyleSheet.create({
     color: EQ.text,
   },
   inputMulti: { minHeight: 120, textAlignVertical: "top" },
+
+  suggestionsSection: { gap: SPACE[2] },
+  suggestionsLabel: { fontSize: 10, fontWeight: "600", color: EQ.textFaint, letterSpacing: 1.2 },
+  suggestionSpinner: { alignSelf: "flex-start", marginTop: SPACE[1] },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
+  chip: {
+    borderRadius: R["3xl"],
+    borderWidth: 1,
+    borderColor: EQ.accent,
+    backgroundColor: EQ.accentBg,
+    paddingHorizontal: SPACE[3],
+    paddingVertical: SPACE[2],
+    maxWidth: "100%",
+  },
+  chipPressed: { opacity: 0.7 },
+  chipText: { color: EQ.accent, fontSize: FS.sm, lineHeight: 18 },
 
   choices: { gap: SPACE[2] },
   choiceBtn: {

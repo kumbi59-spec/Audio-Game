@@ -25,13 +25,13 @@ export default function AccessibilityCenter(): JSX.Element {
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.container}>
       <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
-        Accessibility
+        Accessibility center
       </Text>
 
       <SectionLabel>AUDIO</SectionLabel>
 
       <Toggle
-        label="Narrator"
+        label="Narrator (spoken narration)"
         hint="Spoken narration for all game text"
         value={prefs.narratorEnabled}
         onChange={(v) => {

@@ -146,6 +146,78 @@ export async function generateRecap(args: {
   return text || `You are in ${state.scene.name}. Turn ${state.turn_number}.`;
 }
 
+/**
+ * Generates 3 short, contextually-aware suggestions for the current wizard
+ * step, based on what the user has already filled in. Called while the user
+ * is typing so the chips are ready before they finish.
+ */
+export async function generateWizardSuggestions(args: {
+  stepId: string;
+  draft: Record<string, string>;
+}): Promise<string[]> {
+  const { stepId, draft } = args;
+  const ctx: string[] = [];
+  if (draft.title)    ctx.push(`World title: "${draft.title}"`);
+  if (draft.pitch)    ctx.push(`Pitch: "${draft.pitch}"`);
+  if (draft.genre)    ctx.push(`Genre: "${draft.genre}"`);
+  if (draft.setting)  ctx.push(`Setting: "${draft.setting}"`);
+  if (draft.toneVoice) ctx.push(`Narrator tone: "${draft.toneVoice}"`);
+
+  const prompts: Record<string, string> = {
+    title:
+      "Suggest 3 short, evocative world names for an audio RPG. Each should be 2-4 words and feel like a place or an era. No explanation.",
+    pitch:
+      `${ctx.join(". ")}.\nSuggest 3 one-sentence pitches that describe this world's central conflict or atmosphere. Each should be under 20 words.`,
+    genre:
+      `${ctx.join(". ")}.\nSuggest 3 genre labels that fit this world. Examples: dark fantasy, cosmic horror, space opera, folk horror, heist noir. Short labels only.`,
+    setting:
+      `${ctx.join(". ")}.\nSuggest 3 interesting settings (place + era) for this world. Examples: "a rain-soaked 1920s port city", "a frozen steppe where gods still walk". Under 12 words each.`,
+    toneVoice:
+      `${ctx.join(". ")}.\nSuggest 3 narrator tone descriptions, each exactly 3 adjectives joined by "and". Examples: "hushed and watchful", "brash and witty and dry". Exactly 3 adjectives each.`,
+    hardConstraint:
+      `${ctx.join(". ")}.\nSuggest 3 hard world rules the game master must always respect. Examples: "no firearms exist", "magic always costs blood", "the dead never stay dead". Under 10 words each.`,
+    startingScenario:
+      `${ctx.join(". ")}.\nSuggest 3 opening scenarios that drop the player immediately into action or intrigue. 1-2 sentences each, under 30 words.`,
+    characterName:
+      `${ctx.join(". ")}.\nSuggest 3 character names that fit the world's tone and genre. Just the names, nothing else.`,
+  };
+
+  const prompt = prompts[stepId];
+  if (!prompt) return [];
+
+  const response = await getClient().messages.create({
+    model: config.CLAUDE_GM_MODEL,
+    max_tokens: 200,
+    messages: [
+      {
+        role: "user",
+        content: `${prompt}\n\nRespond with exactly 3 suggestions as a JSON array of strings: ["suggestion 1", "suggestion 2", "suggestion 3"]. No markdown, no explanation.`,
+      },
+    ],
+  });
+
+  const text = response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+
+  try {
+    const arr = JSON.parse(text) as string[];
+    if (Array.isArray(arr)) return arr.slice(0, 3).map((s) => String(s).trim());
+  } catch {
+    // Try to extract array from fenced block
+    const m = text.match(/\[[\s\S]*\]/);
+    if (m) {
+      try {
+        const arr = JSON.parse(m[0]) as string[];
+        if (Array.isArray(arr)) return arr.slice(0, 3).map((s) => String(s).trim());
+      } catch { /* fall through */ }
+    }
+  }
+  return [];
+}
+
 function extractJson(text: string): unknown {
   const trimmed = text.trim();
   if (trimmed.startsWith("{")) return JSON.parse(trimmed);

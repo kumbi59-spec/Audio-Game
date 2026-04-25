@@ -139,3 +139,14 @@ export async function createWorldFromBible(bible: GameBible): Promise<WorldDetai
     json: { bible },
   });
 }
+
+export async function getWizardSuggestions(
+  stepId: string,
+  draft: Record<string, string>,
+): Promise<string[]> {
+  const res = await http<{ suggestions: string[] }>("/wizard/suggest", {
+    method: "POST",
+    json: { stepId, draft },
+  });
+  return res.suggestions ?? [];
+}
