@@ -1,13 +1,8 @@
 import type { TTSOptions, TTSVoice, TTSProvider } from "@/types/audio";
 
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel — natural, clear
+const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel
 const TTS_PROXY = "/api/game/tts";
 
-/**
- * ElevenLabs TTS provider. Calls the server-side proxy at /api/game/tts
- * so the API key is never exposed to the browser.
- * Falls back gracefully if the proxy returns an error.
- */
 export class ElevenLabsTTS implements TTSProvider {
   private audio: HTMLAudioElement | null = null;
   private _speaking = false;

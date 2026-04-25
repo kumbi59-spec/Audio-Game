@@ -54,4 +54,4 @@ export const ACCEPTED_MIME_TYPES = [
 ];
 
 export const ACCEPTED_EXTENSIONS = ".pdf,.docx,.doc,.txt,.md,.markdown,.json";
-export const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;

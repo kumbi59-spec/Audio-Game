@@ -8,10 +8,6 @@ const MODEL = process.env["CLAUDE_GM_MODEL"] ?? "claude-sonnet-4-6";
 const MAX_INPUT_CHARS = 80_000;
 const MAX_TOKENS = 4096;
 
-/**
- * Pass raw extracted text through Claude and return a structured ParsedGameBible.
- * Throws if Claude returns malformed JSON.
- */
 export async function parseGameBible(rawText: string): Promise<ParsedGameBible> {
   const truncated =
     rawText.length > MAX_INPUT_CHARS
@@ -52,9 +48,6 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
   return parsed;
 }
 
-/**
- * Map a ParsedGameBible's ambientMood to the closest AmbientTrack enum value.
- */
 function mapAmbient(mood: string): string {
   const MAP: Record<string, string> = {
     tavern: "tavern",
@@ -76,9 +69,6 @@ function mapAmbient(mood: string): string {
   return MAP[mood.toLowerCase()] ?? "none";
 }
 
-/**
- * Build a GM system prompt string from a ParsedGameBible.
- */
 function buildSystemPromptFromBible(bible: ParsedGameBible): string {
   const locationList = bible.locations
     .map((l) => `- ${l.name}: ${l.shortDesc}`)
@@ -114,10 +104,6 @@ function buildSystemPromptFromBible(bible: ParsedGameBible): string {
     .join("\n");
 }
 
-/**
- * Create a World (with locations, NPCs, LibraryItem, GameBible) from a
- * ParsedGameBible. Returns the new World's ID.
- */
 export async function createWorldFromBible(
   bible: ParsedGameBible,
   guestId: string,
@@ -143,7 +129,7 @@ export async function createWorldFromBible(
     data: {
       originalName: originalFilename,
       mimeType,
-      rawText: rawText.slice(0, 200_000), // cap storage to 200k chars
+      rawText: rawText.slice(0, 200_000),
       parsedData: JSON.stringify(bible),
       processingStatus: "complete",
       uploaderId: guestId,

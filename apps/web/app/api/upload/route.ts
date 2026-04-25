@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
       let guestId: string | null = null;
 
       try {
-        // ── 1. Parse form data ────────────────────────────────────────────────
         send({ stage: "receiving", message: "Receiving your file…" });
 
         const formData = await req.formData();
@@ -47,7 +46,6 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        // ── 2. Extract text ───────────────────────────────────────────────────
         send({ stage: "extracting", message: "Extracting text from your file…" });
 
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -67,7 +65,6 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        // ── 3. Ensure guest user exists in DB ─────────────────────────────────
         try {
           await ensureGuestUser(guestId);
         } catch {
@@ -75,7 +72,6 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        // ── 4. Claude extraction ──────────────────────────────────────────────
         send({ stage: "analysing", message: "The AI is reading your world — this takes about 15 seconds…" });
 
         let bible;
@@ -89,7 +85,6 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        // ── 5. Create world in DB ─────────────────────────────────────────────
         send({ stage: "creating", message: `Building "${bible.worldName}"…` });
 
         let worldId: string;
@@ -109,7 +104,6 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        // ── 6. Done ───────────────────────────────────────────────────────────
         send({
           stage: "done",
           message: `Your world "${bible.worldName}" is ready to play!`,

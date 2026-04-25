@@ -1,6 +1,5 @@
 export async function parseText(text: string, isMarkdown: boolean): Promise<string> {
   if (!isMarkdown) return text.trim();
-  // Strip markdown syntax so the LLM sees clean prose
   const { marked } = await import("marked");
   const html = await marked(text);
   return html
