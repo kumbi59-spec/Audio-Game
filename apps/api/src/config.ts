@@ -9,6 +9,7 @@ const Env = z.object({
   ALLOWED_ORIGINS: z
     .string()
     .default("http://localhost:8081,http://localhost:19006"),
+  NODE_ENV: z.string().default("development"),
 });
 
 export const config = (() => {

@@ -9,6 +9,7 @@ import { AI_MINUTE_PACKS, type AiMinutePack } from "@audio-rpg/shared";
 import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 import { speakOnce } from "@/audio/narrator";
 import { useEntitlements } from "./store";
+import { purchaseMinutePack } from "./purchases";
 
 interface Props {
   visible: boolean;
@@ -65,7 +66,11 @@ export function AiMinutesSheet({ visible, onDismiss, onPurchase }: Props) {
               accessibilityLabel={`Buy ${pack.label} for $${(pack.priceCents / 100).toFixed(2)}`}
               onPress={() => {
                 onDismiss();
-                onPurchase?.(pack);
+                if (onPurchase) {
+                  onPurchase(pack);
+                } else {
+                  void purchaseMinutePack(pack);
+                }
               }}
               style={({ pressed }) => [styles.packCard, pressed && { opacity: 0.75 }]}
             >

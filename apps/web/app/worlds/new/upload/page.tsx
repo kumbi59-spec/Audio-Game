@@ -8,6 +8,8 @@ import { UploadProgress } from "@/components/worlds/UploadProgress";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
+import { useCanWeb } from "@/store/entitlements-store";
+import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import type { UploadProgressEvent } from "@/app/api/upload/route";
 
 type Stage = UploadProgressEvent["stage"];
@@ -16,12 +18,14 @@ export default function UploadBiblePage() {
   const router = useRouter();
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
+  const can = useCanWeb();
 
   const [file, setFile] = useState<File | null>(null);
   const [stage, setStage] = useState<Stage | null>(null);
   const [message, setMessage] = useState("");
   const [worldId, setWorldId] = useState<string | null>(null);
   const [worldName, setWorldName] = useState<string | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   const isProcessing = stage !== null && stage !== "done" && stage !== "error";
   const abortRef = useRef<AbortController | null>(null);
@@ -38,6 +42,7 @@ export default function UploadBiblePage() {
   }
 
   async function handleUpload() {
+    if (!can.bibleUpload) { setPaywallOpen(true); return; }
     if (!file || isProcessing) return;
 
     const guestId = (() => {
@@ -228,6 +233,12 @@ export default function UploadBiblePage() {
           </section>
         )}
       </main>
+      <UpgradeModal
+        open={paywallOpen}
+        requiredTier="storyteller"
+        featureName="Game Bible Upload"
+        onClose={() => setPaywallOpen(false)}
+      />
     </div>
   );
 }
