@@ -1,6 +1,6 @@
 "use client";
 
-import type { UploadProgressEvent } from "@/app/api/upload/route";
+import type { UploadProgressEvent } from "@/lib/upload/types";
 
 type Stage = UploadProgressEvent["stage"];
 

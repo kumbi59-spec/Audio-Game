@@ -1,5 +1,4 @@
-import webPush from "web-push";
-import { getUserPushTokens } from "./tokens.js";
+import { getUserPushTokens } from "./tokens";
 
 export interface PushPayload {
   title: string;
@@ -9,14 +8,27 @@ export interface PushPayload {
 }
 
 let vapidConfigured = false;
+type WebPushLib = {
+  setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void;
+  sendNotification: (
+    subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
+    payload?: string,
+  ) => Promise<unknown>;
+};
 
-function ensureVapid() {
+let webPushLib: WebPushLib | null = null;
+
+async function ensureVapid() {
   if (vapidConfigured) return;
+  if (!webPushLib) {
+    const mod = await import("web-push");
+    webPushLib = (mod.default ?? mod) as WebPushLib;
+  }
   const publicKey = process.env["NEXT_PUBLIC_VAPID_PUBLIC_KEY"];
   const privateKey = process.env["VAPID_PRIVATE_KEY"];
   const subject = process.env["VAPID_SUBJECT"] ?? "mailto:support@echoquest.app";
   if (!publicKey || !privateKey) return;
-  webPush.setVapidDetails(subject, publicKey, privateKey);
+  webPushLib?.setVapidDetails(subject, publicKey, privateKey);
   vapidConfigured = true;
 }
 
@@ -48,11 +60,11 @@ async function sendWebPushNotification(
   authJson: string,
   payload: PushPayload,
 ): Promise<void> {
-  ensureVapid();
+  await ensureVapid();
   if (!vapidConfigured) return;
 
   const keys = JSON.parse(authJson) as { p256dh: string; auth: string };
-  await webPush.sendNotification(
+  await webPushLib?.sendNotification(
     { endpoint, keys },
     JSON.stringify({ title: payload.title, body: payload.body, url: payload.url ?? "/" }),
   );

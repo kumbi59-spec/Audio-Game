@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/db";
 
+export interface StoredPushToken {
+  token: string;
+  type: string;
+  webAuth: string | null;
+}
+
 export async function upsertPushToken(
   userId: string,
   token: string,
@@ -27,5 +33,8 @@ export async function deletePushToken(userId: string, token: string): Promise<vo
 }
 
 export async function getUserPushTokens(userId: string) {
-  return prisma.pushToken.findMany({ where: { userId } });
+  return prisma.pushToken.findMany({
+    where: { userId },
+    select: { token: true, type: true, webAuth: true },
+  }) as Promise<StoredPushToken[]>;
 }

@@ -2,13 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { extractText, MAX_FILE_BYTES } from "@/lib/upload/file-router";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
 import { ensureGuestUser } from "@/lib/db/queries/users";
-
-export interface UploadProgressEvent {
-  stage: "receiving" | "extracting" | "analysing" | "creating" | "done" | "error";
-  message: string;
-  worldId?: string;
-  worldName?: string;
-}
+import type { UploadProgressEvent } from "@/lib/upload/types";
 
 function sse(event: UploadProgressEvent): string {
   return `event: progress\ndata: ${JSON.stringify(event)}\n\n`;
