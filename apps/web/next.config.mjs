@@ -1,5 +1,6 @@
 
 const nextConfig = {
+  transpilePackages: ["@audio-rpg/shared", "@audio-rpg/gm-engine"],
   experimental: {
     serverComponentsExternalPackages: ["pdf-parse", "mammoth"],
   },

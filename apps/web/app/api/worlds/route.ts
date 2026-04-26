@@ -1,40 +1,42 @@
-import { NextResponse } from "next/server";
-import { listPrebuiltWorlds } from "@/lib/db/queries/worlds";
+import { NextRequest, NextResponse } from "next/server";
+import { listPublicWorlds } from "@/lib/db/queries/worlds";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
-export async function GET() {
+function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
+  return {
+    id: w.id,
+    name: w.name,
+    description: w.description,
+    genre: w.genre,
+    tone: w.tone,
+    isPrebuilt: w.isPrebuilt,
+    difficulty: w.libraryItem?.difficulty ?? "beginner",
+    tags: w.libraryItem?.tags.split(",").map((t) => t.trim()).filter(Boolean) ?? [w.genre, w.tone],
+    sortOrder: w.libraryItem?.sortOrder ?? 100,
+    author: w.isPrebuilt ? null : ((w as unknown as { owner?: { name?: string } }).owner?.name ?? "Adventurer"),
+    publishedAt: w.libraryItem ? (w as unknown as { createdAt: Date }).createdAt : null,
+  };
+}
+
+export async function GET(_req: NextRequest) {
   try {
-    const dbWorlds = await listPrebuiltWorlds();
-
-    if (dbWorlds.length > 0) {
-      return NextResponse.json(
-        dbWorlds.map((w) => ({
-          id: w.id,
-          name: w.name,
-          description: w.description,
-          genre: w.genre,
-          tone: w.tone,
-          difficulty: w.libraryItem?.difficulty ?? "beginner",
-          tags: w.libraryItem?.tags.split(",") ?? [w.genre, w.tone],
-          sortOrder: w.libraryItem?.sortOrder ?? 0,
-        }))
-      );
-    }
+    const worlds = await listPublicWorlds();
+    return NextResponse.json(worlds.map(shapeWorld));
   } catch {
-    // DB not available — fall through to static data
+    return NextResponse.json(
+      PREBUILT_WORLDS.map((w, i) => ({
+        id: w.id,
+        name: w.name,
+        description: w.description,
+        genre: w.genre,
+        tone: w.tone,
+        isPrebuilt: true,
+        difficulty: "beginner",
+        tags: [w.genre, w.tone],
+        sortOrder: i,
+        author: null,
+        publishedAt: null,
+      }))
+    );
   }
-
-  // Fallback: static world list (works without a seeded DB)
-  return NextResponse.json(
-    PREBUILT_WORLDS.map((w, i) => ({
-      id: w.id,
-      name: w.name,
-      description: w.description,
-      genre: w.genre,
-      tone: w.tone,
-      difficulty: "beginner",
-      tags: [w.genre, w.tone],
-      sortOrder: i,
-    }))
-  );
 }
