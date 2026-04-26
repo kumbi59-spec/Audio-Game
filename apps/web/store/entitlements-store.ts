@@ -24,6 +24,7 @@ export function useCanWeb() {
     showAds: entitlements.showAds,
     aiMinutesRemaining: entitlements.aiMinutesRemaining,
     tier: entitlements.tier,
+    publicPublishing: entitlements.publicPublishing,
   };
 }
 

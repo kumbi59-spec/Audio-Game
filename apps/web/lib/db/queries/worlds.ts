@@ -15,6 +15,50 @@ export async function getWorldById(id: string) {
   });
 }
 
+export async function listPublicWorlds() {
+  return prisma.world.findMany({
+    where: { isPublic: true },
+    include: { libraryItem: true, owner: { select: { id: true, name: true } } },
+    orderBy: [{ isPrebuilt: "desc" }, { createdAt: "desc" }],
+  });
+}
+
+export async function getUserWorlds(userId: string) {
+  return prisma.world.findMany({
+    where: { ownerId: userId },
+    include: { libraryItem: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function publishWorld(worldId: string, userId: string): Promise<{ ok: boolean; error?: string }> {
+  const world = await prisma.world.findUnique({
+    where: { id: worldId },
+    select: { ownerId: true, isPublic: true, name: true, description: true, genre: true, tone: true, libraryItem: true },
+  });
+  if (!world) return { ok: false, error: "World not found." };
+  if (world.ownerId !== userId) return { ok: false, error: "You do not own this world." };
+
+  await prisma.world.update({
+    where: { id: worldId },
+    data: {
+      isPublic: true,
+      libraryItem: world.libraryItem
+        ? { update: { title: world.name, description: world.description } }
+        : { create: { title: world.name, description: world.description, genre: world.genre, difficulty: "beginner", tags: [world.genre, world.tone].join(","), sortOrder: 100 } },
+    },
+  });
+  return { ok: true };
+}
+
+export async function unpublishWorld(worldId: string, userId: string): Promise<{ ok: boolean; error?: string }> {
+  const world = await prisma.world.findUnique({ where: { id: worldId }, select: { ownerId: true } });
+  if (!world) return { ok: false, error: "World not found." };
+  if (world.ownerId !== userId) return { ok: false, error: "You do not own this world." };
+  await prisma.world.update({ where: { id: worldId }, data: { isPublic: false } });
+  return { ok: true };
+}
+
 export async function upsertWorldFromStatic(data: {
   id: string;
   name: string;

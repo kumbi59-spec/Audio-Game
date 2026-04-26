@@ -1,10 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
+import { useSession } from "next-auth/react";
 
 const MODES = [
   {
@@ -36,8 +38,10 @@ const MODES = [
 
 export default function HomePage() {
   const router = useRouter();
+  const params = useSearchParams();
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const welcome =
@@ -46,8 +50,30 @@ export default function HomePage() {
     speak(welcome, { rate: ttsSpeed, volume });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (params.get("upgraded") === "true") {
+      void fetch("/api/auth/refresh-tier", { method: "POST" });
+      const msg = "Your plan has been upgraded! Enjoy unlimited play.";
+      announce(msg, "assertive");
+      speak(msg, { rate: ttsSpeed, volume });
+    }
+  }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="flex min-h-screen flex-col">
+      {/* Top nav */}
+      <nav className="flex items-center justify-end gap-4 px-6 pt-4 text-sm" style={{ color: "var(--text-muted)" }}>
+        {session?.user ? (
+          <>
+            <Link href="/my-worlds" className="hover:underline">My Worlds</Link>
+            <span style={{ opacity: 0.4 }}>|</span>
+            <span>{session.user.name ?? session.user.email}</span>
+          </>
+        ) : (
+          <Link href="/auth/sign-in" className="hover:underline">Sign in</Link>
+        )}
+      </nav>
+
       {/* Hero */}
       <header className="flex flex-col items-center justify-center px-6 py-16 text-center animate-fade-slide-in">
         <h1

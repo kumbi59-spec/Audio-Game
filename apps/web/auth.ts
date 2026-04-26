@@ -34,10 +34,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.tier = (user as { tier?: string }).tier ?? "free";
+        token.tierFetchedAt = Date.now();
+      }
+      // Re-fetch tier from DB at most once per hour so Stripe upgrades
+      // propagate without requiring a sign-out/sign-in cycle.
+      const stale = !token.tierFetchedAt || Date.now() - (token.tierFetchedAt as number) > 60 * 60 * 1000;
+      if (token.id && (stale || trigger === "update")) {
+        const fresh = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { tier: true },
+        });
+        if (fresh) {
+          token.tier = fresh.tier;
+          token.tierFetchedAt = Date.now();
+        }
       }
       return token;
     },
