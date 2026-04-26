@@ -128,4 +128,14 @@ Sound Design:
 };
 
 import { MIREWOOD } from "./mirewood";
-export const PREBUILT_WORLDS: WorldData[] = [SHATTERED_REACHES, MIREWOOD];
+import { VERDANT_WILDS } from "./verdant-wilds";
+import { IRON_CITADEL } from "./iron-citadel";
+import { CRIMSON_SANDS } from "./crimson-sands";
+
+export const PREBUILT_WORLDS: WorldData[] = [
+  SHATTERED_REACHES,
+  MIREWOOD,
+  VERDANT_WILDS,
+  IRON_CITADEL,
+  CRIMSON_SANDS,
+];
