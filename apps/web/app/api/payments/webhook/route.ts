@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { constructWebhookEvent, tierForPriceKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
 import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId } from "@/lib/db/queries/users";
 import { sendUpgradeEmail } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push/sender";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +43,13 @@ export async function POST(req: NextRequest) {
         if (priceKey) {
           const newTier = tierForPriceKey(priceKey);
           await updateUserTier(user.id, newTier);
+          const tierLabel = newTier === "creator" ? "Creator" : "Storyteller";
           void sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
+          void sendPushToUser(user.id, {
+            title: `EchoQuest ${tierLabel} plan active`,
+            body: "Unlimited play and premium voices are now unlocked. Tap to start your adventure.",
+            url: "/library",
+          });
         }
       }
     }
