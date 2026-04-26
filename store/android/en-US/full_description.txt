@@ -1,0 +1,28 @@
+EchoQuest is an audio-first interactive storytelling platform guided by a live AI Game Master powered by Claude. Every feature works by voice, keyboard, and screen reader — built for blind and sighted adventurers alike.
+
+🎙️ PLAY YOUR WAY
+• Choose from official narrated campaigns or community-created worlds
+• Speak your actions out loud or type them — the AI responds to anything
+• Tap 1–9 to pick choices, use voice commands, or navigate by keyboard
+• High-quality narration voices bring every scene to life
+
+♿ FULLY ACCESSIBLE
+• Navigate entirely by TalkBack without any visual interaction
+• All dynamic game events are announced via accessibility services
+• Adjustable TTS speed and volume at any time
+• Designed from the ground up for blind and low-vision users
+
+📖 UPLOAD YOUR OWN WORLD
+• Upload a PDF, DOCX, or text file with your rules, lore, and world notes
+• Claude AI turns it into a fully playable interactive campaign
+• Share your world with the community (Creator plan)
+
+💜 BUILT FOR EVERYONE
+EchoQuest started as an accessibility project. All core accessibility features are always free — keyboard navigation, voice input, screen reader support, and browser TTS.
+
+🎮 SUBSCRIPTION
+• Free: 3 official campaigns, basic play, browser TTS
+• Storyteller ($9/mo): Unlimited play, premium voices, Game Bible upload
+• Creator ($19/mo): World Builder, community publishing, analytics
+
+Requires internet connection for AI narration. Voice input uses on-device speech recognition.

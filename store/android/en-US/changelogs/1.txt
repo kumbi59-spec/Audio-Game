@@ -1,0 +1,7 @@
+Version 1.0 — Initial release.
+
+• AI Game Master powered by Claude narrates in real time
+• Official campaigns: The Shattered Reaches and The Sunken Bell
+• Community worlds: upload a PDF or DOCX and share your world
+• Full TalkBack and keyboard navigation support
+• Adjustable narration speed, ambient sounds, and audio cues

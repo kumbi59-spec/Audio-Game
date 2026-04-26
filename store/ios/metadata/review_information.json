@@ -1,0 +1,8 @@
+{
+  "review_notes": "EchoQuest is an audio-first interactive storytelling app. The AI Game Master is powered by the Anthropic Claude API (ANTHROPIC_API_KEY required in environment). To test core gameplay: tap 'Play a Story' on the home screen, select any campaign, create a character, then interact via text or voice. Subscription features (Storyteller/Creator) can be tested with the sandbox account below. Voice input uses on-device iOS speech recognition — microphone permission is requested on first use.",
+  "demo_user": {
+    "email": "reviewer@echoquest.app",
+    "password": "REPLACE_WITH_REVIEWER_PASSWORD"
+  },
+  "demo_notes": "The demo account has Storyteller tier pre-activated so all premium features are accessible during review."
+}

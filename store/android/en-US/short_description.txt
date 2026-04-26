@@ -1,0 +1,1 @@
+Audio-first RPG with a live AI Game Master. Fully accessible by voice & screen reader.
