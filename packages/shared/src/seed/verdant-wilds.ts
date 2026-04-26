@@ -1,4 +1,4 @@
-import type { CampaignState, GameBible } from "../index";
+import type { CampaignState, GameBible } from "../index.js";
 
 export const VERDANT_WILDS_BIBLE: GameBible = {
   version: 1,
