@@ -403,19 +403,31 @@ export default function WorldWizardPage() {
               {step.options.map((opt) => {
                 const selected = draft[step.id] === opt.value;
                 return (
-                  <button
+                  <div
                     key={opt.value}
                     role="radio"
                     aria-checked={selected}
-                    onClick={() => advance(opt.value)}
-                    disabled={busy}
-                    className="flex w-full items-center rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors hover:opacity-90 disabled:opacity-40"
+                    tabIndex={busy ? -1 : 0}
+                    onClick={() => {
+                      if (!busy) advance(opt.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (busy) return;
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        advance(opt.value);
+                      }
+                    }}
+                    aria-disabled={busy}
+                    className="flex w-full items-center rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-colors hover:opacity-90"
                     style={{
                       borderColor: selected ? "var(--accent)" : "var(--border)",
                       backgroundColor: selected
                         ? "var(--accentBg, rgba(99,102,241,0.08))"
                         : "var(--surface2)",
                       color: selected ? "var(--accent)" : "var(--text)",
+                      opacity: busy ? 0.4 : 1,
+                      cursor: busy ? "not-allowed" : "pointer",
                     }}
                   >
                     <span
@@ -434,7 +446,7 @@ export default function WorldWizardPage() {
                       )}
                     </span>
                     {opt.label}
-                  </button>
+                  </div>
                 );
               })}
             </div>
