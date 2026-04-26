@@ -152,8 +152,9 @@ export default function LibraryPage() {
                   borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
                   marginBottom: "-1px",
                   background: "none",
-                  border: "none",
-                  borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
+                  borderTop: "none",
+                  borderLeft: "none",
+                  borderRight: "none",
                   cursor: "pointer",
                   minHeight: "44px",
                 }}
