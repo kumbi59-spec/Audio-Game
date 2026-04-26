@@ -1,4 +1,4 @@
-import type { CampaignState, GameBible } from "../index.js";
+import type { CampaignState, GameBible } from "../index";
 
 export const CRIMSON_SANDS_BIBLE: GameBible = {
   version: 1,

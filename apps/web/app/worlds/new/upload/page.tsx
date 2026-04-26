@@ -10,7 +10,7 @@ import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
-import type { UploadProgressEvent } from "@/app/api/upload/route";
+import type { UploadProgressEvent } from "@/lib/upload/types";
 
 type Stage = UploadProgressEvent["stage"];
 

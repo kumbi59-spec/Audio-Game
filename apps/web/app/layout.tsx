@@ -5,6 +5,7 @@ import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
+import { AuthProvider } from "./AuthProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,12 +40,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${lora.variable}`}>
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
-        <AudioAnnouncer>
-          <ServiceWorkerRegistrar />
-          <SkipLinks />
-          <FocusManager />
-          {children}
-        </AudioAnnouncer>
+        <AuthProvider>
+          <AudioAnnouncer>
+            <ServiceWorkerRegistrar />
+            <SkipLinks />
+            <FocusManager />
+            {children}
+          </AudioAnnouncer>
+        </AuthProvider>
       </body>
     </html>
   );

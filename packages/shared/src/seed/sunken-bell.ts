@@ -1,4 +1,4 @@
-import type { CampaignState, GameBible } from "../index.js";
+import type { CampaignState, GameBible } from "../index";
 
 /**
  * A small, self-contained world used for onboarding, demos, and the Phase 1
