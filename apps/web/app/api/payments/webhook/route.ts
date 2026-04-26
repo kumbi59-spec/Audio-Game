@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { constructWebhookEvent, tierForPriceKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
 import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId } from "@/lib/db/queries/users";
+import { sendUpgradeEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +39,11 @@ export async function POST(req: NextRequest) {
       if (user && sub.status === "active") {
         const priceId = sub.items.data[0]?.price.id ?? "";
         const priceKey = (Object.entries(STRIPE_PRICES).find(([, v]) => v === priceId)?.[0] ?? "") as PriceKey | "";
-        if (priceKey) await updateUserTier(user.id, tierForPriceKey(priceKey));
+        if (priceKey) {
+          const newTier = tierForPriceKey(priceKey);
+          await updateUserTier(user.id, newTier);
+          void sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
+        }
       }
     }
 

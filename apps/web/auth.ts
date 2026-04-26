@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare, hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -22,6 +23,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const user = await prisma.user.create({
             data: { email, passwordHash, name: email.split("@")[0] },
           });
+          // Fire-and-forget — don't block sign-in if email fails
+          void sendWelcomeEmail(user.email, user.name ?? user.email.split("@")[0]!);
           return { id: user.id, email: user.email, name: user.name, tier: user.tier };
         }
 

@@ -9,6 +9,12 @@ import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 
+interface WorldAnalytics {
+  sessionCount: number;
+  totalTurns: number;
+  uniquePlayers: number;
+}
+
 interface MyWorld {
   id: string;
   name: string;
@@ -18,6 +24,7 @@ interface MyWorld {
   isPublic: boolean;
   difficulty: string;
   tags: string[];
+  analytics: WorldAnalytics | null;
 }
 
 export default function MyWorldsPage() {
@@ -147,6 +154,33 @@ export default function MyWorldsPage() {
                   <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
                     {world.description}
                   </p>
+
+                  {world.analytics && can.publicPublishing && (
+                    <dl
+                      className="mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-center"
+                      style={{ backgroundColor: "var(--surface-2, var(--surface))", border: "1px solid var(--border)" }}
+                      aria-label="World analytics"
+                    >
+                      <div>
+                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Sessions</dt>
+                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          {world.analytics.sessionCount}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Turns</dt>
+                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          {world.analytics.totalTurns}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Players</dt>
+                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          {world.analytics.uniquePlayers}
+                        </dd>
+                      </div>
+                    </dl>
+                  )}
 
                   {can.publicPublishing ? (
                     <button
