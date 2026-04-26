@@ -38,7 +38,7 @@ export default function NewWorldPage() {
           Create a New World
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          Choose how you'd like to build your world.
+          Choose how you&apos;d like to build your world.
         </p>
       </header>
 

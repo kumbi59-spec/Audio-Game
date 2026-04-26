@@ -46,17 +46,12 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
     onClose();
   }
 
-  function handleBackdropClick(e: React.MouseEvent<HTMLDialogElement>) {
-    if (e.target === dialogRef.current) onClose();
-  }
 
   return (
     <dialog
       ref={dialogRef}
-      role="dialog"
       aria-modal="true"
       aria-labelledby={headingId}
-      onClick={handleBackdropClick}
       style={{
         border: "none",
         padding: 0,
