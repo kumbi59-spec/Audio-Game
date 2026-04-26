@@ -22,8 +22,8 @@ export async function upsertPushToken(
   });
 }
 
-export async function deletePushToken(token: string): Promise<void> {
-  await prisma.pushToken.deleteMany({ where: { token } });
+export async function deletePushToken(userId: string, token: string): Promise<void> {
+  await prisma.pushToken.deleteMany({ where: { userId, token } });
 }
 
 export async function getUserPushTokens(userId: string) {

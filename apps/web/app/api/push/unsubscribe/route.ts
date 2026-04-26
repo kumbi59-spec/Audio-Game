@@ -16,6 +16,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
 
-  await deletePushToken(body.token);
+  await deletePushToken(session.user.id, body.token);
   return NextResponse.json({ ok: true });
 }

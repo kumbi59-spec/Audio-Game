@@ -113,11 +113,13 @@ export default function Home(): JSX.Element {
       <View style={styles.grid}>
         <NavCard
           label="Browse Library"
+          accessibilityLabel="Library"
           sub="Your campaigns & worlds"
           onPress={() => router.push("/library")}
         />
         <NavCard
           label="Create World"
+          accessibilityLabel="Create world"
           sub="Spoken wizard"
           onPress={() => router.push("/create")}
         />
@@ -133,7 +135,7 @@ export default function Home(): JSX.Element {
       <View style={styles.footer}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Accessibility settings"
+          accessibilityLabel="Accessibility"
           onPress={() => router.push("/settings/a11y")}
           style={({ pressed }) => [styles.textLink, pressed && { opacity: 0.6 }]}
         >
