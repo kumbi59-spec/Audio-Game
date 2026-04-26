@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { streamGMTurn } from "@/lib/ai/gm-engine";
+import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/safety/moderator";
 import type { InMemorySession, PlayerAction } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
@@ -49,6 +50,14 @@ export async function POST(req: NextRequest) {
   const world = body.world as WorldData;
   const dbSessionId = body.dbSessionId;
 
+  const inputCheck = moderatePlayerInput(action.content);
+  if (!inputCheck.safe) {
+    return NextResponse.json(
+      { error: "content_policy", message: SAFETY_FALLBACK },
+      { status: 422 }
+    );
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -70,6 +79,13 @@ export async function POST(req: NextRequest) {
           }
           if (evt.type === "state_change" && evt.data && typeof evt.data === "object") {
             stateChanges = { ...stateChanges, ...(evt.data as Record<string, unknown>) };
+          }
+        }
+
+        if (fullNarration) {
+          const outputCheck = moderateGMOutput(fullNarration);
+          if (!outputCheck.safe) {
+            send("content_warning", { reason: outputCheck.reason, fallback: SAFETY_FALLBACK });
           }
         }
 
