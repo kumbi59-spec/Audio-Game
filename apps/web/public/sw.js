@@ -76,6 +76,46 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(networkFirst(request));
 });
 
+// ── Push notifications ────────────────────────────────────────────────────────
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: "EchoQuest", body: event.data.text(), url: "/" };
+  }
+
+  const title = payload.title ?? "EchoQuest";
+  const options = {
+    body: payload.body ?? "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/badge-72.png",
+    data: { url: payload.url ?? "/" },
+    vibrate: [100, 50, 100],
+    tag: "echoquest",
+    renotify: true,
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/";
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        const existing = windowClients.find((c) => c.url.includes(self.location.origin));
+        if (existing) return existing.focus().then((c) => c.navigate(url));
+        return clients.openWindow(url);
+      }),
+  );
+});
+
 // ── Strategies ────────────────────────────────────────────────────────────────
 
 async function networkOnly(request) {
