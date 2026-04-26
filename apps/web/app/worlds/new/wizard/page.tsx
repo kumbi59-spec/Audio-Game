@@ -370,11 +370,10 @@ export default function WorldWizardPage() {
                       aria-label="Loading suggestions"
                     />
                   ) : (
-                    <div className="flex flex-wrap gap-2" role="list" aria-label="Suggestion chips">
+                    <div className="flex flex-wrap gap-2" aria-label="Suggestion chips">
                       {suggestions.map((s, i) => (
                         <button
                           key={i}
-                          role="listitem"
                           onClick={() => {
                             setTextInput(s);
                             speak(s, { rate: ttsSpeed, volume });
