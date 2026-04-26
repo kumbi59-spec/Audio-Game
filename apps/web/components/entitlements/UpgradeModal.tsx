@@ -14,6 +14,7 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
   const dialogRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const headingId = "upgrade-modal-heading";
+  const descriptionId = "upgrade-modal-description";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -37,6 +38,26 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
     return () => dialog.removeEventListener("cancel", handleCancel);
   }, [onClose]);
 
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    function handleClose() {
+      onClose();
+    }
+    dialog.addEventListener("close", handleClose);
+    return () => dialog.removeEventListener("close", handleClose);
+  }, [onClose]);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    function handleBackdropClick(e: MouseEvent) {
+      if (e.target === dialog) onClose();
+    }
+    dialog.addEventListener("click", handleBackdropClick);
+    return () => dialog.removeEventListener("click", handleBackdropClick);
+  }, [onClose]);
+
   const pricing = PRICING[requiredTier];
   const highlights = TIER_HIGHLIGHTS[requiredTier];
   const tierLabel = requiredTier === "storyteller" ? "Storyteller" : "Creator";
@@ -52,6 +73,7 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
       ref={dialogRef}
       aria-modal="true"
       aria-labelledby={headingId}
+      aria-describedby={descriptionId}
       style={{
         border: "none",
         padding: 0,
@@ -101,7 +123,7 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
           Unlock {featureName}
         </h2>
 
-        <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--text-muted)" }}>
+        <p id={descriptionId} style={{ margin: 0, fontSize: "0.9375rem", color: "var(--text-muted)" }}>
           Available on the{" "}
           <span style={{ color: "var(--accent)", fontWeight: 700 }}>{tierLabel}</span> plan
         </p>
