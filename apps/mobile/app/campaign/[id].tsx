@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Haptics from "expo-haptics";
 import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
 import { useVoiceCommands } from "@/voice/commandBus";
 import { useSession } from "@/session/store";
@@ -15,6 +16,7 @@ import { sessionConnection } from "@/session/connection";
 import { feedNarration, speakOnce, stopNarration } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
+import { usePrefs } from "@/prefs/store";
 import { EQ, R, SPACE, FS, TOUCH_MIN, CHOICE_MIN } from "@/design/tokens";
 import { useCan } from "@/entitlements/store";
 import { AdBanner } from "@/entitlements/AdBanner";
@@ -28,6 +30,7 @@ export default function ActiveCampaign(): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
   const session = useSession();
   const can = useCan();
+  const { hapticsEnabled } = usePrefs();
   const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
 
@@ -82,14 +85,20 @@ export default function ActiveCampaign(): JSX.Element {
 
   const pickChoice = useCallback(
     (choiceId: string, label: string) => {
+      if (hapticsEnabled) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       stopNarration();
       session.appendPlayer(label);
       sessionConnection.sendPlayerInput({ kind: "choice", choiceId });
     },
-    [session],
+    [session, hapticsEnabled],
   );
 
   const speakFreeform = useCallback(async () => {
+    if (hapticsEnabled) {
+      void Haptics.selectionAsync();
+    }
     stopNarration();
     void speakOnce("Listening.");
     const transcript = await captureUtterance();
@@ -102,7 +111,7 @@ export default function ActiveCampaign(): JSX.Element {
     }
     session.appendPlayer(transcript);
     sessionConnection.sendPlayerInput({ kind: "freeform", text: transcript });
-  }, [pickChoice, session]);
+  }, [pickChoice, session, hapticsEnabled]);
 
   useVoiceCommands({
     "repeat|read that again": () => {
