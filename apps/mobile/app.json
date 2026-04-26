@@ -1,12 +1,18 @@
 {
   "expo": {
-    "name": "Audio RPG",
-    "slug": "audio-rpg",
-    "scheme": "audiorpg",
-    "version": "0.0.1",
+    "name": "EchoQuest",
+    "slug": "echoquest",
+    "scheme": "echoquest",
+    "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0d0d0d"
+    },
     "experiments": {
       "typedRoutes": true
     },
@@ -19,19 +25,29 @@
             "useAudio": true
           }
         }
-      ]
+      ],
+      "./plugins/withPrivacyManifest"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.audiorpg.app",
+      "bundleIdentifier": "com.echoquest.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Audio RPG listens for your spoken choices and custom actions so you can play without looking at the screen.",
-        "NSSpeechRecognitionUsageDescription": "Speech recognition turns your voice into game actions.",
+        "NSMicrophoneUsageDescription": "EchoQuest listens for your spoken choices and custom actions so you can play without looking at the screen.",
+        "NSSpeechRecognitionUsageDescription": "Speech recognition turns your voice into game actions and commands.",
         "UIBackgroundModes": ["audio"]
+      },
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.audiorpg.app",
+      "package": "com.echoquest.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0d0d0d"
+      },
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
@@ -39,6 +55,11 @@
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
     }
   }
 }

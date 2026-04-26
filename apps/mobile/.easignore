@@ -1,0 +1,24 @@
+# Files excluded from EAS Build uploads (reduces bundle size / avoids secrets)
+
+# Test artifacts
+e2e/
+test-results/
+playwright-report/
+playwright.config.ts
+
+# Web export (not needed for native builds)
+web-build/
+
+# Dev scripts
+scripts/
+
+# Docs
+*.md
+
+# Local env files (credentials go through EAS secrets, not .env)
+.env
+.env.local
+.env.development
+
+# Google service account (uploaded via EAS credentials, not bundled)
+google-service-account.json
