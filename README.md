@@ -77,11 +77,13 @@ cd Audio-Game
 pnpm install
 ```
 
-### 2. Configure environment
+### 2. Configure environment (canonical path)
 
 ```bash
 cp .env.example apps/web/.env.local
 ```
+
+This repo uses **one canonical database variable name** everywhere: `DATABASE_URL` (not `WEB_DATABASE_URL`).
 
 Open `apps/web/.env.local` and fill in the minimum required values:
 
@@ -93,7 +95,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 NEXTAUTH_SECRET=replace-with-random-secret
 NEXTAUTH_URL=http://localhost:3000
 
-# Database — SQLite works out of the box
+# Database for web local dev (SQLite works out of the box)
 DATABASE_URL=file:./dev.db
 ```
 
@@ -185,6 +187,7 @@ Press `V` or click the microphone button. Say:
 # In one terminal — start the Fastify API
 cp .env.example .env
 # Set ANTHROPIC_API_KEY in .env
+# For API dev, DATABASE_URL should be your Postgres URL (not SQLite)
 pnpm dev:api
 
 # In another terminal — start Expo
