@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GmTurn } from "./gm";
+import { GmTurn } from "./gm.js";
 
 describe("GmTurn schema", () => {
   it("accepts a minimal GM turn", () => {
