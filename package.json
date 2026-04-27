@@ -14,7 +14,9 @@
     "test": "pnpm -r test",
     "dev:api": "pnpm --filter @audio-rpg/api dev",
     "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
-    "dev:web": "pnpm --filter @audio-rpg/web dev"
+    "dev:web": "pnpm --filter @audio-rpg/web dev",
+    "security:audit:prod": "pnpm audit --prod --json",
+    "security:release-gate": "node scripts/security-release-gate.mjs"
   },
   "devDependencies": {
     "typescript": "5.5.4"
