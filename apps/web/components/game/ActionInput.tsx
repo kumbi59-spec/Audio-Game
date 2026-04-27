@@ -45,27 +45,20 @@ export function ActionInput({ onAction, choices = [], disabled = false, id = "ac
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={disabled}
-          placeholder="What do you do? (or press V for voice)"
+          placeholder="Type or speak your action…"
           autoComplete="off"
-          aria-describedby="action-hint"
           className="min-h-[44px] flex-1 rounded-lg border border-input bg-background px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={disabled || !text.trim()}
           aria-label="Submit action"
-          className="min-h-[44px] min-w-[44px] rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="min-h-[44px] min-w-[44px] rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
-          Send
+          Go
         </button>
       </form>
-      <p id="action-hint" className="text-xs text-muted-foreground">
-        Type any action freely, or press{" "}
-        <kbd className="rounded bg-muted px-1 font-mono text-xs">V</kbd> for voice input.
-        Press{" "}
-        <kbd className="rounded bg-muted px-1 font-mono text-xs">1–9</kbd> to select a choice.
-      </p>
-      <div className="flex justify-center">
+      <div className="mt-2 flex justify-center">
         <VoiceCommandListener
           onAction={handleVoiceAction}
           onChoiceSelect={(i) => {
