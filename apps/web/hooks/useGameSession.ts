@@ -74,8 +74,17 @@ export function useGameSession() {
           body: JSON.stringify({ action, session, character, world, dbSessionId }),
         });
 
-        if (!res.ok || !res.body) {
-          throw new Error("GM request failed");
+        if (!res.ok) {
+          let message = `GM request failed: ${res.status} ${res.statusText}`;
+          try {
+            const errBody = await res.json() as { message?: string; error?: string };
+            if (errBody.message) message = errBody.message;
+            else if (errBody.error) message = `${message} — ${errBody.error}`;
+          } catch { /* ignore parse errors */ }
+          throw new Error(message);
+        }
+        if (!res.body) {
+          throw new Error("GM request failed: no response body");
         }
 
         const reader = res.body.getReader();
