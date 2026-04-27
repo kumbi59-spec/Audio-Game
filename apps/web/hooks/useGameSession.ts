@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { splitIntoSentences } from "@/lib/audio/audio-queue";
@@ -27,6 +27,13 @@ export function useGameSession() {
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
   const [lastNarration, setLastNarration] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const latestNarration = [...(session?.narrationLog ?? [])]
+      .reverse()
+      .find((entry) => entry.type === "narration");
+    setLastNarration(latestNarration?.text ?? "");
+  }, [session]);
 
   const replayLast = useCallback(() => {
     if (!lastNarration) return;

@@ -29,13 +29,16 @@ export function GameShell() {
     return () => clearInterval(interval);
   }, []);
 
-  // Speak the opening narration that was pre-loaded before navigation.
+  // Speak the most recent narration that was pre-loaded before navigation.
+  // This ensures resumed sessions continue from the latest narrated section.
   useEffect(() => {
     if (openingSpokenRef.current) return;
-    const first = session?.narrationLog[0];
-    if (first?.type === "narration") {
+    const latestNarration = [...(session?.narrationLog ?? [])]
+      .reverse()
+      .find((entry) => entry.type === "narration");
+    if (latestNarration) {
       openingSpokenRef.current = true;
-      speakText(first.text);
+      speakText(latestNarration.text);
     }
   }, [session, speakText]);
 
