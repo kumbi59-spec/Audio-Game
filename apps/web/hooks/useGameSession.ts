@@ -75,7 +75,7 @@ export function useGameSession() {
         });
 
         if (!res.ok) {
-          let message = `GM request failed: ${res.status} ${res.statusText}`;
+          let message = `GM request failed: ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`;
           try {
             const errBody = await res.json() as { message?: string; error?: string };
             if (errBody.message) message = errBody.message;
