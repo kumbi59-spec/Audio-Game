@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare, hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
+import { effectiveTierForEmail } from "@/lib/admin";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -21,18 +22,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (existing) throw new Error("Email already in use.");
           const passwordHash = await hash(password, 12);
           const user = await prisma.user.create({
-            data: { email, passwordHash, name: email.split("@")[0] },
+            data: { email, passwordHash, name: email.split("@")[0], tier: "free" },
           });
           // Fire-and-forget — don't block sign-in if email fails
           void sendWelcomeEmail(user.email, user.name ?? user.email.split("@")[0]!);
-          return { id: user.id, email: user.email, name: user.name, tier: user.tier };
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            tier: effectiveTierForEmail(user.email, user.tier),
+          };
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;
         const valid = await compare(password, user.passwordHash);
         if (!valid) return null;
-        return { id: user.id, email: user.email, name: user.name, tier: user.tier };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          tier: effectiveTierForEmail(user.email, user.tier),
+        };
       },
     }),
   ],
@@ -49,10 +60,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.id && (stale || trigger === "update")) {
         const fresh = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { tier: true },
+          select: { tier: true, email: true },
         });
         if (fresh) {
-          token.tier = fresh.tier;
+          token.tier = effectiveTierForEmail(fresh.email, fresh.tier);
           token.tierFetchedAt = Date.now();
         }
       }
