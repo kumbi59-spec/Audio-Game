@@ -153,6 +153,7 @@ function CreateCharacterPage() {
               ],
               choices: opening.choices,
               history: [
+                { role: "user" as const, content: "Begin the adventure." },
                 { role: "assistant" as const, content: opening.narration },
               ],
             }

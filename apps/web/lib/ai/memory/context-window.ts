@@ -13,6 +13,12 @@ export function buildContextMessages(
 ): HistoryMessage[] {
   const messages: HistoryMessage[] = [...session.history];
 
+  // Anthropic requires the first message to have role "user"; drop any leading
+  // assistant messages that may have been stored from the opening narration.
+  while (messages.length > 0 && messages[0]?.role === "assistant") {
+    messages.shift();
+  }
+
   // Trim to fit within the token budget
   let totalChars = messages.reduce((sum, m) => sum + m.content.length, 0);
   while (totalChars > MAX_HISTORY_CHARS && messages.length > 2) {
