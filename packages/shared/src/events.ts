@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ChoiceOption, PlayerInput, SoundCue, StateMutation } from "./gm";
+import { ChoiceOption, PlayerInput, SoundCue, StateMutation } from "./gm.js";
 
 export const VoiceRole = z.enum(["narrator", "voice_a", "voice_b", "voice_c"]);
 export type VoiceRole = z.infer<typeof VoiceRole>;
