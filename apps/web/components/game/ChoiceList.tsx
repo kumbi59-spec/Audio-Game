@@ -28,9 +28,6 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
 
   return (
     <nav aria-label="Available choices">
-      <h2 className="mb-2 text-base font-semibold text-foreground">
-        What do you do?
-      </h2>
       <ol ref={listRef} className="flex flex-col gap-2.5">
         {choices.map((choice, i) => (
           <li key={i}>

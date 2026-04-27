@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
 import { ActionInput } from "./ActionInput";
@@ -16,14 +17,27 @@ import type { PlayerAction } from "@/types/game";
 export function GameShell() {
   const { session, character, world, submitAction, replayLast, speakText } =
     useGameSession();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { ttsSpeed, volume, setTTSSpeed } = useAudioStore();
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const [hudOpen, setHudOpen] = useState(false);
+  const [choicesMinimized, setChoicesMinimized] = useState(false);
+  const openingSpokenRef = useRef(false);
 
   useEffect(() => {
     const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
     return () => clearInterval(interval);
   }, []);
+
+  // Speak the opening narration that was pre-loaded before navigation.
+  useEffect(() => {
+    if (openingSpokenRef.current) return;
+    const first = session?.narrationLog[0];
+    if (first?.type === "narration") {
+      openingSpokenRef.current = true;
+      speakText(first.text);
+    }
+  }, [session, speakText]);
 
   const handleAction = useCallback(
     (action: PlayerAction) => {
@@ -48,9 +62,7 @@ export function GameShell() {
 
   const handleReadLocation = useCallback(() => {
     if (!session || !world) return;
-    const loc = world.locations.find(
-      (l) => l.id === session.currentLocationId
-    );
+    const loc = world.locations.find((l) => l.id === session.currentLocationId);
     const text = loc
       ? `You are at ${loc.name}. ${loc.description}`
       : "Your current location is unknown.";
@@ -72,6 +84,8 @@ export function GameShell() {
     );
   }
 
+  const hasChoices = session.choices.length > 0;
+
   return (
     <>
       <AmbientPlayer />
@@ -84,49 +98,143 @@ export function GameShell() {
         isSpeaking={speaking}
       />
 
-      <main
+      <div
+        className="flex h-full flex-col"
         id="main-content"
-        className="mx-auto flex h-full w-full max-w-4xl flex-col gap-3 p-3 md:gap-4 md:p-4"
         aria-label={`${world.name} — Active game session`}
       >
-        {/* World title */}
-        <h1 className="text-lg font-bold" data-focus-on-mount tabIndex={-1}>
+        {/* World name */}
+        <h1
+          className="shrink-0 px-4 pt-3 pb-1 text-sm font-semibold text-muted-foreground"
+          tabIndex={-1}
+          data-focus-on-mount
+        >
           {world.name}
         </h1>
 
-        {/* Status bar */}
-        <details className="rounded-xl border border-border bg-muted/25 p-2">
-          <summary className="cursor-pointer list-none rounded-md px-2 py-2 text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            Session tools (status, voice, and sound settings)
-          </summary>
-          <div className="mt-3 space-y-3">
+        {/* Narration — fills available space */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          <NarrationPanel
+            entries={session.narrationLog}
+            isGenerating={session.isGenerating}
+          />
+        </div>
+
+        {/* HUD panel — status + audio settings */}
+        {hudOpen && (
+          <div className="shrink-0 space-y-3 border-t border-border bg-muted/20 px-4 py-3">
             <StatusBar character={character} session={session} world={world} />
             <AudioControls onReplayLast={replayLast} />
           </div>
-        </details>
-
-        {/* Narration */}
-        <NarrationPanel
-          entries={session.narrationLog}
-          isGenerating={session.isGenerating}
-        />
+        )}
 
         {/* Choices */}
-        <ChoiceList
-          choices={session.choices}
-          onSelect={handleChoiceSelect}
-          disabled={session.isGenerating}
-        />
+        {hasChoices && (
+          <div className="shrink-0 border-t border-border">
+            <div className="flex items-center justify-between px-4 py-2">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Choose Your Action
+              </span>
+              <button
+                onClick={() => setChoicesMinimized((m) => !m)}
+                aria-expanded={!choicesMinimized}
+                aria-controls="choices-panel"
+                className="rounded text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {choicesMinimized ? "Expand ▼" : "Minimize ▲"}
+              </button>
+            </div>
+            {!choicesMinimized && (
+              <div id="choices-panel" className="px-4 pb-3">
+                <ChoiceList
+                  choices={session.choices}
+                  onSelect={handleChoiceSelect}
+                  disabled={session.isGenerating}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action input */}
-        <div ref={(el) => { inputRef.current = el; }}>
+        <div
+          className="shrink-0 border-t border-border px-4 py-3"
+          ref={(el) => {
+            inputRef.current = el;
+          }}
+        >
           <ActionInput
             onAction={handleAction}
             choices={session.choices}
             disabled={session.isGenerating}
           />
         </div>
-      </main>
+
+        {/* Bottom toolbar */}
+        <div
+          role="toolbar"
+          aria-label="Game controls"
+          className="flex shrink-0 items-center justify-between border-t border-border bg-muted/10 px-4 py-2"
+        >
+          {/* Speed controls */}
+          <div className="flex items-center gap-1" aria-label="Narration speed">
+            <button
+              onClick={() =>
+                setTTSSpeed(Math.max(0.5, parseFloat((ttsSpeed - 0.1).toFixed(1))))
+              }
+              aria-label="Decrease narration speed"
+              className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              −
+            </button>
+            <span
+              aria-label={`Speed ${ttsSpeed.toFixed(1)} times`}
+              className="min-w-[2.75rem] text-center text-xs tabular-nums text-muted-foreground"
+            >
+              {ttsSpeed.toFixed(1)}×
+            </span>
+            <button
+              onClick={() =>
+                setTTSSpeed(Math.min(2, parseFloat((ttsSpeed + 0.1).toFixed(1))))
+              }
+              aria-label="Increase narration speed"
+              className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              +
+            </button>
+          </div>
+
+          {/* HUD / Recap / Exit */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setHudOpen((h) => !h)}
+              aria-pressed={hudOpen}
+              aria-label={hudOpen ? "Close HUD" : "Open HUD — status and audio settings"}
+              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                hudOpen
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              HUD
+            </button>
+            <button
+              onClick={replayLast}
+              aria-label="Replay last narration (R)"
+              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Recap
+            </button>
+            <Link
+              href="/library"
+              aria-label="Exit game and return to library"
+              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              ← Exit
+            </Link>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
