@@ -51,10 +51,7 @@ export function useGameSession() {
       // Record the player's action in the narration log
       const playerEntry: NarrationEntry = {
         id: Date.now().toString(),
-        text:
-          action.type === "choice"
-            ? `> ${action.content}`
-            : `> ${action.content}`,
+        text: action.content,
         type: "player_action",
         timestamp: new Date(),
       };
