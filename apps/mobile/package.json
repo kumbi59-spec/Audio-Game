@@ -38,8 +38,8 @@
     "zustand": "4.5.4"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.10.1",
-    "@playwright/test": "1.49.0",
+    "@axe-core/playwright": "4.11.2",
+    "@playwright/test": "1.59.1",
     "@types/react": "~18.2.79",
     "babel-plugin-module-resolver": "^5.0.0",
     "typescript": "5.5.4"
