@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import type { Tier } from "@audio-rpg/shared";
 
 const ADMIN_EMAILS = (process.env["ADMIN_EMAILS"] ?? "")
   .split(",")
@@ -14,4 +15,9 @@ export async function requireAdmin(): Promise<{ id: string; email: string } | nu
 
 export function isAdminEmail(email: string): boolean {
   return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+export function effectiveTierForEmail(email: string | null | undefined, currentTier: string): Tier | string {
+  if (email && isAdminEmail(email)) return "creator";
+  return currentTier;
 }
