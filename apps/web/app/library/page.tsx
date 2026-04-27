@@ -7,6 +7,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
+import { useGameStore } from "@/store/game-store";
 
 type Tab = "official" | "community";
 
@@ -48,6 +49,8 @@ export default function LibraryPage() {
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
   const can = useCanWeb();
+  const { session, world: savedWorld, clearSession } = useGameStore();
+  const hasSavedGame = !!(session && savedWorld && session.turnCount > 0);
 
   const [worlds, setWorlds] = useState<WorldItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,6 +134,42 @@ export default function LibraryPage() {
 
       <main id="main-content" className="px-6 pb-16">
         <div className="mx-auto max-w-2xl">
+          {/* Continue saved game banner */}
+          {hasSavedGame && (
+            <div
+              className="mb-6 flex items-center justify-between rounded-xl border p-4"
+              style={{ borderColor: "var(--accent)", backgroundColor: "var(--surface)" }}
+              role="region"
+              aria-label="Saved game"
+            >
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                  Continue: {savedWorld.name}
+                </p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Turn {session!.turnCount} · {session!.choices.length} choices waiting
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push("/play")}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                >
+                  Resume →
+                </button>
+                <button
+                  onClick={clearSession}
+                  aria-label="Discard saved game"
+                  className="rounded-lg border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400"
+                  style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Tab bar */}
           <div
             role="tablist"
