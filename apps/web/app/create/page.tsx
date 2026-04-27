@@ -10,6 +10,7 @@ import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 import { CLASS_DESCRIPTIONS } from "@/types/character";
 import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
+import type { WorldData } from "@/types/world";
 import Link from "next/link";
 
 type Step = "name" | "class" | "backstory" | "starting";
@@ -20,11 +21,12 @@ function CreateCharacterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const worldId = searchParams.get("worldId") ?? PREBUILT_WORLDS[0].id;
-  const world = PREBUILT_WORLDS.find((w) => w.id === worldId) ?? PREBUILT_WORLDS[0];
+  const [world, setLoadedWorld] = useState<WorldData | null>(null);
+  const [worldLoadError, setWorldLoadError] = useState<string | null>(null);
 
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
-  const { setSession, setCharacter, setWorld, setDbSessionId } = useGameStore();
+  const { setSession, setCharacter, setWorld: setStoreWorld, setDbSessionId } = useGameStore();
 
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
@@ -36,10 +38,44 @@ function CreateCharacterPage() {
   const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
+    const prebuiltWorld = PREBUILT_WORLDS.find((w) => w.id === worldId);
+    if (prebuiltWorld) {
+      setLoadedWorld(prebuiltWorld);
+      setWorldLoadError(null);
+      return;
+    }
+
+    let cancelled = false;
+    fetch(`/api/worlds/${worldId}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const data = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(data?.error || "Failed to load world.");
+        }
+        return res.json() as Promise<WorldData>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setLoadedWorld(data);
+        setWorldLoadError(null);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setLoadedWorld(null);
+        setWorldLoadError(err instanceof Error ? err.message : "Failed to load world.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [worldId]);
+
+  useEffect(() => {
+    if (!world) return;
     const msg = `Character creation for ${world.name}. Step 1: Enter your character's name.`;
     announce(msg);
     speak(msg, { rate: ttsSpeed, volume });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [world, announce, ttsSpeed, volume]);
 
   function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +102,7 @@ function CreateCharacterPage() {
   }
 
   async function handleStart() {
+    if (!world) return;
     setIsStarting(true);
     const msg = "Starting your adventure. The Game Master is preparing your world…";
     announce(msg);
@@ -111,7 +148,7 @@ function CreateCharacterPage() {
       isGenerating: false,
     };
 
-    setWorld(world);
+    setStoreWorld(world);
     setCharacter(character);
     setSession(session);
 
@@ -176,6 +213,24 @@ function CreateCharacterPage() {
   return (
     <div className="min-h-screen px-4 py-8">
       <div className="mx-auto max-w-lg">
+        {!world && (
+          <section className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+            {worldLoadError ?? "Loading world…"}
+          </section>
+        )}
+        {worldLoadError && (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => router.replace("/library")}
+              className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Back to Library
+            </button>
+          </div>
+        )}
+        {world && (
+          <>
         <Link
           href="/library"
           className="mb-6 inline-block text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -252,9 +307,12 @@ function CreateCharacterPage() {
             </h2>
             <div className="mb-4 space-y-3" role="radiogroup" aria-label="Character class">
               {CLASSES.map(([cls, info]) => (
-                <label
+                <button
                   key={cls}
-                  htmlFor={`class-${cls}`}
+                  type="button"
+                  role="radio"
+                  aria-checked={selectedClass === cls}
+                  onClick={() => handleClassSelect(cls)}
                   aria-label={`${info.name}: ${info.description}`}
                   className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
                     selectedClass === cls
@@ -262,14 +320,11 @@ function CreateCharacterPage() {
                       : "border-border bg-secondary hover:border-primary/50"
                   }`}
                 >
-                  <input
-                    id={`class-${cls}`}
-                    type="radio"
-                    name="class"
-                    value={cls}
-                    checked={selectedClass === cls}
-                    onChange={() => handleClassSelect(cls)}
-                    className="mt-0.5 h-4 w-4 accent-primary"
+                  <span
+                    aria-hidden="true"
+                    className={`mt-0.5 h-4 w-4 rounded-full border ${
+                      selectedClass === cls ? "border-primary bg-primary" : "border-border bg-background"
+                    }`}
                   />
                   <div>
                     <p className="font-medium">{info.name}</p>
@@ -280,7 +335,7 @@ function CreateCharacterPage() {
                       {info.startingStats.charisma}
                     </p>
                   </div>
-                </label>
+                </button>
               ))}
             </div>
             <button
@@ -379,6 +434,8 @@ function CreateCharacterPage() {
               </button>
             </div>
           </section>
+        )}
+          </>
         )}
       </div>
     </div>

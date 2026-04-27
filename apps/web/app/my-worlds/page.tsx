@@ -104,7 +104,7 @@ export default function MyWorldsPage() {
           My Worlds
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          Manage your uploaded worlds and publish them to the community.
+          Manage your uploaded worlds, play them privately, and publish them to the community.
         </p>
       </header>
 
@@ -182,39 +182,55 @@ export default function MyWorldsPage() {
                     </dl>
                   )}
 
-                  {can.publicPublishing ? (
+                  <div className="space-y-2">
                     <button
-                      onClick={() => togglePublish(world)}
-                      disabled={toggling === world.id}
-                      aria-label={world.isPublic ? `Unpublish ${world.name}` : `Publish ${world.name} to the library`}
-                      className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                      type="button"
+                      onClick={() => router.push(`/create?worldId=${world.id}`)}
+                      aria-label={`Play ${world.name}`}
+                      className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
                       style={{
-                        borderColor: world.isPublic ? "var(--border)" : "var(--accent)",
-                        backgroundColor: world.isPublic ? "transparent" : "var(--accent)",
-                        color: world.isPublic ? "var(--text-muted)" : "#ffffff",
+                        borderColor: "var(--accent)",
+                        backgroundColor: "var(--accent)",
+                        color: "#ffffff",
                       }}
                     >
-                      {toggling === world.id
-                        ? "Saving…"
-                        : world.isPublic
-                        ? "Unpublish"
-                        : "Publish"}
+                      Play This World
                     </button>
-                  ) : (
-                    <div className="space-y-1">
+
+                    {can.publicPublishing ? (
                       <button
-                        disabled
-                        aria-disabled="true"
-                        className="w-full cursor-not-allowed rounded-lg border py-3 text-sm font-semibold opacity-40"
-                        style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        onClick={() => togglePublish(world)}
+                        disabled={toggling === world.id}
+                        aria-label={world.isPublic ? `Unpublish ${world.name}` : `Publish ${world.name} to the library`}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{
+                          borderColor: world.isPublic ? "var(--border)" : "var(--accent)",
+                          backgroundColor: world.isPublic ? "transparent" : "var(--accent)",
+                          color: world.isPublic ? "var(--text-muted)" : "#ffffff",
+                        }}
                       >
-                        {world.isPublic ? "Unpublish" : "Publish"}
+                        {toggling === world.id
+                          ? "Saving…"
+                          : world.isPublic
+                          ? "Unpublish"
+                          : "Publish"}
                       </button>
-                      <p className="text-center text-xs" style={{ color: "var(--text-subtle, var(--text-muted))" }}>
-                        Creator plan required
-                      </p>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="space-y-1">
+                        <button
+                          disabled
+                          aria-disabled="true"
+                          className="w-full cursor-not-allowed rounded-lg border py-3 text-sm font-semibold opacity-40"
+                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        >
+                          {world.isPublic ? "Unpublish" : "Publish"}
+                        </button>
+                        <p className="text-center text-xs" style={{ color: "var(--text-subtle, var(--text-muted))" }}>
+                          Creator plan required
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </article>
               </li>
             ))}

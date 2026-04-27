@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { ensureGuestUser, createDbCharacter } from "@/lib/db/queries/users";
 import { createDbSession, getSessionWithHistory, listUserSessions } from "@/lib/db/queries/sessions";
+import { getWorldById } from "@/lib/db/queries/worlds";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
 const CreateSchema = z.object({
@@ -41,7 +42,9 @@ export async function POST(req: NextRequest) {
     const dbCharacter = await createDbCharacter(body.guestId, body.character);
 
     const world =
-      PREBUILT_WORLDS.find((w) => w.id === body.worldId) ?? PREBUILT_WORLDS[0];
+      PREBUILT_WORLDS.find((w) => w.id === body.worldId)
+      ?? (await getWorldById(body.worldId))
+      ?? PREBUILT_WORLDS[0];
     const startingLocationId = world.locations[0]?.id ?? null;
 
     const session = await createDbSession(
