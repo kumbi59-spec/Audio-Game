@@ -71,7 +71,7 @@ export function useGameSession() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: abort.signal,
-          body: JSON.stringify({ action, session, character, world, dbSessionId }),
+          body: JSON.stringify({ action, session, character, world, dbSessionId: dbSessionId ?? undefined }),
         });
 
         if (!res.ok) {
