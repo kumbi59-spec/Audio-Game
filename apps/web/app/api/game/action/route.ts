@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
         for await (const evt of streamGMTurn(action, session, character, world)) {
           send(evt.type, evt.data);
 
-          if (evt.type === "narration_chunk" && typeof evt.data === "string") {
-            fullNarration += evt.data;
+          if (evt.type === "narration_chunk" && evt.data && typeof (evt.data as { text?: string }).text === "string") {
+            fullNarration += (evt.data as { text: string }).text;
           }
           if (evt.type === "state_change" && evt.data && typeof evt.data === "object") {
             stateChanges = { ...stateChanges, ...(evt.data as Record<string, unknown>) };
