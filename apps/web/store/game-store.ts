@@ -87,7 +87,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: "echoquest-game",
       partialize: (state) => ({
-        session: state.session,
+        session: state.session ? { ...state.session, isGenerating: false } : null,
         character: state.character,
         world: state.world,
         dbSessionId: state.dbSessionId,
