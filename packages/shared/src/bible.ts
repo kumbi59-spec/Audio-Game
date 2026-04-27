@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StyleMode } from "./gm.js";
+import { StyleMode } from "./gm";
 
 export const BibleEntityKind = z.enum([
   "npc",
