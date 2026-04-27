@@ -10,37 +10,38 @@ const ActionSchema = z.object({
   action: z.object({
     type: z.enum(["choice", "free_text", "voice_command", "meta"]),
     content: z.string().min(1).max(2000),
-    choiceIndex: z.number().optional(),
+    choiceIndex: z.number().nullish(),
   }),
   session: z.object({
     id: z.string(),
     worldId: z.string(),
     characterId: z.string(),
-    status: z.string(),
-    turnCount: z.number(),
-    currentLocationId: z.string().nullable(),
-    timeOfDay: z.string(),
-    weather: z.string(),
-    globalFlags: z.record(z.unknown()),
-    npcStates: z.record(z.unknown()),
-    memorySummary: z.string(),
+    status: z.string().default("active"),
+    turnCount: z.number().default(0),
+    currentLocationId: z.string().nullish(),
+    timeOfDay: z.string().default("morning"),
+    weather: z.string().default("clear"),
+    globalFlags: z.record(z.unknown()).default({}),
+    npcStates: z.record(z.unknown()).default({}),
+    memorySummary: z.string().default(""),
     history: z.array(
       z.object({ role: z.enum(["user", "assistant"]), content: z.string() })
-    ),
-    narrationLog: z.array(z.unknown()),
-    choices: z.array(z.string()),
-    isGenerating: z.boolean(),
+    ).default([]),
+    narrationLog: z.array(z.unknown()).default([]),
+    choices: z.array(z.string()).default([]),
+    isGenerating: z.boolean().default(false),
   }),
   character: z.unknown(),
   world: z.unknown(),
-  dbSessionId: z.string().optional(),
+  dbSessionId: z.string().nullish(),
 });
 
 export async function POST(req: NextRequest) {
   let body: z.infer<typeof ActionSchema>;
   try {
     body = ActionSchema.parse(await req.json());
-  } catch {
+  } catch (err) {
+    console.error("[action] Zod validation failed:", JSON.stringify((err as { issues?: unknown }).issues ?? err, null, 2));
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
