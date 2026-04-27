@@ -12,6 +12,9 @@ export interface CharacterStats {
 export interface CharacterData {
   id: string;
   name: string;
+  pronouns?: string | null;
+  age?: number | null;
+  shortDescription?: string | null;
   class: CharacterClass;
   backstory: string;
   stats: CharacterStats;

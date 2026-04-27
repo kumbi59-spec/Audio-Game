@@ -29,6 +29,9 @@ function CreateCharacterPage() {
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
+  const [pronouns, setPronouns] = useState("");
+  const [age, setAge] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
   const [backstory, setBackstory] = useState("");
   const [isStarting, setIsStarting] = useState(false);
 
@@ -69,9 +72,13 @@ function CreateCharacterPage() {
     speak(msg, { rate: ttsSpeed, volume });
 
     const classData = CLASS_DESCRIPTIONS[selectedClass];
+    const parsedAge = Number.parseInt(age.trim(), 10);
     const character: CharacterData = {
       id: `char-${Date.now()}`,
       name: name.trim(),
+      pronouns: pronouns.trim() || null,
+      age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
+      shortDescription: shortDescription.trim() || null,
       class: selectedClass,
       backstory: backstory.trim(),
       stats: { ...classData.startingStats },
@@ -289,8 +296,55 @@ function CreateCharacterPage() {
         {step === "backstory" && (
           <section aria-labelledby="step-backstory-heading">
             <h2 id="step-backstory-heading" className="mb-4 text-lg font-semibold">
-              Step 3: Your backstory (optional)
+              Step 3: Character details + backstory (optional)
             </h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Add a quick profile so the Game Master can address your character more naturally.
+            </p>
+            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="char-pronouns" className="mb-1 block text-sm font-medium">
+                  Pronouns (optional)
+                </label>
+                <input
+                  id="char-pronouns"
+                  type="text"
+                  value={pronouns}
+                  onChange={(e) => setPronouns(e.target.value)}
+                  placeholder="e.g. she/her, he/him, they/them"
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+              <div>
+                <label htmlFor="char-age" className="mb-1 block text-sm font-medium">
+                  Age (optional)
+                </label>
+                <input
+                  id="char-age"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={999}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g. 29"
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label htmlFor="char-short-description" className="mb-1 block text-sm font-medium">
+                  Short description (optional)
+                </label>
+                <input
+                  id="char-short-description"
+                  type="text"
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
+                  placeholder="e.g. Lean ex-scout with a scar over one eye"
+                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
+            </div>
             <p className="mb-4 text-sm text-muted-foreground">
               Tell the Game Master about your character&apos;s past. This shapes how NPCs and the world respond to you.
               You can skip this step if you prefer to discover your story as you play.
