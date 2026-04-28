@@ -6,6 +6,7 @@ import { sendWelcomeEmail } from "@/lib/email";
 import { effectiveTierForEmail } from "@/lib/admin";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
