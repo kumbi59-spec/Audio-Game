@@ -3,7 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { draftToBible, draftToSystemPrompt, type Draft } from "@/lib/wizard/steps";
-import { worldCoverDataUrl } from "@/lib/worlds/cover-art";
+import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,8 +45,10 @@ export async function POST(req: NextRequest) {
   const bible = draftToBible(draft);
   const systemPrompt = draftToSystemPrompt(draft);
 
-  // Use creator-supplied image or auto-generate SVG cover art
-  const imageUrl = suppliedImageUrl?.trim() || worldCoverDataUrl(bible.title, draft.genre, draft.toneVoice);
+  // Use creator-supplied image, or run AI generation (with SVG fallback)
+  const imageUrl =
+    suppliedImageUrl?.trim() ||
+    (await resolveWorldCoverImage(bible.title, draft.genre, draft.toneVoice));
 
   await prisma.world.create({
     data: {
