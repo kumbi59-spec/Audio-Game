@@ -326,6 +326,12 @@ npx prisma studio   # opens at http://localhost:5555
 
 ---
 
+## Production deploy
+
+See [`DEPLOY.md`](./DEPLOY.md) for the full Render + Supabase walkthrough. The repo ships a Render Blueprint at [`render.yaml`](./render.yaml) and a [`.env.production.example`](./.env.production.example) checklist for every secret you need to fill.
+
+---
+
 ## Run CI locally
 
 ```bash

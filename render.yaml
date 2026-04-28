@@ -1,0 +1,109 @@
+# Render Blueprint — provisions echoquest-web and echoquest-api as web services.
+#
+# Database is intentionally NOT provisioned here. EchoQuest uses Supabase Postgres
+# (with the pgvector extension) so the same instance can serve Prisma (web) and
+# the API's pg-based vector queries. See DEPLOY.md for the full walkthrough.
+#
+# After importing this blueprint, fill the secret env vars (those marked
+# `sync: false`) under each service in the Render dashboard.
+
+services:
+  - type: web
+    name: echoquest-web
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: .
+    autoDeploy: true
+    healthCheckPath: /api/healthz
+    buildCommand: |
+      corepack enable && corepack prepare pnpm@9.12.0 --activate &&
+      pnpm install --frozen-lockfile=false &&
+      pnpm --filter @audio-rpg/web db:generate &&
+      pnpm --filter @audio-rpg/web build
+    startCommand: pnpm --filter @audio-rpg/web start -- -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: NEXTAUTH_URL
+        sync: false           # e.g. https://echoquest-web.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true   # Render generates a 32-byte secret on first deploy
+      - key: DATABASE_URL
+        sync: false           # Supabase pooled connection string (port 6543)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      # Optional integrations — leave blank to disable
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_STORYTELLER_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_STORYTELLER_ANNUAL
+        sync: false
+      - key: STRIPE_PRICE_CREATOR_MONTHLY
+        sync: false
+      - key: STRIPE_PRICE_CREATOR_ANNUAL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        sync: false
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+
+  - type: web
+    name: echoquest-api
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: .
+    autoDeploy: true
+    healthCheckPath: /health
+    buildCommand: |
+      corepack enable && corepack prepare pnpm@9.12.0 --activate &&
+      pnpm install --frozen-lockfile=false &&
+      pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api build
+    startCommand: pnpm --filter @audio-rpg/api start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: PORT
+        value: "4000"
+      - key: SESSION_SIGNING_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false           # e.g. https://echoquest-web.onrender.com
+      - key: DATABASE_URL
+        sync: false           # Supabase direct connection string (port 5432) for vector queries
+      - key: REDIS_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLAUDE_GM_MODEL
+        value: claude-sonnet-4-6
+      - key: CLAUDE_SUMMARY_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: VOYAGE_API_KEY
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
