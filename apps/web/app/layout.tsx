@@ -5,7 +5,6 @@ import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
-import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "EchoQuest — Narrated AI Adventures",
@@ -20,17 +19,15 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
   return (
     <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
-        <AuthProvider session={session}>
+        <AuthProvider>
           <AudioAnnouncer>
             <ServiceWorkerRegistrar />
             <SkipLinks />
