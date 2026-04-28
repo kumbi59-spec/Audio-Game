@@ -1,9 +1,7 @@
 
 const nextConfig = {
   transpilePackages: ["@audio-rpg/shared", "@audio-rpg/gm-engine"],
-  experimental: {
-    serverComponentsExternalPackages: ["pdf-parse", "mammoth"],
-  },
+  serverExternalPackages: ["pdf-parse", "mammoth"],
   webpack(config) {
     // ESM packages in transpilePackages use .js extensions that map to .ts source files.
     // webpack resolves them literally, so we teach it to try .ts/.tsx before .js.

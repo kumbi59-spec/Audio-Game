@@ -1,23 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Lora } from "next/font/google";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-lora",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "EchoQuest — Narrated AI Adventures",
@@ -38,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${lora.variable}`}>
+    <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <AuthProvider>
           <AudioAnnouncer>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
@@ -64,7 +64,6 @@ const PRICING = [
 
 export default function LandingPage() {
   const router = useRouter();
-  const params = useSearchParams();
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
   const { data: session } = useSession();
@@ -76,13 +75,14 @@ export default function LandingPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (params.get("upgraded") === "true") {
+    const upgraded = new URLSearchParams(window.location.search).get("upgraded");
+    if (upgraded === "true") {
       void fetch("/api/auth/refresh-tier", { method: "POST" });
       const msg = "Your plan has been upgraded! Enjoy unlimited play.";
       announce(msg, "assertive");
       speak(msg, { rate: ttsSpeed, volume });
     }
-  }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
