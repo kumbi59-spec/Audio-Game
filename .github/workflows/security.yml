@@ -15,46 +15,47 @@ permissions:
   security-events: write
 
 jobs:
-  osv-scan:
-    name: "OSV-Scanner (deps)"
+  osv-scan-and-gate:
+    name: "OSV-Scanner + release gate"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run OSV-Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@v1.9.0
+
+      - uses: pnpm/action-setup@v4
         with:
-          scan-args: |-
-            --lockfile=pnpm-lock.yaml
-            --format=sarif
-            --output=results.sarif
-            --no-resolve
-        # Don't fail the workflow here; the release-gate job below interprets severity.
-        continue-on-error: true
-      - name: Upload SARIF to GitHub Security tab
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0
+          cache: pnpm
+
+      - name: Install OSV-Scanner
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /usr/local/bin/osv-scanner \
+            https://github.com/google/osv-scanner/releases/download/v1.9.0/osv-scanner_linux_amd64
+          chmod +x /usr/local/bin/osv-scanner
+          osv-scanner --version
+
+      - run: pnpm install --frozen-lockfile=false
+
+      # Produce SARIF for the Security tab. Don't fail the job on findings —
+      # the gate step below decides what's release-blocking.
+      - name: Run OSV-Scanner (SARIF)
+        run: |
+          osv-scanner \
+            --lockfile pnpm-lock.yaml \
+            --format sarif \
+            --output results.sarif \
+            || true
+
+      - name: Upload SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
           category: osv-scanner
 
-  release-gate:
-    name: "release-gate (high/critical = fail)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.12.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.11.0
-          cache: pnpm
-      - name: Install OSV-Scanner
-        run: |
-          curl -fsSL -o osv-scanner \
-            https://github.com/google/osv-scanner/releases/download/v1.9.0/osv-scanner_linux_amd64
-          chmod +x osv-scanner
-          sudo mv osv-scanner /usr/local/bin/osv-scanner
-          osv-scanner --version
-      - run: pnpm install --frozen-lockfile=false
-      - run: pnpm run security:release-gate
+      - name: Release gate (high/critical = fail)
+        run: pnpm run security:release-gate

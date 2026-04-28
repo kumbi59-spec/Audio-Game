@@ -41,7 +41,7 @@ function runOsvScanner() {
 
   const run = spawnSync(
     bin,
-    ["--lockfile", lockfile, "--format", "json", "--no-resolve"],
+    ["--lockfile", lockfile, "--format", "json"],
     { encoding: "utf8" },
   );
 
