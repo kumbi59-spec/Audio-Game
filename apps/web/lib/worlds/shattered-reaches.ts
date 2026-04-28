@@ -131,6 +131,10 @@ import { MIREWOOD } from "./mirewood";
 import { VERDANT_WILDS } from "./verdant-wilds";
 import { IRON_CITADEL } from "./iron-citadel";
 import { CRIMSON_SANDS } from "./crimson-sands";
+import { NEON_PRECINCT } from "./neon-precinct";
+import { LONG_WATCH } from "./long-watch";
+import { BLACK_VELLUM } from "./black-vellum";
+import { SALTBOUND } from "./saltbound";
 
 export const PREBUILT_WORLDS: WorldData[] = [
   SHATTERED_REACHES,
@@ -138,4 +142,8 @@ export const PREBUILT_WORLDS: WorldData[] = [
   VERDANT_WILDS,
   IRON_CITADEL,
   CRIMSON_SANDS,
+  NEON_PRECINCT,
+  LONG_WATCH,
+  BLACK_VELLUM,
+  SALTBOUND,
 ];

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
+  <defs>
+    <linearGradient id="cg-bg" x1="0%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#100404"/>
+      <stop offset="100%" stop-color="#200808"/>
+    </linearGradient>
+    <filter id="cg-glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="600" height="360" fill="url(#cg-bg)"/>
+  
+        <path d="M60,220 Q100,180 130,200 Q160,220 140,250 Q120,280 80,265 Q40,250 60,220Z" fill="#881010" opacity="0.45"/>
+        <path d="M440,200 Q490,165 530,185 Q570,205 555,240 Q540,275 500,268 Q460,260 440,200Z" fill="#881010" opacity="0.4"/>
+        <path d="M230,150 Q270,120 310,140 Q350,160 340,195 Q330,230 290,225 Q250,220 230,150Z" fill="#881010" opacity="0.5"/>
+        <circle cx="295" cy="175" r="18" fill="#881010" opacity="0.25"/>
+        <ellipse cx="300" cy="280" rx="280" ry="50" fill="#881010" opacity="0.2"/>
+        <circle cx="180" cy="205" r="4" fill="#802020" opacity="0.6"/>
+        <circle cx="420" cy="215" r="3.5" fill="#802020" opacity="0.55"/>
+        <circle cx="300" cy="165" r="3" fill="#802020" opacity="0.5"/>
+  <rect x="0" y="320" width="600" height="40" fill="#100404" opacity="0.82"/>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="#c04040" opacity="0.9" letter-spacing="3">HORROR</text>
+  <text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="#802020" opacity="0.75" text-anchor="end" letter-spacing="1">DREAD</text>
+</svg>

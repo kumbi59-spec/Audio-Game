@@ -13,7 +13,7 @@ Play prebuilt campaigns, upload your own Game Bible (PDF/DOCX/TXT/JSON), or buil
 | AI Game Master (Claude, streaming SSE) | ✅ |
 | Session WebSocket (Fastify + Zod) | ✅ |
 | In-memory + Postgres/pgvector state stores | ✅ |
-| 5 prebuilt campaigns (gothic, fantasy, steampunk, desert, nature) | ✅ |
+| 9 prebuilt campaigns (gothic, fantasy, steampunk, desert, nature, cyberpunk, sci-fi, cosmic horror, pirates) | ✅ |
 | Game Bible upload (PDF, DOCX, TXT, MD, JSON) | ✅ |
 | World Builder Wizard with Claude suggestions | ✅ |
 | Per-NPC ElevenLabs voice routing | ✅ |
@@ -125,7 +125,7 @@ Go to `http://localhost:3000` → click **Sign in** → **Sign up with email**. 
 
 ### Pick a world
 
-After signing in, click **Browse Library** or go to `/library`. You'll see five prebuilt campaigns:
+After signing in, click **Browse Library** or go to `/library`. You'll see nine prebuilt campaigns:
 
 | World | Genre | Tone |
 |---|---|---|
@@ -134,6 +134,10 @@ After signing in, click **Browse Library** or go to `/library`. You'll see five 
 | The Verdant Wilds | Nature fantasy | Warm, family-safe |
 | The Iron Citadel | Steampunk thriller | Sharp, political |
 | Crimson Sands | Desert archaeology | Adventurous, mysterious |
+| Neon Precinct | Cyberpunk noir | Rain-slick, jaded |
+| The Long Watch | Hard sci-fi (generation ship) | Tense, lonely |
+| The Black Vellum | Cosmic horror investigation | Slow-build dread |
+| Saltbound | Age-of-sail piracy | Swashbuckling, generous |
 
 Click **Play** on any world.
 
