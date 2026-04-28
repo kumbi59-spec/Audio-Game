@@ -30,7 +30,11 @@ export default function SignInPage() {
     const result = await signIn("credentials", { email, password, mode, redirect: false });
     setBusy(false);
     if (result?.error) {
-      setError(result.error === "CredentialsSignin" ? "Invalid email or password." : result.error);
+      if (result.error === "CredentialsSignin") {
+        setError(mode === "signup" ? "Email already in use." : "Invalid email or password.");
+      } else {
+        setError(result.error);
+      }
     } else {
       router.replace("/");
     }

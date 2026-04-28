@@ -1,11 +1,18 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare, hash } from "bcryptjs";
+import { createHash } from "crypto";
 import { prisma } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
 import { effectiveTierForEmail } from "@/lib/admin";
 
+const derivedDevSecret = createHash("sha256")
+  .update(process.env.DATABASE_URL ?? "echoquest-dev-secret")
+  .digest("hex");
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? derivedDevSecret,
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
@@ -19,7 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (mode === "signup") {
           const existing = await prisma.user.findUnique({ where: { email } });
-          if (existing) throw new Error("Email already in use.");
+          if (existing) return null;
           const passwordHash = await hash(password, 12);
           const tier = effectiveTierForEmail(email, "free");
           const user = await prisma.user.create({
