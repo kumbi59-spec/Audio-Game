@@ -1,79 +1,179 @@
 #!/usr/bin/env node
-import { spawnSync } from 'node:child_process';
+/**
+ * Release-time dependency audit gate.
+ *
+ * Strategy: prefer OSV-Scanner (queries osv.dev, doesn't depend on the
+ * npm registry's audit endpoint), fall back to `pnpm audit --prod` if
+ * the scanner isn't installed. Fails closed on UNKNOWN.
+ */
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
-const run = spawnSync('pnpm', ['audit', '--prod', '--json'], {
-  encoding: 'utf8'
-});
-
-const raw = (run.stdout || '').trim();
+const repoRoot = resolve(new URL(".", import.meta.url).pathname, "..");
+const lockfile = resolve(repoRoot, "pnpm-lock.yaml");
 
 function fail(message) {
   console.error(`RELEASE_GATED: ${message}`);
   process.exit(1);
 }
 
-function parseJsonCandidates(text) {
-  const candidates = [text, ...text.split('\n').map((line) => line.trim()).filter(Boolean)];
-  const parsed = [];
+function pass(message) {
+  console.log(`PASS: ${message}`);
+  process.exit(0);
+}
 
-  for (const candidate of candidates) {
-    try {
-      parsed.push(JSON.parse(candidate));
-    } catch {
-      // ignore non-JSON fragments
+function which(cmd) {
+  const probe = spawnSync(process.platform === "win32" ? "where" : "which", [cmd], {
+    encoding: "utf8",
+  });
+  return probe.status === 0 ? probe.stdout.trim().split("\n")[0] : null;
+}
+
+// ───────────────────────────── OSV-Scanner ──────────────────────────────
+function runOsvScanner() {
+  const bin = which("osv-scanner");
+  if (!bin) return { ran: false };
+
+  if (!existsSync(lockfile)) {
+    fail(`pnpm-lock.yaml not found at ${lockfile}; cannot scan.`);
+  }
+
+  const run = spawnSync(
+    bin,
+    ["--lockfile", lockfile, "--format", "json"],
+    { encoding: "utf8" },
+  );
+
+  // osv-scanner exits 1 when it finds vulns, 0 when clean, 127 etc on errors.
+  if (run.status !== 0 && run.status !== 1) {
+    return {
+      ran: true,
+      ok: false,
+      reason: `osv-scanner exited ${run.status}: ${run.stderr || run.stdout}`,
+    };
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(run.stdout || "{}");
+  } catch (e) {
+    return { ran: true, ok: false, reason: `osv-scanner JSON parse failed: ${e.message}` };
+  }
+
+  const counts = { critical: 0, high: 0, moderate: 0, low: 0, unknown: 0 };
+  const results = parsed.results ?? [];
+
+  for (const result of results) {
+    for (const pkg of result.packages ?? []) {
+      for (const vuln of pkg.vulnerabilities ?? []) {
+        const sev = severityOf(vuln);
+        counts[sev] += 1;
+      }
     }
   }
 
-  return parsed;
+  return { ran: true, ok: true, counts };
 }
 
-if (!raw) {
-  fail(
-    'No audit payload returned. Treating dependency risk as UNKNOWN. Ensure npm audit endpoint access and rerun.'
+function severityOf(vuln) {
+  // GHSA includes a "severity" string (CRITICAL/HIGH/MODERATE/LOW)
+  const ghsa = vuln.database_specific?.severity;
+  if (ghsa) {
+    const s = String(ghsa).toLowerCase();
+    if (s === "critical") return "critical";
+    if (s === "high") return "high";
+    if (s === "moderate" || s === "medium") return "moderate";
+    if (s === "low") return "low";
+  }
+
+  // Fall back to CVSS score from severity[].score
+  const cvss = (vuln.severity ?? []).find((s) => /CVSS/i.test(s.type));
+  if (cvss?.score) {
+    // CVSS vector → just look at the base score after "CVSS:3.x/" or numeric prefix
+    const numeric = parseFloat(cvss.score);
+    if (!Number.isNaN(numeric)) {
+      if (numeric >= 9.0) return "critical";
+      if (numeric >= 7.0) return "high";
+      if (numeric >= 4.0) return "moderate";
+      if (numeric > 0) return "low";
+    }
+  }
+
+  return "unknown";
+}
+
+// ──────────────────────────── pnpm audit fallback ──────────────────────
+function runPnpmAudit() {
+  const run = spawnSync("pnpm", ["audit", "--prod", "--json"], { encoding: "utf8" });
+  const raw = (run.stdout || "").trim();
+  if (!raw) return { ran: true, ok: false, reason: "empty pnpm audit output" };
+
+  const candidates = [raw, ...raw.split("\n").map((l) => l.trim()).filter(Boolean)];
+  const parsed = [];
+  for (const c of candidates) {
+    try { parsed.push(JSON.parse(c)); } catch { /* ignore */ }
+  }
+  if (parsed.length === 0) return { ran: true, ok: false, reason: "pnpm audit JSON parse failed" };
+
+  const flat = parsed.flatMap((e) => (Array.isArray(e) ? e : [e]));
+  const payload =
+    flat.find((e) => e?.metadata?.vulnerabilities) ||
+    flat.find((e) => e?.error?.code) ||
+    flat[0];
+
+  if (payload?.error?.code) {
+    return { ran: true, ok: false, reason: `pnpm audit error ${payload.error.code}: ${payload.error.message ?? "unknown"}` };
+  }
+
+  const v = payload?.metadata?.vulnerabilities;
+  if (!v) return { ran: true, ok: false, reason: "pnpm audit response missing vulnerability metadata" };
+
+  return {
+    ran: true,
+    ok: true,
+    counts: {
+      critical: Number(v.critical || 0),
+      high: Number(v.high || 0),
+      moderate: Number(v.moderate || 0),
+      low: Number(v.low || 0),
+      unknown: 0,
+    },
+  };
+}
+
+// ───────────────────────────── decision ────────────────────────────────
+function evaluate(source, counts) {
+  console.log(
+    `[${source}] critical=${counts.critical} high=${counts.high} moderate=${counts.moderate} low=${counts.low} unknown=${counts.unknown}`,
   );
+
+  if (counts.critical > 0 || counts.high > 0) {
+    fail("High/Critical vulnerabilities detected. Triage and remediate or explicitly waive before release.");
+  }
+  if (counts.unknown > 0) {
+    fail(`${counts.unknown} unknown-severity vulnerabilities present. Treat as UNKNOWN and block release until classified.`);
+  }
+  if (counts.moderate > 0 || counts.low > 0) {
+    console.warn("WARNING: moderate/low vulnerabilities present; track remediation.");
+  }
+  pass(`no high/critical dependency vulnerabilities (source: ${source}).`);
 }
 
-const parsedCandidates = parseJsonCandidates(raw);
-if (parsedCandidates.length === 0) {
-  fail(
-    'Audit output was not valid JSON. Treating dependency risk as UNKNOWN. Ensure network/audit endpoint access and rerun.'
-  );
+// ───────────────────────────── main ────────────────────────────────────
+const osv = runOsvScanner();
+if (osv.ran && osv.ok) {
+  evaluate("osv-scanner", osv.counts);
+}
+if (osv.ran && !osv.ok) {
+  console.warn(`osv-scanner could not produce a result (${osv.reason}); falling back to pnpm audit.`);
 }
 
-const flattened = parsedCandidates.flatMap((entry) => (Array.isArray(entry) ? entry : [entry]));
-const payload =
-  flattened.find((entry) => entry?.metadata?.vulnerabilities) ||
-  flattened.find((entry) => entry?.error?.code) ||
-  flattened[0];
-
-if (payload?.error?.code) {
-  fail(
-    `Audit request failed with ${payload.error.code}: ${payload.error.message || 'unknown error'}. Treating dependency risk as UNKNOWN.`
-  );
+const audit = runPnpmAudit();
+if (audit.ok) {
+  evaluate("pnpm-audit", audit.counts);
 }
 
-const vulns = payload?.metadata?.vulnerabilities;
-if (!vulns) {
-  fail('Audit JSON did not include vulnerability metadata. Treating dependency risk as UNKNOWN.');
-}
-
-const critical = Number(vulns.critical || 0);
-const high = Number(vulns.high || 0);
-const moderate = Number(vulns.moderate || 0);
-const low = Number(vulns.low || 0);
-
-console.log(`audit summary -> critical=${critical} high=${high} moderate=${moderate} low=${low}`);
-
-if (critical > 0 || high > 0) {
-  fail('High/Critical vulnerabilities detected. Release blocked until triaged and remediated or explicitly waived.');
-}
-
-if (run.status !== 0 && critical === 0 && high === 0) {
-  fail('Audit command exited non-zero without high/critical findings. Treating as UNKNOWN and blocking release.');
-}
-
-if (moderate > 0 || low > 0) {
-  console.warn('WARNING: Moderate/Low vulnerabilities present; create tracking tickets and remediation timeline before release.');
-}
-
-console.log('PASS: no known high/critical dependency vulnerabilities.');
+fail(
+  audit.reason ?? "no scanner produced a usable result. Install osv-scanner (https://google.github.io/osv-scanner/) or ensure pnpm audit has registry access.",
+);
