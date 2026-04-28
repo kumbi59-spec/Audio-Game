@@ -388,14 +388,14 @@ function CreateCharacterPage() {
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="char-short-description" className="mb-1 block text-sm font-medium">
-                  Short description (optional)
+                  Appearance / Looks (optional)
                 </label>
                 <input
                   id="char-short-description"
                   type="text"
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
-                  placeholder="e.g. Lean ex-scout with a scar over one eye"
+                  placeholder="e.g. Lean ex-scout with a scar over one eye and close-cropped silver hair"
                   className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>

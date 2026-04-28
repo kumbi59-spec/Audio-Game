@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
+  <defs>
+    <linearGradient id="cs-sky" x1="0%" y1="0%" x2="10%" y2="100%">
+      <stop offset="0%" stop-color="#1a0808"/>
+      <stop offset="40%" stop-color="#5c1a0a"/>
+      <stop offset="75%" stop-color="#a84020"/>
+      <stop offset="100%" stop-color="#cc6030"/>
+    </linearGradient>
+    <radialGradient id="cs-sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe860"/>
+      <stop offset="35%" stop-color="#ff9020"/>
+      <stop offset="100%" stop-color="#cc4400" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cs-sun-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff7010" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ff7010" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cs-sand" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c87040"/>
+      <stop offset="100%" stop-color="#8a4820"/>
+    </linearGradient>
+    <linearGradient id="cs-dune1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d48048"/>
+      <stop offset="100%" stop-color="#9a5528"/>
+    </linearGradient>
+    <linearGradient id="cs-dune2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ba6838"/>
+      <stop offset="100%" stop-color="#7a4018"/>
+    </linearGradient>
+    <linearGradient id="cs-stone" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#786050"/>
+      <stop offset="100%" stop-color="#4a3828"/>
+    </linearGradient>
+    <filter id="cs-glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="cs-haze">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+
+  <!-- Sky gradient (sunset/blood sky) -->
+  <rect width="600" height="360" fill="url(#cs-sky)"/>
+
+  <!-- Heat haze at horizon -->
+  <ellipse cx="300" cy="210" rx="360" ry="25" fill="#cc6030" opacity="0.15" filter="url(#cs-haze)"/>
+
+  <!-- Sun near horizon -->
+  <circle cx="480" cy="165" r="90" fill="url(#cs-sun-glow)" filter="url(#cs-glow)"/>
+  <circle cx="480" cy="165" r="42" fill="url(#cs-sun)" opacity="0.9"/>
+
+  <!-- Sun rays -->
+  <g stroke="#ff8820" stroke-width="1.5" opacity="0.2" transform="translate(480,165)">
+    <line x1="0" y1="-60" x2="0" y2="-90"/>
+    <line x1="42" y1="-42" x2="63" y2="-63"/>
+    <line x1="60" y1="0" x2="90" y2="0"/>
+    <line x1="42" y1="42" x2="63" y2="63"/>
+    <line x1="-42" y1="-42" x2="-63" y2="-63"/>
+    <line x1="-60" y1="0" x2="-90" y2="0"/>
+    <line x1="-42" y1="42" x2="-63" y2="63"/>
+    <line x1="0" y1="60" x2="0" y2="88"/>
+  </g>
+
+  <!-- Distant ruins / pillars -->
+  <g fill="url(#cs-stone)" opacity="0.7">
+    <!-- Broken obelisk left -->
+    <polygon points="95,205 105,205 102,140 98,140"/>
+    <polygon points="92,140 108,140 102,125 98,125"/>
+    <!-- Fallen column piece -->
+    <rect x="88" y="200" width="26" height="10" rx="3"/>
+    <!-- Pillar right -->
+    <polygon points="430,210 442,210 440,155 432,155"/>
+    <polygon points="428,155 444,155 438,142 434,142"/>
+    <!-- Half-buried arch -->
+    <path d="M190,215 Q215,175 240,215" stroke="#786050" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M190,215 Q215,175 240,215" stroke="#9a7868" stroke-width="6" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Large ruin structure (center-left) -->
+  <g fill="url(#cs-stone)" opacity="0.85">
+    <!-- Base blocks -->
+    <rect x="120" y="195" width="90" height="30"/>
+    <rect x="128" y="175" width="74" height="22"/>
+    <rect x="138" y="158" width="54" height="19"/>
+    <!-- Crack line -->
+    <line x1="160" y1="158" x2="155" y2="225" stroke="#4a3828" stroke-width="2" opacity="0.6"/>
+    <!-- Top broken off -->
+    <polygon points="138,158 165,130 175,158"/>
+  </g>
+
+  <!-- Distant pyramid silhouette -->
+  <polygon points="300,195 350,145 400,195" fill="#7a4828" opacity="0.5"/>
+  <polygon points="315,195 350,150 385,195" fill="#8a5530" opacity="0.3"/>
+
+  <!-- Foreground dunes -->
+  <!-- Back dune -->
+  <ellipse cx="150" cy="285" rx="250" ry="90" fill="url(#cs-dune2)"/>
+  <ellipse cx="450" cy="280" rx="230" ry="85" fill="url(#cs-dune2)"/>
+
+  <!-- Mid dune -->
+  <ellipse cx="300" cy="295" rx="320" ry="80" fill="url(#cs-dune1)"/>
+
+  <!-- Front dune (ground) -->
+  <ellipse cx="100" cy="340" rx="200" ry="60" fill="url(#cs-sand)"/>
+  <ellipse cx="500" cy="335" rx="200" ry="55" fill="url(#cs-sand)"/>
+  <rect x="0" y="320" width="600" height="40" fill="#9a5228"/>
+
+  <!-- Dune highlights (wind-carved ridges) -->
+  <g stroke="#d48848" stroke-width="1.5" fill="none" opacity="0.3">
+    <path d="M50,295 Q150,278 250,290"/>
+    <path d="M350,285 Q450,270 550,283"/>
+    <path d="M100,315 Q200,302 300,312 Q400,302 500,315"/>
+  </g>
+
+  <!-- Sand particles/grit -->
+  <g fill="#e09050" opacity="0.4">
+    <circle cx="180" cy="265" r="1.5"/><circle cx="220" cy="258" r="1"/>
+    <circle cx="350" cy="262" r="1.5"/><circle cx="400" cy="255" r="1"/>
+    <circle cx="150" cy="275" r="1"/><circle cx="450" cy="268" r="1.5"/>
+    <circle cx="280" cy="260" r="1"/><circle cx="520" cy="270" r="1"/>
+  </g>
+
+  <!-- Ancient glyphs on ruin (subtle) -->
+  <g stroke="#c8a060" stroke-width="1" fill="none" opacity="0.25">
+    <line x1="138" y1="170" x2="148" y2="170"/>
+    <circle cx="155" cy="172" r="3"/>
+    <line x1="162" y1="170" x2="172" y2="170"/>
+    <line x1="140" y1="180" x2="185" y2="180"/>
+    <line x1="145" y1="187" x2="178" y2="187"/>
+  </g>
+
+  <!-- Genre label -->
+  <rect x="0" y="320" width="600" height="40" fill="#4a1808" opacity="0.85"/>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="#d08040" opacity="0.9" letter-spacing="3">DESERT ARCHAEOLOGY</text>
+  <text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="#c09060" opacity="0.8" text-anchor="end" letter-spacing="1">ADVENTUROUS · MYSTERIOUS</text>
+</svg>

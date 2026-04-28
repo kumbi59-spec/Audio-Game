@@ -47,7 +47,7 @@ Sound Design:
 - The Glass Pool: cave ambient (still, echoing)
 - Deep wood encounters: dungeon ambient`,
   isPrebuilt: true,
-  imageUrl: null,
+  imageUrl: "/images/worlds/mirewood.svg",
   locations: [
     {
       id: "loc-mirewood-threshold",

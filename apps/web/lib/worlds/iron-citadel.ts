@@ -39,7 +39,7 @@ Sound Design:
 - Maintenance ducts: cave ambient
 - Tier One: no ambient — unsettling quiet`,
   isPrebuilt: true,
-  imageUrl: null,
+  imageUrl: "/images/worlds/iron-citadel.svg",
   locations: [
     {
       id: "loc-ic-tier-three",

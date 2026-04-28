@@ -39,7 +39,7 @@ Sound Design:
 - Silent Grove: silence — no ambient sound at all
 - Ruins of Vel: cave ambient (cool stone, distant drip)`,
   isPrebuilt: true,
-  imageUrl: null,
+  imageUrl: "/images/worlds/verdant-wilds.svg",
   locations: [
     {
       id: "loc-vw-forest-edge",
