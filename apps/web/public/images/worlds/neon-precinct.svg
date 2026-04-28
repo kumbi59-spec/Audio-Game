@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
+  <defs>
+    <linearGradient id="cg-bg" x1="0%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#0d0118"/>
+      <stop offset="100%" stop-color="#1e0640"/>
+    </linearGradient>
+    <filter id="cg-glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="600" height="360" fill="url(#cg-bg)"/>
+  
+        <polygon points="180,195 250,145 330,158 360,205 320,232 200,228" fill="#7c2fbf" opacity="0.7"/>
+        <polygon points="60,175 110,148 155,162 160,188 125,202 70,198" fill="#7c2fbf" opacity="0.55"/>
+        <polygon points="400,162 460,138 510,152 515,180 470,195 408,188" fill="#7c2fbf" opacity="0.5"/>
+        <polygon points="145,102 168,88 195,95 196,112 174,118 147,112" fill="#7c2fbf" opacity="0.4"/>
+        <polygon points="390,95 415,82 438,90 436,108 412,114 392,107" fill="#7c2fbf" opacity="0.38"/>
+        <circle cx="245" cy="172" r="3" fill="#c9a227" opacity="0.9"/>
+        <circle cx="310" cy="160" r="2.5" fill="#c9a227" opacity="0.8"/>
+        <circle cx="120" cy="165" r="2" fill="#c9a227" opacity="0.7"/>
+        <ellipse cx="300" cy="290" rx="250" ry="55" fill="#7c2fbf" opacity="0.18"/>
+  <rect x="0" y="320" width="600" height="40" fill="#0d0118" opacity="0.82"/>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="#9060c0" opacity="0.9" letter-spacing="3">DARK FANTASY</text>
+  <text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="#c9a227" opacity="0.75" text-anchor="end" letter-spacing="1">NOIR</text>
+</svg>

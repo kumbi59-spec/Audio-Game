@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
+  <defs>
+    <linearGradient id="cg-bg" x1="0%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#0a1a04"/>
+      <stop offset="100%" stop-color="#183008"/>
+    </linearGradient>
+    <filter id="cg-glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="600" height="360" fill="url(#cg-bg)"/>
+  
+        <path d="M80,280 Q300,100 520,280" stroke="#3a9020" stroke-width="40" fill="none" opacity="0.45" stroke-linecap="round"/>
+        <path d="M120,290 Q300,130 480,290" stroke="#3a9020" stroke-width="25" fill="none" opacity="0.35" stroke-linecap="round"/>
+        <path d="M160,295 Q300,160 440,295" stroke="#3a9020" stroke-width="14" fill="none" opacity="0.3" stroke-linecap="round"/>
+        <circle cx="300" cy="180" r="8" fill="#e8a030" opacity="0.75"/>
+        <circle cx="300" cy="180" r="4" fill="#e8a030" opacity="0.9"/>
+        <ellipse cx="300" cy="290" rx="260" ry="40" fill="#3a9020" opacity="0.2"/>
+  <rect x="0" y="320" width="600" height="40" fill="#0a1a04" opacity="0.82"/>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="#60b040" opacity="0.9" letter-spacing="3">ADVENTURE</text>
+  <text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="#e8a030" opacity="0.75" text-anchor="end" letter-spacing="1">SWASHBUCKLING</text>
+</svg>
