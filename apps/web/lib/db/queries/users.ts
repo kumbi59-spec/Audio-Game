@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Tier } from "@audio-rpg/shared";
-import { effectiveTierForEmail } from "@/lib/admin";
+import { effectiveTierForUnknownEmail } from "@/lib/admin";
 
 export async function ensureGuestUser(guestId: string) {
   return prisma.user.upsert({
@@ -62,7 +62,7 @@ export async function createDbCharacter(
 export async function getUserTier(userId: string): Promise<string> {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, email: true } });
   if (!user) return "free";
-  return effectiveTierForEmail(user.email, user.tier);
+  return effectiveTierForUnknownEmail(user.email, user.tier);
 }
 
 export async function updateUserTier(userId: string, tier: Tier) {

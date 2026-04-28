@@ -17,7 +17,26 @@ export function isAdminEmail(email: string): boolean {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
-export function effectiveTierForEmail(email: string | null | undefined, currentTier: string): Tier | string {
-  if (email && isAdminEmail(email)) return "creator";
-  return currentTier;
+const TIER_RANK: Record<Tier, number> = {
+  free: 0,
+  storyteller: 1,
+  creator: 2,
+  enterprise: 3,
+};
+
+export function effectiveTierForEmail(email: string | null | undefined, currentTier: Tier): Tier {
+  if (!email || !isAdminEmail(email)) return currentTier;
+  return TIER_RANK[currentTier] >= TIER_RANK.creator ? currentTier : "creator";
+}
+
+export function tierFromUnknown(value: string): Tier {
+  if (value === "storyteller" || value === "creator" || value === "enterprise") return value;
+  return "free";
+}
+
+export function effectiveTierForUnknownEmail(email: string | null | undefined, currentTier: string): Tier {
+  const normalizedTier = tierFromUnknown(currentTier);
+  if (!email || !isAdminEmail(email)) return normalizedTier;
+  if (TIER_RANK[normalizedTier] >= TIER_RANK.creator) return normalizedTier;
+  return "creator";
 }

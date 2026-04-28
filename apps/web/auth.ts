@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { compare, hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/email";
-import { effectiveTierForEmail } from "@/lib/admin";
+import { effectiveTierForUnknownEmail } from "@/lib/admin";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -30,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: user.id,
             email: user.email,
             name: user.name,
-            tier: effectiveTierForEmail(user.email, user.tier),
+            tier: effectiveTierForUnknownEmail(user.email, user.tier),
           };
         }
 
@@ -42,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          tier: effectiveTierForEmail(user.email, user.tier),
+          tier: effectiveTierForUnknownEmail(user.email, user.tier),
         };
       },
     }),
@@ -63,7 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           select: { tier: true, email: true },
         });
         if (fresh) {
-          token.tier = effectiveTierForEmail(fresh.email, fresh.tier);
+          token.tier = effectiveTierForUnknownEmail(fresh.email, fresh.tier);
           token.tierFetchedAt = Date.now();
         }
       }
