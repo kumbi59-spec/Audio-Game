@@ -1,50 +1,69 @@
-# Dependency Vulnerability Scan + Triage (2026-04-27)
+# Dependency Vulnerability Gate
 
 ## Goal
-Target release condition: **No unknown critical/high dependency risk at release time**.
+Release condition: **No unknown critical/high dependency risk at release time.**
 
-## Commands Run
-1. `pnpm --version && node --version`
-2. `pnpm audit --prod --json`
-3. `pnpm run security:release-gate`
+## How it works now
 
-> Note: the release gate now accepts both single JSON objects and line-delimited JSON payloads from `pnpm audit`, and still fails closed on upstream API errors.
+The release gate runs in two layers:
 
-## Raw Outcome
-- `pnpm audit --prod --json` returned structured error payload:
-  - `code`: `ERR_PNPM_AUDIT_BAD_RESPONSE`
-  - `message`: npm audit endpoint responded with `403 Forbidden`.
-- Because the audit API response was denied, no vulnerability metadata (`critical/high/moderate/low`) was available.
+1. **OSV-Scanner** (preferred) — queries [osv.dev](https://osv.dev), reads `pnpm-lock.yaml` directly, and does **not** depend on the npm registry's audit endpoint (which has historically returned `403 Forbidden` from sandboxed CI environments).
+2. **`pnpm audit --prod`** (fallback) — used only if `osv-scanner` is unavailable.
 
-## Triage Decision
-| Finding | Severity | Confidence | Release Impact | Decision |
-|---|---|---|---|---|
-| npm audit endpoint unreachable (`ERR_PNPM_AUDIT_BAD_RESPONSE`, `403`) | **Unknown** (could mask critical/high) | High | Blocks accurate dependency risk assessment | **Release blocked** |
+If neither layer produces a usable signal, the gate fails closed with `RELEASE_GATED: ...`.
 
-Because the scan cannot resolve known-vs-unknown critical/high exposure, dependency risk is classified as **UNKNOWN** and fails the release gate.
+## Local usage
 
-## Release Policy (Effective Immediately)
+```bash
+# Install osv-scanner (one-time)
+brew install osv-scanner                 # macOS
+# or download a binary from https://github.com/google/osv-scanner/releases
 
-### Hard gates (must pass)
-1. `pnpm run security:release-gate` must pass in CI.
-2. Any **unknown** audit status (network/API/auth/output parse failure) is **release-blocking**.
-3. Any **critical** or **high** vulnerability count > 0 is **release-blocking**.
+# Run the gate
+pnpm run security:release-gate
+```
 
-### Allowed with tracking
-- `moderate`/`low` vulnerabilities may proceed only with:
-  - linked remediation ticket(s),
-  - owner assigned,
-  - due date, and
-  - compensating-control note if exploitability exists.
+Expected output on a clean tree:
 
-### Waiver process for exceptional release
-A temporary waiver is allowed only when all are present:
+```
+[osv-scanner] critical=0 high=0 moderate=0 low=0 unknown=0
+PASS: no high/critical dependency vulnerabilities (source: osv-scanner).
+```
+
+## CI
+
+Two jobs run on every PR and on a daily schedule (so newly-disclosed CVEs surface without requiring a code change):
+
+| Job | Purpose |
+|---|---|
+| `OSV-Scanner (deps)` | Uploads a SARIF report to the GitHub Security tab. Doesn't fail the build directly. |
+| `release-gate (high/critical = fail)` | Runs `pnpm run security:release-gate` with `osv-scanner` installed. **Fails the build on any high/critical or unknown-severity finding.** |
+
+Workflow: [`.github/workflows/security.yml`](./.github/workflows/security.yml)
+
+## Severity policy
+
+| Severity | Action |
+|---|---|
+| **critical / high** | Release-blocking. Fix, upgrade, or apply documented waiver before merge. |
+| **moderate / low** | Non-blocking; surfaces a `WARNING` in CI logs. Track in an issue with owner + due date. |
+| **unknown** | Release-blocking until classified. |
+
+## Waiver process (exceptional release)
+
+A temporary waiver is allowed only when **all** of these are present:
 - documented business justification,
 - explicit expiry date,
 - security owner sign-off,
-- rollback/kill-switch plan,
+- rollback / kill-switch plan,
 - post-release remediation commitment.
 
-## Operational Next Step
-Run the same gate in CI or another network path with confirmed access to
-`https://registry.npmjs.org/-/npm/v1/security/audits`.
+Record the waiver in `SECURITY.md` (or a dedicated waiver log) before merging.
+
+## Historical context (2026-04-27)
+
+The original gate ran `pnpm audit --prod --json`, which calls
+`https://registry.npmjs.org/-/npm/v1/security/audits`. That endpoint returned
+`403 Forbidden` from the CI sandbox, which classified dependency risk as
+**unknown** and blocked release. Switching to OSV-Scanner removed that
+dependency on the npm audit endpoint while preserving the fail-closed behavior.
