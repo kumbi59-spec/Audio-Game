@@ -17,7 +17,7 @@ import type { PlayerAction } from "@/types/game";
 export function GameShell() {
   const { session, character, world, submitAction, replayLast, speakText } =
     useGameSession();
-  const { ttsSpeed, volume, setTTSSpeed } = useAudioStore();
+  const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
@@ -28,6 +28,14 @@ export function GameShell() {
     const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-trigger ambient sound when the player moves to a new location.
+  useEffect(() => {
+    if (!session?.currentLocationId || !world) return;
+    const loc = world.locations.find((l) => l.id === session.currentLocationId);
+    const track = loc?.ambientSound ?? "none";
+    setCurrentAmbient(track as import("@/types/audio").AmbientTrack);
+  }, [session?.currentLocationId, world, setCurrentAmbient]);
 
   // Speak the most recent narration that was pre-loaded before navigation.
   // This ensures resumed sessions continue from the latest narrated section.

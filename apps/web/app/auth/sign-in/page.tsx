@@ -30,14 +30,18 @@ export default function SignInPage() {
     try {
       const result = await signIn("credentials", { email, password, mode, redirect: false });
       if (result?.error) {
-        const msg =
-          mode === "signup" && result.error !== "CredentialsSignin"
-            ? result.error
-            : result.error === "CredentialsSignin"
-              ? mode === "signup"
-                ? "Could not create account. That email may already be in use."
-                : "Invalid email or password."
-              : result.error;
+        let msg: string;
+        if (result.error === "Configuration") {
+          msg = "Server is not fully configured yet. Please contact the site administrator.";
+        } else if (result.error === "CredentialsSignin") {
+          msg = mode === "signup"
+            ? "Could not create account. That email may already be in use."
+            : "Invalid email or password.";
+        } else if (mode === "signup") {
+          msg = result.error;
+        } else {
+          msg = "Sign-in failed. Please try again.";
+        }
         setError(msg);
       } else {
         router.replace("/");

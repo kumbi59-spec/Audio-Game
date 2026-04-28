@@ -17,11 +17,18 @@ if [ -f "$ENV_FILE" ]; then
 else
   echo "==> Generating $ENV_FILE..."
   SECRET=$(openssl rand -hex 32 2>/dev/null || node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+  # Detect GitHub Codespaces and set the correct public URL
+  if [ -n "${CODESPACE_NAME:-}" ]; then
+    NEXTAUTH_URL="https://${CODESPACE_NAME}-3000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+  else
+    NEXTAUTH_URL="http://localhost:3000"
+  fi
+
   cat > "$ENV_FILE" <<EOF
 # Required for NextAuth v5
 AUTH_SECRET=$SECRET
 NEXTAUTH_SECRET=$SECRET
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=$NEXTAUTH_URL
 
 # SQLite database (local dev — no external DB needed)
 DATABASE_URL=file:./dev.db
