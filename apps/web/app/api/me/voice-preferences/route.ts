@@ -27,6 +27,8 @@ export async function GET() {
       ttsSpeed: true,
       ttsPitch: true,
       volume: true,
+      clonedVoiceId: true,
+      clonedVoiceLabel: true,
     },
   });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -36,6 +38,8 @@ export async function GET() {
     ttsSpeed: user.ttsSpeed,
     ttsPitch: user.ttsPitch,
     volume: user.volume,
+    clonedVoiceId: user.clonedVoiceId ?? null,
+    clonedVoiceLabel: user.clonedVoiceLabel ?? null,
   });
 }
 
@@ -67,6 +71,8 @@ export async function PATCH(request: Request) {
       ttsSpeed: true,
       ttsPitch: true,
       volume: true,
+      clonedVoiceId: true,
+      clonedVoiceLabel: true,
     },
   });
 
@@ -76,5 +82,7 @@ export async function PATCH(request: Request) {
     ttsSpeed: updated.ttsSpeed,
     ttsPitch: updated.ttsPitch,
     volume: updated.volume,
+    clonedVoiceId: updated.clonedVoiceId ?? null,
+    clonedVoiceLabel: updated.clonedVoiceLabel ?? null,
   });
 }

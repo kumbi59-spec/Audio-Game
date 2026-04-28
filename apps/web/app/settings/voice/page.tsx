@@ -23,6 +23,15 @@ export default function VoiceSettingsPage() {
   const [previewing, setPreviewing] = useState(false);
   const dirtyRef = useRef(false);
 
+  // Cloning state
+  const [clonedVoiceId, setClonedVoiceId] = useState<string | null>(null);
+  const [clonedVoiceLabel, setClonedVoiceLabel] = useState<string | null>(null);
+  const [cloneFile, setCloneFile] = useState<File | null>(null);
+  const [cloneLabel, setCloneLabel] = useState<string>("My voice");
+  const [cloneConsent, setCloneConsent] = useState(false);
+  const [cloning, setCloning] = useState(false);
+  const [cloneError, setCloneError] = useState<string | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/sign-in");
   }, [status, router]);
@@ -35,6 +44,8 @@ export default function VoiceSettingsPage() {
       .then((data) => {
         if (!data) return;
         store.hydrateFromServer(data);
+        setClonedVoiceId(data.clonedVoiceId ?? null);
+        setClonedVoiceLabel(data.clonedVoiceLabel ?? null);
       })
       .catch(() => undefined);
   }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -58,8 +69,19 @@ export default function VoiceSettingsPage() {
   }, []);
 
   const voicesForProvider: TTSVoice[] = useMemo(() => {
-    return store.ttsProvider === "elevenlabs" ? ELEVENLABS_PRESET_VOICES : browserVoices;
-  }, [store.ttsProvider, browserVoices]);
+    if (store.ttsProvider === "elevenlabs") {
+      const cloned: TTSVoice[] = clonedVoiceId
+        ? [{
+            id: clonedVoiceId,
+            name: `${clonedVoiceLabel ?? "My voice"} (your clone)`,
+            lang: "en-US",
+            provider: "elevenlabs",
+          }]
+        : [];
+      return [...cloned, ...ELEVENLABS_PRESET_VOICES];
+    }
+    return browserVoices;
+  }, [store.ttsProvider, browserVoices, clonedVoiceId, clonedVoiceLabel]);
 
   // Auto-save when settings change (debounced via effect timer)
   useEffect(() => {
@@ -100,6 +122,60 @@ export default function VoiceSettingsPage() {
       await speak(PREVIEW_TEXT);
     } finally {
       setPreviewing(false);
+    }
+  }
+
+  async function handleClone(e: React.FormEvent) {
+    e.preventDefault();
+    setCloneError(null);
+    if (!cloneFile) {
+      setCloneError("Pick an audio file first.");
+      return;
+    }
+    if (!cloneConsent) {
+      setCloneError("Please confirm consent.");
+      return;
+    }
+    setCloning(true);
+    try {
+      const form = new FormData();
+      form.append("sample", cloneFile, cloneFile.name);
+      form.append("consent", "yes");
+      form.append("label", cloneLabel.trim() || "My voice");
+      const res = await fetch("/api/me/voice-clone", { method: "POST", body: form });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setCloneError(body.error ?? `Upload failed (${res.status})`);
+        return;
+      }
+      const data = await res.json();
+      setClonedVoiceId(data.clonedVoiceId ?? null);
+      setClonedVoiceLabel(data.clonedVoiceLabel ?? null);
+      // The server auto-switched the user onto ElevenLabs + the new voice;
+      // update the store so the UI reflects that immediately.
+      store.hydrateFromServer({
+        ttsProvider: data.ttsProvider,
+        ttsVoiceId: data.ttsVoiceId,
+      });
+      setCloneFile(null);
+      setCloneConsent(false);
+    } finally {
+      setCloning(false);
+    }
+  }
+
+  async function handleDeleteClone() {
+    if (!confirm("Delete your cloned voice? You can re-upload anytime.")) return;
+    const res = await fetch("/api/me/voice-clone", { method: "DELETE" });
+    if (res.ok) {
+      setClonedVoiceId(null);
+      setClonedVoiceLabel(null);
+      // If they were narrating with the deleted clone, the server cleared
+      // ttsVoiceId — sync the store so the picker doesn't point at a
+      // voice that no longer exists.
+      if (store.ttsVoiceId === clonedVoiceId) {
+        store.setTTSVoiceId("");
+      }
     }
   }
 
@@ -271,7 +347,7 @@ export default function VoiceSettingsPage() {
           </label>
         </section>
 
-        <div className="flex items-center gap-3">
+        <div className="mb-8 flex items-center gap-3">
           <button
             type="button"
             onClick={preview}
@@ -290,6 +366,117 @@ export default function VoiceSettingsPage() {
             {saving ? "Saving…" : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : ""}
           </span>
         </div>
+
+        <section
+          aria-label="Voice cloning"
+          className="rounded-xl border p-5"
+          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+        >
+          <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+            Clone your own voice
+          </h2>
+          <p className="mb-4 text-xs" style={{ color: "var(--text-muted)" }}>
+            Upload a 30-second to 10-minute audio sample of a single speaker. We&apos;ll create a
+            cloned voice on ElevenLabs that you can use for narration. Sample quality matters —
+            quiet room, clear speech, no music.
+          </p>
+
+          {clonedVoiceId ? (
+            <div
+              className="rounded-lg border p-4"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
+            >
+              <p className="mb-2 text-sm font-medium" style={{ color: "var(--text)" }}>
+                You have a cloned voice: <em>{clonedVoiceLabel ?? "My voice"}</em>
+              </p>
+              <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                It appears at the top of the voice picker above when ElevenLabs is selected.
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteClone}
+                className="rounded-lg border px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-80"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--text-muted)",
+                  minHeight: 44,
+                }}
+              >
+                Delete cloned voice
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleClone} className="space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text)" }}>
+                  Audio sample (mp3 / wav / m4a / webm, max 12 MB)
+                </span>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={(e) => setCloneFile(e.target.files?.[0] ?? null)}
+                  required
+                  className="block w-full text-sm"
+                  style={{ color: "var(--text-muted)" }}
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text)" }}>
+                  Label (shown in your voice picker)
+                </span>
+                <input
+                  type="text"
+                  value={cloneLabel}
+                  onChange={(e) => setCloneLabel(e.target.value)}
+                  maxLength={32}
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  style={{
+                    borderColor: "var(--border)",
+                    backgroundColor: "var(--bg)",
+                    color: "var(--text)",
+                    minHeight: 44,
+                  }}
+                />
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-2 text-xs" style={{ color: "var(--text)" }}>
+                <input
+                  type="checkbox"
+                  checked={cloneConsent}
+                  onChange={(e) => setCloneConsent(e.target.checked)}
+                  required
+                  className="mt-0.5"
+                  style={{ minHeight: 20, minWidth: 20 }}
+                />
+                <span>
+                  I have the rights to the voice in this sample. I will not upload anyone
+                  else&apos;s voice without their explicit, documented permission.
+                </span>
+              </label>
+
+              {cloneError && (
+                <p role="alert" className="text-xs" style={{ color: "var(--error, #c0383c)" }}>
+                  {cloneError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={cloning || !cloneFile || !cloneConsent}
+                className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{
+                  backgroundColor: "var(--accent)",
+                  color: "#ffffff",
+                  minHeight: 44,
+                  minWidth: 120,
+                }}
+              >
+                {cloning ? "Uploading…" : "Clone voice"}
+              </button>
+            </form>
+          )}
+        </section>
       </main>
     </div>
   );

@@ -29,6 +29,11 @@ model User {
   highContrast     Boolean @default(false)
   reducedMotion    Boolean @default(false)
 
+  // ElevenLabs cloned voice — set when the user uploads a sample via /settings/voice.
+  // Stores ElevenLabs voice_id; null means no clone exists.
+  clonedVoiceId    String?
+  clonedVoiceLabel String?
+
   sessions     GameSession[]
   accounts     Account[]
   authSessions Session[]
