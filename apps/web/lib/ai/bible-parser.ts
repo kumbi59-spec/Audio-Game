@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { ParsedGameBible } from "@/types/world";
 import { BIBLE_PARSE_SYSTEM } from "./prompts/bible-parse";
 import { prisma } from "@/lib/db";
-import { worldCoverDataUrl } from "@/lib/worlds/cover-art";
+import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 
 const client = new Anthropic();
 const MODEL = process.env["CLAUDE_GM_MODEL"] ?? "claude-sonnet-4-6";
@@ -137,7 +137,7 @@ export async function createWorldFromBible(
     },
   });
 
-  const imageUrl = worldCoverDataUrl(bible.worldName, bible.genre, bible.tone);
+  const imageUrl = await resolveWorldCoverImage(bible.worldName, bible.genre, bible.tone);
 
   await prisma.world.create({
     data: {
