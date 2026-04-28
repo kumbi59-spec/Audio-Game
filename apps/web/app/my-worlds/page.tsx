@@ -8,6 +8,13 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
+import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
+
+interface EngagementSeries {
+  days: string[];
+  sessionsStarted: number[];
+  playerTurns: number[];
+}
 
 interface WorldAnalytics {
   sessionCount: number;
@@ -37,6 +44,24 @@ export default function MyWorldsPage() {
   const [worlds, setWorlds] = useState<MyWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
+  const [trendsLoading, setTrendsLoading] = useState(false);
+  const [trendsRequested, setTrendsRequested] = useState(false);
+
+  async function loadTrends() {
+    if (trendsRequested || !can.publicPublishing) return;
+    setTrendsRequested(true);
+    setTrendsLoading(true);
+    try {
+      const res = await fetch("/api/my-worlds/trends?days=30");
+      if (res.ok) {
+        const data = (await res.json()) as { days: number; trends: Record<string, EngagementSeries> };
+        setTrends(data.trends ?? {});
+      }
+    } finally {
+      setTrendsLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -156,30 +181,53 @@ export default function MyWorldsPage() {
                   </p>
 
                   {world.analytics && can.publicPublishing && (
-                    <dl
-                      className="mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-center"
-                      style={{ backgroundColor: "var(--surface-2, var(--surface))", border: "1px solid var(--border)" }}
-                      aria-label="World analytics"
-                    >
-                      <div>
-                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Sessions</dt>
-                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
-                          {world.analytics.sessionCount}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Turns</dt>
-                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
-                          {world.analytics.totalTurns}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Players</dt>
-                        <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
-                          {world.analytics.uniquePlayers}
-                        </dd>
-                      </div>
-                    </dl>
+                    <>
+                      <dl
+                        className="mb-4 grid grid-cols-3 gap-2 rounded-lg p-3 text-center"
+                        style={{ backgroundColor: "var(--surface-2, var(--surface))", border: "1px solid var(--border)" }}
+                        aria-label="World analytics"
+                      >
+                        <div>
+                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Sessions</dt>
+                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                            {world.analytics.sessionCount}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Turns</dt>
+                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                            {world.analytics.totalTurns}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Players</dt>
+                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                            {world.analytics.uniquePlayers}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      {trends[world.id] ? (
+                        <EngagementSparkline
+                          worldName={world.name}
+                          days={trends[world.id]!.days}
+                          sessionsStarted={trends[world.id]!.sessionsStarted}
+                          playerTurns={trends[world.id]!.playerTurns}
+                        />
+                      ) : (
+                        !trendsRequested && (
+                          <button
+                            type="button"
+                            onClick={loadTrends}
+                            className="mb-4 w-full rounded-lg border py-2 text-xs font-medium transition-opacity hover:opacity-80"
+                            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                            aria-label={`Show 30-day engagement trend for ${world.name}`}
+                          >
+                            {trendsLoading ? "Loading trend…" : "Show 30-day engagement trend"}
+                          </button>
+                        )
+                      )}
+                    </>
                   )}
 
                   <div className="space-y-2">
