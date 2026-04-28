@@ -12,6 +12,7 @@ interface AudioStore extends AudioSettings {
   setAmbientVolume: (volume: number) => void;
   setSoundCuesEnabled: (enabled: boolean) => void;
   setCurrentAmbient: (track: AmbientTrack) => void;
+  hydrateFromServer: (prefs: Partial<AudioSettings>) => void;
 }
 
 export const useAudioStore = create<AudioStore>()(
@@ -36,6 +37,7 @@ export const useAudioStore = create<AudioStore>()(
       setAmbientVolume: (volume) => set({ ambientVolume: Math.max(0, Math.min(1, volume)) }),
       setSoundCuesEnabled: (enabled) => set({ soundCuesEnabled: enabled }),
       setCurrentAmbient: (track) => set({ currentAmbient: track }),
+      hydrateFromServer: (prefs) => set((state) => ({ ...state, ...prefs })),
     }),
     { name: "audio-game-audio" }
   )

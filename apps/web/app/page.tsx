@@ -210,6 +210,11 @@ export default function LandingPage() {
               Speed and volume are adjustable during play. Core accessibility features are{" "}
               <strong style={{ color: "var(--text)" }}>always free</strong> — never paywalled.
             </p>
+            <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
+              <a href="/settings/voice" className="font-semibold hover:underline" style={{ color: "var(--accent)" }}>
+                Customize the narrator voice →
+              </a>
+            </p>
           </div>
         </section>
 
