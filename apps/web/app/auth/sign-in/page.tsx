@@ -27,12 +27,25 @@ export default function SignInPage() {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const result = await signIn("credentials", { email, password, mode, redirect: false });
-    setBusy(false);
-    if (result?.error) {
-      setError(result.error === "CredentialsSignin" ? "Invalid email or password." : result.error);
-    } else {
-      router.replace("/");
+    try {
+      const result = await signIn("credentials", { email, password, mode, redirect: false });
+      if (result?.error) {
+        const msg =
+          mode === "signup" && result.error !== "CredentialsSignin"
+            ? result.error
+            : result.error === "CredentialsSignin"
+              ? mode === "signup"
+                ? "Could not create account. That email may already be in use."
+                : "Invalid email or password."
+              : result.error;
+        setError(msg);
+      } else {
+        router.replace("/");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
