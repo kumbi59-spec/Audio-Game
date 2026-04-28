@@ -528,6 +528,7 @@ export default function WorldWizardPage() {
             />
             {coverImageUrl.trim() && (
               <div className="mt-3 overflow-hidden rounded-lg" style={{ maxHeight: 160 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL; next/image would require allowing all remote domains */}
                 <img
                   src={coverImageUrl.trim()}
                   alt="Cover preview"

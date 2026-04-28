@@ -313,6 +313,7 @@ function WorldCard({
       {/* Cover image */}
       {world.imageUrl ? (
         <div className="relative h-44 w-full overflow-hidden" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL; next/image would require allowing all remote domains */}
           <img
             src={world.imageUrl}
             alt=""
