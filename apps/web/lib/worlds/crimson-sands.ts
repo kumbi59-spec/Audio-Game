@@ -39,7 +39,7 @@ Sound Design:
 - Deep Archive: silence broken by the hum of still-active equipment
 - Throne Room: no ambient — absolute quiet`,
   isPrebuilt: true,
-  imageUrl: null,
+  imageUrl: "/images/worlds/crimson-sands.svg",
   locations: [
     {
       id: "loc-cs-camp",

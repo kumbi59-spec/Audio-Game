@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
+  <defs>
+    <linearGradient id="mw-bg" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#040c04"/>
+      <stop offset="60%" stop-color="#071407"/>
+      <stop offset="100%" stop-color="#030803"/>
+    </linearGradient>
+    <radialGradient id="mw-moon" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e8e0d0"/>
+      <stop offset="60%" stop-color="#c8c0a8"/>
+      <stop offset="100%" stop-color="#907860" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="mw-moon-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a8a080" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#a8a080" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mw-fog" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a2e1a" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0d1a0d" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="mw-blur">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+    <filter id="mw-softblur">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="600" height="360" fill="url(#mw-bg)"/>
+
+  <!-- Moon glow halo -->
+  <circle cx="300" cy="90" r="80" fill="url(#mw-moon-glow)" filter="url(#mw-blur)"/>
+
+  <!-- Moon -->
+  <circle cx="300" cy="90" r="38" fill="url(#mw-moon)" opacity="0.92"/>
+  <!-- Moon craters / surface texture -->
+  <circle cx="288" cy="82" r="7" fill="#b0a890" opacity="0.25"/>
+  <circle cx="312" cy="96" r="5" fill="#b0a890" opacity="0.2"/>
+  <circle cx="298" cy="108" r="4" fill="#b0a890" opacity="0.15"/>
+
+  <!-- Distant forest silhouette (far background) -->
+  <g fill="#0e1e0e" opacity="0.8">
+    <rect x="0" y="220" width="600" height="140"/>
+    <!-- Distant tree tops -->
+    <polygon points="0,220 20,185 40,220"/>
+    <polygon points="30,220 55,175 80,220"/>
+    <polygon points="70,220 95,180 120,220"/>
+    <polygon points="110,220 130,170 150,220"/>
+    <polygon points="140,220 165,178 190,220"/>
+    <polygon points="175,220 195,165 215,220"/>
+    <polygon points="205,220 230,172 255,220"/>
+    <polygon points="245,220 265,160 285,220"/>
+    <polygon points="275,220 300,168 325,220"/>
+    <polygon points="315,220 335,158 355,220"/>
+    <polygon points="345,220 370,165 395,220"/>
+    <polygon points="385,220 405,170 425,220"/>
+    <polygon points="415,220 440,175 465,220"/>
+    <polygon points="455,220 475,162 495,220"/>
+    <polygon points="485,220 510,168 535,220"/>
+    <polygon points="525,220 545,172 565,220"/>
+    <polygon points="555,220 575,180 595,220"/>
+    <polygon points="575,220 600,185 600,220"/>
+  </g>
+
+  <!-- Mid-ground twisted trees (left) -->
+  <g fill="#081208" opacity="0.95">
+    <!-- Trunk -->
+    <rect x="55" y="155" width="12" height="170" rx="2"/>
+    <!-- Gnarled branches left -->
+    <path d="M61,200 Q30,175 10,165 Q25,170 40,180 Q20,162 5,148" stroke="#081208" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M61,230 Q25,215 8,210" stroke="#081208" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- Branch right -->
+    <path d="M67,185 Q95,165 115,160 Q100,170 90,178" stroke="#081208" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mid-ground twisted trees (right) -->
+  <g fill="#081208" opacity="0.95">
+    <rect x="533" y="148" width="14" height="215" rx="2"/>
+    <path d="M540,195 Q575,170 595,158" stroke="#081208" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M540,225 Q570,210 590,208" stroke="#081208" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M533,175 Q505,158 480,155 Q495,162 508,172" stroke="#081208" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Foreground large trees -->
+  <g fill="#040c04">
+    <!-- Left foreground tree -->
+    <rect x="80" y="200" width="18" height="160" rx="3"/>
+    <path d="M89,235 Q45,208 20,200 Q50,215 65,225" stroke="#040c04" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M89,265 Q55,255 30,258" stroke="#040c04" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M89,210 Q120,192 145,188 Q125,200 112,210" stroke="#040c04" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <!-- Right foreground tree -->
+    <rect x="500" y="195" width="20" height="165" rx="3"/>
+    <path d="M510,230 Q555,205 578,196" stroke="#040c04" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M510,262 Q548,252 572,256" stroke="#040c04" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M500,210 Q468,192 442,186 Q462,200 476,210" stroke="#040c04" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Ground mist / fog layers -->
+  <g filter="url(#mw-softblur)">
+    <ellipse cx="300" cy="295" rx="350" ry="55" fill="#1e361e" opacity="0.5"/>
+    <ellipse cx="150" cy="310" rx="200" ry="40" fill="#162a16" opacity="0.45"/>
+    <ellipse cx="450" cy="305" rx="200" ry="38" fill="#162a16" opacity="0.4"/>
+    <ellipse cx="300" cy="330" rx="320" ry="45" fill="#0d1a0d" opacity="0.6"/>
+  </g>
+
+  <!-- Eerie green wisps / light -->
+  <g opacity="0.3" filter="url(#mw-blur)">
+    <circle cx="200" cy="250" r="30" fill="#3a6e20"/>
+    <circle cx="400" cy="260" r="25" fill="#2e5818"/>
+    <circle cx="300" cy="270" r="20" fill="#3a6e20"/>
+  </g>
+
+  <!-- Moon reflection in mist -->
+  <ellipse cx="300" cy="285" rx="40" ry="12" fill="#a0a060" opacity="0.08"/>
+
+  <!-- Darkness overlay at top -->
+  <rect width="600" height="50" fill="url(#mw-bg)" opacity="0.4"/>
+
+  <!-- Vines/roots hanging -->
+  <g stroke="#0a180a" stroke-width="2" fill="none" opacity="0.7">
+    <path d="M100,0 Q95,30 102,60 Q97,90 100,120"/>
+    <path d="M115,0 Q118,25 112,55 Q116,80 113,110"/>
+    <path d="M490,0 Q494,35 488,65 Q492,95 489,125"/>
+    <path d="M505,0 Q502,28 507,58 Q503,88 506,118"/>
+  </g>
+
+  <!-- Genre label -->
+  <rect x="0" y="320" width="600" height="40" fill="#040c04" opacity="0.8"/>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="#4e8e40" opacity="0.9" letter-spacing="3">GOTHIC HORROR</text>
+  <text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="#8a9060" opacity="0.8" text-anchor="end" letter-spacing="1">TENSE · ATMOSPHERIC</text>
+</svg>

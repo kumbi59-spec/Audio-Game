@@ -18,6 +18,7 @@ interface WorldItem {
   genre: string;
   tone: string;
   isPrebuilt: boolean;
+  imageUrl: string | null;
   difficulty: string;
   tags: string[];
   sortOrder: number;
@@ -28,18 +29,21 @@ interface WorldItem {
 function SkeletonCard() {
   return (
     <article
-      className="rounded-xl border p-6"
+      className="overflow-hidden rounded-xl border"
       aria-hidden="true"
       style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
     >
-      <div className="skeleton mb-3 h-5 w-2/3 rounded" />
-      <div className="mb-2 flex gap-2">
-        <div className="skeleton h-4 w-14 rounded-full" />
-        <div className="skeleton h-4 w-14 rounded-full" />
+      <div className="skeleton h-44 w-full" style={{ backgroundColor: "var(--surface-2, var(--surface))" }} />
+      <div className="p-5">
+        <div className="skeleton mb-3 h-5 w-2/3 rounded" />
+        <div className="mb-2 flex gap-2">
+          <div className="skeleton h-4 w-14 rounded-full" />
+          <div className="skeleton h-4 w-14 rounded-full" />
+        </div>
+        <div className="skeleton mb-1 h-4 w-full rounded" />
+        <div className="skeleton mb-4 h-4 w-4/5 rounded" />
+        <div className="skeleton h-10 w-full rounded-lg" />
       </div>
-      <div className="skeleton mb-1 h-4 w-full rounded" />
-      <div className="skeleton mb-4 h-4 w-4/5 rounded" />
-      <div className="skeleton h-10 w-full rounded-lg" />
     </article>
   );
 }
@@ -285,55 +289,86 @@ function WorldList({
     <ul className="space-y-4" aria-label="Available worlds">
       {worlds.map((world) => (
         <li key={world.id}>
-          <article
-            className="rounded-xl border p-6"
-            style={{
-              borderColor: "var(--border)",
-              backgroundColor: "var(--surface)",
-            }}
-          >
-            <header className="mb-3">
-              <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
-                {world.name}
-              </h2>
-              <div className="mt-1 flex flex-wrap gap-2" aria-label="Tags">
-                {[world.genre, world.tone, world.difficulty].filter(Boolean).map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full px-2 py-0.5 text-xs capitalize"
-                    style={{
-                      backgroundColor: "var(--surface-2, var(--surface))",
-                      color: "var(--text-muted)",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              {showAuthor && world.author && (
-                <p className="mt-1 text-xs" style={{ color: "var(--text-subtle, var(--text-muted))" }}>
-                  by {world.author}
-                </p>
-              )}
-            </header>
-            <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
-              {world.description}
-            </p>
-            <button
-              onClick={() => onPlay(world.id)}
-              aria-label={`Play ${world.name}`}
-              className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{
-                backgroundColor: "var(--accent)",
-                color: "#ffffff",
-              }}
-            >
-              Play →
-            </button>
-          </article>
+          <WorldCard world={world} showAuthor={showAuthor} onPlay={onPlay} />
         </li>
       ))}
     </ul>
+  );
+}
+
+function WorldCard({
+  world,
+  showAuthor,
+  onPlay,
+}: {
+  world: WorldItem;
+  showAuthor: boolean;
+  onPlay: (id: string) => void;
+}) {
+  return (
+    <article
+      className="overflow-hidden rounded-xl border"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+    >
+      {/* Cover image */}
+      {world.imageUrl ? (
+        <div className="relative h-44 w-full overflow-hidden" aria-hidden="true">
+          <img
+            src={world.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      ) : (
+        <div
+          className="flex h-44 w-full items-center justify-center"
+          aria-hidden="true"
+          style={{ backgroundColor: "var(--surface-2, var(--surface))" }}
+        >
+          <span className="text-4xl opacity-30">🌍</span>
+        </div>
+      )}
+
+      <div className="p-5">
+        <header className="mb-3">
+          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
+            {world.name}
+          </h2>
+          <div className="mt-1 flex flex-wrap gap-2" aria-label="Tags">
+            {[world.genre, world.tone, world.difficulty].filter(Boolean).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full px-2 py-0.5 text-xs capitalize"
+                style={{
+                  backgroundColor: "var(--surface-2, var(--surface))",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          {showAuthor && world.author && (
+            <p className="mt-1 text-xs" style={{ color: "var(--text-subtle, var(--text-muted))" }}>
+              by {world.author}
+            </p>
+          )}
+        </header>
+        <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+          {world.description}
+        </p>
+        <button
+          onClick={() => onPlay(world.id)}
+          aria-label={`Play ${world.name}`}
+          className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+        >
+          Play →
+        </button>
+      </div>
+    </article>
   );
 }

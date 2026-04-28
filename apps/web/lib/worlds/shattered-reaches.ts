@@ -46,7 +46,7 @@ Sound Design:
 - Underground locations: cave or dungeon ambient
 - Syndicate lair: city_night ambient`,
   isPrebuilt: true,
-  imageUrl: null,
+  imageUrl: "/images/worlds/shattered-reaches.svg",
   locations: [
     {
       id: "loc-thornhaven-docks",

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { draftToBible, draftToSystemPrompt, type Draft } from "@/lib/wizard/steps";
+import { worldCoverDataUrl } from "@/lib/worlds/cover-art";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,20 +19,24 @@ const DraftSchema = z.object({
   hardConstraint: z.string(),
   startingScenario: z.string().min(1, "Opening scene is required"),
   characterName: z.string().min(1, "Character name is required"),
-}) satisfies z.ZodType<Draft>;
+  // Optional creator-supplied cover image URL (http/https or data URL)
+  imageUrl: z.string().optional(),
+}) satisfies z.ZodType<Draft & { imageUrl?: string }>;
 
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
 
-  let draft: Draft;
+  let body: z.infer<typeof DraftSchema>;
   try {
-    draft = DraftSchema.parse(await req.json());
+    body = DraftSchema.parse(await req.json());
   } catch (err) {
     const msg = err instanceof z.ZodError ? err.errors[0]?.message : "Invalid draft";
     return NextResponse.json({ error: msg }, { status: 400 });
   }
+
+  const { imageUrl: suppliedImageUrl, ...draft } = body;
 
   const stamp = Date.now().toString(36);
   const worldId = `world-wiz-${stamp}`;
@@ -39,6 +44,9 @@ export async function POST(req: NextRequest) {
 
   const bible = draftToBible(draft);
   const systemPrompt = draftToSystemPrompt(draft);
+
+  // Use creator-supplied image or auto-generate SVG cover art
+  const imageUrl = suppliedImageUrl?.trim() || worldCoverDataUrl(bible.title, draft.genre, draft.toneVoice);
 
   await prisma.world.create({
     data: {
@@ -50,6 +58,7 @@ export async function POST(req: NextRequest) {
       systemPrompt,
       isPrebuilt: false,
       isPublic: false,
+      imageUrl,
       ownerId: session.user.id,
       locations: {
         create: [

@@ -20,6 +20,7 @@ export default function WorldWizardPage() {
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [textInput, setTextInput] = useState("");
+  const [coverImageUrl, setCoverImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -115,7 +116,7 @@ export default function WorldWizardPage() {
       const res = await fetch("/api/worlds/wizard/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalDraft),
+        body: JSON.stringify({ ...finalDraft, imageUrl: coverImageUrl.trim() || undefined }),
       });
       const data = (await res.json()) as { worldId?: string; error?: string };
       if (!res.ok || !data.worldId) {
@@ -505,6 +506,38 @@ export default function WorldWizardPage() {
             </button>
           )}
         </div>
+
+        {/* Cover image (shown on last step only) */}
+        {isLast && (
+          <div className="mt-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
+            <label htmlFor="cover-image-url" className="mb-1 block text-sm font-semibold" style={{ color: "var(--text)" }}>
+              Cover image <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>(optional)</span>
+            </label>
+            <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+              Paste a public image URL to use as your world&apos;s cover art. Leave blank and one will be generated automatically.
+            </p>
+            <input
+              id="cover-image-url"
+              type="url"
+              value={coverImageUrl}
+              onChange={(e) => setCoverImageUrl(e.target.value)}
+              placeholder="https://example.com/my-cover.jpg"
+              disabled={busy}
+              className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
+            />
+            {coverImageUrl.trim() && (
+              <div className="mt-3 overflow-hidden rounded-lg" style={{ maxHeight: 160 }}>
+                <img
+                  src={coverImageUrl.trim()}
+                  alt="Cover preview"
+                  className="h-40 w-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Keyboard hint */}
         <p className="mt-6 text-xs" style={{ color: "var(--text-faint)" }}>
