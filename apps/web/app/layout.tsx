@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
@@ -12,12 +12,15 @@ export const metadata: Metadata = {
   description:
     "An audio-first interactive RPG platform. Play narrated AI-driven adventures with an AI Game Master. Fully accessible for blind and visually impaired players.",
   manifest: "/manifest.json",
-  themeColor: "#7c6af7",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "EchoQuest",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#7c6af7",
 };
 
 export default async function RootLayout({
