@@ -136,7 +136,7 @@ export default function WorldWizardPage() {
     } finally {
       setBusy(false);
     }
-  }, [draft, step, textInput, can, router, announce, ttsSpeed, volume]);
+  }, [draft, step, textInput, coverImageUrl, can, router, announce, ttsSpeed, volume]);
 
   const startVoiceInput = useCallback(() => {
     interface SpeechRecognitionLike {

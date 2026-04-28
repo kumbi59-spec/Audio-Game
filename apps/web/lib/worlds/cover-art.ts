@@ -124,14 +124,15 @@ function shapesSVG(palette: Palette, name: string): string {
   }
 }
 
+function xmlEscape(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 export function generateWorldCoverSVG(name: string, genre: string, tone = ""): string {
   const palette = getPalette(genre);
   const { bg1, bg2, label, genreLabel } = palette;
 
-  // Truncate name for display
-  const displayName = name.length > 24 ? name.slice(0, 22) + "…" : name;
-  const toneLabel = tone.slice(0, 28).toUpperCase();
-
+  const toneLabel = xmlEscape(tone.slice(0, 28).toUpperCase());
   const shapes = shapesSVG(palette, name);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360">
@@ -148,7 +149,7 @@ export function generateWorldCoverSVG(name: string, genre: string, tone = ""): s
   <rect width="600" height="360" fill="url(#cg-bg)"/>
   ${shapes}
   <rect x="0" y="320" width="600" height="40" fill="${bg1}" opacity="0.82"/>
-  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="${label}" opacity="0.9" letter-spacing="3">${genreLabel}</text>
+  <text x="20" y="344" font-family="Georgia, serif" font-size="13" fill="${label}" opacity="0.9" letter-spacing="3">${xmlEscape(genreLabel)}</text>
   ${toneLabel ? `<text x="580" y="344" font-family="Georgia, serif" font-size="11" fill="${palette.accent2}" opacity="0.75" text-anchor="end" letter-spacing="1">${toneLabel}</text>` : ""}
 </svg>`;
 }
