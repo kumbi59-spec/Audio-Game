@@ -260,8 +260,35 @@ Claude extracts: world name, genre, tone, locations, NPCs, factions, campaign ho
 
 Set `ADMIN_EMAILS=your@email.com` in `.env.local`, then go to `/admin`.
 
+Any email listed in `ADMIN_EMAILS` is automatically elevated to **Creator** tier on every sign-in (see `apps/web/lib/admin.ts`), so the same account also has access to the World Builder Wizard, Game Bible upload, creator analytics, and every paid feature — that's why it's the "always-on" account.
+
 **Users tab** — lists all users with tier, world count, session count.  
 **Worlds tab** — lists community worlds; toggle publish/unpublish.
+
+### Seed an always-on admin account
+
+The web app ships with a seeder that creates (or upserts) a single admin user from env vars. Put your credentials in **`apps/web/.env.local` only** — never in `.env.example` or any committed file.
+
+```env
+# apps/web/.env.local
+ADMIN_EMAILS=you@example.com
+ADMIN_SEED_EMAIL=you@example.com
+ADMIN_SEED_PASSWORD=pick-a-strong-password
+ADMIN_SEED_NAME=Owner            # optional display name
+```
+
+Then run:
+
+```bash
+pnpm --filter @audio-rpg/web db:seed:admin
+```
+
+The seeder:
+1. Creates the user if missing, or resets the password + tier if they exist.
+2. Sets their stored tier to `creator`.
+3. Warns if the email isn't also in `ADMIN_EMAILS` (which is what unlocks `/admin` and guarantees the elevation survives even if the DB tier is ever changed).
+
+Sign in at `http://localhost:3000/auth/sign-in` with the email + password you set.
 
 ---
 
