@@ -21,11 +21,14 @@ function parseJsonStringArray(raw: string): string[] {
   }
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const prebuilt = PREBUILT_WORLDS.find((w) => w.id === params.id);
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function GET(_req: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const prebuilt = PREBUILT_WORLDS.find((w) => w.id === id);
   if (prebuilt) return NextResponse.json(prebuilt);
 
-  const world = await getWorldById(params.id);
+  const world = await getWorldById(id);
   if (!world) return NextResponse.json({ error: "World not found." }, { status: 404 });
 
   const session = await auth();
