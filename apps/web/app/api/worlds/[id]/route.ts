@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getWorldById } from "@/lib/db/queries/worlds";
+import { getWorldById, deleteWorld } from "@/lib/db/queries/worlds";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
 function parseJsonObject(raw: string): Record<string, unknown> {
@@ -89,4 +89,18 @@ export async function GET(_req: Request, { params }: RouteContext) {
       locationId: npc.locationId,
     })),
   });
+}
+
+export async function DELETE(_req: Request, { params }: RouteContext) {
+  const { id } = await params;
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const result = await deleteWorld(id, session.user.id);
+  if (!result.ok) {
+    const status = result.error === "World not found." ? 404 : 403;
+    return NextResponse.json({ error: result.error }, { status });
+  }
+  return new NextResponse(null, { status: 204 });
 }
