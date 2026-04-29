@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
+import { useTtsChars } from "@/lib/db/queries/users";
 
 const Schema = z.object({
   text: z.string().min(1).max(4000),
@@ -9,10 +12,35 @@ const Schema = z.object({
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
+// Monthly ElevenLabs character caps by tier. null = unlimited.
+const TTS_CHAR_CAPS: Record<string, number | null> = {
+  free: 0,
+  storyteller: 50_000,
+  creator: 100_000,
+  enterprise: null,
+};
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env["ELEVENLABS_API_KEY"];
   if (!apiKey) {
     return NextResponse.json({ error: "ElevenLabs not configured" }, { status: 503 });
+  }
+
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { tier: true, ttsCharsUsedThisMonth: true, ttsCharsResetAt: true },
+  });
+
+  const tier = user?.tier ?? "free";
+  const cap = TTS_CHAR_CAPS[tier] ?? 0;
+
+  if (cap === 0) {
+    return NextResponse.json({ error: "ElevenLabs requires a paid plan" }, { status: 403 });
   }
 
   let body: z.infer<typeof Schema>;
@@ -20,6 +48,28 @@ export async function POST(req: NextRequest) {
     body = Schema.parse(await req.json());
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  // Monthly cap check (cap === null means unlimited)
+  if (cap !== null) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const charsUsed =
+      user!.ttsCharsResetAt >= startOfMonth ? user!.ttsCharsUsedThisMonth : 0;
+
+    if (charsUsed + body.text.length > cap) {
+      return NextResponse.json(
+        {
+          error: "tts_cap_reached",
+          message: `Monthly ElevenLabs limit reached (${cap.toLocaleString()} characters). Switching to browser narrator for the rest of the month.`,
+          charsUsed,
+          cap,
+        },
+        { status: 429 },
+      );
+    }
   }
 
   const res = await fetch(
@@ -44,11 +94,26 @@ export async function POST(req: NextRequest) {
   );
 
   if (!res.ok) {
-    const err = await res.text().catch(() => "unknown error");
-    return NextResponse.json({ error: `ElevenLabs error: ${err}` }, { status: res.status });
+    let errorMsg = `ElevenLabs error ${res.status}`;
+    try {
+      const errData = await res.json() as { detail?: { message?: string; status?: string } | string };
+      const detail = errData.detail;
+      if (typeof detail === "object" && detail?.message) {
+        errorMsg = detail.message;
+      } else if (typeof detail === "string") {
+        errorMsg = detail;
+      }
+    } catch {
+      // fall through with status-code message
+    }
+    return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 
   const audioBuffer = await res.arrayBuffer();
+
+  // Credit usage asynchronously — don't block the audio response
+  void useTtsChars(session.user.id, body.text.length);
+
   return new Response(audioBuffer, {
     headers: {
       "Content-Type": "audio/mpeg",

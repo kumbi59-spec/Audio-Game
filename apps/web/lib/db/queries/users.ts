@@ -84,3 +84,35 @@ export async function findUserByStripeCustomerId(customerId: string) {
     where: { stripeCustomerId: customerId },
   });
 }
+
+export async function addAiMinutes(userId: string, minutes: number) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { aiMinutesRemaining: { increment: minutes } },
+  });
+}
+
+export async function useTtsChars(userId: string, chars: number): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { ttsCharsResetAt: true },
+  });
+  if (!user) return;
+
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  if (user.ttsCharsResetAt < startOfMonth) {
+    // New billing month — reset counter and record this usage
+    await prisma.user.update({
+      where: { id: userId },
+      data: { ttsCharsUsedThisMonth: chars, ttsCharsResetAt: new Date() },
+    });
+  } else {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { ttsCharsUsedThisMonth: { increment: chars } },
+    });
+  }
+}
