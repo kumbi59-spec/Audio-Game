@@ -68,15 +68,24 @@ export async function POST(req: NextRequest) {
 
         send({ stage: "analysing", message: "The AI is reading your world — this takes about 15 seconds…" });
 
+        // Send keep-alive pings so the proxy doesn't time out during the AI call
+        const keepAlive = setInterval(() => {
+          send({ stage: "analysing", message: "The AI is reading your world — this takes about 15 seconds…" });
+        }, 10_000);
+
         let bible;
         try {
           bible = await parseGameBible(rawText);
         } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error("[upload] parseGameBible failed:", msg);
           send({
             stage: "error",
-            message: err instanceof Error ? err.message : "AI extraction failed. Check your file and try again.",
+            message: `AI extraction failed: ${msg}`,
           });
           return;
+        } finally {
+          clearInterval(keepAlive);
         }
 
         send({ stage: "creating", message: `Building "${bible.worldName}"…` });

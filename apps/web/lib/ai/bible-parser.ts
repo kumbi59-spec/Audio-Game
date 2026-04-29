@@ -1,10 +1,9 @@
-import Anthropic from "@anthropic-ai/sdk";
 import type { ParsedGameBible } from "@/types/world";
 import { BIBLE_PARSE_SYSTEM } from "./prompts/bible-parse";
+import { getAnthropicClient } from "./client";
 import { prisma } from "@/lib/db";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 
-const client = new Anthropic();
 const MODEL = process.env["CLAUDE_GM_MODEL"] ?? "claude-sonnet-4-6";
 const MAX_INPUT_CHARS = 80_000;
 const MAX_TOKENS = 4096;
@@ -16,7 +15,7 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
         "\n\n[NOTE: Text truncated at 80,000 characters for processing.]"
       : rawText;
 
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: BIBLE_PARSE_SYSTEM,
