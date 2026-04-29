@@ -8,16 +8,20 @@ import { useEntitlementsStore } from "@/store/entitlements-store";
 import type { Tier } from "@audio-rpg/shared";
 
 function TierSync() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const setTier = useEntitlementsStore((s) => s.setTier);
 
   useEffect(() => {
+    if (status === "loading") return;
     const tier = (session?.user as { tier?: string } | undefined)?.tier as Tier | undefined;
     if (tier) {
       setTier(tier);
       localStorage.setItem("echoquest-tier", tier);
+    } else {
+      setTier("free");
+      localStorage.removeItem("echoquest-tier");
     }
-  }, [session, setTier]);
+  }, [session, status, setTier]);
 
   return null;
 }
