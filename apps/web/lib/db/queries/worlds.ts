@@ -69,7 +69,20 @@ export async function deleteWorld(worldId: string, userId: string): Promise<{ ok
   if (!world) return { ok: false, error: "World not found." };
   if (world.isPrebuilt) return { ok: false, error: "Prebuilt worlds cannot be deleted." };
   if (world.ownerId !== userId) return { ok: false, error: "You do not own this world." };
-  await prisma.world.delete({ where: { id: worldId } });
+
+  // Delete in dependency order since the schema has no onDelete: Cascade on World relations
+  const sessions = await prisma.gameSession.findMany({ where: { worldId }, select: { id: true } });
+  const sessionIds = sessions.map((s) => s.id);
+  await prisma.$transaction([
+    prisma.gameHistoryEntry.deleteMany({ where: { sessionId: { in: sessionIds } } }),
+    prisma.gameState.deleteMany({ where: { sessionId: { in: sessionIds } } }),
+    prisma.gameSession.deleteMany({ where: { worldId } }),
+    prisma.nPC.deleteMany({ where: { worldId } }),
+    prisma.location.deleteMany({ where: { worldId } }),
+    prisma.libraryItem.deleteMany({ where: { worldId } }),
+    prisma.world.delete({ where: { id: worldId } }),
+  ]);
+
   return { ok: true };
 }
 
