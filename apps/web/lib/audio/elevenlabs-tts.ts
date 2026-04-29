@@ -39,8 +39,13 @@ export class ElevenLabsTTS implements TTSProvider {
 
     if (!res.ok) {
       this._speaking = false;
-      const data = await res.json().catch(() => null) as { error?: string } | null;
-      throw new Error(data?.error ?? `ElevenLabs error ${res.status}`);
+      const data = await res.json().catch(() => null) as { error?: string; message?: string } | null;
+      const errorCode = data?.error ?? "";
+      // Use a predictable sentinel so the provider router can fallback cleanly
+      if (errorCode === "tts_cap_reached" || res.status === 429) {
+        throw new Error("tts_cap_reached");
+      }
+      throw new Error(data?.message ?? errorCode || `ElevenLabs error ${res.status}`);
     }
 
     const blob = await res.blob();

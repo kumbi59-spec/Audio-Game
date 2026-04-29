@@ -24,15 +24,25 @@ export function getTTSProvider(forceProvider?: TTSProviderType): ITTSProvider {
 
 export async function speak(text: string, options: TTSOptions = {}): Promise<void> {
   const state = useAudioStore.getState();
-  const provider = instanceFor(state.ttsProvider);
-  return provider.speak(text, {
+  const resolvedOpts: TTSOptions = {
     rate: options.rate ?? state.ttsSpeed,
     pitch: options.pitch ?? state.ttsPitch,
     volume: options.volume ?? state.volume,
     voiceId: options.voiceId ?? state.ttsVoiceId,
     ...(options.onEnd ? { onEnd: options.onEnd } : {}),
     ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),
-  });
+  };
+
+  try {
+    return await instanceFor(state.ttsProvider).speak(text, resolvedOpts);
+  } catch (err) {
+    // Monthly ElevenLabs cap hit — switch to browser TTS permanently and re-speak
+    if (err instanceof Error && err.message === "tts_cap_reached") {
+      useAudioStore.getState().setTTSProvider("browser");
+      return instanceFor("browser").speak(text, { ...resolvedOpts, voiceId: undefined });
+    }
+    throw err;
+  }
 }
 
 export function stopSpeech(): void {
