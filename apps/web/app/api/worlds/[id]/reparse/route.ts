@@ -45,5 +45,10 @@ export async function POST(_req: Request, { params }: RouteContext) {
     }),
   ]);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    classCount: bible.classes?.length ?? 0,
+    backgroundCount: bible.backgrounds?.length ?? 0,
+    hasRules: !!bible.rulesNotes,
+  });
 }

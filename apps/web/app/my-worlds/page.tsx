@@ -47,7 +47,7 @@ export default function MyWorldsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [reparsing, setReparsing] = useState<string | null>(null);
-  const [reparseResult, setReparseResult] = useState<Record<string, "ok" | "error">>({});
+  const [reparseResult, setReparseResult] = useState<Record<string, { ok: boolean; classCount?: number; backgroundCount?: number; error?: boolean }>>({});
   const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
   const [trendsLoading, setTrendsLoading] = useState(false);
   const [trendsRequested, setTrendsRequested] = useState(false);
@@ -112,12 +112,14 @@ export default function MyWorldsPage() {
     try {
       const res = await fetch(`/api/worlds/${world.id}/reparse`, { method: "POST" });
       if (res.ok) {
-        setReparseResult((prev) => ({ ...prev, [world.id]: "ok" }));
-        const msg = `${world.name} has been re-analysed. Classes and backgrounds are now up to date.`;
+        const data = (await res.json()) as { ok: boolean; classCount?: number; backgroundCount?: number };
+        setReparseResult((prev) => ({ ...prev, [world.id]: { ok: true, classCount: data.classCount ?? 0, backgroundCount: data.backgroundCount ?? 0 } }));
+        const classInfo = (data.classCount ?? 0) > 0 ? `${data.classCount} classes` : "no custom classes";
+        const msg = `${world.name} re-analysed. Found ${classInfo} from your game bible.`;
         announce(msg);
         speak(msg, { rate: ttsSpeed, volume });
       } else {
-        setReparseResult((prev) => ({ ...prev, [world.id]: "error" }));
+        setReparseResult((prev) => ({ ...prev, [world.id]: { ok: false, error: true } }));
       }
     } finally {
       setReparsing(null);
@@ -318,22 +320,29 @@ export default function MyWorldsPage() {
                       </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={() => handleReparse(world)}
-                      disabled={reparsing === world.id}
-                      aria-label={`Re-analyse game bible for ${world.name}`}
-                      className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                      style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
-                    >
-                      {reparsing === world.id
-                        ? "Re-analysing… (up to 30s)"
-                        : reparseResult[world.id] === "ok"
-                        ? "Re-analysed ✓"
-                        : reparseResult[world.id] === "error"
-                        ? "Re-analyse failed — try again"
-                        : "Re-analyse Game Bible"}
-                    </button>
+                    <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => handleReparse(world)}
+                        disabled={reparsing === world.id}
+                        aria-label={`Re-analyse game bible for ${world.name}`}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                      >
+                        {reparsing === world.id
+                          ? "Re-analysing… (up to 30s)"
+                          : reparseResult[world.id]?.ok
+                          ? `Re-analysed ✓ — ${reparseResult[world.id]!.classCount} class${reparseResult[world.id]!.classCount === 1 ? "" : "es"}, ${reparseResult[world.id]!.backgroundCount} background${reparseResult[world.id]!.backgroundCount === 1 ? "" : "s"} found`
+                          : reparseResult[world.id]?.error
+                          ? "Re-analyse failed — try again"
+                          : "Re-analyse Game Bible"}
+                      </button>
+                      {reparseResult[world.id]?.ok && reparseResult[world.id]!.classCount === 0 && (
+                        <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
+                          No classes defined in your bible — generic classes will be used. Add a &ldquo;Character Classes&rdquo; or &ldquo;Roles&rdquo; section to your document and re-analyse.
+                        </p>
+                      )}
+                    </div>
 
                     {confirmDeleteId === world.id ? (
                       <div className="flex gap-2">
