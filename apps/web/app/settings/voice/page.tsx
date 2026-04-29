@@ -102,11 +102,14 @@ export default function VoiceSettingsPage() {
       await speak(PREVIEW_TEXT);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Preview failed";
-      setPreviewError(
-        msg.includes("not configured")
-          ? "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator."
-          : msg
-      );
+      const friendly = msg.includes("not configured")
+        ? "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator."
+        : msg.includes("detected_unusual_activity") || msg.includes("Free Tier usage disabled") || msg.includes("unusual activity")
+        ? "ElevenLabs has disabled free-tier access from this server (detected as proxy traffic). A paid ElevenLabs plan is required. Switch to Browser narrator for free narration."
+        : msg.includes("subscription_required") || msg.includes("free tier")
+        ? "This ElevenLabs feature requires a paid plan. Switch to Browser narrator or upgrade your ElevenLabs account."
+        : msg;
+      setPreviewError(friendly);
     } finally {
       setPreviewing(false);
     }

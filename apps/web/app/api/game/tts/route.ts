@@ -44,8 +44,19 @@ export async function POST(req: NextRequest) {
   );
 
   if (!res.ok) {
-    const err = await res.text().catch(() => "unknown error");
-    return NextResponse.json({ error: `ElevenLabs error: ${err}` }, { status: res.status });
+    let errorMsg = `ElevenLabs error ${res.status}`;
+    try {
+      const errData = await res.json() as { detail?: { message?: string; status?: string } | string };
+      const detail = errData.detail;
+      if (typeof detail === "object" && detail?.message) {
+        errorMsg = detail.message;
+      } else if (typeof detail === "string") {
+        errorMsg = detail;
+      }
+    } catch {
+      // fall through with status-code message
+    }
+    return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 
   const audioBuffer = await res.arrayBuffer();
