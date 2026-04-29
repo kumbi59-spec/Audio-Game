@@ -27,48 +27,52 @@ export class ElevenLabsTTS implements TTSProvider {
     if (!this.isSupported()) return;
     this.stop();
 
-    try {
-      const res = await fetch(TTS_PROXY, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          voiceId: options.voiceId ?? DEFAULT_VOICE_ID,
-          speed: options.rate ?? 1.0,
-        }),
-      });
+    const res = await fetch(TTS_PROXY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        voiceId: options.voiceId ?? DEFAULT_VOICE_ID,
+        speed: options.rate ?? 1.0,
+      }),
+    });
 
-      if (!res.ok) throw new Error(`TTS proxy error ${res.status}`);
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-
-      return new Promise((resolve) => {
-        const audio = new Audio(url);
-        audio.volume = options.volume ?? 1.0;
-        if (options.rate) audio.playbackRate = options.rate;
-
-        audio.onended = () => {
-          this._speaking = false;
-          this._paused = false;
-          URL.revokeObjectURL(url);
-          options.onEnd?.();
-          resolve();
-        };
-
-        audio.onerror = () => {
-          this._speaking = false;
-          URL.revokeObjectURL(url);
-          resolve();
-        };
-
-        this.audio = audio;
-        this._speaking = true;
-        void audio.play();
-      });
-    } catch {
+    if (!res.ok) {
       this._speaking = false;
+      const data = await res.json().catch(() => null) as { error?: string } | null;
+      throw new Error(data?.error ?? `ElevenLabs error ${res.status}`);
     }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    return new Promise((resolve, reject) => {
+      const audio = new Audio(url);
+      audio.volume = options.volume ?? 1.0;
+      if (options.rate) audio.playbackRate = options.rate;
+
+      audio.onended = () => {
+        this._speaking = false;
+        this._paused = false;
+        URL.revokeObjectURL(url);
+        options.onEnd?.();
+        resolve();
+      };
+
+      audio.onerror = () => {
+        this._speaking = false;
+        URL.revokeObjectURL(url);
+        reject(new Error("Audio playback failed"));
+      };
+
+      this.audio = audio;
+      this._speaking = true;
+      audio.play().catch((err: unknown) => {
+        this._speaking = false;
+        URL.revokeObjectURL(url);
+        reject(err);
+      });
+    });
   }
 
   stop(): void {
