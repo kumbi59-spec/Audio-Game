@@ -44,7 +44,7 @@ export function buildCharacterStateBlock(character: CharacterData): string {
     character.pronouns ? `Pronouns: ${character.pronouns}` : "",
     typeof character.age === "number" ? `Age: ${character.age}` : "",
     character.shortDescription ? `Appearance: ${character.shortDescription}` : "",
-    `Class: ${character.class}`,
+    `Class: ${character.roleTitle ?? character.class}`,
     `HP: ${s.hp}/${s.maxHp} | Level: ${s.level} | XP: ${s.experience}`,
     `STR:${s.strength} DEX:${s.dexterity} INT:${s.intelligence} CHA:${s.charisma}`,
     `Inventory: ${items}`,

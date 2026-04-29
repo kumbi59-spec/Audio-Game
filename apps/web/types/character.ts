@@ -16,6 +16,7 @@ export interface CharacterData {
   age?: number | null;
   shortDescription?: string | null;
   class: CharacterClass;
+  roleTitle?: string | null; // custom class name from uploaded world (overrides display of `class`)
   backstory: string;
   stats: CharacterStats;
   inventory: InventoryItemData[];

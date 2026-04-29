@@ -38,6 +38,25 @@ export async function GET(_req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Not allowed to play this world." }, { status: 403 });
   }
 
+  // Extract mechanics from the game bible's parsed data (uploaded worlds only)
+  let classes: Array<{ name: string; description: string }> | undefined;
+  let backgrounds: Array<{ name: string; description: string }> | undefined;
+  let rulesNotes: string | undefined;
+  if (world.gameBible?.parsedData) {
+    try {
+      const bible = JSON.parse(world.gameBible.parsedData) as {
+        classes?: Array<{ name: string; description: string }>;
+        backgrounds?: Array<{ name: string; description: string }>;
+        rulesNotes?: string;
+      };
+      if (bible.classes?.length) classes = bible.classes;
+      if (bible.backgrounds?.length) backgrounds = bible.backgrounds;
+      if (bible.rulesNotes) rulesNotes = bible.rulesNotes;
+    } catch {
+      // parsedData malformed — skip mechanics
+    }
+  }
+
   return NextResponse.json({
     id: world.id,
     name: world.name,
@@ -47,6 +66,9 @@ export async function GET(_req: Request, { params }: RouteContext) {
     systemPrompt: world.systemPrompt,
     isPrebuilt: world.isPrebuilt,
     imageUrl: world.imageUrl,
+    ...(classes && { classes }),
+    ...(backgrounds && { backgrounds }),
+    ...(rulesNotes && { rulesNotes }),
     locations: world.locations.map((loc) => ({
       id: loc.id,
       name: loc.name,

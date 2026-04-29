@@ -11,7 +11,12 @@ export async function listPrebuiltWorlds() {
 export async function getWorldById(id: string) {
   return prisma.world.findUnique({
     where: { id },
-    include: { locations: true, npcs: true, libraryItem: true },
+    include: {
+      locations: true,
+      npcs: true,
+      libraryItem: true,
+      gameBible: { select: { parsedData: true } },
+    },
   });
 }
 

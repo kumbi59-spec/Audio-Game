@@ -11,6 +11,9 @@ EXTRACTION RULES:
 6. The systemPromptCore should be a concise (200-400 words) GM briefing that captures: setting, tone, key tensions, rules for behaviour (e.g. "magic has a cost here"), and the opening situation.
 7. openingNarration should be 2-3 paragraphs of immersive audio-optimised prose that places the player at the start of the story. Write for listening, not reading.
 8. campaignHooks are 3-5 short (1-2 sentence) adventure hooks implied by the world.
+9. classes: extract all playable character classes, archetypes, or roles defined in the document. If the world uses classes (e.g. Soldier, Hacker, Priest), list them. If no classes are defined, return [].
+10. backgrounds: extract all character backgrounds, origins, or archetypes mentioned. If none, return [].
+11. rulesNotes: capture ALL mechanical rules — stats, special abilities, magic systems, combat rules, advancement, resource management. Be thorough here.
 
 OUTPUT — respond with ONLY valid JSON matching this exact TypeScript shape:
 
@@ -55,7 +58,20 @@ OUTPUT — respond with ONLY valid JSON matching this exact TypeScript shape:
       "significance": string
     }
   ],
-  "rulesNotes": string   // any special mechanical rules for this world, or ""
+  "rulesNotes": string,   // ALL mechanical rules: stats, abilities, magic, combat, advancement — or ""
+  "classes": [
+    {
+      "name": string,        // e.g. "Soldier", "Hacker", "Priest"
+      "description": string, // 1-2 sentences about what this class does
+      "role": string         // one-word archetype: e.g. "combat", "stealth", "magic", "support"
+    }
+  ],
+  "backgrounds": [
+    {
+      "name": string,        // e.g. "Street Rat", "Noble", "Veteran"
+      "description": string  // 1 sentence describing the background and any starting bonuses
+    }
+  ]
 }
 
 Do not include any text before or after the JSON. Output only the JSON object.`;
