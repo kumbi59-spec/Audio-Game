@@ -8,23 +8,28 @@
   "exports": {
     ".": {
       "types": "./src/index.ts",
-      "default": "./dist/index.js"
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
     },
     "./gm": {
       "types": "./src/gm.ts",
-      "default": "./dist/gm.js"
+      "node": "./dist/gm.js",
+      "default": "./src/gm.ts"
     },
     "./bible": {
       "types": "./src/bible.ts",
-      "default": "./dist/bible.js"
+      "node": "./dist/bible.js",
+      "default": "./src/bible.ts"
     },
     "./events": {
       "types": "./src/events.ts",
-      "default": "./dist/events.js"
+      "node": "./dist/events.js",
+      "default": "./src/events.ts"
     },
     "./state": {
       "types": "./src/state.ts",
-      "default": "./dist/state.js"
+      "node": "./dist/state.js",
+      "default": "./src/state.ts"
     }
   },
   "scripts": {

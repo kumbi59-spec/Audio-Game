@@ -8,7 +8,8 @@
   "exports": {
     ".": {
       "types": "./src/index.ts",
-      "default": "./dist/index.js"
+      "node": "./dist/index.js",
+      "default": "./src/index.ts"
     }
   },
   "scripts": {

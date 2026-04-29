@@ -1,0 +1,31 @@
+name: Deploy to Render
+
+# Triggers a Render deploy for both services after every merge to main.
+# This is a reliable fallback in case the Render GitHub webhook misses a push.
+#
+# Setup (one-time):
+#   1. In Render dashboard → each service → Settings → Deploy Hook → copy the URL
+#   2. In GitHub repo → Settings → Secrets → Actions, add:
+#        RENDER_DEPLOY_HOOK_API  → the echoquest-api deploy hook URL
+#        RENDER_DEPLOY_HOOK_WEB  → the echoquest-web deploy hook URL
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: "Trigger Render deploys"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy echoquest-api
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_API != '' }}
+        run: |
+          curl -fsS --retry 3 "${{ secrets.RENDER_DEPLOY_HOOK_API }}"
+          echo "echoquest-api deploy triggered"
+
+      - name: Deploy echoquest-web
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_WEB != '' }}
+        run: |
+          curl -fsS --retry 3 "${{ secrets.RENDER_DEPLOY_HOOK_WEB }}"
+          echo "echoquest-web deploy triggered"
