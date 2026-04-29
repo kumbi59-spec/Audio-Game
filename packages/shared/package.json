@@ -9,26 +9,31 @@
     ".": {
       "types": "./src/index.ts",
       "node": "./dist/index.js",
+      "browser": "./dist/index.js",
       "default": "./src/index.ts"
     },
     "./gm": {
       "types": "./src/gm.ts",
       "node": "./dist/gm.js",
+      "browser": "./dist/gm.js",
       "default": "./src/gm.ts"
     },
     "./bible": {
       "types": "./src/bible.ts",
       "node": "./dist/bible.js",
+      "browser": "./dist/bible.js",
       "default": "./src/bible.ts"
     },
     "./events": {
       "types": "./src/events.ts",
       "node": "./dist/events.js",
+      "browser": "./dist/events.js",
       "default": "./src/events.ts"
     },
     "./state": {
       "types": "./src/state.ts",
       "node": "./dist/state.js",
+      "browser": "./dist/state.js",
       "default": "./src/state.ts"
     }
   },

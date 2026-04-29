@@ -9,6 +9,7 @@
     ".": {
       "types": "./src/index.ts",
       "node": "./dist/index.js",
+      "browser": "./dist/index.js",
       "default": "./src/index.ts"
     }
   },
