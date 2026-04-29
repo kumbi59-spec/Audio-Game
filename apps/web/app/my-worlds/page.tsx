@@ -46,6 +46,8 @@ export default function MyWorldsPage() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [reparsing, setReparsing] = useState<string | null>(null);
+  const [reparseResult, setReparseResult] = useState<Record<string, "ok" | "error">>({});
   const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
   const [trendsLoading, setTrendsLoading] = useState(false);
   const [trendsRequested, setTrendsRequested] = useState(false);
@@ -101,6 +103,24 @@ export default function MyWorldsPage() {
       }
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function handleReparse(world: MyWorld) {
+    setReparsing(world.id);
+    setReparseResult((prev) => { const n = { ...prev }; delete n[world.id]; return n; });
+    try {
+      const res = await fetch(`/api/worlds/${world.id}/reparse`, { method: "POST" });
+      if (res.ok) {
+        setReparseResult((prev) => ({ ...prev, [world.id]: "ok" }));
+        const msg = `${world.name} has been re-analysed. Classes and backgrounds are now up to date.`;
+        announce(msg);
+        speak(msg, { rate: ttsSpeed, volume });
+      } else {
+        setReparseResult((prev) => ({ ...prev, [world.id]: "error" }));
+      }
+    } finally {
+      setReparsing(null);
     }
   }
 
@@ -297,6 +317,23 @@ export default function MyWorldsPage() {
                         </p>
                       </div>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleReparse(world)}
+                      disabled={reparsing === world.id}
+                      aria-label={`Re-analyse game bible for ${world.name}`}
+                      className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                    >
+                      {reparsing === world.id
+                        ? "Re-analysing… (up to 30s)"
+                        : reparseResult[world.id] === "ok"
+                        ? "Re-analysed ✓"
+                        : reparseResult[world.id] === "error"
+                        ? "Re-analyse failed — try again"
+                        : "Re-analyse Game Bible"}
+                    </button>
 
                     {confirmDeleteId === world.id ? (
                       <div className="flex gap-2">
