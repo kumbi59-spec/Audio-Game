@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { Pool, type PoolClient } from "pg";
+import * as pg from "pg";
+import type { Pool, PoolClient } from "pg";
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
 import type {
   BibleChunk,
@@ -32,7 +33,7 @@ export class PostgresCampaignStore implements CampaignStore {
   private ready: Promise<void>;
 
   constructor(databaseUrl: string) {
-    this.pool = new Pool({ connectionString: databaseUrl });
+    this.pool = new pg.Pool({ connectionString: databaseUrl });
     this.ready = this.runMigrations();
   }
 
