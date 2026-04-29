@@ -45,7 +45,7 @@ export class ElevenLabsTTS implements TTSProvider {
       if (errorCode === "tts_cap_reached" || res.status === 429) {
         throw new Error("tts_cap_reached");
       }
-      throw new Error(data?.message ?? errorCode || `ElevenLabs error ${res.status}`);
+      throw new Error(data?.message ?? (errorCode || `ElevenLabs error ${res.status}`));
     }
 
     const blob = await res.blob();
