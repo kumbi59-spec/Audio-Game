@@ -86,7 +86,7 @@ function mapAmbient(mood: string): string {
   return MAP[mood.toLowerCase()] ?? "none";
 }
 
-function buildSystemPromptFromBible(bible: ParsedGameBible): string {
+export function buildSystemPromptFromBible(bible: ParsedGameBible): string {
   const locationList = bible.locations
     .map((l) => `- ${l.name}: ${l.shortDesc}`)
     .join("\n");
