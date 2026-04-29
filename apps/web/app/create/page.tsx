@@ -15,8 +15,6 @@ import Link from "next/link";
 
 type Step = "name" | "class" | "backstory" | "starting";
 
-const CLASSES = Object.entries(CLASS_DESCRIPTIONS) as [CharacterClass, typeof CLASS_DESCRIPTIONS[CharacterClass]][];
-
 function CreateCharacterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +29,7 @@ function CreateCharacterPage() {
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
+  const [selectedWorldClass, setSelectedWorldClass] = useState<string | null>(null);
   const [pronouns, setPronouns] = useState("");
   const [age, setAge] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -88,14 +87,23 @@ function CreateCharacterPage() {
 
   function handleClassSelect(cls: CharacterClass) {
     setSelectedClass(cls);
+    setSelectedWorldClass(null);
     const info = CLASS_DESCRIPTIONS[cls];
     const msg = `${info.name} selected. ${info.description}. Press Continue to proceed or choose a different class.`;
     announce(msg);
     speak(msg, { rate: ttsSpeed, volume });
   }
 
+  function handleWorldClassSelect(cls: { name: string; description: string }) {
+    setSelectedWorldClass(cls.name);
+    const msg = `${cls.name} selected. ${cls.description}. Press Continue to proceed or choose a different class.`;
+    announce(msg);
+    speak(msg, { rate: ttsSpeed, volume });
+  }
+
   function handleClassSubmit() {
-    const msg = `Class confirmed as ${CLASS_DESCRIPTIONS[selectedClass].name}. Step 3: Optional backstory. Describe your character's history, or skip this step.`;
+    const displayClass = selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name;
+    const msg = `Class confirmed as ${displayClass}. Step 3: Optional backstory. Describe your character's history, or skip this step.`;
     announce(msg);
     speak(msg, { rate: ttsSpeed, volume });
     setStep("backstory");
@@ -117,6 +125,7 @@ function CreateCharacterPage() {
       age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
       shortDescription: shortDescription.trim() || null,
       class: selectedClass,
+      roleTitle: selectedWorldClass ?? null,
       backstory: backstory.trim(),
       stats: { ...classData.startingStats },
       inventory: classData.startingItems.map((item, i) => ({
@@ -306,43 +315,71 @@ function CreateCharacterPage() {
               Step 2: Choose your class, {name}
             </h2>
             <div className="mb-4 space-y-3" role="radiogroup" aria-label="Character class">
-              {CLASSES.map(([cls, info]) => (
-                <button
-                  key={cls}
-                  type="button"
-                  role="radio"
-                  aria-checked={selectedClass === cls}
-                  onClick={() => handleClassSelect(cls)}
-                  aria-label={`${info.name}: ${info.description}`}
-                  className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
-                    selectedClass === cls
-                      ? "border-primary bg-accent"
-                      : "border-border bg-secondary hover:border-primary/50"
-                  }`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`mt-0.5 h-4 w-4 rounded-full border ${
-                      selectedClass === cls ? "border-primary bg-primary" : "border-border bg-background"
-                    }`}
-                  />
-                  <div>
-                    <p className="font-medium">{info.name}</p>
-                    <p className="text-sm text-muted-foreground">{info.description}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      HP: {info.startingStats.hp} · STR: {info.startingStats.strength} · DEX:{" "}
-                      {info.startingStats.dexterity} · INT: {info.startingStats.intelligence} · CHA:{" "}
-                      {info.startingStats.charisma}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {world.classes && world.classes.length > 0
+                ? world.classes.map((cls) => (
+                    <button
+                      key={cls.name}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedWorldClass === cls.name}
+                      onClick={() => handleWorldClassSelect(cls)}
+                      aria-label={`${cls.name}: ${cls.description}`}
+                      className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                        selectedWorldClass === cls.name
+                          ? "border-primary bg-accent"
+                          : "border-border bg-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`mt-0.5 h-4 w-4 rounded-full border ${
+                          selectedWorldClass === cls.name ? "border-primary bg-primary" : "border-border bg-background"
+                        }`}
+                      />
+                      <div>
+                        <p className="font-medium">{cls.name}</p>
+                        <p className="text-sm text-muted-foreground">{cls.description}</p>
+                      </div>
+                    </button>
+                  ))
+                : Object.entries(CLASS_DESCRIPTIONS).map(([cls, info]) => (
+                    <button
+                      key={cls}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedClass === cls}
+                      onClick={() => handleClassSelect(cls as CharacterClass)}
+                      aria-label={`${info.name}: ${info.description}`}
+                      className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                        selectedClass === cls
+                          ? "border-primary bg-accent"
+                          : "border-border bg-secondary hover:border-primary/50"
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`mt-0.5 h-4 w-4 rounded-full border ${
+                          selectedClass === cls ? "border-primary bg-primary" : "border-border bg-background"
+                        }`}
+                      />
+                      <div>
+                        <p className="font-medium">{info.name}</p>
+                        <p className="text-sm text-muted-foreground">{info.description}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          HP: {info.startingStats.hp} · STR: {info.startingStats.strength} · DEX:{" "}
+                          {info.startingStats.dexterity} · INT: {info.startingStats.intelligence} · CHA:{" "}
+                          {info.startingStats.charisma}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
             </div>
             <button
               onClick={handleClassSubmit}
-              className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={world.classes && world.classes.length > 0 ? !selectedWorldClass : false}
+              className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
-              Continue with {CLASS_DESCRIPTIONS[selectedClass].name} →
+              Continue with {selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name} →
             </button>
           </section>
         )}
@@ -356,6 +393,23 @@ function CreateCharacterPage() {
             <p className="mb-4 text-sm text-muted-foreground">
               Add a quick profile so the Game Master can address your character more naturally.
             </p>
+            {world.backgrounds && world.backgrounds.length > 0 && (
+              <div className="mb-4 rounded-lg border border-border bg-secondary/40 p-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Available Backgrounds
+                </p>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {world.backgrounds.map((bg) => (
+                    <li key={bg.name}>
+                      <span className="font-medium text-foreground">{bg.name}</span> — {bg.description}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Mention your background in the backstory field below.
+                </p>
+              </div>
+            )}
             <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label htmlFor="char-pronouns" className="mb-1 block text-sm font-medium">

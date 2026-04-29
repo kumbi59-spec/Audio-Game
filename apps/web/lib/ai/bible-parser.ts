@@ -82,6 +82,15 @@ function buildSystemPromptFromBible(bible: ParsedGameBible): string {
     .join("\n");
   const hooksText = bible.campaignHooks.map((h, i) => `${i + 1}. ${h}`).join("\n");
 
+  const classList =
+    bible.classes?.length > 0
+      ? bible.classes.map((c) => `- ${c.name} (${c.role}): ${c.description}`).join("\n")
+      : null;
+  const backgroundList =
+    bible.backgrounds?.length > 0
+      ? bible.backgrounds.map((b) => `- ${b.name}: ${b.description}`).join("\n")
+      : null;
+
   return [
     `WORLD: ${bible.worldName.toUpperCase()}`,
     `Genre: ${bible.genre} | Tone: ${bible.tone}`,
@@ -96,12 +105,17 @@ function buildSystemPromptFromBible(bible: ParsedGameBible): string {
     "",
     factionList.length > 0 ? `Factions:\n${factionList}` : "",
     "",
+    classList ? `Playable Classes:\n${classList}` : "",
+    "",
+    backgroundList ? `Character Backgrounds:\n${backgroundList}` : "",
+    "",
+    bible.rulesNotes ? `Game Rules & Mechanics:\n${bible.rulesNotes}` : "",
+    "",
     `Campaign Hooks:\n${hooksText}`,
-    bible.rulesNotes ? `\nSpecial Rules:\n${bible.rulesNotes}` : "",
     "",
     `Opening Scenario:\n${bible.openingNarration}`,
   ]
-    .filter((l) => l !== undefined)
+    .filter((l) => l !== undefined && l !== "")
     .join("\n");
 }
 

@@ -9,6 +9,10 @@ export interface WorldData {
   imageUrl?: string | null;
   locations: LocationData[];
   npcs: NPCData[];
+  // World-specific mechanics extracted from the game bible (absent for prebuilt worlds)
+  classes?: Array<{ name: string; description: string }>;
+  backgrounds?: Array<{ name: string; description: string }>;
+  rulesNotes?: string;
 }
 
 export interface LocationData {
@@ -75,4 +79,7 @@ export interface ParsedGameBible {
     significance: string;
   }>;
   rulesNotes: string;
+  // World-specific character mechanics (empty arrays if not applicable)
+  classes: Array<{ name: string; description: string; role: string }>;
+  backgrounds: Array<{ name: string; description: string }>;
 }
