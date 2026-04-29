@@ -19,6 +19,7 @@ services:
     buildCommand: |
       corepack enable && corepack prepare pnpm@9.12.0 --activate &&
       pnpm install --frozen-lockfile=false &&
+      pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build &&
       pnpm --filter @audio-rpg/web db:generate &&
       pnpm --filter @audio-rpg/web build
     startCommand: >-
