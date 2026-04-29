@@ -86,8 +86,8 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
 };
 
 export const PRICING: Record<Exclude<Tier, "free" | "enterprise">, { monthly: number; annual: number }> = {
-  storyteller: { monthly: 9, annual: 79 },
-  creator: { monthly: 19, annual: 159 },
+  storyteller: { monthly: 15, annual: 129 },
+  creator: { monthly: 29, annual: 239 },
 };
 
 /**
@@ -95,9 +95,9 @@ export const PRICING: Record<Exclude<Tier, "free" | "enterprise">, { monthly: nu
  * who want a top-up buffer). Price in USD cents.
  */
 export const AI_MINUTE_PACKS = [
-  { id: "pack_60",  minutes: 60,  priceCents: 199,  label: "60 min",  badge: null },
-  { id: "pack_180", minutes: 180, priceCents: 499,  label: "3 hours", badge: "Best value" },
-  { id: "pack_600", minutes: 600, priceCents: 1499, label: "10 hours", badge: "Power player" },
+  { id: "pack_60",  minutes: 60,  priceCents: 299,  label: "60 min",  badge: null },
+  { id: "pack_180", minutes: 180, priceCents: 699,  label: "3 hours", badge: "Best value" },
+  { id: "pack_600", minutes: 600, priceCents: 1999, label: "10 hours", badge: "Power player" },
 ] as const;
 export type AiMinutePack = (typeof AI_MINUTE_PACKS)[number];
 
@@ -113,12 +113,12 @@ export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
   ],
   storyteller: [
     "Everything in Free",
-    "Unlimited AI — no minute tracking",
+    "Generous AI session allowance",
     "No ads between sessions",
-    "ElevenLabs multi-voice narration",
+    "ElevenLabs premium voice narration",
     "Upload your own Game Bible",
     "Unlimited saved campaigns",
-    "No session turn limits",
+    "No per-session turn limits",
   ],
   creator: [
     "Everything in Storyteller",
