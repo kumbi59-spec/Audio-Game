@@ -8,7 +8,7 @@ const JSON_MIME = "application/json";
 
 const MARKDOWN_EXTS = new Set(["md", "markdown"]);
 const PDF_EXTS = new Set(["pdf"]);
-const DOCX_EXTS = new Set(["docx"]);
+const DOCX_EXTS = new Set(["docx", "doc"]);
 const JSON_EXTS = new Set(["json"]);
 
 function ext(filename: string): string {

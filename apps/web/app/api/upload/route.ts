@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
           return;
         }
 
-        if (rawText.length < 100) {
+        if (rawText.length < 20) {
           send({ stage: "error", message: "The file appears to be empty or contains no readable text." });
           return;
         }
