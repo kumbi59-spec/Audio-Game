@@ -84,3 +84,10 @@ export async function findUserByStripeCustomerId(customerId: string) {
     where: { stripeCustomerId: customerId },
   });
 }
+
+export async function addAiMinutes(userId: string, minutes: number) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { aiMinutesRemaining: { increment: minutes } },
+  });
+}

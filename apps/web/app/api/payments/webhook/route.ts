@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { constructWebhookEvent, tierForPriceKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
-import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId } from "@/lib/db/queries/users";
+import { constructWebhookEvent, tierForPriceKey, isPackPriceKey, minutesForPackKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
+import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId, addAiMinutes } from "@/lib/db/queries/users";
 import { sendUpgradeEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push/sender";
 
@@ -22,10 +22,29 @@ export async function POST(req: NextRequest) {
 
   try {
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as { metadata?: Record<string, string>; customer?: string; line_items?: unknown };
+      const session = event.data.object as {
+        mode?: string;
+        metadata?: Record<string, string>;
+        customer?: string;
+      };
       const userId = session.metadata?.["userId"];
       const customerId = typeof session.customer === "string" ? session.customer : undefined;
+
       if (userId && customerId) await setStripeCustomerId(userId, customerId);
+
+      // One-time pack purchase — credit AI minutes immediately
+      const packId = session.metadata?.["packId"];
+      if (session.mode === "payment" && userId && packId && isPackPriceKey(packId)) {
+        const minutes = minutesForPackKey(packId);
+        if (minutes > 0) {
+          await addAiMinutes(userId, minutes);
+          void sendPushToUser(userId, {
+            title: `${minutes} AI minutes added`,
+            body: "Your EchoQuest credit pack is ready. Dive back into your adventure!",
+            url: "/library",
+          });
+        }
+      }
     }
 
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {

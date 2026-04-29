@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import type { Tier } from "@audio-rpg/shared";
+import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 
 // Stripe client — lazy-initialised so the module is importable server-side only
 function getStripe(): Stripe {
@@ -13,9 +14,20 @@ export const STRIPE_PRICES = {
   storyteller_annual:  process.env["STRIPE_PRICE_STORYTELLER_ANNUAL"]  ?? "",
   creator_monthly:     process.env["STRIPE_PRICE_CREATOR_MONTHLY"]     ?? "",
   creator_annual:      process.env["STRIPE_PRICE_CREATOR_ANNUAL"]      ?? "",
+  pack_60:             process.env["STRIPE_PRICE_PACK_60"]             ?? "",
+  pack_180:            process.env["STRIPE_PRICE_PACK_180"]            ?? "",
+  pack_600:            process.env["STRIPE_PRICE_PACK_600"]            ?? "",
 } as const;
 
 export type PriceKey = keyof typeof STRIPE_PRICES;
+
+export function isPackPriceKey(key: string): boolean {
+  return key.startsWith("pack_");
+}
+
+export function minutesForPackKey(key: string): number {
+  return AI_MINUTE_PACKS.find((p) => p.id === key)?.minutes ?? 0;
+}
 
 export function tierForPriceKey(priceKey: PriceKey): Tier {
   if (priceKey.startsWith("creator")) return "creator";
@@ -42,17 +54,24 @@ export async function createCheckoutSession(
   const priceId = STRIPE_PRICES[priceKey];
   if (!priceId) throw new Error(`Price ID not configured for ${priceKey}. Set STRIPE_PRICE_${priceKey.toUpperCase()} in environment.`);
 
+  const isPack = isPackPriceKey(priceKey);
+
   const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
+    mode: isPack ? "payment" : "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: opts.successUrl,
     cancel_url: opts.cancelUrl,
     ...(opts.customerId ? { customer: opts.customerId } : {}),
     ...(opts.userEmail && !opts.customerId ? { customer_email: opts.userEmail } : {}),
-    metadata: { ...(opts.userId ? { userId: opts.userId } : {}) },
-    subscription_data: {
-      metadata: { ...(opts.userId ? { userId: opts.userId } : {}) },
+    metadata: {
+      ...(opts.userId ? { userId: opts.userId } : {}),
+      ...(isPack ? { packId: priceKey } : {}),
     },
+    ...(!isPack ? {
+      subscription_data: {
+        metadata: { ...(opts.userId ? { userId: opts.userId } : {}) },
+      },
+    } : {}),
   });
 
   return { url: session.url!, sessionId: session.id };

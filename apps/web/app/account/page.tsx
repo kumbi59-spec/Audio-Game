@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 
 const TIER_LABELS: Record<string, { label: string; color: string }> = {
   free:         { label: "Free",        color: "#6b7280" },
@@ -22,6 +23,7 @@ interface Profile {
 
 export default function AccountPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { status } = useSession();
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -37,6 +39,10 @@ export default function AccountPage() {
 
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState<string | null>(null);
+
+  const [packBuying, setPackBuying] = useState<string | null>(null);
+  const [packError, setPackError] = useState<string | null>(null);
+  const packPurchased = searchParams.get("pack_purchased") === "true";
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/sign-in");
@@ -101,6 +107,26 @@ export default function AccountPage() {
     }
   }
 
+  async function buyPack(packId: string) {
+    setPackBuying(packId);
+    setPackError(null);
+    try {
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceKey: packId }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        setPackError(data.error ?? "Could not start checkout.");
+      }
+    } finally {
+      setPackBuying(null);
+    }
+  }
+
   async function openBillingPortal() {
     setPortalLoading(true);
     setPortalError(null);
@@ -148,11 +174,6 @@ export default function AccountPage() {
             >
               {tierInfo.label}
             </span>
-            {profile && (
-              <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                {profile.aiMinutesRemaining} AI minutes remaining
-              </span>
-            )}
           </div>
           {tier === "free" ? (
             <Link
@@ -177,6 +198,59 @@ export default function AccountPage() {
                 <p className="text-xs" style={{ color: "var(--error, #dc2626)" }}>{portalError}</p>
               )}
             </div>
+          )}
+        </section>
+
+        {/* AI Minutes */}
+        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+          <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>AI Minutes</h2>
+          <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+            {tier === "free"
+              ? "Free accounts use AI minute credits. Each game turn uses roughly 1 minute."
+              : "Your plan includes a generous AI session allowance. Buy extra packs any time for heavy play."}
+          </p>
+
+          {packPurchased && (
+            <p className="mb-4 rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--accent)", color: "var(--accent)" }} role="status">
+              Minutes added to your account!
+            </p>
+          )}
+
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+              {profile?.aiMinutesRemaining ?? "—"}
+            </span>
+            <span className="text-sm" style={{ color: "var(--text-muted)" }}>minutes remaining</span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {AI_MINUTE_PACKS.map((pack) => (
+              <div
+                key={pack.id}
+                className="flex flex-col rounded-lg border p-3"
+                style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
+              >
+                {pack.badge && (
+                  <span className="mb-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+                    {pack.badge}
+                  </span>
+                )}
+                <span className="text-base font-bold" style={{ color: "var(--text)" }}>{pack.label}</span>
+                <span className="mb-3 text-sm" style={{ color: "var(--text-muted)" }}>${(pack.priceCents / 100).toFixed(2)}</span>
+                <button
+                  type="button"
+                  onClick={() => buyPack(pack.id)}
+                  disabled={packBuying === pack.id}
+                  className="mt-auto rounded-lg py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
+                  style={{ backgroundColor: "var(--accent)", color: "#fff", minHeight: 40 }}
+                >
+                  {packBuying === pack.id ? "Opening…" : "Buy"}
+                </button>
+              </div>
+            ))}
+          </div>
+          {packError && (
+            <p className="mt-2 text-xs" style={{ color: "var(--error, #dc2626)" }} role="alert">{packError}</p>
           )}
         </section>
 
