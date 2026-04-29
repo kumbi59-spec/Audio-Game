@@ -7,7 +7,7 @@ import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 const client = new Anthropic();
 const MODEL = process.env["CLAUDE_GM_MODEL"] ?? "claude-sonnet-4-6";
 const MAX_INPUT_CHARS = 80_000;
-const MAX_TOKENS = 4096;
+const MAX_TOKENS = 8192;
 
 export async function parseGameBible(rawText: string): Promise<ParsedGameBible> {
   const truncated =
@@ -28,22 +28,39 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
     ],
   });
 
+  if (response.stop_reason === "max_tokens") {
+    throw new Error(
+      "The world description produced too much data for the AI to complete. Try a shorter document (under 5,000 words)."
+    );
+  }
+
   const block = response.content[0];
-  if (block.type !== "text") {
+  if (!block || block.type !== "text") {
     throw new Error("Unexpected response type from Claude");
   }
 
-  // Claude sometimes wraps JSON in a code fence — strip it
-  const jsonText = block.text
+  // Strip code fences Claude sometimes adds
+  let jsonText = block.text
     .replace(/^```(?:json)?\n?/i, "")
     .replace(/\n?```$/i, "")
     .trim();
+
+  // If Claude added prose before/after the JSON, extract the object boundaries
+  const firstBrace = jsonText.indexOf("{");
+  const lastBrace = jsonText.lastIndexOf("}");
+  if (firstBrace > 0 || lastBrace < jsonText.length - 1) {
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+    }
+  }
 
   let parsed: ParsedGameBible;
   try {
     parsed = JSON.parse(jsonText) as ParsedGameBible;
   } catch {
-    throw new Error("Claude returned invalid JSON — please try a different file or rephrase your Game Bible.");
+    throw new Error(
+      "Claude returned invalid JSON — please try a different file or rephrase your Game Bible."
+    );
   }
 
   return parsed;
