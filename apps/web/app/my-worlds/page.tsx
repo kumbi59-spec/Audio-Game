@@ -44,6 +44,8 @@ export default function MyWorldsPage() {
   const [worlds, setWorlds] = useState<MyWorld[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
   const [trendsLoading, setTrendsLoading] = useState(false);
   const [trendsRequested, setTrendsRequested] = useState(false);
@@ -84,6 +86,23 @@ export default function MyWorldsPage() {
       .catch(() => setWorlds([]))
       .finally(() => setLoading(false));
   }, [status]);
+
+  async function handleDelete(worldId: string) {
+    setDeleting(worldId);
+    setConfirmDeleteId(null);
+    try {
+      const res = await fetch(`/api/worlds/${worldId}`, { method: "DELETE" });
+      if (res.ok) {
+        setWorlds((prev) => prev.filter((w) => w.id !== worldId));
+        const world = worlds.find((w) => w.id === worldId);
+        const msg = world ? `${world.name} has been deleted.` : "World deleted.";
+        announce(msg);
+        speak(msg, { rate: ttsSpeed, volume });
+      }
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   async function togglePublish(world: MyWorld) {
     if (!can.publicPublishing) return;
@@ -277,6 +296,41 @@ export default function MyWorldsPage() {
                           Creator plan required
                         </p>
                       </div>
+                    )}
+
+                    {confirmDeleteId === world.id ? (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(world.id)}
+                          disabled={deleting === world.id}
+                          aria-label={`Confirm delete ${world.name}`}
+                          className="flex-1 rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                          style={{ borderColor: "var(--error, #dc2626)", backgroundColor: "var(--error, #dc2626)", color: "#ffffff" }}
+                        >
+                          {deleting === world.id ? "Deleting…" : "Confirm Delete"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(null)}
+                          aria-label="Cancel delete"
+                          className="flex-1 rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-80"
+                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(world.id)}
+                        disabled={deleting === world.id}
+                        aria-label={`Delete ${world.name}`}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                        style={{ borderColor: "var(--error, #dc2626)", color: "var(--error, #dc2626)" }}
+                      >
+                        Delete World
+                      </button>
                     )}
                   </div>
                 </article>

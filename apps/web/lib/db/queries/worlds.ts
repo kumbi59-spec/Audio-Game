@@ -11,7 +11,12 @@ export async function listPrebuiltWorlds() {
 export async function getWorldById(id: string) {
   return prisma.world.findUnique({
     where: { id },
-    include: { locations: true, npcs: true, libraryItem: true },
+    include: {
+      locations: true,
+      npcs: true,
+      libraryItem: true,
+      gameBible: { select: { parsedData: true } },
+    },
   });
 }
 
@@ -56,6 +61,15 @@ export async function unpublishWorld(worldId: string, userId: string): Promise<{
   if (!world) return { ok: false, error: "World not found." };
   if (world.ownerId !== userId) return { ok: false, error: "You do not own this world." };
   await prisma.world.update({ where: { id: worldId }, data: { isPublic: false } });
+  return { ok: true };
+}
+
+export async function deleteWorld(worldId: string, userId: string): Promise<{ ok: boolean; error?: string }> {
+  const world = await prisma.world.findUnique({ where: { id: worldId }, select: { ownerId: true, isPrebuilt: true } });
+  if (!world) return { ok: false, error: "World not found." };
+  if (world.isPrebuilt) return { ok: false, error: "Prebuilt worlds cannot be deleted." };
+  if (world.ownerId !== userId) return { ok: false, error: "You do not own this world." };
+  await prisma.world.delete({ where: { id: worldId } });
   return { ok: true };
 }
 
