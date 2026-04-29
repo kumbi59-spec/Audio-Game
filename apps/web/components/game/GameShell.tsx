@@ -8,6 +8,7 @@ import { ActionInput } from "./ActionInput";
 import { StatusBar } from "./StatusBar";
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
+import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
@@ -100,6 +101,7 @@ export function GameShell() {
   return (
     <>
       <AmbientPlayer />
+      <AudioUnlocker />
       <KeyboardShortcuts
         onChoiceSelect={handleChoiceSelect}
         onReplayLast={replayLast}
@@ -133,9 +135,24 @@ export function GameShell() {
 
         {/* HUD panel — status + audio settings */}
         {hudOpen && (
-          <div className="shrink-0 space-y-3 border-t border-border bg-muted/20 px-4 py-3">
-            <StatusBar character={character} session={session} world={world} />
-            <AudioControls onReplayLast={replayLast} />
+          <div className="shrink-0 max-h-60 overflow-y-auto border-t border-border bg-muted/20 px-4 py-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Status &amp; Audio
+              </span>
+              <button
+                type="button"
+                onClick={() => setHudOpen(false)}
+                aria-label="Close HUD"
+                className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <StatusBar character={character} session={session} world={world} />
+              <AudioControls onReplayLast={replayLast} />
+            </div>
           </div>
         )}
 

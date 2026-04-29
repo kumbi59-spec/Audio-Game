@@ -14,10 +14,29 @@ import type { AmbientTrack } from "@/types/audio";
 
 let _ctx: AudioContext | null = null;
 
+// If the context is suspended when ambient is requested, remember what to play
+// so we can start it after the first user gesture unlocks the context.
+let _pendingAmbient: { track: AmbientTrack; volume: number } | null = null;
+
 function ctx(): AudioContext {
   if (!_ctx) _ctx = new AudioContext();
-  if (_ctx.state === "suspended") void _ctx.resume();
   return _ctx;
+}
+
+/**
+ * Call this from any user-gesture handler (click, keydown, touchstart).
+ * It resumes a suspended AudioContext and starts any queued ambient track.
+ */
+export function unlockAudioContext(): void {
+  if (!_ctx) return;
+  if (_ctx.state !== "suspended") return;
+  _ctx.resume().then(() => {
+    if (_pendingAmbient) {
+      const { track, volume } = _pendingAmbient;
+      _pendingAmbient = null;
+      synthPlayAmbient(track, volume);
+    }
+  }).catch(() => {});
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -332,6 +351,15 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
   if (track === "none") return;
 
   const ac = ctx();
+
+  // Mobile browsers suspend AudioContext until a user gesture. Queue the track
+  // and let unlockAudioContext() start it on the first interaction.
+  if (ac.state === "suspended") {
+    _pendingAmbient = { track, volume };
+    return;
+  }
+
+  _pendingAmbient = null;
   const handle = buildAmbient(ac, track);
   if (!handle) return;
 

@@ -95,7 +95,7 @@ export default function LandingPage() {
             <>
               <Link href="/my-worlds" className="hover:underline">My Worlds</Link>
               <span style={{ opacity: 0.4 }}>|</span>
-              <span>{session.user.name ?? session.user.email}</span>
+              <Link href="/account" className="hover:underline">{session.user.name ?? session.user.email}</Link>
             </>
           ) : (
             <Link

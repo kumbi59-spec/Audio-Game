@@ -21,6 +21,7 @@ export default function VoiceSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -95,9 +96,17 @@ export default function VoiceSettingsPage() {
 
   async function preview() {
     setPreviewing(true);
+    setPreviewError(null);
     try {
       stopSpeech();
       await speak(PREVIEW_TEXT);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Preview failed";
+      setPreviewError(
+        msg.includes("not configured")
+          ? "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator."
+          : msg
+      );
     } finally {
       setPreviewing(false);
     }
@@ -290,6 +299,11 @@ export default function VoiceSettingsPage() {
             {saving ? "Saving…" : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : ""}
           </span>
         </div>
+        {previewError && (
+          <p className="mt-2 text-xs" style={{ color: "var(--error, #dc2626)" }} role="alert">
+            {previewError}
+          </p>
+        )}
       </main>
     </div>
   );
