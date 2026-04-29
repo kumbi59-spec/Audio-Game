@@ -23,7 +23,9 @@ services:
       pnpm --filter @audio-rpg/web db:generate &&
       pnpm --filter @audio-rpg/web build
     startCommand: >-
-      sh -c "pnpm --filter @audio-rpg/web exec prisma migrate deploy &&
+      sh -c "pnpm --filter @audio-rpg/web exec prisma migrate resolve
+      --applied 20260429011215_initial_postgres 2>/dev/null || true &&
+      pnpm --filter @audio-rpg/web exec prisma migrate deploy &&
       pnpm --filter @audio-rpg/web start"
     envVars:
       - key: NODE_VERSION
