@@ -87,20 +87,94 @@ function severityOf(vuln) {
     if (s === "low") return "low";
   }
 
-  // Fall back to CVSS score from severity[].score
+  // database_specific.cvss.score is a numeric value in many GHSA OSV entries
+  const dbScore = vuln.database_specific?.cvss?.score;
+  if (typeof dbScore === "number" && !Number.isNaN(dbScore)) {
+    return scoreToSeverity(dbScore);
+  }
+
+  // severity[].score in the OSV spec is a CVSS *vector string*, not a number.
+  // Older code tried parseFloat() on it, which always returns NaN for vectors.
   const cvss = (vuln.severity ?? []).find((s) => /CVSS/i.test(s.type));
   if (cvss?.score) {
-    // CVSS vector → just look at the base score after "CVSS:3.x/" or numeric prefix
     const numeric = parseFloat(cvss.score);
-    if (!Number.isNaN(numeric)) {
-      if (numeric >= 9.0) return "critical";
-      if (numeric >= 7.0) return "high";
-      if (numeric >= 4.0) return "moderate";
-      if (numeric > 0) return "low";
+    if (!Number.isNaN(numeric)) return scoreToSeverity(numeric);
+
+    // CVSS v3.x vector — compute base score via the official formula
+    if (typeof cvss.score === "string" && /^CVSS:3\.[01]\//.test(cvss.score)) {
+      const computed = computeCvssV3Score(cvss.score);
+      if (computed !== null) return scoreToSeverity(computed);
+    }
+
+    // CVSS v4.0 vector — use worst-case impact metrics to estimate severity
+    if (typeof cvss.score === "string" && cvss.score.startsWith("CVSS:4.")) {
+      return estimateCvssV4Severity(cvss.score);
     }
   }
 
   return "unknown";
+}
+
+function scoreToSeverity(score) {
+  if (score >= 9.0) return "critical";
+  if (score >= 7.0) return "high";
+  if (score >= 4.0) return "moderate";
+  if (score >= 0.1) return "low";
+  return "low";
+}
+
+// CVSS v3.0 / v3.1 base score from vector string (NIST spec).
+function computeCvssV3Score(vector) {
+  const parts = vector.split("/");
+  const m = {};
+  for (let i = 1; i < parts.length; i++) {
+    const c = parts[i].indexOf(":");
+    if (c > 0) m[parts[i].slice(0, c)] = parts[i].slice(c + 1);
+  }
+  const AV  = { N: 0.85, A: 0.62, L: 0.55, P: 0.20 };
+  const AC  = { L: 0.77, H: 0.44 };
+  const PrU = { N: 0.85, L: 0.62, H: 0.27 };
+  const PrC = { N: 0.85, L: 0.68, H: 0.50 };
+  const UI  = { N: 0.85, R: 0.62 };
+  const IMP = { N: 0.00, L: 0.22, H: 0.56 };
+
+  const av = AV[m.AV], ac = AC[m.AC];
+  const pr = m.S === "C" ? PrC[m.PR] : PrU[m.PR];
+  const ui = UI[m.UI];
+  const c = IMP[m.C], intg = IMP[m.I], a = IMP[m.A];
+  if ([av, ac, pr, ui, c, intg, a].some((v) => v === undefined)) return null;
+
+  const iscBase = 1 - (1 - c) * (1 - intg) * (1 - a);
+  const iss = m.S === "U"
+    ? 6.42 * iscBase
+    : 7.52 * (iscBase - 0.029) - 3.25 * Math.pow(iscBase - 0.02, 15);
+  if (iss <= 0) return 0.0;
+
+  const expl = 8.22 * av * ac * pr * ui;
+  const raw = m.S === "U"
+    ? Math.min(iss + expl, 10)
+    : Math.min(1.08 * (iss + expl), 10);
+  return Math.ceil(raw * 10) / 10; // CVSS Roundup
+}
+
+// CVSS v4.0 — full formula is complex; derive severity from impact metrics.
+function estimateCvssV4Severity(vector) {
+  const parts = vector.split("/");
+  const m = {};
+  for (let i = 1; i < parts.length; i++) {
+    const c = parts[i].indexOf(":");
+    if (c > 0) m[parts[i].slice(0, c)] = parts[i].slice(c + 1);
+  }
+  const impacts = ["VC", "VI", "VA", "SC", "SI", "SA"];
+  if (impacts.every((k) => !m[k] || m[k] === "N")) return "low";
+  const highCount = impacts.filter((k) => m[k] === "H").length;
+  const network = !m.AV || m.AV === "N";
+  const lowAC = !m.AC || m.AC === "L";
+  if (highCount >= 3 && network && lowAC) return "critical";
+  if (highCount >= 2 && network) return "high";
+  if (highCount >= 1 && network && lowAC) return "high";
+  if (highCount >= 1) return "moderate";
+  return "moderate";
 }
 
 // ──────────────────────────── pnpm audit fallback ──────────────────────

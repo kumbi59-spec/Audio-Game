@@ -33,9 +33,7 @@ services:
       - key: NEXTAUTH_SECRET
         generateValue: true   # Render generates a 32-byte secret on first deploy
       - key: DATABASE_URL
-        sync: false           # Supabase pooled connection string (port 6543)
-      - key: DIRECT_URL
-        sync: false           # Supabase direct connection string (port 5432) — used by Prisma migrate only
+        sync: false           # Supabase session-mode pooler URL — see DEPLOY.md for the correct format
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ADMIN_EMAILS
