@@ -20,6 +20,7 @@ jobs:
           node-version: 20.11.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
+      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - run: pnpm -r typecheck
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api test
 
@@ -52,6 +53,7 @@ jobs:
           node-version: 20.11.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
+      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - name: Wait for Postgres
         run: |
           for i in $(seq 1 30); do
@@ -78,6 +80,7 @@ jobs:
           node-version: 20.11.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
+      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - run: pnpm --filter @audio-rpg/mobile test:e2e:install
       - run: pnpm --filter @audio-rpg/mobile test:e2e
       - uses: actions/upload-artifact@v4
