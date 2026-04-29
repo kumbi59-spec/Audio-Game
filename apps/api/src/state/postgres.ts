@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import pg from "pg";
+import * as pg from "pg";
 import type { PoolClient } from "pg";
 const { Pool } = pg;
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
