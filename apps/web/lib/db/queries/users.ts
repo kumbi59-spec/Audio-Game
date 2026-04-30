@@ -92,7 +92,7 @@ export async function addAiMinutes(userId: string, minutes: number) {
   });
 }
 
-export async function useTtsChars(userId: string, chars: number): Promise<void> {
+export async function recordTtsChars(userId: string, chars: number): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { ttsCharsResetAt: true },
