@@ -13,6 +13,7 @@ import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts"
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
+import { AdBanner } from "@/components/ads/AdBanner";
 import type { PlayerAction } from "@/types/game";
 
 export function GameShell() {
@@ -197,6 +198,9 @@ export function GameShell() {
             disabled={session.isGenerating}
           />
         </div>
+
+        {/* Ad banner — free tier only */}
+        <AdBanner />
 
         {/* Bottom toolbar */}
         <div
