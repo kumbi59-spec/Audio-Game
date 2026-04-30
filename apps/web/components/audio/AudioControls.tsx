@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAudioStore } from "@/store/audio-store";
+import { useEntitlementsStore } from "@/store/entitlements-store";
 import { pauseSpeech, resumeSpeech, stopSpeech, isSpeaking, isPaused, getVoices } from "@/lib/audio/tts-provider";
 import type { TTSVoice } from "@/types/audio";
 
@@ -16,6 +17,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioCont
     ttsVoiceId,
     volume,
     ambientEnabled,
+    ambientVolume,
     soundCuesEnabled,
     setTTSSpeed,
     setTTSVoiceId,
@@ -24,6 +26,9 @@ export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioCont
     setAmbientVolume,
     setSoundCuesEnabled,
   } = useAudioStore();
+
+  const { entitlements } = useEntitlementsStore();
+  const isPremium = entitlements.premiumTts;
 
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -136,8 +141,8 @@ export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioCont
             />
           </label>
 
-          {/* Voice selector */}
-          {voices.length > 0 && (
+          {/* Voice selector — premium only */}
+          {isPremium && voices.length > 0 && (
             <label className="flex items-center gap-2 text-sm text-muted-foreground sm:col-span-2">
               <span>Voice</span>
               <select
@@ -166,6 +171,24 @@ export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioCont
             />
             <span>Ambient sound</span>
           </label>
+
+          {ambientEnabled && (
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span id="amb-vol-label" className="whitespace-nowrap">Ambient vol</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={ambientVolume}
+                onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
+                aria-labelledby="amb-vol-label"
+                aria-valuetext={`${Math.round(ambientVolume * 100)}%`}
+                className="w-full accent-primary"
+              />
+              <span aria-hidden="true" className="w-8 text-right">{Math.round(ambientVolume * 100)}%</span>
+            </label>
+          )}
 
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <input

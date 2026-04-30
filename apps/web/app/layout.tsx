@@ -1,11 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
+import { VerificationBanner } from "@/components/VerificationBanner";
 import { auth } from "@/auth";
+
+const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"];
 
 export const metadata: Metadata = {
   title: "EchoQuest — Narrated AI Adventures",
@@ -32,12 +37,23 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      {ADSENSE_PUB_ID && (
+        <Script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUB_ID}`}
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+      )}
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <AuthProvider session={session}>
           <AudioAnnouncer>
             <ServiceWorkerRegistrar />
             <SkipLinks />
             <FocusManager />
+            <Suspense>
+              <VerificationBanner />
+            </Suspense>
             {children}
           </AudioAnnouncer>
         </AuthProvider>

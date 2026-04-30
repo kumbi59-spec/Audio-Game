@@ -2,8 +2,11 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compare, hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendVerificationEmail } from "@/lib/email";
+import { createVerificationToken } from "@/lib/email/verification";
 import { effectiveTierForEmail } from "@/lib/admin";
+
+const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -13,9 +16,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         mode: { label: "mode", type: "text" }, // "signin" | "signup"
+        name: { label: "Display name", type: "text" },
       },
       async authorize(credentials) {
-        const { email, password, mode } = credentials as { email: string; password: string; mode?: string };
+        const { email, password, mode, name: displayName } = credentials as {
+          email: string;
+          password: string;
+          mode?: string;
+          name?: string;
+        };
         if (!email || !password) return null;
 
         if (mode === "signup") {
@@ -23,12 +32,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (existing) throw new Error("Email already in use.");
           const passwordHash = await hash(password, 12);
           const tier = effectiveTierForEmail(email, "free");
+          const resolvedName = (displayName ?? "").trim() || email.split("@")[0];
+
+          // If no email service is configured, mark as verified immediately so
+          // the banner never shows and the user isn't stuck.
+          const emailVerified = process.env["RESEND_API_KEY"] ? null : new Date();
+
           const user = await prisma.user.create({
-            data: { email, passwordHash, name: email.split("@")[0], tier },
+            data: { email, passwordHash, name: resolvedName, tier, emailVerified },
           });
-          // Fire-and-forget — don't block sign-in if email fails
-          void sendWelcomeEmail(user.email, user.name ?? user.email.split("@")[0]!);
-          return { id: user.id, email: user.email, name: user.name, tier };
+
+          if (!emailVerified) {
+            // Fire-and-forget verification email
+            void (async () => {
+              try {
+                const token = await createVerificationToken(email);
+                const url = `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+                await sendVerificationEmail(user.email, resolvedName, url);
+              } catch (err) {
+                console.warn("[auth] Failed to send verification email:", err);
+              }
+            })();
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            tier,
+            emailVerified: user.emailVerified,
+          };
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -40,6 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           tier: effectiveTierForEmail(user.email, user.tier),
+          emailVerified: user.emailVerified,
         };
       },
     }),
@@ -49,18 +83,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.tier = (user as { tier?: string }).tier ?? "free";
+        token.emailVerified = (user as { emailVerified?: Date | null }).emailVerified ?? null;
         token.tierFetchedAt = Date.now();
       }
-      // Re-fetch tier from DB at most once per hour so Stripe upgrades
-      // propagate without requiring a sign-out/sign-in cycle.
+      // Re-fetch tier + emailVerified from DB at most once per hour
       const stale = !token.tierFetchedAt || Date.now() - (token.tierFetchedAt as number) > 60 * 60 * 1000;
       if (token.id && (stale || trigger === "update")) {
         const fresh = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { tier: true, email: true },
+          select: { tier: true, email: true, emailVerified: true },
         });
         if (fresh) {
           token.tier = effectiveTierForEmail(fresh.email, fresh.tier);
+          token.emailVerified = fresh.emailVerified ?? null;
           token.tierFetchedAt = Date.now();
         }
       }
@@ -69,6 +104,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       session.user.id = token.id as string;
       (session.user as { tier?: string }).tier = token.tier as string;
+      (session.user as { emailVerified?: Date | null }).emailVerified =
+        token.emailVerified as Date | null;
       return session;
     },
   },

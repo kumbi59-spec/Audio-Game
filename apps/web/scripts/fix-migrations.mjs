@@ -10,6 +10,8 @@ import { execSync } from "child_process";
 
 const STUCK_MIGRATIONS = [
   "20260429120000_add_tts_chars",
+  "20260430000000_add_ai_minutes_reset_at",
+  "20260430010000_add_email_verified",
 ];
 
 for (const name of STUCK_MIGRATIONS) {

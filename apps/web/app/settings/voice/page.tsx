@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useAudioStore } from "@/store/audio-store";
+import { useEntitlementsStore } from "@/store/entitlements-store";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 import type { TTSProviderType, TTSVoice } from "@/types/audio";
@@ -16,6 +17,8 @@ export default function VoiceSettingsPage() {
   const router = useRouter();
   const { status } = useSession();
   const store = useAudioStore();
+  const { entitlements } = useEntitlementsStore();
+  const isPremium = entitlements.premiumTts;
 
   const [browserVoices, setBrowserVoices] = useState<TTSVoice[]>([]);
   const [saving, setSaving] = useState(false);
@@ -141,29 +144,65 @@ export default function VoiceSettingsPage() {
             Provider
           </h2>
           <div role="radiogroup" aria-label="TTS provider" className="space-y-2">
-            {(["browser", "elevenlabs"] as TTSProviderType[]).map((p) => (
-              <label key={p} className="flex cursor-pointer items-start gap-3 rounded-lg p-2 hover:opacity-90">
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg p-2 hover:opacity-90">
+              <input
+                type="radio"
+                name="provider"
+                value="browser"
+                checked={store.ttsProvider === "browser"}
+                onChange={() => markDirty(store.setTTSProvider)("browser")}
+                className="mt-1"
+                style={{ minHeight: 20, minWidth: 20 }}
+              />
+              <span>
+                <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+                  Browser narrator
+                </span>
+                <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  Uses your device's built-in voices. Free, instant, offline-friendly.
+                </span>
+              </span>
+            </label>
+
+            {isPremium ? (
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg p-2 hover:opacity-90">
                 <input
                   type="radio"
                   name="provider"
-                  value={p}
-                  checked={store.ttsProvider === p}
-                  onChange={() => markDirty(store.setTTSProvider)(p)}
+                  value="elevenlabs"
+                  checked={store.ttsProvider === "elevenlabs"}
+                  onChange={() => markDirty(store.setTTSProvider)("elevenlabs")}
                   className="mt-1"
                   style={{ minHeight: 20, minWidth: 20 }}
                 />
                 <span>
                   <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
-                    {p === "browser" ? "Browser narrator" : "ElevenLabs (premium)"}
+                    ElevenLabs (premium)
                   </span>
                   <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
-                    {p === "browser"
-                      ? "Uses your device's built-in voices. Free, instant, offline-friendly."
-                      : "Studio-quality narration. Requires ElevenLabs to be configured server-side."}
+                    Studio-quality narration. Requires ElevenLabs to be configured server-side.
                   </span>
                 </span>
               </label>
-            ))}
+            ) : (
+              <div
+                className="flex items-start gap-3 rounded-lg p-2 opacity-60"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <span className="mt-1 inline-block h-5 w-5 flex-shrink-0 rounded-full border-2" style={{ borderColor: "var(--border)" }} />
+                <span>
+                  <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+                    ElevenLabs (premium) 🔒
+                  </span>
+                  <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                    Studio-quality narration. Upgrade to Storyteller to unlock.{" "}
+                    <Link href="/account" className="underline" style={{ color: "var(--accent)" }}>
+                      Upgrade
+                    </Link>
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
         </section>
 
@@ -277,6 +316,50 @@ export default function VoiceSettingsPage() {
               aria-valuemax={1}
               aria-valuenow={store.volume}
               aria-label="Narration volume"
+              className="w-full"
+              style={{ minHeight: 44 }}
+            />
+          </label>
+        </section>
+
+        <section
+          aria-label="Ambient sound"
+          className="mb-6 rounded-xl border p-5"
+          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+        >
+          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
+            Ambient sound
+          </h2>
+
+          <label className="mb-4 flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={store.ambientEnabled}
+              onChange={(e) => { dirtyRef.current = true; store.setAmbientEnabled(e.target.checked); }}
+              aria-label="Enable ambient sound"
+              className="h-5 w-5"
+              style={{ minHeight: 20, minWidth: 20 }}
+            />
+            <span className="text-sm" style={{ color: "var(--text)" }}>Enable ambient sound</span>
+          </label>
+
+          <label className="block" style={{ opacity: store.ambientEnabled ? 1 : 0.4 }}>
+            <span className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+              <span>Ambient volume</span>
+              <span aria-hidden="true">{Math.round(store.ambientVolume * 100)}%</span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={store.ambientVolume}
+              onChange={(e) => { dirtyRef.current = true; store.setAmbientVolume(Number(e.target.value)); }}
+              disabled={!store.ambientEnabled}
+              aria-valuemin={0}
+              aria-valuemax={1}
+              aria-valuenow={store.ambientVolume}
+              aria-label="Ambient sound volume"
               className="w-full"
               style={{ minHeight: 44 }}
             />

@@ -65,6 +65,16 @@ services:
         sync: false
       - key: RESEND_FROM
         sync: false
+      - key: IMAGE_GEN_PROVIDER
+        sync: false           # set to "replicate" to enable AI cover art
+      - key: REPLICATE_API_TOKEN
+        sync: false
+      - key: REPLICATE_IMAGE_MODEL
+        value: black-forest-labs/flux-schnell
+      - key: NEXT_PUBLIC_ADSENSE_PUB_ID
+        sync: false           # Google AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX)
+      - key: NEXT_PUBLIC_ADSENSE_SLOT
+        sync: false           # AdSense ad unit slot ID
       - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY

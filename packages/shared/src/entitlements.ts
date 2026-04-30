@@ -105,7 +105,7 @@ export type AiMinutePack = (typeof AI_MINUTE_PACKS)[number];
 export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
   free: [
     "3 prebuilt campaigns",
-    "60 free AI minutes included",
+    "60 free AI minutes per day",
     "Buy more AI minutes any time",
     "Browser TTS narration",
     "Voice command navigation",
