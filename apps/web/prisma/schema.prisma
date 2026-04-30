@@ -19,6 +19,8 @@ model User {
   stripeCustomerId   String?
   aiMinutesRemaining Int     @default(60)
 
+  aiMinutesResetAt      DateTime @default(now())
+
   ttsCharsUsedThisMonth Int      @default(0)
   ttsCharsResetAt       DateTime @default(now())
 

@@ -13,9 +13,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
         mode: { label: "mode", type: "text" }, // "signin" | "signup"
+        name: { label: "Display name", type: "text" },
       },
       async authorize(credentials) {
-        const { email, password, mode } = credentials as { email: string; password: string; mode?: string };
+        const { email, password, mode, name: displayName } = credentials as { email: string; password: string; mode?: string; name?: string };
         if (!email || !password) return null;
 
         if (mode === "signup") {
@@ -23,8 +24,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (existing) throw new Error("Email already in use.");
           const passwordHash = await hash(password, 12);
           const tier = effectiveTierForEmail(email, "free");
+          const resolvedName = (displayName ?? "").trim() || email.split("@")[0];
           const user = await prisma.user.create({
-            data: { email, passwordHash, name: email.split("@")[0], tier },
+            data: { email, passwordHash, name: resolvedName, tier },
           });
           // Fire-and-forget — don't block sign-in if email fails
           void sendWelcomeEmail(user.email, user.name ?? user.email.split("@")[0]!);

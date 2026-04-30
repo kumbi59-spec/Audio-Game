@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { resetDailyMinutesIfNeeded } from "@/lib/db/queries/users";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,15 @@ export async function GET() {
   });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  return NextResponse.json(user);
+  // Refresh free-tier daily allowance if a new day has started
+  await resetDailyMinutesIfNeeded(session.user.id, user.tier);
+
+  // Re-read if a reset just happened
+  const aiMinutesRemaining = user.tier === "free"
+    ? (await prisma.user.findUnique({ where: { id: session.user.id }, select: { aiMinutesRemaining: true } }))?.aiMinutesRemaining ?? user.aiMinutesRemaining
+    : user.aiMinutesRemaining;
+
+  return NextResponse.json({ ...user, aiMinutesRemaining });
 }
 
 const UpdateSchema = z.object({

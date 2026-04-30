@@ -92,6 +92,28 @@ export async function addAiMinutes(userId: string, minutes: number) {
   });
 }
 
+const FREE_DAILY_AI_MINUTES = 60;
+
+export async function resetDailyMinutesIfNeeded(userId: string, tier: string): Promise<void> {
+  if (tier !== "free") return;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { aiMinutesResetAt: true },
+  });
+  if (!user) return;
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  if (user.aiMinutesResetAt < startOfToday) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { aiMinutesRemaining: FREE_DAILY_AI_MINUTES, aiMinutesResetAt: new Date() },
+    });
+  }
+}
+
 export async function recordTtsChars(userId: string, chars: number): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
