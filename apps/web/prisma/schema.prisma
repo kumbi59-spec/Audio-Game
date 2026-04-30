@@ -15,9 +15,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tier               String  @default("free")
+  tier               String    @default("free")
   stripeCustomerId   String?
-  aiMinutesRemaining Int     @default(60)
+  emailVerified      DateTime?
+  aiMinutesRemaining Int       @default(60)
 
   aiMinutesResetAt      DateTime @default(now())
 

@@ -1,7 +1,7 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
@@ -16,16 +16,24 @@ function randomName() {
   return `${a} ${n}`;
 }
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
+  const searchParams = useSearchParams();
+  const verifyError = searchParams.get("verify_error");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    verifyError === "expired"
+      ? "Your verification link has expired. Sign in and request a new one."
+      : verifyError === "invalid"
+      ? "Invalid verification link. Sign in and request a new one."
+      : ""
+  );
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -201,5 +209,13 @@ export default function SignInPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }

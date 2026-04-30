@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { SkipLinks } from "@/components/accessibility/SkipLinks";
 import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
+import { VerificationBanner } from "@/components/VerificationBanner";
 import { auth } from "@/auth";
 
 const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"];
@@ -49,6 +51,9 @@ export default async function RootLayout({
             <ServiceWorkerRegistrar />
             <SkipLinks />
             <FocusManager />
+            <Suspense>
+              <VerificationBanner />
+            </Suspense>
             {children}
           </AudioAnnouncer>
         </AuthProvider>
