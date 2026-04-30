@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { useTtsChars } from "@/lib/db/queries/users";
+import { recordTtsChars } from "@/lib/db/queries/users";
 
 const Schema = z.object({
   text: z.string().min(1).max(4000),
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
   const audioBuffer = await res.arrayBuffer();
 
   // Credit usage asynchronously — don't block the audio response
-  void useTtsChars(session.user.id, body.text.length);
+  void recordTtsChars(session.user.id, body.text.length);
 
   return new Response(audioBuffer, {
     headers: {
