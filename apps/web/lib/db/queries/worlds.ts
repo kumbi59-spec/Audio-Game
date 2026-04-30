@@ -1,4 +1,32 @@
 import { prisma } from "@/lib/db";
+import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
+
+export async function seedPrebuiltWorldsIfNeeded(): Promise<void> {
+  const count = await prisma.world.count({ where: { isPrebuilt: true } });
+  if (count >= PREBUILT_WORLDS.length) return;
+
+  for (const [i, world] of PREBUILT_WORLDS.entries()) {
+    await upsertWorldFromStatic({
+      id: world.id,
+      name: world.name,
+      description: world.description,
+      genre: world.genre,
+      tone: world.tone,
+      systemPrompt: world.systemPrompt,
+      isPrebuilt: world.isPrebuilt,
+      locations: world.locations.map((l) => ({ ...l, ambientSound: l.ambientSound ?? undefined })),
+      npcs: world.npcs.map((n) => ({ ...n, locationId: n.locationId ?? undefined })),
+      libraryItem: {
+        title: world.name,
+        description: world.description,
+        genre: world.genre,
+        difficulty: "beginner",
+        tags: [world.genre, world.tone].join(","),
+        sortOrder: i,
+      },
+    });
+  }
+}
 
 export async function listPrebuiltWorlds() {
   return prisma.world.findMany({
