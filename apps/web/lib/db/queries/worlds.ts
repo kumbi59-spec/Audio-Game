@@ -14,8 +14,8 @@ export async function seedPrebuiltWorldsIfNeeded(): Promise<void> {
       tone: world.tone,
       systemPrompt: world.systemPrompt,
       isPrebuilt: world.isPrebuilt,
-      locations: world.locations,
-      npcs: world.npcs,
+      locations: world.locations.map((l) => ({ ...l, ambientSound: l.ambientSound ?? undefined })),
+      npcs: world.npcs.map((n) => ({ ...n, locationId: n.locationId ?? undefined })),
       libraryItem: {
         title: world.name,
         description: world.description,
