@@ -181,7 +181,7 @@ export default function VoiceSettingsPage() {
                   Browser narrator
                 </span>
                 <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
-                  Uses your device's built-in voices. Free, instant, offline-friendly.
+                  Uses your device&apos;s built-in voices. Free, instant, offline-friendly.
                 </span>
               </span>
             </label>
