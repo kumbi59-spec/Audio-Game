@@ -10,8 +10,17 @@ interface EntitlementsStore {
   setEntitlements: (e: Entitlements) => void;
 }
 
+function getInitialEntitlements(): Entitlements {
+  if (typeof window === "undefined") return TIER_ENTITLEMENTS.free;
+  const stored = localStorage.getItem("echoquest-tier");
+  if (stored && Object.prototype.hasOwnProperty.call(TIER_ENTITLEMENTS, stored)) {
+    return TIER_ENTITLEMENTS[stored as Tier];
+  }
+  return TIER_ENTITLEMENTS.free;
+}
+
 export const useEntitlementsStore = create<EntitlementsStore>((set) => ({
-  entitlements: TIER_ENTITLEMENTS.free,
+  entitlements: getInitialEntitlements(),
   setTier: (t) => set({ entitlements: TIER_ENTITLEMENTS[t] }),
   setEntitlements: (e) => set({ entitlements: e }),
 }));

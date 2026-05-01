@@ -111,8 +111,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isAdmin = isAdminEmail(user.email ?? "");
         token.tierFetchedAt = Date.now();
       }
-      // Re-fetch tier + emailVerified from DB at most once per hour
-      const stale = !token.tierFetchedAt || Date.now() - (token.tierFetchedAt as number) > 60 * 60 * 1000;
+      // Re-fetch tier + emailVerified from DB at most once every 5 minutes
+      const stale = !token.tierFetchedAt || Date.now() - (token.tierFetchedAt as number) > 5 * 60 * 1000;
       if (token.id && (stale || trigger === "update")) {
         try {
           const fresh = await prisma.user.findUnique({

@@ -45,6 +45,7 @@ export default function MyWorldsPage() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [reparsing, setReparsing] = useState<string | null>(null);
   const [reparseResult, setReparseResult] = useState<Record<string, { ok: boolean; classCount?: number; backgroundCount?: number; error?: boolean }>>({});
@@ -92,6 +93,7 @@ export default function MyWorldsPage() {
   async function handleDelete(worldId: string) {
     setDeleting(worldId);
     setConfirmDeleteId(null);
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/worlds/${worldId}`, { method: "DELETE" });
       if (res.ok) {
@@ -100,7 +102,19 @@ export default function MyWorldsPage() {
         const msg = world ? `${world.name} has been deleted.` : "World deleted.";
         announce(msg);
         speak(msg, { rate: ttsSpeed, volume });
+      } else {
+        let errMsg = "Failed to delete world. Please try again.";
+        try {
+          const data = (await res.json()) as { error?: string };
+          if (data.error) errMsg = data.error;
+        } catch { /* non-JSON body */ }
+        setDeleteError(errMsg);
+        announce(errMsg, "assertive");
       }
+    } catch {
+      const msg = "Network error. Please check your connection and try again.";
+      setDeleteError(msg);
+      announce(msg, "assertive");
     } finally {
       setDeleting(null);
     }
@@ -161,14 +175,25 @@ export default function MyWorldsPage() {
         >
           ← Back to Library
         </Link>
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: "var(--text)" }}
-          tabIndex={-1}
-          data-focus-on-mount
-        >
-          My Worlds
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: "var(--text)" }}
+            tabIndex={-1}
+            data-focus-on-mount
+          >
+            My Worlds
+          </h1>
+          {can.worldWizard && (
+            <Link
+              href="/worlds/new"
+              className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            >
+              + Create New World
+            </Link>
+          )}
+        </div>
         <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
           Manage your uploaded worlds, play them privately, and publish them to the community.
         </p>
@@ -383,6 +408,29 @@ export default function MyWorldsPage() {
               </li>
             ))}
           </ul>
+        )}
+
+        {deleteError && (
+          <p
+            role="alert"
+            aria-live="assertive"
+            className="mt-4 text-sm font-semibold"
+            style={{ color: "var(--error, #dc2626)" }}
+          >
+            {deleteError}
+          </p>
+        )}
+
+        {!loading && worlds.length > 0 && can.worldWizard && (
+          <div className="mt-8 text-center">
+            <Link
+              href="/worlds/new"
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            >
+              + Create Another World
+            </Link>
+          </div>
         )}
       </main>
     </div>
