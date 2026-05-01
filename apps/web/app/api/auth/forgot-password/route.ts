@@ -26,19 +26,19 @@ export async function POST(req: Request) {
     ? `${proto}://${host}`
     : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
 
-  const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
-  if (user) {
-    try {
+  try {
+    const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
+    if (user) {
       const token = await createPasswordResetToken(normalised);
       const url = `${origin}/auth/reset-password?token=${token}&email=${encodeURIComponent(normalised)}`;
       await sendPasswordResetEmail(normalised, url);
-    } catch (err) {
-      console.error("[forgot-password] failed to send reset email:", err);
-      return NextResponse.json(
-        { error: "Failed to send reset email. Check that RESEND_FROM is set to an address on a verified Resend domain." },
-        { status: 500 },
-      );
     }
+  } catch (err) {
+    console.error("[forgot-password] error:", err);
+    return NextResponse.json(
+      { error: "Failed to send reset email. Check server logs for details." },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ ok: true });
