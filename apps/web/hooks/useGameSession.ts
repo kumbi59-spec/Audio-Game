@@ -22,6 +22,9 @@ export function useGameSession() {
     incrementTurnCount,
     updateFlags,
     updateHP,
+    updateStat,
+    applyInventoryMutation,
+    applyQuestMutation,
     updateLocation,
   } = useGameStore();
 
@@ -123,14 +126,30 @@ export function useGameSession() {
               } else if (eventType === "sound_cue" && soundCuesEnabled) {
                 playSoundCue(data.cue as SoundCue);
               } else if (eventType === "state_change") {
-                if (data.hp !== undefined && data.hp !== null) {
-                  updateHP(data.hp);
+                const change = data as Record<string, unknown>;
+                if (change.hp !== undefined && change.hp !== null) {
+                  updateHP(change.hp as number);
                 }
-                if (data.flags) {
-                  updateFlags(data.flags as Record<string, unknown>);
+                if (change.statDeltas && typeof change.statDeltas === "object") {
+                  for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, number>)) {
+                    updateStat(stat, delta);
+                  }
                 }
-                if (data.locationId) {
-                  updateLocation(data.locationId as string);
+                if (change.flags) {
+                  updateFlags(change.flags as Record<string, unknown>);
+                }
+                if (change.locationId) {
+                  updateLocation(change.locationId as string);
+                }
+                if (Array.isArray(change.inventoryChanges)) {
+                  for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
+                    applyInventoryMutation(mut);
+                  }
+                }
+                if (Array.isArray(change.questChanges)) {
+                  for (const mut of change.questChanges as import("@/types/game").QuestMutation[]) {
+                    applyQuestMutation(mut);
+                  }
                 }
               } else if (eventType === "choices_ready") {
                 // Full response parsed — update choices and add narration entry
@@ -186,7 +205,8 @@ export function useGameSession() {
     },
     [
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
-      setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateLocation,
+      setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
+      applyInventoryMutation, applyQuestMutation, updateLocation,
       speakText, soundCuesEnabled,
     ]
   );

@@ -15,6 +15,7 @@ export const SHORTCUT_HELP = [
   { key: "1–9", description: "Select a numbered choice" },
   { key: "T", description: "Focus the action input" },
   { key: "V", description: "Activate voice input" },
+  { key: "C", description: "Open / close character sheet" },
   { key: "I", description: "Toggle inventory" },
   { key: "Q", description: "Toggle quest log" },
   { key: "L", description: "Read current location" },
@@ -27,6 +28,7 @@ interface KeyboardShortcutsProps {
   onReplayLast?: () => void;
   onToggleInventory?: () => void;
   onToggleQuestLog?: () => void;
+  onToggleCharacterSheet?: () => void;
   onFocusInput?: () => void;
   onToggleVoice?: () => void;
   onReadLocation?: () => void;
@@ -39,6 +41,7 @@ export function KeyboardShortcuts({
   onReplayLast,
   onToggleInventory,
   onToggleQuestLog,
+  onToggleCharacterSheet,
   onFocusInput,
   onToggleVoice,
   onReadLocation,
@@ -110,6 +113,11 @@ export function KeyboardShortcuts({
           e.preventDefault();
           onToggleVoice?.();
           break;
+        case "c":
+        case "C":
+          e.preventDefault();
+          onToggleCharacterSheet?.();
+          break;
         case "i":
         case "I":
           e.preventDefault();
@@ -139,7 +147,7 @@ export function KeyboardShortcuts({
     [
       isSpeaking, ttsSpeed, ambientEnabled, keyboardHelpOpen,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
-      onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
+      onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
       setTTSSpeed, setAmbientEnabled, setKeyboardHelpOpen,
     ]
   );

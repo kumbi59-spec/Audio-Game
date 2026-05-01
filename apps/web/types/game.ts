@@ -14,13 +14,36 @@ export interface GMResponse {
   npcAction?: NPCAction | null;
 }
 
+export interface ItemMutation {
+  op: "add" | "remove";
+  name: string;
+  quantity: number;
+  description?: string;
+  category?: "weapon" | "armor" | "consumable" | "key" | "misc";
+}
+
+export interface QuestMutation {
+  op: "start" | "update" | "complete" | "fail";
+  title: string;
+  description?: string;
+  /** Objectives array — used when op is "start" */
+  objectives?: string[];
+  /** Single objective text — used when op is "update" */
+  objective?: string;
+  done?: boolean;
+}
+
 export interface GameStateUpdate {
   hp?: number;
+  /** Arbitrary stat deltas — e.g. { mp: -10, stamina: -5 } */
+  statDeltas?: Record<string, number>;
   flags?: Record<string, unknown>;
   locationId?: string;
   timeOfDay?: string;
   weather?: string;
   npcStates?: Record<string, unknown>;
+  inventoryChanges?: ItemMutation[];
+  questChanges?: QuestMutation[];
 }
 
 export interface NPCAction {
