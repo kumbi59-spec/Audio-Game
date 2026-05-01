@@ -314,6 +314,176 @@ Tropes get a bad reputation. People use the word like an insult, as if familiar 
 The best campaigns use tropes as a foundation, then surprise players with the first floor they build on top. In EchoQuest, the AI Game Master can follow your lead — tell it your world's central tension and faction goals, and it will find the moments to subvert expectations naturally. **[Start building your world →](/)**
 `,
   },
+  {
+    daysFromNow: 7,
+    title: "Keyboard Navigation in EchoQuest: Play Without a Mouse",
+    excerpt: "EchoQuest is fully playable with a keyboard alone. Here's every shortcut, focus order, and navigation trick you need to know for a seamless mouse-free experience.",
+    content: `# Keyboard Navigation in EchoQuest: Play Without a Mouse
+
+Whether you're a keyboard power user, a blind player using a screen reader, or someone whose mouse just broke, EchoQuest is designed to work completely without one. Every feature is reachable by keyboard. Every action is triggerable by shortcut.
+
+## The Core Navigation Model
+
+EchoQuest follows standard web accessibility patterns, so if you know how to navigate a webpage by keyboard, most things will feel familiar:
+
+- **Tab** moves focus forward through interactive elements
+- **Shift+Tab** moves focus backward
+- **Enter** or **Space** activates the focused button or link
+- **Escape** closes modals and dismisses overlays
+
+Focus is always visible — there's a clear highlight ring around whichever element is active.
+
+## In-Game Shortcuts
+
+During a play session, these shortcuts let you act quickly without reaching for a mouse:
+
+| Key | Action |
+|-----|--------|
+| **1, 2, 3** | Select choice 1, 2, or 3 |
+| **T** | Focus the text input to type a custom action |
+| **Enter** | Submit your action |
+| **R** | Replay the last narration |
+| **Space** | Pause / resume TTS narration |
+| **↑ / ↓** | Adjust narration volume |
+| **M** | Toggle ambient sound on/off |
+
+## Screen Reader Compatibility
+
+EchoQuest is tested with NVDA, JAWS, and VoiceOver. Key accessibility features:
+
+- All game text is rendered as semantic HTML, not images
+- Narration log entries are marked as ARIA live regions so screen readers announce new content automatically
+- Choice buttons have descriptive labels (not just "Option 1")
+- Status changes — HP updates, inventory changes, location shifts — are announced via a screen reader-only live region
+
+## The Skip Link
+
+At the top of every page, before any navigation, there's a hidden skip link that becomes visible on focus: **"Skip to main content."** This lets screen reader and keyboard users jump straight to the game area without tabbing through the nav bar on every page load.
+
+## Setting Up Your Preferred Voice
+
+If you're using a system screen reader alongside EchoQuest's built-in TTS, you may want to mute the browser TTS to avoid double-narration. Go to **Settings → Voice** and set TTS Provider to "Off" — the screen reader will then read game text through your preferred voice.
+
+## Tips for Power Users
+
+- Keep the game in a **dedicated browser tab** and use your browser's tab shortcut (Ctrl+Tab) to switch back without losing focus position
+- Use **browser zoom** (Ctrl+plus) to increase text size without affecting the game layout
+- The text input field supports **standard browser editing shortcuts** — Home/End, Ctrl+A, Ctrl+Z for undo
+
+Questions about accessibility? Reach us at the support link in the footer. We respond to every message. **[Start playing →](/library)**
+`,
+  },
+  {
+    daysFromNow: 8,
+    title: "ElevenLabs Premium Narration: Why Voice Quality Changes Everything",
+    excerpt: "There's a big difference between a robotic TTS voice reading words and a voice that actually performs them. Here's why EchoQuest's ElevenLabs integration is a game-changer for immersion.",
+    content: `# ElevenLabs Premium Narration: Why Voice Quality Changes Everything
+
+Text-to-speech has been around for decades. Early versions sounded robotic — flat, monotone, mispronouncing every proper noun. They were useful but not enjoyable. That era is over.
+
+EchoQuest's premium narration, powered by ElevenLabs, represents a genuine leap in what AI voice can do. Here's what changes when you switch from browser TTS to premium voices.
+
+## The Difference Is Emotional Expressiveness
+
+Browser TTS reads words. ElevenLabs voices *perform* them.
+
+When the AI Game Master describes a tense confrontation, a premium voice will lower slightly in pitch, speak more deliberately. When narrating an exciting chase, the pace quickens. When an NPC is frightened, you can hear it. These micro-variations in delivery aren't programmed — they emerge from the model's understanding of the text's emotional register.
+
+For an audio-first game, this isn't a cosmetic feature. It's the difference between reading a stage direction and watching a performance.
+
+## Handling Fantasy Proper Nouns
+
+One perennial problem with TTS in RPGs is proper noun pronunciation. Generic voices mangle invented names constantly — a character called Aeryndel comes out as "Ay-ren-del" or worse.
+
+ElevenLabs models handle this better than any browser voice we've tested. The phonetic patterns of fantasy naming conventions (common in Tolkien-influenced fantasy) are well-represented in training data. You'll still hear occasional mispronunciations, but far fewer.
+
+## Choosing Your Voice
+
+EchoQuest Storyteller and Creator subscribers can choose from a curated set of narrator voices with different personalities:
+
+- **Deep & Dramatic** — a low, resonant voice suited to dark fantasy and horror
+- **Warm & Engaging** — a friendly, mid-range voice that works for adventure and comedy
+- **Precise & Cool** — a crisp, articulate voice ideal for mystery and political intrigue
+- **Energetic** — a faster, enthusiastic voice for action-heavy campaigns
+
+You can preview each voice and switch between them at any time in Settings.
+
+## Speed and Pitch Controls
+
+Premium narration also supports speed and pitch adjustment, giving you full control over how the voice sounds. Some players prefer a faster pace for action scenes; others like a slower, more deliberate read for atmospheric moments. You can change these mid-session without restarting.
+
+## Is Free TTS Good Enough?
+
+Yes — and we've put real work into making the browser TTS experience as good as possible. Free users get narration that clearly communicates everything in the scene. The gap between browser TTS and premium is real but not the difference between playable and unplayable.
+
+If you primarily use a screen reader with your own preferred voice, the built-in narration may matter less to you than the quality of the game text itself.
+
+Premium narration is included in the Storyteller plan ($15/month) and Creator plan ($29/month). **[Compare plans →](/)**
+`,
+  },
+  {
+    daysFromNow: 9,
+    title: "10 Classic RPG Character Archetypes (And How to Play Them Well)",
+    excerpt: "From the brooding rogue to the idealistic paladin, RPG archetypes endure because they work. Here are ten classic character types, what makes each compelling, and one tip for playing them memorably.",
+    content: `# 10 Classic RPG Character Archetypes (And How to Play Them Well)
+
+Character archetypes exist in RPGs for the same reason they exist in literature: they're proven. They give players an emotional entry point, a set of instincts to act from, and a relationship to the world that generates interesting choices. Here are ten that appear again and again — and how to make each one feel like yours.
+
+## 1. The Reluctant Hero
+*"I just want to go home."*
+
+They didn't ask for this. The world dragged them in anyway. This archetype works because the internal conflict — wanting safety vs. doing what's right — creates constant dramatic tension. **Play it well by:** having a specific thing they're trying to get back to, not just "normal life." A person, a place, a promise.
+
+## 2. The Disgraced Noble
+*"I used to have everything."*
+
+Status lost, reputation destroyed, but the manners and instincts of privilege remain. Creates comedy, tragedy, and interesting friction with less privileged party members. **Play it well by:** letting them be genuinely competent in courtly situations — the disgrace shouldn't erase their skills.
+
+## 3. The True Believer
+*"The cause is worth any price."*
+
+A character whose faith — in a god, an ideology, a person — defines every choice. Works best when that faith is tested. **Play it well by:** establishing what the faith actually demands in concrete terms, so when it conflicts with other values, the dilemma is real.
+
+## 4. The Cynical Veteran
+*"I've seen how this ends."*
+
+Seen too much, trusts no one, survives on instinct. A classic dark fantasy archetype. **Play it well by:** showing what they *were* before the cynicism set in — one relationship or value they haven't abandoned.
+
+## 5. The Eager Apprentice
+*"Teach me everything."*
+
+Enthusiastic, possibly reckless, learning on the job. Works especially well if there's a mentor dynamic in the group. **Play it well by:** having them make a specific type of mistake repeatedly until a pivotal moment forces genuine growth.
+
+## 6. The Outsider
+*"Your customs are strange to me."*
+
+A character from elsewhere — another culture, another world, another era. Offers a lens to examine the world's assumptions. **Play it well by:** making their outsider perspective come from somewhere specific, not just generic naivety.
+
+## 7. The Reluctant Monster
+*"I am what I am. It doesn't define me."*
+
+A character with a monstrous nature (curse, heritage, past) trying to live differently. **Play it well by:** letting the monster nature surface in useful, even heroic ways — the archetype is more interesting when the "curse" becomes a tool.
+
+## 8. The Con Artist with a Heart
+*"I only steal from people who deserve it."*
+
+Charming, untrustworthy, surprisingly principled. **Play it well by:** establishing their actual moral line clearly — the thing they won't do regardless of the payoff.
+
+## 9. The Scholar Out of Their Depth
+*"Theoretically, I know how this works."*
+
+Brilliant in their domain, helpless in the field. **Play it well by:** having their expertise save the group in one key moment they didn't expect.
+
+## 10. The Haunted Survivor
+*"I should have died. Others did."*
+
+Survivor's guilt, driven forward by ghosts. **Play it well by:** naming the people they lost. Specific names, specific memories. That's what makes them real.
+
+---
+
+Pick one of these for your next EchoQuest session. Tell the AI Game Master a sentence or two about your character's archetype in the backstory field, and watch how the story bends around who you are. **[Create your character →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
