@@ -21,13 +21,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: { label: "Display name", type: "text" },
       },
       async authorize(credentials, request) {
-        // Derive the public-facing origin from reverse-proxy headers (Render sets
-        // x-forwarded-host/proto). request.url is the internal address (localhost:port).
-        const proto = request?.headers?.get("x-forwarded-proto") ?? "https";
-        const host = request?.headers?.get("x-forwarded-host") ?? request?.headers?.get("host") ?? "";
-        const origin = host && !host.startsWith("localhost")
-          ? `${proto}://${host}`
-          : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
+        // In NextAuth's authorize callback, `request` is internal (localhost:port).
+        // Prefer env vars; fall back to headers only if neither is set.
+        const origin =
+          process.env["NEXTAUTH_URL"] ??
+          process.env["NEXT_PUBLIC_SITE_URL"] ??
+          (() => {
+            const proto = request?.headers?.get("x-forwarded-proto") ?? "https";
+            const host = request?.headers?.get("x-forwarded-host") ?? request?.headers?.get("host") ?? "";
+            return host && !host.startsWith("localhost") ? `${proto}://${host}` : "http://localhost:3000";
+          })();
         const { email, password, mode, name: displayName } = credentials as {
           email: string;
           password: string;
