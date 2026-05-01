@@ -18,9 +18,13 @@ export async function POST(req: Request) {
     );
   }
 
-  // Derive base URL from the request origin so the link works regardless of
-  // how NEXTAUTH_URL is configured in the environment.
-  const origin = new URL(req.url).origin;
+  // Derive the public-facing origin from reverse-proxy headers (Render sets
+  // x-forwarded-host/proto). req.url is the internal address (localhost:10000).
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
+  const origin = host && !host.startsWith("localhost")
+    ? `${proto}://${host}`
+    : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
 
   const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
   if (user) {
