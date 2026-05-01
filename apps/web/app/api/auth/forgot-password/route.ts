@@ -27,11 +27,15 @@ export async function POST(req: Request) {
     : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
 
   try {
-    const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
+    // Find case-insensitively so mixed-case signups (e.g. Kumbi59@gmail.com) still work
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalised, mode: "insensitive" } },
+      select: { email: true },
+    });
     if (user) {
-      const token = await createPasswordResetToken(normalised);
-      const url = `${origin}/auth/reset-password?token=${token}&email=${encodeURIComponent(normalised)}`;
-      await sendPasswordResetEmail(normalised, url);
+      const token = await createPasswordResetToken(user.email);
+      const url = `${origin}/auth/reset-password?token=${token}&email=${encodeURIComponent(user.email)}`;
+      await sendPasswordResetEmail(user.email, url);
     }
   } catch (err) {
     console.error("[forgot-password] error:", err);
