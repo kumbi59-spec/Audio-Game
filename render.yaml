@@ -62,7 +62,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
-        sync: false
+        sync: false           # Required when RESEND_API_KEY is set — must be an address on a Resend-verified domain, e.g. "EchoQuest <noreply@yourdomain.com>"
       - key: IMAGE_GEN_PROVIDER
         sync: false           # set to "replicate" to enable AI cover art
       - key: REPLICATE_API_TOKEN
