@@ -620,6 +620,131 @@ Ambient sound can overwhelm narration if it's too loud — particularly for play
 You'll find the ambient volume slider in **Settings → Voice** and in the in-game audio controls panel. **[Play your first session →](/library)**
 `,
   },
+  {
+    daysFromNow: 13,
+    title: "From Tabletop to AI: How EchoQuest Reimagines D&D",
+    excerpt: "Dungeons & Dragons has shaped RPGs for fifty years. EchoQuest inherits its DNA — the AI Game Master, the open-ended action system, the collaborative storytelling — while solving the biggest problems tabletop has never cracked.",
+    content: `# From Tabletop to AI: How EchoQuest Reimagines D&D
+
+Dungeons & Dragons turned 50 years old recently. In that half-century, it defined what a role-playing game is: a human Game Master, a set of rules, dice, and a table full of players deciding what their characters do. That formula proved so compelling it generated an entire industry.
+
+EchoQuest is built in that tradition. But it solves some problems that tabletop never could.
+
+## What D&D Got Right
+
+**The open action system.** In D&D, you can try to do anything. The GM adjudicates it. There's no menu of options, no locked skill tree — if you can describe an action, you can attempt it. This is what makes tabletop feel alive compared to video games with finite option sets.
+
+**The collaborative story.** The best D&D sessions are co-authored. The GM sets the world and responds to players; players act in unexpected ways and the GM adapts. The story becomes something nobody planned.
+
+**The persistent character.** Your character grows over time — gains abilities, forms relationships, carries the weight of past choices. The accumulation of history is what makes the emotional highs hit hard.
+
+EchoQuest preserves all three of these.
+
+## What Tabletop Couldn't Solve
+
+**Scheduling.** Getting five adults in the same room at the same time, every week, indefinitely, is genuinely difficult. This is the single biggest reason D&D campaigns die. EchoQuest is available whenever you are.
+
+**The GM burden.** Running a good tabletop game requires enormous preparation — writing NPCs, building encounters, running improv for hours. Most people who want to play don't want to (or can't) carry that load. EchoQuest's AI GM handles it entirely.
+
+**The social anxiety barrier.** Tabletop RPGs require performing in front of people — improvising dialogue, making decisions out loud, being judged by your peers. For many players, this is exciting. For many others, it's a barrier that keeps them away from a hobby they'd otherwise love. EchoQuest is a private space.
+
+**Accessibility.** As discussed elsewhere on this blog, tabletop RPGs are deeply visual — maps, character sheets, books, dice. EchoQuest replaces all of that with audio and keyboard-accessible text.
+
+## What's Different About AI as GM
+
+A human GM makes judgment calls informed by years of creative experience, social reading of the table, and genuine emotional investment in the story. An AI GM makes judgment calls informed by training data and a carefully designed system prompt.
+
+The AI doesn't get tired. It doesn't play favorites. It doesn't railroad you toward its preferred story. It doesn't have bad nights. But it also doesn't have the spark of genuine human creativity — the unexpected callback, the perfect improv moment, the tear in a seasoned GM's eye.
+
+EchoQuest is not a replacement for a great human GM and a great group. It's something different: a solo or intimate experience, available anytime, that captures enough of what makes tabletop magical to produce real joy.
+
+**[Start your first adventure →](/library)**
+`,
+  },
+  {
+    daysFromNow: 14,
+    title: "Writing Compelling NPCs: 7 Techniques That Work",
+    excerpt: "The best NPCs feel like people with lives outside the scenes they appear in. Here are seven techniques for building characters your players will remember long after the campaign ends.",
+    content: `# Writing Compelling NPCs: 7 Techniques That Work
+
+NPCs are the human heartbeat of any RPG world. They're who your players talk to, trust, fight, fall for, and mourn. A flat NPC is a vending machine: dispenses information, forgotten immediately. A real NPC changes how players feel about the world they're in. Here's how to write the latter.
+
+## 1. Give Them One Specific Want
+
+Not a vague motivation — a specific, current desire. Not "she wants power" but "she wants to be appointed to the city council before her rival is, and she has three weeks." Specificity creates urgency. Urgency creates drama.
+
+## 2. Give Them One Thing They Won't Do
+
+Every character has a line they won't cross. This line defines who they actually are. A mercenary who'll take any job except killing children is more interesting than one with no limits. The line creates the dilemma: eventually, players will find a situation that tests it.
+
+## 3. Let Them Want Something From the Players Specifically
+
+The most engaging NPCs aren't neutral — they want something from *these* characters, for *this* reason. The blacksmith doesn't just sell weapons; she's been watching the party and wants to hire them for something she's too afraid to do herself. Interest is mutual. Engagement goes both ways.
+
+## 4. Give Them a Physical Habit or Mannerism
+
+One specific, repeatable behavior that the AI GM (or you, at the table) can consistently deploy. Not "she's nervous" but "she always straightens objects on a table when she's thinking." This mannerism becomes a signal — players will recognize it and read into it. When she starts straightening things during a negotiation, they'll pay attention.
+
+## 5. Make Them Competent at Something Unrelated to Their Role
+
+The innkeeper is also a retired sailor who can navigate by stars. The wizard's apprentice is a remarkably skilled liar. The gruff guard captain writes poetry in his off hours. Competence in an unexpected area makes a character feel three-dimensional — they exist beyond their job title.
+
+## 6. Let Them Be Partly Wrong
+
+Characters who are completely correct about everything are boring. Give your NPCs a mistaken belief they're confident about. Not a character flaw that makes them unlikeable — just a specific thing they've got wrong that will matter eventually. The mentor who's wrong about the enemy's motivation. The ally who trusts the wrong person. Real people are wrong about things. So should NPCs be.
+
+## 7. Let Them Change
+
+The NPCs players meet at the start of a campaign shouldn't be exactly the same people at the end — not if the players have genuinely interacted with them. An NPC who trusted the party and was betrayed should become more guarded. One who witnessed the party's heroism should become more hopeful. Change is what separates a character from a fixture.
+
+---
+
+In EchoQuest, the AI Game Master uses your Game Bible to build NPCs that match these principles. The richer your character descriptions, the more consistently the AI can maintain them across sessions. **[Build your world →](/)**
+`,
+  },
+  {
+    daysFromNow: 15,
+    title: "The Power of Choice: How Branching Narratives Work in AI RPGs",
+    excerpt: "Every choice in an RPG creates a branch. In old systems, branches were finite and pre-written. In an AI RPG, branches are infinite — which changes everything about how story works.",
+    content: `# The Power of Choice: How Branching Narratives Work in AI RPGs
+
+Choice is what separates a game from a book. When you choose, you create. When your choice matters — when it genuinely changes what happens next — you're invested in a way no passive story can produce.
+
+But building choice has always been a problem in games.
+
+## The Old Model: Choose Your Own Adventure
+
+Traditional branching narratives — including video game dialogue trees — work by pre-writing every possible branch. If there are five decision points and three options each, you need 243 unique story paths to cover all combinations. That's before you account for players who want to do something not on the list.
+
+The result: the illusion of choice. A small number of pre-written responses dressed up as a vast decision space. Players quickly learn that most choices don't matter, and the few that do lead to the same handful of outcomes.
+
+## The AI Model: Responsive Generation
+
+In EchoQuest, the AI Game Master doesn't pre-write branches. It reads your action — whatever you say or type — and generates the next narrative beat in response. The story is constructed on the fly, constrained by your world's rules and the current context.
+
+This means:
+
+- **Any action is valid.** There's no "I don't understand that" for sensible in-world actions.
+- **Choices compound.** The consequence of your action in scene 3 can still be affecting the story in scene 47, because the AI carries context.
+- **Side paths are real.** If you decide to investigate the merchant guild instead of following the main quest, the AI will follow you there and build something out.
+
+## The Texture of Meaningful Choice
+
+What makes a choice feel meaningful isn't just that it changes the plot. It's that it reveals character — yours. The choice to spare a villain reveals something about who you are. So does the choice to negotiate before fighting, or to ask a bystander's name before they matter to the story.
+
+The AI GM in EchoQuest is designed to honor choices that reveal character. When you do something unexpected but consistent with who your character is, the GM responds in kind — NPCs remember, situations reflect back what you've done.
+
+## The Limits of AI Choice
+
+AI narrative isn't perfect. Long-term consequence tracking is harder than short-term. A choice you made twenty sessions ago may not be remembered as precisely as one you made two scenes back. We mitigate this with structured game state — key facts about your choices are stored explicitly, not just in the conversation history.
+
+And the AI doesn't experience your choices emotionally the way a human GM might. It won't be visibly moved by a sacrifice or surprised by a twist the way a person is.
+
+But it's always available. Always patient. Always responsive. And within a session, the responsiveness is remarkable.
+
+**[See the difference for yourself →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
