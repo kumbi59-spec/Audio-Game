@@ -13,11 +13,14 @@ export default function NewWorldPage() {
   const can = useCanWeb();
 
   useEffect(() => {
-    const msg = "Create a new world. Choose the wizard for a guided experience, or upload a Game Bible document.";
+    const msg =
+      "Create a new world. Choose Quick Build for the fastest path, the World Builder Wizard for full creative control, or upload a Game Bible document.";
     announce(msg);
     speak(msg, { rate: ttsSpeed, volume });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const locked = !can.worldWizard;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
@@ -44,49 +47,114 @@ export default function NewWorldPage() {
 
       <main id="main-content" className="mx-auto max-w-xl px-6 pb-16">
         <div className="space-y-4">
-          {/* Wizard option */}
+
+          {/* ── Quick Build ─────────────────────────────────────────────── */}
           <Link
-            href="/worlds/new/wizard"
-            aria-label="World Builder Wizard. Answer 10 questions and the AI builds your world. Requires Creator plan."
-            className="block rounded-2xl border p-6 transition-opacity hover:opacity-90"
+            href="/worlds/new/quick"
+            aria-label={
+              locked
+                ? "Quick Build — answer 4 questions, Claude fills the rest. Requires Storyteller plan."
+                : "Quick Build — answer 4 questions, Claude fills the rest."
+            }
+            className="block rounded-2xl border-2 p-6 transition-opacity hover:opacity-90"
             style={{
               borderColor: "var(--accent)",
               backgroundColor: "var(--surface)",
             }}
           >
             <div className="flex items-start gap-4">
-              <span className="text-3xl" aria-hidden="true">🧙</span>
-              <div>
-                <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--text)" }}>
-                  World Builder Wizard
-                  {!can.worldWizard && (
+              <span className="text-3xl" aria-hidden="true">⚡</span>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                    Quick Build
+                  </h2>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    style={{
+                      backgroundColor: "var(--accentBg, rgba(99,102,241,0.12))",
+                      color: "var(--accent)",
+                    }}
+                  >
+                    Fastest
+                  </span>
+                  {locked && (
                     <span
-                      className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold"
+                      className="rounded-full px-2 py-0.5 text-xs font-semibold"
                       style={{
-                        backgroundColor: "var(--accentBg, rgba(99,102,241,0.12))",
-                        color: "var(--accent)",
+                        backgroundColor: "var(--surface3)",
+                        color: "var(--text-muted)",
                       }}
                     >
-                      Creator
+                      Storyteller+
                     </span>
                   )}
-                </h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  Answer 10 spoken questions. Claude suggests ideas at each step. Your world is ready to play in under 5 minutes.
+                </div>
+                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                  No Game Bible needed. Answer 4 questions — Claude automatically generates setting, tone, narrator style, and world rules.
                 </p>
                 <ul className="mt-3 space-y-1 text-xs" style={{ color: "var(--text-faint)" }}>
+                  <li>✓ Ready to play in under 30 seconds</li>
+                  <li>✓ AI fills in everything you don&apos;t write</li>
                   <li>✓ Voice input supported</li>
-                  <li>✓ AI suggestions at every step</li>
-                  <li>✓ Publish to community library</li>
                 </ul>
               </div>
             </div>
           </Link>
 
-          {/* Upload option */}
+          {/* ── World Builder Wizard ─────────────────────────────────────── */}
+          <Link
+            href="/worlds/new/wizard"
+            aria-label={
+              locked
+                ? "World Builder Wizard — answer 10 questions with AI suggestions at each step. Requires Storyteller plan."
+                : "World Builder Wizard — answer 10 questions with AI suggestions at each step."
+            }
+            className="block rounded-2xl border p-6 transition-opacity hover:opacity-90"
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--surface)",
+            }}
+          >
+            <div className="flex items-start gap-4">
+              <span className="text-3xl" aria-hidden="true">🧙</span>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                    World Builder Wizard
+                  </h2>
+                  {locked && (
+                    <span
+                      className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                      style={{
+                        backgroundColor: "var(--surface3)",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      Storyteller+
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                  Answer 10 spoken questions. Claude suggests ideas at each step. Full creative control over every detail.
+                </p>
+                <ul className="mt-3 space-y-1 text-xs" style={{ color: "var(--text-faint)" }}>
+                  <li>✓ AI suggestions at every step</li>
+                  <li>✓ Step-by-step voice walkthrough</li>
+                  <li>✓ Ready in under 5 minutes</li>
+                </ul>
+              </div>
+            </div>
+          </Link>
+
+          {/* ── Upload a Game Bible ──────────────────────────────────────── */}
           <Link
             href="/worlds/new/upload"
-            aria-label="Upload a Game Bible. Upload a PDF, Word doc, or text file and the AI extracts your world. Requires Storyteller plan."
+            aria-label={
+              !can.bibleUpload
+                ? "Upload a Game Bible — upload a PDF, Word doc, or text file. Requires Storyteller plan."
+                : "Upload a Game Bible — upload a PDF, Word doc, or text file and Claude extracts your world."
+            }
             className="block rounded-2xl border p-6 transition-opacity hover:opacity-90"
             style={{
               borderColor: "var(--border)",
@@ -95,22 +163,24 @@ export default function NewWorldPage() {
           >
             <div className="flex items-start gap-4">
               <span className="text-3xl" aria-hidden="true">📖</span>
-              <div>
-                <h2 className="mb-1 text-lg font-bold" style={{ color: "var(--text)" }}>
-                  Upload a Game Bible
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                    Upload a Game Bible
+                  </h2>
                   {!can.bibleUpload && (
                     <span
-                      className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold"
+                      className="rounded-full px-2 py-0.5 text-xs font-semibold"
                       style={{
                         backgroundColor: "var(--surface3)",
                         color: "var(--text-muted)",
                       }}
                     >
-                      Storyteller
+                      Storyteller+
                     </span>
                   )}
-                </h2>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                </div>
+                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
                   Upload a PDF, Word document, text file, or JSON. Claude reads it, identifies characters and locations, and builds a playable world.
                 </p>
                 <ul className="mt-3 space-y-1 text-xs" style={{ color: "var(--text-faint)" }}>
@@ -121,7 +191,18 @@ export default function NewWorldPage() {
               </div>
             </div>
           </Link>
+
         </div>
+
+        {locked && (
+          <p className="mt-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            World creation requires the{" "}
+            <Link href="/account" className="underline" style={{ color: "var(--accent)" }}>
+              Storyteller plan
+            </Link>
+            .
+          </p>
+        )}
       </main>
     </div>
   );
