@@ -24,7 +24,7 @@ interface Profile {
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState("");
@@ -359,6 +359,20 @@ export default function AccountPage() {
             </Link>
           </div>
         </section>
+
+        {/* Admin dashboard link */}
+        {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin && (
+          <section className="rounded-xl border p-5" style={{ borderColor: "var(--accent)", backgroundColor: "var(--surface)" }}>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>Admin</p>
+            <Link
+              href="/admin"
+              className="block w-full rounded-lg py-3 text-center text-sm font-semibold"
+              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            >
+              Open Admin Dashboard
+            </Link>
+          </section>
+        )}
 
         {/* Sign out */}
         <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
