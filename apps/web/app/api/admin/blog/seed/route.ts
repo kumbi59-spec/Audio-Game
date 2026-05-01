@@ -484,6 +484,142 @@ Survivor's guilt, driven forward by ghosts. **Play it well by:** naming the peop
 Pick one of these for your next EchoQuest session. Tell the AI Game Master a sentence or two about your character's archetype in the backstory field, and watch how the story bends around who you are. **[Create your character →](/library)**
 `,
   },
+  {
+    daysFromNow: 10,
+    title: "How to Write a Game Bible: The World-Builder's Template",
+    excerpt: "A Game Bible is the document that defines everything about your RPG world — lore, factions, tone, rules. Here's a practical template you can fill in and upload to EchoQuest today.",
+    content: `# How to Write a Game Bible: The World-Builder's Template
+
+A Game Bible is the single document that defines your world. It's what the AI Game Master reads before your first session begins. A great Game Bible produces consistent, immersive storytelling. A vague one produces a Generic Fantasy Experience™. Here's how to write one worth playing.
+
+## What Goes in a Game Bible
+
+Think of your Game Bible as answers to six questions:
+
+1. **What kind of world is this?**
+2. **What's wrong with it right now?**
+3. **Who are the major players?**
+4. **What does it feel like to be here?**
+5. **What are the rules?**
+6. **Where does the story start?**
+
+## Section 1: World Overview (1–2 paragraphs)
+
+Name your world. Describe its scope (one city? a continent? multiple realms?). Give the historical period feel — medieval, Renaissance, post-apocalyptic, secondary-world modern. State the dominant tone: gritty and realistic, high fantasy, cosmic horror, political thriller, fairy tale.
+
+*Example: "Valdenmoor is a decaying empire in its third century of slow collapse. Think late Roman Empire crossed with the Venetian Republic — bureaucratic corruption, mercenary armies, fading gods. The tone is dark and political, with occasional moments of unexpected grace."*
+
+## Section 2: The Central Conflict
+
+What is the one tension that defines the current moment in your world? This should be specific and active — something that is happening right now, not ancient history.
+
+*Example: "The Emperor just died without an heir. Three Archduchies are mobilizing armies. A fourth is secretly negotiating with a foreign power. The Church has declared it will name the next emperor from among the clergy. Civil war is two weeks away."*
+
+## Section 3: Factions (3–5)
+
+For each faction, write 2–3 sentences covering: who they are, what they want, and what they're willing to do to get it. Don't write histories — write current agendas.
+
+## Section 4: Tone & Sensory Language
+
+Give the GM a list of sensory details specific to your world. What does the capital city smell like? What sounds fill a tavern? What does magic look like when cast? These details make the difference between generic narration and immersive storytelling.
+
+## Section 5: Rules & Constraints
+
+What can't happen in your world? What are the hard limits? Examples:
+- "Magic is rare and feared — nobody casts spells openly"
+- "This world has no elves or dwarves — all characters are human"
+- "Death is permanent and treated with gravitas — no resurrection magic"
+- "Technology is equivalent to 1400s Europe — no gunpowder yet"
+
+The GM will respect these constraints throughout your campaign.
+
+## Section 6: Opening Scenario
+
+Describe the first scene in 2–3 sentences. Where is the player character? What's immediately happening? What's the first decision they need to make?
+
+## Uploading Your Bible
+
+EchoQuest accepts Game Bibles as plain text, PDF, or DOCX files up to 10MB. The AI parses your document, extracts the world data, and creates a playable campaign. Storyteller plan and above includes Bible upload access. **[See plans →](/)**
+`,
+  },
+  {
+    daysFromNow: 11,
+    title: "Accessibility in Gaming: The State of Play in 2026",
+    excerpt: "The gaming industry has made real progress on accessibility over the past decade — but significant gaps remain, especially for blind and visually impaired players. Here's an honest look at where things stand.",
+    content: `# Accessibility in Gaming: The State of Play in 2026
+
+The conversation around gaming accessibility has shifted dramatically over the past decade. What was once a niche concern addressed by volunteer modders is now something major studios publish accessibility trailers for. Progress is real. But so are the remaining gaps.
+
+## What's Improved
+
+**Subtitle and caption standards** have risen significantly. Most major releases now include speaker labels, sound effect descriptions, and positioning information in captions — not just dialogue transcripts.
+
+**Colorblind modes** are nearly universal in AAA titles. Multiple colorblind profiles (deuteranopia, protanopia, tritanopia) are standard.
+
+**Controller remapping** is now expected. Players with motor disabilities can remap any button to any input, use single-switch or eye-tracking setups, and adjust timing windows.
+
+**Cognitive accessibility options** — simplified UI, objective markers, difficulty presets — have expanded significantly. Games like *The Last of Us Part II* published detailed accessibility documentation alongside launch.
+
+## Where Significant Gaps Remain
+
+**Blind and low vision players** remain dramatically underserved. Visual UI, map navigation, inventory management, and most combat systems require sight to use effectively. Screen reader support is rare and often broken when it exists. The percentage of mainstream games that a totally blind player can complete is tiny.
+
+**Audio description** — verbal descriptions of visual cutscenes and story moments — is almost nonexistent outside of a handful of exceptions.
+
+**Accessible documentation** — tutorials, wikis, strategy guides — is rarely produced in accessible formats.
+
+**Small and indie studios** lack the resources that large studios have invested in accessibility tooling and testing. The accessibility gap between AAA and indie is enormous.
+
+## Why EchoQuest Takes a Different Approach
+
+Rather than retrofitting accessibility into an existing visual system, EchoQuest starts from the other direction: everything is audio and text first. The visual elements — images, interface design — are added on top of a system that works without them.
+
+This isn't just philosophy. It changes the architecture. A screen reader reading EchoQuest's HTML gets clean, semantic, meaningful labels. A keyboard user gets logical tab order. A voice user gets commands that map to real game actions.
+
+We're not done. We test with blind players regularly and publish our accessibility findings. We believe the best thing we can do for accessible gaming broadly is demonstrate that audio-first design is commercially viable and creatively rich.
+
+**[Try EchoQuest free — no account required for your first session →](/library)**
+`,
+  },
+  {
+    daysFromNow: 12,
+    title: "How Ambient Sound Design Elevates RPG Storytelling",
+    excerpt: "The crackle of a fire, distant thunder, the low hum of a dungeon — ambient sound does more for immersion than any visual effect. Here's the science and craft behind EchoQuest's soundscapes.",
+    content: `# How Ambient Sound Design Elevates RPG Storytelling
+
+Close your eyes. Imagine a stone dungeon corridor. Now add: the slow drip of water echoing off walls, the distant scrape of something moving, the faint smell of torch smoke. You're there instantly. That's what ambient sound does. It collapses the distance between description and experience.
+
+## The Neuroscience of Audio Immersion
+
+Research in spatial audio and presence consistently shows that soundscapes activate the same cognitive processes as real environments. When your auditory cortex receives information consistent with "underground stone corridor," your threat assessment, spatial reasoning, and emotional state all shift accordingly — regardless of whether you're looking at an image.
+
+For blind and visually impaired players, this isn't just immersion: it's orientation. Ambient sound communicates where you are and what kind of space you're in with precision that text description alone can't match.
+
+## How EchoQuest's Soundscapes Work
+
+Each location in an EchoQuest campaign has an associated ambient sound tag — things like `dungeon`, `forest`, `tavern`, `ocean`, `battlefield`, `throne_room`. When the AI Game Master moves you to a new location, the ambient track crossfades to the appropriate soundscape.
+
+The AI generates `state_change` events that include `locationId`. EchoQuest uses that to trigger the matching audio loop on the client. The result is that sound shifts automatically as you move through the world — no button presses required.
+
+## The Layers of a Good Soundscape
+
+Effective ambient sound isn't just one loop. It's typically three layers:
+
+**Base layer:** The constant environmental drone — rain, wind, cave echo, city crowd noise. This runs continuously and establishes the space.
+
+**Mid layer:** Periodic sounds that occur every few seconds — a fire popping, distant church bells, an owl calling. These prevent the base layer from feeling stale.
+
+**Event layer:** Triggered sounds tied to specific story moments — a door creaking open, a crowd going silent, thunder cracking at a dramatic reveal. These are the ones that create goosebumps.
+
+EchoQuest currently handles the base and mid layers automatically. Event-layer sounds are triggered by the AI GM via sound cue events in the SSE stream.
+
+## Volume Control
+
+Ambient sound can overwhelm narration if it's too loud — particularly for players using hearing aids or who process audio differently. EchoQuest lets you adjust ambient volume independently of narration volume, or disable ambient sound entirely without affecting the TTS voice.
+
+You'll find the ambient volume slider in **Settings → Voice** and in the in-game audio controls panel. **[Play your first session →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
