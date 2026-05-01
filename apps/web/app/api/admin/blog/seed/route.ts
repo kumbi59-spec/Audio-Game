@@ -1490,24 +1490,34 @@ export async function POST() {
 
   const created: string[] = [];
   const skipped: string[] = [];
+  const errors: string[] = [];
 
   for (const p of POSTS) {
     const slug = slugify(p.title);
-    const existing = await prisma.blogPost.findUnique({ where: { slug } });
-    if (existing) { skipped.push(slug); continue; }
+    try {
+      const existing = await prisma.blogPost.findUnique({ where: { slug } });
+      if (existing) { skipped.push(slug); continue; }
 
-    await prisma.blogPost.create({
-      data: {
-        title: p.title,
-        slug,
-        excerpt: p.excerpt,
-        content: p.content,
-        publishedAt: getPublishDate(p.daysFromNow),
-        authorId: admin.id,
-      },
-    });
-    created.push(slug);
+      await prisma.blogPost.create({
+        data: {
+          title: p.title,
+          slug,
+          excerpt: p.excerpt,
+          content: p.content,
+          publishedAt: getPublishDate(p.daysFromNow),
+          authorId: admin.id,
+        },
+      });
+      created.push(slug);
+    } catch (err) {
+      console.error(`[blog/seed] Failed to create post "${slug}":`, err);
+      errors.push(slug);
+    }
   }
 
-  return NextResponse.json({ created, skipped });
+  if (errors.length > 0 && created.length === 0 && skipped.length === 0) {
+    return NextResponse.json({ error: "All posts failed to seed", errors }, { status: 500 });
+  }
+
+  return NextResponse.json({ created, skipped, errors });
 }

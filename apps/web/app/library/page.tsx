@@ -54,7 +54,7 @@ export default function LibraryPage() {
   const { ttsSpeed, volume } = useAudioStore();
   const can = useCanWeb();
   const { session, world: savedWorld, clearSession } = useGameStore();
-  const hasSavedGame = !!(session && savedWorld && session.turnCount > 0);
+  const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [worlds, setWorlds] = useState<WorldItem[]>([]);
   const [loading, setLoading] = useState(true);
