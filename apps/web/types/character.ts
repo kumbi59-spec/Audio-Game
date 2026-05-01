@@ -19,6 +19,8 @@ export interface CharacterData {
   roleTitle?: string | null; // custom class name from uploaded world (overrides display of `class`)
   backstory: string;
   stats: CharacterStats;
+  /** Extra stats defined by the Game Bible (e.g. mp, stamina, sanity). Keys are display names. */
+  customStats?: Record<string, number>;
   inventory: InventoryItemData[];
   quests: QuestData[];
 }

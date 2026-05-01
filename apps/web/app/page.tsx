@@ -84,13 +84,71 @@ export default function LandingPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://echoquest.app/#organization",
+        name: "EchoQuest",
+        url: "https://echoquest.app",
+        logo: { "@type": "ImageObject", url: "https://echoquest.app/opengraph-image" },
+        sameAs: [],
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://echoquest.app/#app",
+        name: "EchoQuest",
+        url: "https://echoquest.app",
+        applicationCategory: "GameApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          description: "Free to start. Premium plans from $15/month.",
+        },
+        description:
+          "An audio-first AI tabletop RPG platform with a live AI Game Master. Fully accessible for blind and visually impaired players.",
+        screenshot: "https://echoquest.app/opengraph-image",
+        featureList: [
+          "AI Game Master powered by Claude",
+          "Audio-first design with TTS narration",
+          "Fully accessible for blind players",
+          "Community world creation",
+          "Voice command navigation",
+        ],
+        publisher: { "@id": "https://echoquest.app/#organization" },
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://echoquest.app/#website",
+        url: "https://echoquest.app",
+        name: "EchoQuest",
+        publisher: { "@id": "https://echoquest.app/#organization" },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: "https://echoquest.app/library" },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4" aria-label="Site navigation">
         <span className="text-lg font-bold" style={{ color: "var(--text)" }}>EchoQuest</span>
         <div className="flex items-center gap-4 text-sm" style={{ color: "var(--text-muted)" }}>
           <Link href="/library" className="hover:underline">Library</Link>
+          <Link href="/blog" className="hover:underline">Blog</Link>
           {session?.user ? (
             <>
               <Link href="/my-worlds" className="hover:underline">My Worlds</Link>
@@ -291,11 +349,13 @@ export default function LandingPage() {
         <p className="mb-2">EchoQuest — Powered by Claude AI · Audio-first interactive storytelling</p>
         <div className="flex justify-center gap-4">
           <Link href="/library" className="hover:underline">Library</Link>
+          <Link href="/blog" className="hover:underline">Blog</Link>
           <Link href="/auth/sign-in" className="hover:underline">Sign in</Link>
           <a href="https://echoquest.app/privacy" className="hover:underline">Privacy</a>
           <a href="https://echoquest.app/support" className="hover:underline">Support</a>
         </div>
       </footer>
     </div>
+    </>
   );
 }

@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
+import { useEntitlementsStore } from "@/store/entitlements-store";
+import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
+import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue } from "@/types/game";
 import type { CharacterData } from "@/types/character";
@@ -22,11 +25,24 @@ export function useGameSession() {
     incrementTurnCount,
     updateFlags,
     updateHP,
+    updateStat,
+    applyInventoryMutation,
+    applyQuestMutation,
+    updateLocation,
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
+  const { entitlements } = useEntitlementsStore();
+  const { announce } = useAnnouncer();
+  // Per-session NPC name → voice slot map (A/B/C), reset when session changes
+  const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
   const [lastNarration, setLastNarration] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  // Reset the NPC voice map whenever a new session starts
+  useEffect(() => {
+    npcVoiceMapRef.current = new Map();
+  }, [session?.id]);
 
   useEffect(() => {
     const latestNarration = [...(session?.narrationLog ?? [])]
@@ -122,11 +138,38 @@ export function useGameSession() {
               } else if (eventType === "sound_cue" && soundCuesEnabled) {
                 playSoundCue(data.cue as SoundCue);
               } else if (eventType === "state_change") {
-                if (data.hp !== undefined && data.hp !== null) {
-                  updateHP(data.hp);
+                const change = data as Record<string, unknown>;
+                if (change.hp !== undefined && change.hp !== null) {
+                  updateHP(change.hp as number);
                 }
-                if (data.flags) {
-                  updateFlags(data.flags as Record<string, unknown>);
+                if (change.statDeltas && typeof change.statDeltas === "object") {
+                  const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
+                  for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, number>)) {
+                    updateStat(stat, delta);
+                  }
+                  const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
+                  if (levelAfter > levelBefore) {
+                    const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
+                    announce(levelUpMsg, "assertive");
+                    speakText(levelUpMsg);
+                    if (soundCuesEnabled) playSoundCue("level_up");
+                  }
+                }
+                if (change.flags) {
+                  updateFlags(change.flags as Record<string, unknown>);
+                }
+                if (change.locationId) {
+                  updateLocation(change.locationId as string);
+                }
+                if (Array.isArray(change.inventoryChanges)) {
+                  for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
+                    applyInventoryMutation(mut);
+                  }
+                }
+                if (Array.isArray(change.questChanges)) {
+                  for (const mut of change.questChanges as import("@/types/game").QuestMutation[]) {
+                    applyQuestMutation(mut);
+                  }
                 }
               } else if (eventType === "choices_ready") {
                 // Full response parsed — update choices and add narration entry
@@ -142,11 +185,20 @@ export function useGameSession() {
                 };
                 addNarrationEntry(narEntry);
 
-                // Speak narration sentence-by-sentence
-                const sentences = splitIntoSentences(gmResp.narration);
-                for (const sentence of sentences) {
-                  if (abort.signal.aborted) break;
-                  await speakText(sentence);
+                // Speak narration — multi-voice for Storyteller+, plain for free
+                if (entitlements.premiumTts && character) {
+                  await speakNarrationMultiVoice(
+                    gmResp.narration,
+                    character.name,
+                    npcVoiceMapRef.current,
+                    abort.signal,
+                  );
+                } else {
+                  const sentences = splitIntoSentences(gmResp.narration);
+                  for (const sentence of sentences) {
+                    if (abort.signal.aborted) break;
+                    await speakText(sentence);
+                  }
                 }
               } else if (eventType === "error") {
                 console.error("GM error:", data.message);
@@ -182,8 +234,9 @@ export function useGameSession() {
     },
     [
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
-      setIsGenerating, incrementTurnCount, updateFlags, updateHP,
-      speakText, soundCuesEnabled,
+      setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
+      applyInventoryMutation, applyQuestMutation, updateLocation,
+      speakText, soundCuesEnabled, announce,
     ]
   );
 

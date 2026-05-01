@@ -63,4 +63,12 @@ export interface AudioSettings {
   ambientVolume: number;
   soundCuesEnabled: boolean;
   currentAmbient: AmbientTrack;
+  /** Storyteller+: voice for the player's own character's dialogue */
+  characterVoiceId: string;
+  /** Storyteller+: NPC voice slot A (first unique NPC in a turn) */
+  npcVoiceA: string;
+  /** Storyteller+: NPC voice slot B */
+  npcVoiceB: string;
+  /** Storyteller+: NPC voice slot C */
+  npcVoiceC: string;
 }

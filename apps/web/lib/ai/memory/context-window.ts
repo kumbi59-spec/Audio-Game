@@ -33,11 +33,20 @@ export function buildCharacterStateBlock(character: CharacterData): string {
   const s = character.stats;
   const activeQuests = character.quests
     .filter((q) => q.status === "active")
-    .map((q) => q.title)
-    .join(", ") || "None";
+    .map((q) => {
+      const openObjs = q.objectives.filter((o) => !o.completed).map((o) => o.text);
+      return `${q.title}${openObjs.length ? ` (${openObjs.join("; ")})` : ""}`;
+    })
+    .join(" | ") || "None";
   const items = character.inventory
-    .map((i) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}`)
+    .map((i) => `${i.name}${i.quantity > 1 ? ` x${i.quantity}` : ""}${i.description ? ` (${i.description})` : ""}`)
     .join(", ") || "Nothing";
+
+  const customStatLines = character.customStats && Object.keys(character.customStats).length > 0
+    ? Object.entries(character.customStats)
+        .map(([k, v]) => `${k.charAt(0).toUpperCase() + k.slice(1)}: ${v}`)
+        .join(" | ")
+    : "";
 
   return [
     `Name: ${character.name}`,
@@ -45,8 +54,9 @@ export function buildCharacterStateBlock(character: CharacterData): string {
     typeof character.age === "number" ? `Age: ${character.age}` : "",
     character.shortDescription ? `Appearance: ${character.shortDescription}` : "",
     `Class: ${character.roleTitle ?? character.class}`,
-    `HP: ${s.hp}/${s.maxHp} | Level: ${s.level} | XP: ${s.experience}`,
+    `HP: ${s.hp}/${s.maxHp} | Level: ${s.level} | XP: ${s.experience} (XP to next level: ${s.level * 100})`,
     `STR:${s.strength} DEX:${s.dexterity} INT:${s.intelligence} CHA:${s.charisma}`,
+    customStatLines || "",
     `Inventory: ${items}`,
     `Active Quests: ${activeQuests}`,
     character.backstory ? `Backstory: ${character.backstory}` : "",

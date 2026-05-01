@@ -6,6 +6,7 @@ import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
 import { ActionInput } from "./ActionInput";
 import { StatusBar } from "./StatusBar";
+import { CharacterSheet } from "./CharacterSheet";
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
@@ -23,6 +24,7 @@ export function GameShell() {
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [choicesMinimized, setChoicesMinimized] = useState(false);
   const openingSpokenRef = useRef(false);
 
@@ -109,8 +111,13 @@ export function GameShell() {
         onFocusInput={handleFocusInput}
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
+        onToggleCharacterSheet={() => setSheetOpen((o) => !o)}
         isSpeaking={speaking}
       />
+
+      {sheetOpen && (
+        <CharacterSheet character={character} onClose={() => setSheetOpen(false)} />
+      )}
 
       <div
         className="flex h-full flex-col"
@@ -236,8 +243,20 @@ export function GameShell() {
             </button>
           </div>
 
-          {/* HUD / Recap / Exit */}
+          {/* HUD / Sheet / Recap / Exit */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSheetOpen((o) => !o)}
+              aria-pressed={sheetOpen}
+              aria-label={sheetOpen ? "Close character sheet" : "Open character sheet (C)"}
+              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                sheetOpen
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              Sheet
+            </button>
             <button
               onClick={() => setHudOpen((h) => !h)}
               aria-pressed={hudOpen}

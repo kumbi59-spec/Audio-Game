@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getUserTier } from "@/lib/db/queries/users";
+import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { draftToBible, draftToSystemPrompt, type Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 
@@ -27,6 +29,22 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+
+  // Enforce maxWorlds tier limit
+  const tier = await getUserTier(session.user.id);
+  const { maxWorlds } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
+  if (maxWorlds !== null && maxWorlds === 0) {
+    return NextResponse.json({ error: "Upgrade to the Storyteller plan to create custom worlds." }, { status: 403 });
+  }
+  if (maxWorlds !== null) {
+    const worldCount = await prisma.world.count({ where: { ownerId: session.user.id, isPrebuilt: false } });
+    if (worldCount >= maxWorlds) {
+      return NextResponse.json(
+        { error: `You've reached your world limit (${maxWorlds}). Upgrade to Creator for unlimited worlds.` },
+        { status: 403 }
+      );
+    }
+  }
 
   let body: z.infer<typeof DraftSchema>;
   try {

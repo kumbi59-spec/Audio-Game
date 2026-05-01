@@ -17,6 +17,21 @@ const nextConfig = {
         source: "/api/game/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
+      // Security headers that also benefit SEO (prevent framing, MIME sniffing)
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+      // Long-lived cache for static blog pages
+      {
+        source: "/blog/:path*",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" }],
+      },
     ];
   },
 };
