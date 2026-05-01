@@ -21,8 +21,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         name: { label: "Display name", type: "text" },
       },
       async authorize(credentials, request) {
-        // Derive origin from the request so email links work regardless of NEXTAUTH_URL
-        const origin = request?.url ? new URL(request.url).origin : (process.env["NEXTAUTH_URL"] ?? "http://localhost:3000");
+        // Derive the public-facing origin from reverse-proxy headers (Render sets
+        // x-forwarded-host/proto). request.url is the internal address (localhost:port).
+        const proto = request?.headers?.get("x-forwarded-proto") ?? "https";
+        const host = request?.headers?.get("x-forwarded-host") ?? request?.headers?.get("host") ?? "";
+        const origin = host && !host.startsWith("localhost")
+          ? `${proto}://${host}`
+          : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
         const { email, password, mode, name: displayName } = credentials as {
           email: string;
           password: string;

@@ -70,7 +70,7 @@ services:
       - key: REPLICATE_IMAGE_MODEL
         value: black-forest-labs/flux-schnell
       - key: NEXT_PUBLIC_SITE_URL
-        value: https://echoquest.app  # Canonical site URL — update if domain changes
+        sync: false           # Canonical site URL e.g. https://echoquest.us — set in Render dashboard
       - key: NEXT_PUBLIC_ADSENSE_PUB_ID
         sync: false           # Google AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX)
       - key: NEXT_PUBLIC_ADSENSE_SLOT
