@@ -6,6 +6,7 @@ import { getUserTier } from "@/lib/db/queries/users";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { draftToBible, draftToSystemPrompt, type Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
+import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
             name: "The Beginning",
             description: draft.startingScenario,
             shortDesc: draft.startingScenario.slice(0, 80),
-            ambientSound: null,
+            ambientSound: inferAmbientTrack("The Beginning", draft.startingScenario),
             connectedTo: "[]",
             properties: "{}",
           },

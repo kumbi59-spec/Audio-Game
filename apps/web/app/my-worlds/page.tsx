@@ -8,6 +8,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
+import { useGameStore } from "@/store/game-store";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
 
 interface EngagementSeries {
@@ -40,6 +41,11 @@ export default function MyWorldsPage() {
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
   const can = useCanWeb();
+  const { session: activeSession, world: activeWorld } = useGameStore();
+  const activeWorldId =
+    activeSession && activeWorld && activeSession.narrationLog.length > 0
+      ? activeWorld.id
+      : null;
 
   const [worlds, setWorlds] = useState<MyWorld[]>([]);
   const [loading, setLoading] = useState(true);
@@ -297,18 +303,33 @@ export default function MyWorldsPage() {
                   )}
 
                   <div className="space-y-2">
+                    {activeWorldId === world.id && (
+                      <button
+                        type="button"
+                        onClick={() => router.push("/play")}
+                        aria-label={`Resume your active session in ${world.name}`}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+                        style={{
+                          borderColor: "var(--accent)",
+                          backgroundColor: "var(--accent)",
+                          color: "#ffffff",
+                        }}
+                      >
+                        Resume Session →
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => router.push(`/create?worldId=${world.id}`)}
                       aria-label={`Play ${world.name}`}
                       className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
                       style={{
-                        borderColor: "var(--accent)",
-                        backgroundColor: "var(--accent)",
-                        color: "#ffffff",
+                        borderColor: activeWorldId === world.id ? "var(--border)" : "var(--accent)",
+                        backgroundColor: activeWorldId === world.id ? "transparent" : "var(--accent)",
+                        color: activeWorldId === world.id ? "var(--text-muted)" : "#ffffff",
                       }}
                     >
-                      Play This World
+                      {activeWorldId === world.id ? "New Session" : "Play This World"}
                     </button>
 
                     {can.publicPublishing ? (

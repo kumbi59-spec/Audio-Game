@@ -8,6 +8,7 @@ import { draftToBible, draftToSystemPrompt } from "@/lib/wizard/steps";
 import type { Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 import { getAnthropicClient, MODEL } from "@/lib/ai/client";
+import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -172,7 +173,7 @@ export async function POST(req: NextRequest) {
             name: "The Beginning",
             description: openingScene,
             shortDesc: openingScene.slice(0, 80),
-            ambientSound: null,
+            ambientSound: inferAmbientTrack("The Beginning", openingScene),
             connectedTo: "[]",
             properties: JSON.stringify({ bible }),
           },

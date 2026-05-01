@@ -10,6 +10,7 @@ import { CharacterSheet } from "./CharacterSheet";
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
+import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
@@ -37,7 +38,9 @@ export function GameShell() {
   useEffect(() => {
     if (!session?.currentLocationId || !world) return;
     const loc = world.locations.find((l) => l.id === session.currentLocationId);
-    const track = loc?.ambientSound ?? "none";
+    const track = loc?.ambientSound
+      ?? (loc ? inferAmbientTrack(loc.name, loc.description) : null)
+      ?? "none";
     setCurrentAmbient(track as import("@/types/audio").AmbientTrack);
   }, [session?.currentLocationId, world, setCurrentAmbient]);
 
