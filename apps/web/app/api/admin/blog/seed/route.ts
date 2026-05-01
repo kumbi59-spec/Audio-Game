@@ -104,6 +104,60 @@ If you want to replay the last narration, press **R** or click the replay button
 Your first adventure is waiting. **[Open the Library →](/library)**
 `,
   },
+  {
+    daysFromNow: 3,
+    title: "Why Audio-First Gaming Is a Revolution for Blind Players",
+    excerpt: "For blind and visually impaired gamers, most RPGs are effectively inaccessible. EchoQuest was designed to change that — permanently.",
+    content: `# Why Audio-First Gaming Is a Revolution for Blind Players
+
+The gaming industry generates over $180 billion per year. And yet, for an estimated 2.2 billion people worldwide with some form of visual impairment, the vast majority of that industry might as well not exist.
+
+Most games — even text-heavy RPGs — rely on visual maps, tiny text, drag-and-drop interfaces, and split-second visual cues. Screen readers struggle with them. Keyboard navigation is broken or absent. The "accessibility options" menu, if it exists at all, typically just increases font size.
+
+EchoQuest was built to fix this — not as a side project, but as the core design principle.
+
+## The Problem with "Accessible" Games
+
+When accessibility is bolted on after the fact, it shows. Common failures include:
+
+- **Non-semantic HTML** — screen readers read random numbers and IDs instead of meaningful labels
+- **Mouse-only interactions** — no keyboard equivalent for critical actions
+- **Visual-only feedback** — damage, status effects, and inventory changes are shown as icons with no text alternative
+- **No narration** — the story exists only as text on screen, with no audio playback option
+
+These aren't minor inconveniences. They're complete barriers.
+
+## What Audio-First Actually Means
+
+Building audio-first means the game experience is designed around hearing before seeing. In practice:
+
+- Every scene, NPC dialogue, and narrative beat is **spoken aloud** via text-to-speech
+- Every UI element has a proper **ARIA label** so screen readers can describe it accurately
+- Every action can be triggered via **keyboard shortcut** — no mouse, no touchscreen required
+- **Ambient soundscapes** signal the environment (dungeon echoes, forest birdsong, city crowds)
+- **Spatial audio cues** indicate direction and events happening around your character
+
+This is what blind gamers have been asking for — not a simplified game, but a full-featured one that works the way they work.
+
+## The Voice Command Layer
+
+EchoQuest also supports **voice commands** for navigation. Instead of pressing Tab to move between choices, you can say "option two" or describe your action out loud. The game converts your speech to text and submits it to the AI GM — no hands needed at all.
+
+For players with motor disabilities as well as visual impairments, this opens doors that were previously nailed shut.
+
+## Why AI Changes Everything
+
+Previous accessible games were limited by fixed scripts. A blind player could navigate the menus, but the story itself was branching — it had a predetermined set of options and paths.
+
+With an AI Game Master, there are no predetermined options. The GM responds to natural language. A blind player can say exactly what their character does, in their own words, and receive a meaningful, contextually appropriate response. The playing field is finally level.
+
+## Building a More Inclusive Gaming Future
+
+EchoQuest isn't the end of accessible gaming — it's a beginning. We're building deeper integrations with assistive technology, working with blind gaming communities to improve our design, and publishing our accessibility approach openly so other developers can learn from it.
+
+If you're a blind or visually impaired gamer who wants to try EchoQuest, your first session is free. No credit card. No catches. **[Start your adventure →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
