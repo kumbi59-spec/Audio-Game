@@ -597,9 +597,9 @@ For blind and visually impaired players, this isn't just immersion: it's orienta
 
 ## How EchoQuest's Soundscapes Work
 
-Each location in an EchoQuest campaign has an associated ambient sound tag — things like `dungeon`, `forest`, `tavern`, `ocean`, `battlefield`, `throne_room`. When the AI Game Master moves you to a new location, the ambient track crossfades to the appropriate soundscape.
+Each location in an EchoQuest campaign has an associated ambient sound tag — things like "dungeon", "forest", "tavern", "ocean", "battlefield", "throne_room". When the AI Game Master moves you to a new location, the ambient track crossfades to the appropriate soundscape.
 
-The AI generates `state_change` events that include `locationId`. EchoQuest uses that to trigger the matching audio loop on the client. The result is that sound shifts automatically as you move through the world — no button presses required.
+The AI generates **state_change** events that include a **locationId**. EchoQuest uses that to trigger the matching audio loop on the client. The result is that sound shifts automatically as you move through the world — no button presses required.
 
 ## The Layers of a Good Soundscape
 
