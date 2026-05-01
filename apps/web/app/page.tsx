@@ -152,6 +152,9 @@ export default function LandingPage() {
           {session?.user ? (
             <>
               <Link href="/my-worlds" className="hover:underline">My Worlds</Link>
+              {(session.user as { isAdmin?: boolean }).isAdmin && (
+                <Link href="/admin" className="hover:underline" style={{ color: "var(--accent)" }}>Admin</Link>
+              )}
               <span style={{ opacity: 0.4 }}>|</span>
               <Link href="/account" className="hover:underline">{session.user.name ?? session.user.email}</Link>
             </>

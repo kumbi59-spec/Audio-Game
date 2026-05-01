@@ -4,7 +4,7 @@ import { compare, hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
 import { createVerificationToken } from "@/lib/email/verification";
-import { effectiveTierForEmail } from "@/lib/admin";
+import { effectiveTierForEmail, isAdminEmail } from "@/lib/admin";
 
 const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
 
@@ -96,6 +96,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.tier = (user as { tier?: string }).tier ?? "free";
         token.emailVerified = (user as { emailVerified?: Date | null }).emailVerified ?? null;
+        token.isAdmin = isAdminEmail(user.email ?? "");
         token.tierFetchedAt = Date.now();
       }
       // Re-fetch tier + emailVerified from DB at most once per hour
@@ -107,6 +108,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
         if (fresh) {
           token.tier = effectiveTierForEmail(fresh.email, fresh.tier);
+          token.isAdmin = isAdminEmail(fresh.email);
           token.emailVerified = fresh.emailVerified ?? null;
           token.tierFetchedAt = Date.now();
         }
@@ -116,6 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       session.user.id = token.id as string;
       (session.user as { tier?: string }).tier = token.tier as string;
+      (session.user as { isAdmin?: boolean }).isAdmin = token.isAdmin as boolean;
       (session.user as { emailVerified?: Date | null }).emailVerified =
         token.emailVerified as Date | null;
       return session;
