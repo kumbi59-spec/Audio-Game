@@ -3,8 +3,6 @@ import { prisma } from "@/lib/db";
 import { createPasswordResetToken } from "@/lib/email/password-reset";
 import { sendPasswordResetEmail } from "@/lib/email";
 
-const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
-
 export async function POST(req: Request) {
   const { email } = await req.json() as { email?: string };
   if (!email || typeof email !== "string") {
@@ -20,15 +18,18 @@ export async function POST(req: Request) {
     );
   }
 
+  // Derive base URL from the request origin so the link works regardless of
+  // how NEXTAUTH_URL is configured in the environment.
+  const origin = new URL(req.url).origin;
+
   const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
   if (user) {
     try {
       const token = await createPasswordResetToken(normalised);
-      const url = `${APP_URL}/auth/reset-password?token=${token}&email=${encodeURIComponent(normalised)}`;
+      const url = `${origin}/auth/reset-password?token=${token}&email=${encodeURIComponent(normalised)}`;
       await sendPasswordResetEmail(normalised, url);
     } catch (err) {
       console.error("[forgot-password] failed to send reset email:", err);
-      // Surface the failure so the user knows to check their Resend configuration
       return NextResponse.json(
         { error: "Failed to send reset email. Check that RESEND_FROM is set to an address on a verified Resend domain." },
         { status: 500 },
@@ -36,6 +37,5 @@ export async function POST(req: Request) {
     }
   }
 
-  // Always return the same message whether user exists or not (prevent enumeration)
   return NextResponse.json({ ok: true });
 }

@@ -6,8 +6,6 @@ import { sendVerificationEmail } from "@/lib/email";
 import { createVerificationToken } from "@/lib/email/verification";
 import { effectiveTierForEmail, isAdminEmail } from "@/lib/admin";
 
-const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
-
 // NextAuth v5 reads AUTH_SECRET; accept NEXTAUTH_SECRET as a legacy fallback
 const secret = process.env["AUTH_SECRET"] ?? process.env["NEXTAUTH_SECRET"];
 
@@ -22,7 +20,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         mode: { label: "mode", type: "text" }, // "signin" | "signup"
         name: { label: "Display name", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        // Derive origin from the request so email links work regardless of NEXTAUTH_URL
+        const origin = request?.url ? new URL(request.url).origin : (process.env["NEXTAUTH_URL"] ?? "http://localhost:3000");
         const { email, password, mode, name: displayName } = credentials as {
           email: string;
           password: string;
@@ -52,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               void (async () => {
                 try {
                   const token = await createVerificationToken(email);
-                  const url = `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+                  const url = `${origin}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
                   await sendVerificationEmail(user.email, resolvedName, url);
                 } catch (err) {
                   console.warn("[auth] Failed to send verification email:", err);
