@@ -44,8 +44,9 @@ export async function POST(req: Request) {
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
     await deletePasswordResetToken(normalised);
   } catch (err) {
+    const detail = err instanceof Error ? `${err.constructor.name}: ${err.message.slice(0, 200)}` : String(err);
     console.error("[reset-password] error:", err);
-    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
+    return NextResponse.json({ error: detail }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
