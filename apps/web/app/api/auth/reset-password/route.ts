@@ -41,12 +41,11 @@ export async function POST(req: Request) {
     // Update password then delete the token — in this order so a DB hiccup doesn't
     // strand the user with a consumed token and no password change
     const passwordHash = await hash(newPassword, 12);
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash }, select: { id: true } });
     await deletePasswordResetToken(normalised);
   } catch (err) {
-    const detail = err instanceof Error ? `${err.constructor.name}: ${err.message.slice(0, 200)}` : String(err);
     console.error("[reset-password] error:", err);
-    return NextResponse.json({ error: detail }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
