@@ -14,6 +14,7 @@ export async function seedPrebuiltWorldsIfNeeded(): Promise<void> {
       tone: world.tone,
       systemPrompt: world.systemPrompt,
       isPrebuilt: world.isPrebuilt,
+      imageUrl: world.imageUrl ?? null,
       locations: world.locations.map((l) => ({ ...l, ambientSound: l.ambientSound ?? undefined })),
       npcs: world.npcs.map((n) => ({ ...n, locationId: n.locationId ?? undefined })),
       libraryItem: {
@@ -122,6 +123,7 @@ export async function upsertWorldFromStatic(data: {
   tone: string;
   systemPrompt: string;
   isPrebuilt: boolean;
+  imageUrl?: string | null;
   libraryItem: {
     title: string;
     description: string;
@@ -161,6 +163,7 @@ export async function upsertWorldFromStatic(data: {
       systemPrompt: data.systemPrompt,
       isPrebuilt: data.isPrebuilt,
       isPublic: true,
+      imageUrl: data.imageUrl ?? null,
       libraryItem: {
         create: data.libraryItem,
       },
@@ -193,6 +196,7 @@ export async function upsertWorldFromStatic(data: {
       name: data.name,
       description: data.description,
       systemPrompt: data.systemPrompt,
+      imageUrl: data.imageUrl ?? null,
     },
   });
 }

@@ -3,6 +3,12 @@ import { listPublicWorlds, seedPrebuiltWorldsIfNeeded } from "@/lib/db/queries/w
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
 function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
+  // For prebuilt worlds already in the DB, fall back to the static imageUrl
+  // if the DB row was seeded before imageUrl was added to the upsert.
+  const staticImageUrl = w.isPrebuilt
+    ? (PREBUILT_WORLDS.find((p) => p.id === w.id)?.imageUrl ?? null)
+    : null;
+
   return {
     id: w.id,
     name: w.name,
@@ -10,7 +16,7 @@ function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
     genre: w.genre,
     tone: w.tone,
     isPrebuilt: w.isPrebuilt,
-    imageUrl: w.imageUrl ?? null,
+    imageUrl: w.imageUrl ?? staticImageUrl ?? null,
     difficulty: w.libraryItem?.difficulty ?? "beginner",
     tags: w.libraryItem?.tags.split(",").map((t) => t.trim()).filter(Boolean) ?? [w.genre, w.tone],
     sortOrder: w.libraryItem?.sortOrder ?? 100,
