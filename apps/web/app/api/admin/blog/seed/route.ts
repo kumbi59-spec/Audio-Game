@@ -261,6 +261,59 @@ Think of it like a very skilled, very fast co-author. We set the creative constr
 Ready to see it in action? **[Play a free session →](/library)**
 `,
   },
+  {
+    daysFromNow: 6,
+    title: "The Best Fantasy RPG Tropes — And When to Subvert Them",
+    excerpt: "Chosen heroes, dark lords, and magical prophecies are RPG staples for good reason. But knowing when to lean in — and when to flip the script — is what separates a good campaign from a great one.",
+    content: `# The Best Fantasy RPG Tropes — And When to Subvert Them
+
+Tropes get a bad reputation. People use the word like an insult, as if familiar story elements are somehow lazy. But tropes exist because they work — they're shorthand that lets players instantly understand the stakes and their role in the story. The trick isn't avoiding them. It's knowing when to use them straight and when to twist them.
+
+## The Chosen Hero
+
+**The trope:** One special person, foretold by prophecy, is destined to save the world.
+
+**Why it works:** It puts the player at the centre of the story. It justifies why *your character* is the one taking action when everyone else stays home.
+
+**How to subvert it:** Make the prophecy wrong. Or make it technically correct but describing someone the players would never expect. Or have multiple people who each believe they're the chosen one — and they're all partly right. The chosen hero trope is most interesting when the "choosing" turns out to mean something different than power.
+
+## The Dark Lord
+
+**The trope:** An ancient evil wants to cover the world in darkness. Destroy the MacGuffin, defeat the villain.
+
+**Why it works:** Clear stakes. Obvious enemy. Satisfying endgame.
+
+**How to subvert it:** Give the dark lord a legitimate grievance. Maybe they were wronged by the civilization your players are defending. Maybe their "darkness" is actually a necessary ecological reset the current power structure is suppressing. A villain who makes a coherent argument is far more unsettling than one who just wants chaos.
+
+## The Ancient Ruin With a Secret
+
+**The trope:** Players explore a crumbling structure, find puzzles, discover lore, fight a guardian.
+
+**Why it works:** Exploration, mystery, and reward in one neat package.
+
+**How to subvert it:** The ruin isn't ancient — it's recent, and someone faked the aging. Or the "guardian" is the last survivor, not a monster, and has been waiting there for rescue for fifty years. Or the lore players find inside directly contradicts the history everyone outside believes.
+
+## The Wise Old Mentor
+
+**The trope:** An experienced figure guides the players early on, then steps back (or dies dramatically) so the players can grow.
+
+**Why it works:** Orients new players. Provides early direction without railroading.
+
+**How to subvert it:** The mentor is wrong. Not maliciously — genuinely, confidently, catastrophically wrong about something important. Players who trusted them completely get a harsh lesson about authority. Players who questioned them get vindicated. Either way, the story becomes about more than following instructions.
+
+## The Magical Macguffin
+
+**The trope:** An object of great power must be found, protected, or destroyed.
+
+**Why it works:** Creates a clear objective that can travel anywhere and involve anyone.
+
+**How to subvert it:** The MacGuffin doesn't work as advertised. Or it works perfectly — but activating it requires a moral compromise the players didn't anticipate. Or the "evil" faction trying to steal it actually has a better plan for it than the "good" faction trying to keep it.
+
+---
+
+The best campaigns use tropes as a foundation, then surprise players with the first floor they build on top. In EchoQuest, the AI Game Master can follow your lead — tell it your world's central tension and faction goals, and it will find the moments to subvert expectations naturally. **[Start building your world →](/)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
