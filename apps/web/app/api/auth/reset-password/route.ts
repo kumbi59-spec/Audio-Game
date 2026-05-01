@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { consumePasswordResetToken } from "@/lib/email/password-reset";
+import { validatePasswordResetToken, deletePasswordResetToken } from "@/lib/email/password-reset";
 
 export async function POST(req: Request) {
   const { email, token, newPassword } = await req.json() as {
@@ -17,9 +17,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
   }
 
+  const normalised = email.trim().toLowerCase();
+
   try {
-    const normalised = email.trim().toLowerCase();
-    const result = await consumePasswordResetToken(normalised, token);
+    // Validate token WITHOUT deleting — so the user can retry if the update fails
+    const result = await validatePasswordResetToken(normalised, token);
     if (result === "expired") {
       return NextResponse.json({ error: "Reset link has expired. Please request a new one." }, { status: 410 });
     }
@@ -27,20 +29,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid or already-used reset link." }, { status: 400 });
     }
 
-    // Find by case-insensitive email then update by ID to avoid P2025 on case mismatch
+    // Find user case-insensitively (handles mixed-case signups like Kumbi59@gmail.com)
     const user = await prisma.user.findFirst({
       where: { email: { equals: normalised, mode: "insensitive" } },
       select: { id: true },
     });
     if (!user) {
-      return NextResponse.json({ error: "Account not found." }, { status: 404 });
+      return NextResponse.json({ error: "No account found for that email." }, { status: 404 });
     }
 
+    // Update password then delete the token — in this order so a DB hiccup doesn't
+    // strand the user with a consumed token and no password change
     const passwordHash = await hash(newPassword, 12);
     await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+    await deletePasswordResetToken(normalised);
   } catch (err) {
     console.error("[reset-password] error:", err);
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong — please try again." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

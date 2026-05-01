@@ -15,7 +15,9 @@ export async function createPasswordResetToken(email: string): Promise<string> {
   return token;
 }
 
-export async function consumePasswordResetToken(
+// Validates the token WITHOUT deleting it so the caller can retry if the
+// downstream update fails. Call deletePasswordResetToken after a successful update.
+export async function validatePasswordResetToken(
   email: string,
   token: string,
 ): Promise<"ok" | "invalid" | "expired"> {
@@ -24,10 +26,13 @@ export async function consumePasswordResetToken(
 
   if (!record || record.identifier !== identifier) return "invalid";
   if (record.expires < new Date()) {
-    await prisma.verificationToken.delete({ where: { token } });
+    await prisma.verificationToken.deleteMany({ where: { identifier } });
     return "expired";
   }
-
-  await prisma.verificationToken.delete({ where: { token } });
   return "ok";
+}
+
+export async function deletePasswordResetToken(email: string): Promise<void> {
+  const identifier = `${PREFIX}${email.toLowerCase()}`;
+  await prisma.verificationToken.deleteMany({ where: { identifier } });
 }
