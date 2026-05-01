@@ -57,7 +57,24 @@ export default function AdminPage() {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [blogSaving, setBlogSaving] = useState(false);
   const [blogError, setBlogError] = useState("");
+  const [seeding, setSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState("");
   const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  async function seedPosts() {
+    setSeeding(true);
+    setSeedResult("");
+    try {
+      const res = await fetch("/api/admin/blog/seed", { method: "POST" });
+      const data = await res.json() as { created?: string[]; skipped?: string[]; error?: string };
+      if (!res.ok) { setSeedResult(data.error ?? "Seed failed."); return; }
+      const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
+      setPosts(Array.isArray(newPosts) ? newPosts : []);
+      setSeedResult(`Created ${data.created?.length ?? 0} post(s). Skipped ${data.skipped?.length ?? 0} already existing.`);
+    } finally {
+      setSeeding(false);
+    }
+  }
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/sign-in");
@@ -346,14 +363,22 @@ export default function AdminPage() {
           <div role="tabpanel" aria-label="Blog management" className="grid gap-8 lg:grid-cols-2">
             {/* Post list */}
             <section>
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
                 <h2 className="text-base font-semibold" style={{ color: "var(--text)" }}>Posts</h2>
-                <button onClick={openNewPost}
-                  className="rounded px-3 py-1.5 text-sm font-semibold"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
-                  + New post
-                </button>
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={seedPosts} disabled={seeding}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                    {seeding ? "Seeding…" : "Seed 30 posts"}
+                  </button>
+                  <button onClick={openNewPost}
+                    className="rounded px-3 py-1.5 text-sm font-semibold"
+                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
+                    + New post
+                  </button>
+                </div>
               </div>
+              {seedResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{seedResult}</p>}
               <div className="space-y-3">
                 {posts.map((p) => (
                   <div key={p.id} className="flex items-start justify-between rounded-lg border p-3"
