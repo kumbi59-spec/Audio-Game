@@ -50,7 +50,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             const user = await prisma.user.create({
               data: { email, passwordHash, name: resolvedName, tier, emailVerified },
-              select: { id: true, email: true, name: true },
+              select: { id: true, email: true, name: true, emailVerified: true },
             });
 
             if (!emailVerified) {
@@ -77,7 +77,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const user = await prisma.user.findUnique({
             where: { email },
-            select: { id: true, email: true, name: true, tier: true, passwordHash: true },
+            select: { id: true, email: true, name: true, tier: true, passwordHash: true, emailVerified: true },
           });
           if (!user?.passwordHash) return null;
           const valid = await compare(password, user.passwordHash);
@@ -87,7 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             name: user.name,
             tier: effectiveTierForEmail(user.email, user.tier),
-            emailVerified: null,
+            emailVerified: user.emailVerified,
           };
         } catch (err) {
           // Re-throw known user-facing errors so NextAuth passes the message through
@@ -114,11 +114,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           const fresh = await prisma.user.findUnique({
             where: { id: token.id as string },
-            select: { tier: true, email: true },
+            select: { tier: true, email: true, emailVerified: true },
           });
           if (fresh) {
             token.tier = effectiveTierForEmail(fresh.email, fresh.tier);
             token.isAdmin = isAdminEmail(fresh.email);
+            token.emailVerified = fresh.emailVerified ?? null;
             token.tierFetchedAt = Date.now();
           }
         } catch {
