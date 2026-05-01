@@ -8,7 +8,11 @@ import { effectiveTierForEmail } from "@/lib/admin";
 
 const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
 
+// NextAuth v5 reads AUTH_SECRET; accept NEXTAUTH_SECRET as a legacy fallback
+const secret = process.env["AUTH_SECRET"] ?? process.env["NEXTAUTH_SECRET"];
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret,
   trustHost: true,
   providers: [
     Credentials({
@@ -27,54 +31,62 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         };
         if (!email || !password) return null;
 
-        if (mode === "signup") {
-          const existing = await prisma.user.findUnique({ where: { email } });
-          if (existing) throw new Error("Email already in use.");
-          const passwordHash = await hash(password, 12);
-          const tier = effectiveTierForEmail(email, "free");
-          const resolvedName = (displayName ?? "").trim() || email.split("@")[0];
+        try {
+          if (mode === "signup") {
+            const existing = await prisma.user.findUnique({ where: { email } });
+            if (existing) throw new Error("Email already in use.");
+            const passwordHash = await hash(password, 12);
+            const tier = effectiveTierForEmail(email, "free");
+            const resolvedName = (displayName ?? "").trim() || email.split("@")[0];
 
-          // If no email service is configured, mark as verified immediately so
-          // the banner never shows and the user isn't stuck.
-          const emailVerified = process.env["RESEND_API_KEY"] ? null : new Date();
+            // If no email service is configured, mark as verified immediately so
+            // the banner never shows and the user isn't stuck.
+            const emailVerified = process.env["RESEND_API_KEY"] ? null : new Date();
 
-          const user = await prisma.user.create({
-            data: { email, passwordHash, name: resolvedName, tier, emailVerified },
-          });
+            const user = await prisma.user.create({
+              data: { email, passwordHash, name: resolvedName, tier, emailVerified },
+            });
 
-          if (!emailVerified) {
-            // Fire-and-forget verification email
-            void (async () => {
-              try {
-                const token = await createVerificationToken(email);
-                const url = `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
-                await sendVerificationEmail(user.email, resolvedName, url);
-              } catch (err) {
-                console.warn("[auth] Failed to send verification email:", err);
-              }
-            })();
+            if (!emailVerified) {
+              // Fire-and-forget verification email
+              void (async () => {
+                try {
+                  const token = await createVerificationToken(email);
+                  const url = `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+                  await sendVerificationEmail(user.email, resolvedName, url);
+                } catch (err) {
+                  console.warn("[auth] Failed to send verification email:", err);
+                }
+              })();
+            }
+
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              tier,
+              emailVerified: user.emailVerified,
+            };
           }
 
+          const user = await prisma.user.findUnique({ where: { email } });
+          if (!user?.passwordHash) return null;
+          const valid = await compare(password, user.passwordHash);
+          if (!valid) return null;
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            tier,
+            tier: effectiveTierForEmail(user.email, user.tier),
             emailVerified: user.emailVerified,
           };
+        } catch (err) {
+          // Re-throw known user-facing errors so NextAuth passes the message through
+          if (err instanceof Error && err.message === "Email already in use.") throw err;
+          // Infrastructure failures (DB unreachable, etc.) — log and fall through to null
+          console.error("[auth] authorize error:", err);
+          return null;
         }
-
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user?.passwordHash) return null;
-        const valid = await compare(password, user.passwordHash);
-        if (!valid) return null;
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          tier: effectiveTierForEmail(user.email, user.tier),
-          emailVerified: user.emailVerified,
-        };
       },
     }),
   ],
