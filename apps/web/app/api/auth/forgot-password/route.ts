@@ -20,8 +20,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // Always respond with success to prevent email enumeration
-  const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true, name: true } });
+  const user = await prisma.user.findUnique({ where: { email: normalised }, select: { id: true } });
   if (user) {
     try {
       const token = await createPasswordResetToken(normalised);
@@ -29,8 +28,14 @@ export async function POST(req: Request) {
       await sendPasswordResetEmail(normalised, url);
     } catch (err) {
       console.error("[forgot-password] failed to send reset email:", err);
+      // Surface the failure so the user knows to check their Resend configuration
+      return NextResponse.json(
+        { error: "Failed to send reset email. Check that RESEND_FROM is set to an address on a verified Resend domain." },
+        { status: 500 },
+      );
     }
   }
 
+  // Always return the same message whether user exists or not (prevent enumeration)
   return NextResponse.json({ ok: true });
 }

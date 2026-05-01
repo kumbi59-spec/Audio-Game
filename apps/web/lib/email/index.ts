@@ -8,13 +8,21 @@ function getResend(): Resend | null {
   return _resend;
 }
 
+// RESEND_FROM must be a sender address on a domain verified in Resend.
+// Example: "EchoQuest <noreply@yourdomain.com>"
 const FROM = process.env["RESEND_FROM"] ?? "EchoQuest <noreply@echoquest.app>";
 
-export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+async function sendEmail(payload: Parameters<Resend["emails"]["send"]>[0]): Promise<void> {
   const resend = getResend();
   if (!resend) return;
+  const { error } = await resend.emails.send(payload);
+  if (error) {
+    throw new Error(`Resend error (${error.name}): ${error.message}`);
+  }
+}
 
-  await resend.emails.send({
+export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+  await sendEmail({
     from: FROM,
     to,
     subject: "Reset your EchoQuest password",
@@ -23,10 +31,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string): Prom
 }
 
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
-  const resend = getResend();
-  if (!resend) return;
-
-  await resend.emails.send({
+  await sendEmail({
     from: FROM,
     to,
     subject: "Welcome to EchoQuest",
@@ -35,10 +40,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<void> 
 }
 
 export async function sendVerificationEmail(to: string, name: string, verifyUrl: string): Promise<void> {
-  const resend = getResend();
-  if (!resend) return;
-
-  await resend.emails.send({
+  await sendEmail({
     from: FROM,
     to,
     subject: "Verify your EchoQuest email address",
@@ -47,11 +49,8 @@ export async function sendVerificationEmail(to: string, name: string, verifyUrl:
 }
 
 export async function sendUpgradeEmail(to: string, name: string, tier: string): Promise<void> {
-  const resend = getResend();
-  if (!resend) return;
-
   const tierLabel = tier === "creator" ? "Creator" : "Storyteller";
-  await resend.emails.send({
+  await sendEmail({
     from: FROM,
     to,
     subject: `Your EchoQuest ${tierLabel} plan is active`,
