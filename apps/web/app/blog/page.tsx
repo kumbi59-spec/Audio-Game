@@ -44,7 +44,7 @@ export default async function BlogPage() {
         {posts.length === 0 ? (
           <p className="text-center text-base" style={{ color: "var(--text-muted)" }}>No posts yet — check back soon.</p>
         ) : (
-          <ul className="space-y-8" role="list">
+          <ul className="space-y-8">
             {posts.map((post) => (
               <li key={post.id}>
                 <article className="rounded-xl border p-6 transition-shadow hover:shadow-lg"
