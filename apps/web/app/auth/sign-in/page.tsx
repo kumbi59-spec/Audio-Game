@@ -170,10 +170,16 @@ function SignInForm() {
                 {showPassword ? "Hide" : "Reveal"}
               </button>
             </div>
-            {mode === "signup" && (
+            {mode === "signup" ? (
               <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
                 At least 8 characters.
               </p>
+            ) : (
+              <div className="mt-1 text-right">
+                <Link href="/auth/forgot-password" className="text-xs hover:underline" style={{ color: "var(--text-muted)" }}>
+                  Forgot password?
+                </Link>
+              </div>
             )}
           </div>
 

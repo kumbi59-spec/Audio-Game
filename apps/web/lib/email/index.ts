@@ -10,6 +10,18 @@ function getResend(): Resend | null {
 
 const FROM = process.env["RESEND_FROM"] ?? "EchoQuest <noreply@echoquest.app>";
 
+export async function sendPasswordResetEmail(to: string, resetUrl: string): Promise<void> {
+  const resend = getResend();
+  if (!resend) return;
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: "Reset your EchoQuest password",
+    html: passwordResetHtml(resetUrl),
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const resend = getResend();
   if (!resend) return;
@@ -133,6 +145,33 @@ function verificationHtml(name: string, verifyUrl: string): string {
     <p style="color:#777;font-size:11px;word-break:break-all;margin:0 0 32px;">${verifyUrl}</p>
     <p style="color:#555;font-size:12px;margin:0;">
       If you didn't create an EchoQuest account, you can safely ignore this email.
+    </p>
+  </div>
+</body>
+</html>`;
+}
+
+function passwordResetHtml(resetUrl: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Reset your EchoQuest password</title></head>
+<body style="font-family:system-ui,sans-serif;background:#0d0d0d;color:#e5e5e5;margin:0;padding:32px 16px;">
+  <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:12px;padding:40px;border:1px solid #2a2a2a;">
+    <h1 style="color:#fff;font-size:24px;margin:0 0 8px;">Reset your password</h1>
+    <p style="color:#999;margin:0 0 24px;font-size:15px;">We received a request to reset your EchoQuest password.</p>
+    <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 24px;">
+      Click the button below to choose a new password. This link expires in <strong style="color:#fff;">1 hour</strong>.
+    </p>
+    <a href="${resetUrl}"
+       style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
+      Reset my password →
+    </a>
+    <p style="color:#555;font-size:12px;margin:32px 0 8px;">
+      Or copy and paste this link into your browser:
+    </p>
+    <p style="color:#777;font-size:11px;word-break:break-all;margin:0 0 32px;">${resetUrl}</p>
+    <p style="color:#555;font-size:12px;margin:0;">
+      If you didn&apos;t request a password reset, you can safely ignore this email.
     </p>
   </div>
 </body>
