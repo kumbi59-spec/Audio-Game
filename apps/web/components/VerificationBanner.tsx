@@ -75,6 +75,13 @@ export function VerificationBanner() {
           </button>
         )}
         <button
+          onClick={() => void update().then(() => window.location.reload())}
+          className="text-xs hover:opacity-80 underline"
+          style={{ color: "#818cf8" }}
+        >
+          Already verified?
+        </button>
+        <button
           onClick={() => setDismissed(true)}
           aria-label="Dismiss verification banner"
           className="hover:opacity-70"
