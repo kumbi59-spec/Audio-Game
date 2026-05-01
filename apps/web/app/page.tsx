@@ -91,6 +91,7 @@ export default function LandingPage() {
         <span className="text-lg font-bold" style={{ color: "var(--text)" }}>EchoQuest</span>
         <div className="flex items-center gap-4 text-sm" style={{ color: "var(--text-muted)" }}>
           <Link href="/library" className="hover:underline">Library</Link>
+          <Link href="/blog" className="hover:underline">Blog</Link>
           {session?.user ? (
             <>
               <Link href="/my-worlds" className="hover:underline">My Worlds</Link>
@@ -291,6 +292,7 @@ export default function LandingPage() {
         <p className="mb-2">EchoQuest — Powered by Claude AI · Audio-first interactive storytelling</p>
         <div className="flex justify-center gap-4">
           <Link href="/library" className="hover:underline">Library</Link>
+          <Link href="/blog" className="hover:underline">Blog</Link>
           <Link href="/auth/sign-in" className="hover:underline">Sign in</Link>
           <a href="https://echoquest.app/privacy" className="hover:underline">Privacy</a>
           <a href="https://echoquest.app/support" className="hover:underline">Support</a>

@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { extractText, MAX_FILE_BYTES } from "@/lib/upload/file-router";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
-import { ensureGuestUser } from "@/lib/db/queries/users";
+import { ensureGuestUser, getUserTier } from "@/lib/db/queries/users";
+import { prisma } from "@/lib/db";
+import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import type { UploadProgressEvent } from "@/lib/upload/types";
 
 function sse(event: UploadProgressEvent): string {
@@ -39,6 +41,24 @@ export async function POST(req: NextRequest) {
 
         // Use the authenticated user's ID as owner so they can play the world after upload
         const ownerId = session?.user?.id ?? guestId;
+
+        // Enforce maxWorlds tier limit
+        if (session?.user?.id) {
+          const tier = await getUserTier(session.user.id);
+          const { maxWorlds } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
+          if (maxWorlds !== null && maxWorlds === 0) {
+            send({ stage: "error", message: "Upgrade to the Storyteller plan to create custom worlds." });
+            return;
+          }
+          if (maxWorlds !== null) {
+            const worldCount = await prisma.world.count({ where: { ownerId: session.user.id, isPrebuilt: false } });
+            if (worldCount >= maxWorlds) {
+              send({ stage: "error", message: `You've reached your world limit (${maxWorlds}). Upgrade to Creator for unlimited worlds.` });
+              return;
+            }
+          }
+        }
+
         if (file.size > MAX_FILE_BYTES) {
           send({ stage: "error", message: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum is 10 MB.` });
           return;

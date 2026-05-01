@@ -11,8 +11,8 @@ export async function POST(_req: NextRequest, { params }: RouteContext) {
   const { id } = await params;
 
   const tier = await getUserTier(session.user.id);
-  if (tier !== "storyteller" && tier !== "creator" && tier !== "enterprise") {
-    return NextResponse.json({ error: "Publishing requires the Storyteller plan or above." }, { status: 403 });
+  if (tier !== "creator" && tier !== "enterprise") {
+    return NextResponse.json({ error: "Publishing requires the Creator plan or above." }, { status: 403 });
   }
 
   const result = await publishWorld(id, session.user.id);

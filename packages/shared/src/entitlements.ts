@@ -35,6 +35,8 @@ export const Entitlements = z.object({
    * Free users start with 60 minutes; packs can be purchased in-app.
    */
   aiMinutesRemaining: z.number().int().nonnegative().nullable(),
+  /** Maximum number of custom worlds a user can create (0 = none, null = unlimited) */
+  maxWorlds: z.number().int().nonnegative().nullable(),
 });
 export type Entitlements = z.infer<typeof Entitlements>;
 
@@ -49,6 +51,7 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
     publicPublishing: false,
     showAds: true,
     aiMinutesRemaining: 60,
+    maxWorlds: 0,
   },
   storyteller: {
     tier: "storyteller",
@@ -57,9 +60,10 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
     worldWizard: false,
     maxCampaigns: null,
     sessionTurnLimit: null,
-    publicPublishing: true,
+    publicPublishing: false,
     showAds: false,
     aiMinutesRemaining: null,
+    maxWorlds: 1,
   },
   creator: {
     tier: "creator",
@@ -71,6 +75,7 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
     publicPublishing: true,
     showAds: false,
     aiMinutesRemaining: null,
+    maxWorlds: null,
   },
   enterprise: {
     tier: "enterprise",
@@ -82,6 +87,7 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
     publicPublishing: true,
     showAds: false,
     aiMinutesRemaining: null,
+    maxWorlds: null,
   },
 };
 
@@ -117,9 +123,9 @@ export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
     "No ads between sessions",
     "ElevenLabs premium voice narration",
     "Upload your own Game Bible",
+    "Create 1 private custom world",
     "Unlimited saved campaigns",
     "No per-session turn limits",
-    "Publish worlds to the community library",
   ],
   creator: [
     "Everything in Storyteller",
