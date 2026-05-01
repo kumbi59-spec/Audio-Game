@@ -12,6 +12,10 @@ interface AudioStore extends AudioSettings {
   setAmbientVolume: (volume: number) => void;
   setSoundCuesEnabled: (enabled: boolean) => void;
   setCurrentAmbient: (track: AmbientTrack) => void;
+  setCharacterVoiceId: (voiceId: string) => void;
+  setNpcVoiceA: (voiceId: string) => void;
+  setNpcVoiceB: (voiceId: string) => void;
+  setNpcVoiceC: (voiceId: string) => void;
   hydrateFromServer: (prefs: Partial<AudioSettings>) => void;
 }
 
@@ -27,6 +31,10 @@ export const useAudioStore = create<AudioStore>()(
       ambientVolume: 0.3,
       soundCuesEnabled: true,
       currentAmbient: "none",
+      characterVoiceId: "",
+      npcVoiceA: "",
+      npcVoiceB: "",
+      npcVoiceC: "",
 
       setTTSProvider: (provider) => set({ ttsProvider: provider }),
       setTTSVoiceId: (voiceId) => set({ ttsVoiceId: voiceId }),
@@ -37,6 +45,10 @@ export const useAudioStore = create<AudioStore>()(
       setAmbientVolume: (volume) => set({ ambientVolume: Math.max(0, Math.min(1, volume)) }),
       setSoundCuesEnabled: (enabled) => set({ soundCuesEnabled: enabled }),
       setCurrentAmbient: (track) => set({ currentAmbient: track }),
+      setCharacterVoiceId: (voiceId) => set({ characterVoiceId: voiceId }),
+      setNpcVoiceA: (voiceId) => set({ npcVoiceA: voiceId }),
+      setNpcVoiceB: (voiceId) => set({ npcVoiceB: voiceId }),
+      setNpcVoiceC: (voiceId) => set({ npcVoiceC: voiceId }),
       hydrateFromServer: (prefs) => set((state) => ({ ...state, ...prefs })),
     }),
     { name: "audio-game-audio" }

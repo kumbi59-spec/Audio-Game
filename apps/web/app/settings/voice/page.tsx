@@ -13,6 +13,14 @@ import type { TTSProviderType, TTSVoice } from "@/types/audio";
 const PREVIEW_TEXT =
   "The fog rolls in off the cliffs. Somewhere a bell tolls the watch change. Tonight, the city is yours.";
 
+const NPC_PREVIEW: Record<"A" | "B" | "C", string> = {
+  A: '[Guard Captain]: "Halt! No one passes without the king\'s seal."',
+  B: '[Merchant]: "Fine goods, finest in the realm. Step up, step up!"',
+  C: '[Innkeeper]: "Room for the night? That\'ll be two silver, and no trouble."',
+};
+
+const CHARACTER_PREVIEW = "I step forward, hand on my blade. \"I'm here for answers, not a fight.\"";
+
 export default function VoiceSettingsPage() {
   const router = useRouter();
   const { status } = useSession();
@@ -25,6 +33,7 @@ export default function VoiceSettingsPage() {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [previewingSlot, setPreviewingSlot] = useState<"narrator" | "character" | "A" | "B" | "C" | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -97,6 +106,27 @@ export default function VoiceSettingsPage() {
     };
   }
 
+  function friendlyError(err: unknown): string {
+    const msg = err instanceof Error ? err.message : "Preview failed";
+    if (msg.includes("not configured")) return "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator.";
+    if (msg.includes("detected_unusual_activity") || msg.includes("Free Tier usage disabled") || msg.includes("unusual activity")) return "ElevenLabs has disabled free-tier access from this server. A paid ElevenLabs plan is required.";
+    if (msg.includes("subscription_required") || msg.includes("free tier")) return "This ElevenLabs feature requires a paid plan.";
+    return msg;
+  }
+
+  async function previewVoice(text: string, voiceId: string | undefined, slot: "narrator" | "character" | "A" | "B" | "C") {
+    setPreviewingSlot(slot);
+    setPreviewError(null);
+    try {
+      stopSpeech();
+      await speak(text, { voiceId: voiceId || undefined });
+    } catch (err) {
+      setPreviewError(friendlyError(err));
+    } finally {
+      setPreviewingSlot(null);
+    }
+  }
+
   async function preview() {
     setPreviewing(true);
     setPreviewError(null);
@@ -104,15 +134,7 @@ export default function VoiceSettingsPage() {
       stopSpeech();
       await speak(PREVIEW_TEXT);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Preview failed";
-      const friendly = msg.includes("not configured")
-        ? "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator."
-        : msg.includes("detected_unusual_activity") || msg.includes("Free Tier usage disabled") || msg.includes("unusual activity")
-        ? "ElevenLabs has disabled free-tier access from this server (detected as proxy traffic). A paid ElevenLabs plan is required. Switch to Browser narrator for free narration."
-        : msg.includes("subscription_required") || msg.includes("free tier")
-        ? "This ElevenLabs feature requires a paid plan. Switch to Browser narrator or upgrade your ElevenLabs account."
-        : msg;
-      setPreviewError(friendly);
+      setPreviewError(friendlyError(err));
     } finally {
       setPreviewing(false);
     }
@@ -127,10 +149,10 @@ export default function VoiceSettingsPage() {
           ← Home
         </Link>
         <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }} tabIndex={-1}>
-          Narrator Voice
+          Voice Settings
         </h1>
         <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          Choose how the Game Master sounds. Settings save automatically and follow your account across devices.
+          Choose voices for the narrator, your character, and NPCs. Settings save automatically across devices.
         </p>
       </header>
 
@@ -242,6 +264,111 @@ export default function VoiceSettingsPage() {
             </select>
           )}
         </section>
+
+        {/* ── Character & NPC voices (Storyteller+) ─────────────────────── */}
+        {isPremium ? (
+          <>
+            {/* Player character voice */}
+            <section
+              aria-label="Character voice"
+              className="mb-6 rounded-xl border p-5"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+            >
+              <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+                Your character&apos;s voice
+              </h2>
+              <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                Heard when your character speaks out loud during the story.
+              </p>
+              <div className="flex gap-2">
+                <select
+                  aria-label="Character voice"
+                  value={store.characterVoiceId || (store.ttsProvider === "elevenlabs" ? "" : "")}
+                  onChange={(e) => { dirtyRef.current = true; store.setCharacterVoiceId(e.target.value); }}
+                  className="flex-1 rounded-lg border px-3 py-2 text-sm"
+                  style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)", color: "var(--text)", minHeight: 44 }}
+                >
+                  <option value="">Same as narrator</option>
+                  {voicesForProvider.map((v) => (
+                    <option key={v.id} value={v.id}>{v.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => void previewVoice(CHARACTER_PREVIEW, store.characterVoiceId || store.ttsVoiceId || undefined, "character")}
+                  disabled={previewingSlot !== null}
+                  aria-label="Preview character voice"
+                  className="shrink-0 rounded-lg border px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{ borderColor: "var(--border)", color: "var(--text)", minHeight: 44 }}
+                >
+                  {previewingSlot === "character" ? "Playing…" : "Preview"}
+                </button>
+              </div>
+            </section>
+
+            {/* NPC voices */}
+            <section
+              aria-label="NPC voices"
+              className="mb-6 rounded-xl border p-5"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+            >
+              <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+                NPC voices
+              </h2>
+              <p className="mb-4 text-xs" style={{ color: "var(--text-muted)" }}>
+                Up to three distinct voices for NPCs. They&apos;re assigned automatically — the first NPC in a scene gets Voice A, the second gets B, the third gets C.
+              </p>
+              {(["A", "B", "C"] as const).map((slot) => {
+                const current = slot === "A" ? store.npcVoiceA : slot === "B" ? store.npcVoiceB : store.npcVoiceC;
+                const setter = slot === "A" ? store.setNpcVoiceA : slot === "B" ? store.setNpcVoiceB : store.setNpcVoiceC;
+                return (
+                  <div key={slot} className="mb-3">
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+                      NPC Voice {slot}
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        aria-label={`NPC voice slot ${slot}`}
+                        value={current}
+                        onChange={(e) => { dirtyRef.current = true; setter(e.target.value); }}
+                        className="flex-1 rounded-lg border px-3 py-2 text-sm"
+                        style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)", color: "var(--text)", minHeight: 44 }}
+                      >
+                        <option value="">Same as narrator</option>
+                        {voicesForProvider.map((v) => (
+                          <option key={v.id} value={v.id}>{v.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => void previewVoice(NPC_PREVIEW[slot], current || store.ttsVoiceId || undefined, slot)}
+                        disabled={previewingSlot !== null}
+                        aria-label={`Preview NPC voice ${slot}`}
+                        className="shrink-0 rounded-lg border px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                        style={{ borderColor: "var(--border)", color: "var(--text)", minHeight: 44 }}
+                      >
+                        {previewingSlot === slot ? "Playing…" : "Preview"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          </>
+        ) : (
+          <div
+            className="mb-6 rounded-xl border p-5 opacity-60"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          >
+            <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+              Character &amp; NPC voices 🔒
+            </h2>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Distinct voices for your character and NPCs require the Storyteller plan.{" "}
+              <a href="/account" className="underline" style={{ color: "var(--accent)" }}>Upgrade</a>
+            </p>
+          </div>
+        )}
 
         <section
           aria-label="Speed and pitch"

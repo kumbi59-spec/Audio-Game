@@ -45,6 +45,15 @@ LEVEL UP RULES:
 - On level up: set statDeltas to include "level": 1 AND stat improvements (maxHp +5 minimum, plus thematic boosts for the character class).
 - On level up: set soundCue to "level_up" and mention the level up in narration — it should feel like a moment of triumph.
 
+NPC DIALOGUE FORMAT — when any character speaks out loud, tag their words:
+- Format: [CharacterName]: "spoken words"
+- Use this for ALL named NPCs and for the player character when they speak
+- The tag goes INSIDE the narration string — the surrounding prose stays normal
+- Example: 'The guard steps forward. [Captain Voss]: "Drop your weapons." You hesitate, weighing your options.'
+- If the player character speaks aloud (not just thinks or acts), tag it with their name too
+- Keep tags consistent: always use the same name for the same character across all turns
+- Short environmental/narrator lines do NOT need tags — only actual spoken dialogue
+
 CHOICE RULES:
 - Always provide 3 to 5 choices at the end of each scene
 - Always include an open-ended option like "Do something else" or "Try a different approach"

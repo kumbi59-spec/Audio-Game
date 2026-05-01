@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
+import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
+import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue } from "@/types/game";
 import type { CharacterData } from "@/types/character";
@@ -30,9 +32,17 @@ export function useGameSession() {
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
+  const { entitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
+  // Per-session NPC name → voice slot map (A/B/C), reset when session changes
+  const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
   const [lastNarration, setLastNarration] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  // Reset the NPC voice map whenever a new session starts
+  useEffect(() => {
+    npcVoiceMapRef.current = new Map();
+  }, [session?.id]);
 
   useEffect(() => {
     const latestNarration = [...(session?.narrationLog ?? [])]
@@ -175,11 +185,20 @@ export function useGameSession() {
                 };
                 addNarrationEntry(narEntry);
 
-                // Speak narration sentence-by-sentence
-                const sentences = splitIntoSentences(gmResp.narration);
-                for (const sentence of sentences) {
-                  if (abort.signal.aborted) break;
-                  await speakText(sentence);
+                // Speak narration — multi-voice for Storyteller+, plain for free
+                if (entitlements.premiumTts && character) {
+                  await speakNarrationMultiVoice(
+                    gmResp.narration,
+                    character.name,
+                    npcVoiceMapRef.current,
+                    abort.signal,
+                  );
+                } else {
+                  const sentences = splitIntoSentences(gmResp.narration);
+                  for (const sentence of sentences) {
+                    if (abort.signal.aborted) break;
+                    await speakText(sentence);
+                  }
                 }
               } else if (eventType === "error") {
                 console.error("GM error:", data.message);
