@@ -18,7 +18,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await consumePasswordResetToken(email.trim().toLowerCase(), token);
+    const normalised = email.trim().toLowerCase();
+    const result = await consumePasswordResetToken(normalised, token);
     if (result === "expired") {
       return NextResponse.json({ error: "Reset link has expired. Please request a new one." }, { status: 410 });
     }
@@ -26,11 +27,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid or already-used reset link." }, { status: 400 });
     }
 
-    const passwordHash = await hash(newPassword, 12);
-    await prisma.user.update({
-      where: { email: email.trim().toLowerCase() },
-      data: { passwordHash },
+    // Find by case-insensitive email then update by ID to avoid P2025 on case mismatch
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: normalised, mode: "insensitive" } },
+      select: { id: true },
     });
+    if (!user) {
+      return NextResponse.json({ error: "Account not found." }, { status: 404 });
+    }
+
+    const passwordHash = await hash(newPassword, 12);
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
   } catch (err) {
     console.error("[reset-password] error:", err);
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
