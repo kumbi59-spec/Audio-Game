@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
+import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { playSoundCue } from "@/lib/audio/sound-cues";
@@ -29,6 +30,7 @@ export function useGameSession() {
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
+  const { announce } = useAnnouncer();
   const [lastNarration, setLastNarration] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
@@ -131,8 +133,16 @@ export function useGameSession() {
                   updateHP(change.hp as number);
                 }
                 if (change.statDeltas && typeof change.statDeltas === "object") {
+                  const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
                   for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, number>)) {
                     updateStat(stat, delta);
+                  }
+                  const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
+                  if (levelAfter > levelBefore) {
+                    const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
+                    announce(levelUpMsg, "assertive");
+                    speakText(levelUpMsg);
+                    if (soundCuesEnabled) playSoundCue("level_up");
                   }
                 }
                 if (change.flags) {
@@ -207,7 +217,7 @@ export function useGameSession() {
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, updateLocation,
-      speakText, soundCuesEnabled,
+      speakText, soundCuesEnabled, announce,
     ]
   );
 

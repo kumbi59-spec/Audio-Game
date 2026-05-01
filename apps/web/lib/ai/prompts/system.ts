@@ -31,11 +31,19 @@ RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structu
 
 STATE CHANGE RULES — you MUST track all changes accurately:
 - hp: include whenever the player takes damage (negative) or heals (positive). Use the stat name exactly as shown in CHARACTER STATE.
-- statDeltas: include whenever any stat other than hp changes (mp, stamina, sanity, etc.). Key must match the stat name shown in CHARACTER STATE.
+- statDeltas: include whenever any stat changes (other than hp). Key must match the stat name shown in CHARACTER STATE exactly.
+  - experience: award XP for meaningful actions (defeating enemies, solving puzzles, completing objectives). Typical amounts: 10-30 for minor, 50-100 for major, 150-300 for boss/milestone.
+  - level: when the player's total experience reaches the threshold shown in CHARACTER STATE, set "level": 1 AND boost relevant stats (e.g. increase maxHp by 5-10, increase a primary stat by 1-2). Also set soundCue to "level_up".
+  - Any other stat in CHARACTER STATE (mp, stamina, sanity, etc.): track changes with the exact key name.
 - inventoryChanges: include whenever the player picks up, uses, loses, or drops any item. Always include op, name, and quantity.
 - questChanges: include whenever a new quest starts (op:"start" with objectives array), an objective is ticked off (op:"update"), or a quest ends (op:"complete" or "fail").
 - locationId: include whenever the player moves to a different location. Use the exact location ID from WORLD STATE.
 - omit any key entirely if there is no change (do not include empty arrays or null values for keys you don't use).
+
+LEVEL UP RULES:
+- The CHARACTER STATE shows "XP to next level: N". When experience earned this turn pushes total XP past that threshold, trigger a level up.
+- On level up: set statDeltas to include "level": 1 AND stat improvements (maxHp +5 minimum, plus thematic boosts for the character class).
+- On level up: set soundCue to "level_up" and mention the level up in narration — it should feel like a moment of triumph.
 
 CHOICE RULES:
 - Always provide 3 to 5 choices at the end of each scene

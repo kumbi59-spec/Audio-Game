@@ -70,12 +70,23 @@ function StatItem({ label, value }: { label: string; value: number }) {
   );
 }
 
+function xpForNextLevel(level: number) { return level * 100; }
+function xpIntoLevel(totalXp: number, level: number) {
+  let cumulative = 0;
+  for (let l = 1; l < level; l++) cumulative += xpForNextLevel(l);
+  return Math.max(0, totalXp - cumulative);
+}
+
 function StatsTab({ character }: { character: CharacterData }) {
   const s = character.stats;
   const hpPct = Math.round((s.hp / s.maxHp) * 100);
   const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
 
   const customStatEntries = Object.entries(character.customStats ?? {});
+
+  const xpNeeded = xpForNextLevel(s.level);
+  const xpProgress = xpIntoLevel(s.experience, s.level);
+  const xpPct = Math.min(100, Math.round((xpProgress / xpNeeded) * 100));
 
   return (
     <div className="space-y-5">
@@ -92,8 +103,27 @@ function StatsTab({ character }: { character: CharacterData }) {
           <div className="mb-0.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
             {character.roleTitle ?? character.class.charAt(0).toUpperCase() + character.class.slice(1)}
           </div>
-          <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {s.experience} XP
+          {/* XP progress bar */}
+          <div
+            className="mb-1 flex justify-between text-xs"
+            style={{ color: "var(--text-muted)" }}
+            aria-label={`Experience: ${s.experience} total, ${xpProgress} of ${xpNeeded} XP towards level ${s.level + 1}`}
+          >
+            <span>{s.experience} XP total</span>
+            <span>{xpProgress}/{xpNeeded} to lv.{s.level + 1}</span>
+          </div>
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full"
+            role="meter"
+            aria-valuenow={xpProgress}
+            aria-valuemin={0}
+            aria-valuemax={xpNeeded}
+            style={{ backgroundColor: "var(--surface3)" }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${xpPct}%`, backgroundColor: "var(--accent)" }}
+            />
           </div>
         </div>
       </div>
@@ -429,9 +459,12 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       .filter(([k]) => !k.endsWith("Max"))
       .map(([k, v]) => `${k} ${v}`)
       .join(", ");
+    const xpNeeded = xpForNextLevel(s.level);
+    const xpProgress = xpIntoLevel(s.experience, s.level);
     const text = [
       `${character.name}, ${character.roleTitle ?? character.class}, level ${s.level}.`,
       `Health: ${s.hp} of ${s.maxHp}.`,
+      `Experience: ${s.experience} total. ${xpProgress} of ${xpNeeded} XP towards level ${s.level + 1}.`,
       custom ? `Other stats: ${custom}.` : "",
       `Strength ${s.strength}, Dexterity ${s.dexterity}, Intelligence ${s.intelligence}, Charisma ${s.charisma}.`,
       `Inventory: ${inv}.`,
