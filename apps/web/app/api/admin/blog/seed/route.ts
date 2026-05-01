@@ -207,6 +207,60 @@ Specificity is immersion. The more concrete your world's sensory palette, the mo
 Ready to build your world? EchoQuest Creator plan members get access to the **World Builder Wizard** — a step-by-step AI-assisted tool that turns your ideas into a fully playable campaign. **[See plans →](/)**
 `,
   },
+  {
+    daysFromNow: 5,
+    title: "How Claude AI Powers the EchoQuest Game Master",
+    excerpt: "What actually happens when you type an action in EchoQuest? Here's a plain-language look at how Claude AI drives the AI Game Master — and why it's different from older text adventure systems.",
+    content: `# How Claude AI Powers the EchoQuest Game Master
+
+When you type "I draw my sword and demand the merchant explain himself," something remarkable happens. Within seconds, a fully contextual narrative response appears — one that remembers who the merchant is, what happened three scenes ago, and what your character's personality is like. How does that work?
+
+## The Old Way: Decision Trees
+
+Text adventures and early visual novels worked by mapping every possible player input to a predetermined response. If you typed "go north," the game checked a table and returned the "north room" text. If you typed anything else, you got "I don't understand that."
+
+This was fine for simple puzzles, but it breaks down immediately when you try to have a conversation, act creatively, or do anything the designer didn't anticipate. The world felt hollow because it literally was — it only contained what someone explicitly programmed.
+
+## The New Way: Language Models
+
+EchoQuest uses Claude, a large language model developed by Anthropic, as the core of the AI Game Master. Claude doesn't work from a lookup table. Instead, it understands your input as natural language and generates a contextually appropriate response from scratch, every time.
+
+That means:
+
+- You can phrase your actions any way you want
+- The GM understands intent, not just keywords
+- Responses feel natural and varied rather than canned
+- The story can go in directions nobody predetermined
+
+## What the GM Actually Knows
+
+Before Claude generates a response to your action, it receives a detailed system prompt containing:
+
+- **World information**: the setting, tone, factions, and lore from your campaign's Game Bible
+- **Your character**: name, class, stats, backstory, and current inventory
+- **Current context**: where you are, what's around you, recent events
+- **Conversation history**: the last several exchanges in your session
+- **Rules**: how to handle combat, skill checks, NPC behavior, and narrative pacing
+
+This is called the *context window* — everything the AI knows before it writes its next response. The richer the context, the more coherent and immersive the story.
+
+## Why Responses Feel Consistent
+
+One of the challenges with AI Game Masters is maintaining consistency — the same NPC shouldn't forget your name between scenes, and the laws of the world shouldn't arbitrarily change. EchoQuest addresses this by:
+
+- Storing key story facts and character state in a structured game state (not just relying on the conversation history)
+- Injecting a summary of past events when sessions continue after a break
+- Using the world's Game Bible as a persistent ground truth the AI always references
+
+## The Human Design Behind the AI
+
+Claude doesn't invent the rules — we do. The EchoQuest team writes the system prompt that defines how the GM should behave: how to pace tension, when to offer choices versus let the player freeform, how harsh or forgiving to be with consequences. The AI executes those rules with intelligence and creativity.
+
+Think of it like a very skilled, very fast co-author. We set the creative constraints. Claude fills in the story within them.
+
+Ready to see it in action? **[Play a free session →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
