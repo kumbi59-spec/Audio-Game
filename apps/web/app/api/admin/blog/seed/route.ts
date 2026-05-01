@@ -1329,6 +1329,152 @@ Accessibility testing is part of our CI pipeline via axe-core automated checks, 
 If you encounter an accessibility barrier in EchoQuest, please report it via our support link. We treat accessibility bugs as P1 issues. **[Play EchoQuest →](/library)**
 `,
   },
+  {
+    daysFromNow: 28,
+    title: "Behind the GM: How We Prompt Claude to Run Your Adventures",
+    excerpt: "The EchoQuest AI Game Master is powered by Claude, but the magic is in how we instruct it. Here's a transparent look at the prompt engineering behind the scenes.",
+    content: `# Behind the GM: How We Prompt Claude to Run Your Adventures
+
+Every time you take an action in EchoQuest, Claude receives a carefully structured prompt and generates a response. That prompt is the product of months of design work — testing, iterating, and tuning until the AI GM behaved the way a great human GM would.
+
+We believe in being transparent about how this works.
+
+## The Structure of a GM Prompt
+
+Before Claude sees your action, it receives a system prompt that contains several components:
+
+**Identity and role.** The GM is told explicitly what it is: a skilled, empathetic Game Master running a collaborative RPG. It's told its primary job is to make the player feel capable and engaged while maintaining narrative stakes.
+
+**World context.** The entire Game Bible — your world's lore, factions, tone, rules, and constraints — is embedded in the prompt. This is what makes the AI behave consistently with your world rather than defaulting to generic fantasy tropes.
+
+**Character information.** Your character's name, class, backstory, current stats, inventory, and any story flags set by previous choices are included. The GM knows who you are.
+
+**Location and current state.** Where you are right now, what's around you, and what the AI's current "scene state" is (time of day, active NPCs, recent events).
+
+**Recent conversation history.** The last several exchanges between you and the GM, so it has immediate context without reading the entire session history.
+
+**Instructions for output format.** The GM is told to produce structured output: narration, choices, any state changes, any sound cues. This structured output is what allows EchoQuest to update the game state, trigger sounds, and update your character sheet automatically.
+
+## What We Ask the GM to Do
+
+Beyond the factual context, we give the GM explicit behavioral instructions:
+
+- Respond to the spirit of the player's action, not just the letter
+- Never say "I can't do that" — always interpret the action charitably and find a way to respond
+- Vary sentence length and rhythm; avoid repetitive sentence structures
+- Use sensory detail — what the player hears, smells, and feels, not just sees
+- End narration at a moment of tension or decision, not resolution
+- Maintain NPC consistency — the same character should speak and behave the same way across scenes
+
+## What We Ask the GM Not to Do
+
+- Don't kill characters without clear player agency unless the player has set high difficulty
+- Don't railroad — if the player wants to go somewhere or do something the story didn't anticipate, follow them
+- Don't repeat information the player already knows just to pad narration
+- Don't use the word "suddenly" (a classic bad writing crutch)
+- Don't make the world feel hostile to the player's creative choices
+
+## The Ongoing Refinement
+
+We tune the prompt continuously based on player feedback. When players report that the GM made an unfair ruling, forgot something important, or narrated inconsistently, we investigate whether the prompt is responsible and update it if so.
+
+This is one of the advantages of a software-powered GM: we can improve every player's experience simultaneously by improving the instructions.
+
+**[Experience the GM yourself →](/library)**
+`,
+  },
+  {
+    daysFromNow: 29,
+    title: "Building Community Worlds: Tips from EchoQuest Creators",
+    excerpt: "Players who've published worlds to EchoQuest's community library share what they learned — about world-building, about writing for AI, and about what makes a community campaign worth playing.",
+    content: `# Building Community Worlds: Tips from EchoQuest Creators
+
+The EchoQuest community library exists because players want to share their worlds. Since we launched creator tools, dozens of worlds have been published — from gritty political thrillers to cozy mystery towns to cosmic horror epics. Here's what creators have learned.
+
+## Start With the Opening Scene, Not the Lore
+
+The instinct when building a world is to start with history — the ancient wars, the founding myths, the timeline of major events. Resist this. Players don't experience your world through its history. They experience it through a specific moment: the opening scene.
+
+Build the opening first. Who is the player character? Where are they? What's immediately happening? What's the first decision they need to make? A vivid, grounded opening scene does more for player engagement than pages of backstory.
+
+You can always add lore later. Players who want to explore history can discover it through play.
+
+## Write for Listening, Not Reading
+
+Community world text gets narrated aloud — either by the browser TTS or by ElevenLabs voices. This changes how you should write.
+
+- Use shorter sentences than you would in prose fiction
+- Avoid complex nested clauses that are hard to parse when heard rather than read
+- Favor concrete sensory detail over abstract description
+- Read your opening scenario aloud before publishing — if it sounds awkward spoken, rewrite it
+
+The best community world descriptions have a rhythm to them when read aloud. That's not an accident.
+
+## Give the AI Specific Constraints
+
+The AI Game Master is powerful but needs guardrails to stay consistent with your world. The clearest, most specific constraints produce the best results.
+
+Vague: "Magic is limited in this world."
+Specific: "Magic requires spoken incantations and physical components. It is rare, feared, and associated with the heretical old religion. No character casts magic publicly. The Church executes practitioners."
+
+Specific constraints let the AI make confident, consistent calls when magic-adjacent situations arise in play.
+
+## Design for Replayability
+
+Community worlds get played by many different players with different approaches. Design scenarios that work whether the player is aggressive or cautious, political or action-oriented, suspicious or trusting.
+
+The best community campaigns have a central tension that creates interesting choices regardless of the approach — because the approach changes which choices are available and what their costs are, but the fundamental tension remains.
+
+## Let the AI Improvise
+
+Some creators try to script every outcome. This doesn't work with an AI GM — it improvises by nature. Instead of trying to control what happens, focus on the furniture: who the characters are, what they want, what the world feels like. The AI will fill in the rest.
+
+Players consistently report that the best community sessions feel like the world was responding intelligently to their specific choices — not following a script. That feeling comes from good furniture, not from scripted outcomes.
+
+**[Publish your world →](/worlds/new)**
+`,
+  },
+  {
+    daysFromNow: 30,
+    title: "What's Next for EchoQuest: Our Vision for the Future",
+    excerpt: "We've built the foundation. Here's where EchoQuest is headed — the features we're working on, the problems we're solving, and the future of accessible AI-powered storytelling.",
+    content: `# What's Next for EchoQuest: Our Vision for the Future
+
+EchoQuest launched with a simple premise: an AI-powered, audio-first RPG that anyone can play regardless of visual ability. That premise is real and working. But we're only at the beginning of what's possible.
+
+Here's where we're headed.
+
+## Near-Term: Deeper World Customization
+
+The most-requested feature from creators is more control over world behavior: custom sound cue triggers, more granular NPC behavior rules, the ability to define specific skill check thresholds. These are coming.
+
+We're also building an improved character persistence system — so your character's relationships, reputation, and history carry more clearly across sessions. The AI currently does a good job with short-term memory; we're investing in making long-term character history feel more tangible.
+
+## Near-Term: Collaborative Play
+
+Solo play is EchoQuest's foundation. But the most requested feature from players is the ability to adventure with a friend — two players, one AI GM, one shared story. Building multiplayer that works well for accessibility (two players might have very different audio setups) is complex, but it's actively in development.
+
+## Medium-Term: Voice-First Interface
+
+Right now, EchoQuest is text-first with audio output. The next evolution is voice-first: you speak, the AI responds with voice, and the keyboard/screen is secondary rather than primary. This would be EchoQuest's most significant accessibility leap — a fully conversational RPG where the screen is entirely optional.
+
+## Medium-Term: Adaptive Storytelling
+
+We want EchoQuest to learn from your play style over time. If you consistently engage most with political intrigue, the AI GM should start creating more political scenarios. If you love emotional character moments, your campaigns should contain more of those. Personalization at the story level is a hard problem, but it's the right one to solve.
+
+## Long-Term: An Open Platform for Accessibility-First Games
+
+Our biggest ambition isn't EchoQuest itself — it's demonstrating that audio-first, accessibility-first design produces better games that more people can play. We want to publish our accessibility patterns, contribute to open standards, and help other developers build on what we've learned.
+
+The blind and visually impaired gaming community has been underserved by the games industry for its entire history. That's a solvable problem. EchoQuest is one solution — but the real goal is a richer ecosystem of accessible games from many creators.
+
+## A Note of Gratitude
+
+To every player who's spent time in an EchoQuest world: thank you. Every session teaches us something. Every piece of feedback improves the experience for the players who come after you. You're not just playing a game — you're helping build the future of accessible storytelling.
+
+**[Join us →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
