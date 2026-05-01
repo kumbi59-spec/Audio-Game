@@ -1035,6 +1035,143 @@ That's a complete horror opening with no monsters and no jump scares — just wr
 **[Start your horror campaign →](/library)**
 `,
   },
+  {
+    daysFromNow: 22,
+    title: "Crafting Moral Dilemmas: How to Make Players Truly Think",
+    excerpt: "The best RPG moments aren't fights — they're choices where every option costs something. Here's how to design moral dilemmas that stick with players long after the session ends.",
+    content: `# Crafting Moral Dilemmas: How to Make Players Truly Think
+
+A player who finishes a session still thinking about a decision they made — that's the mark of a great campaign. Combat gets forgotten. Political intrigue fades. But a genuine moral dilemma, one where they weren't sure what the right answer was, stays.
+
+Here's how to build those moments.
+
+## The Anatomy of a Real Dilemma
+
+A fake dilemma: "Do you save the village or let the bandits burn it?"
+
+Nobody picks "let the bandits burn it." There's no tension. It's a test of whether the player is good or evil, and most players will pass it without a second thought.
+
+A real dilemma: "The village Elder helped the bandits in exchange for protection of his daughter, who is now wanted by the crown. Do you turn him in — which will legally protect the village but condemn his daughter — or protect his secret, which means living under bandit influence indefinitely?"
+
+Now there's tension. There's no clean answer. Whatever the player chooses, they're losing something and choosing who bears the cost.
+
+## The Four Ingredients
+
+**1. Legitimate values on both sides.** Both options must serve something the player actually cares about. If one option is clearly better, it's not a dilemma — it's a puzzle with a right answer.
+
+**2. No third option (initially).** Players will always look for the creative solution that costs nothing. That's fine — let them try. But the default state of the dilemma should have no clean escape. If they find a clever third path, reward that creativity. But design the scenario assuming they won't.
+
+**3. Personal stakes.** Abstract dilemmas ("save one person or five") are philosophy class exercises. Dilemmas become emotionally real when the people involved are named characters the player has already met and cared about.
+
+**4. Irreversibility.** The decision should feel permanent. If the player can always undo their choice later, there's no weight to making it.
+
+## Types of Moral Dilemmas That Work
+
+**The lesser evil:** Both options cause harm. Which harm is more acceptable?
+
+**The betrayal:** Keeping a promise or a loyalty conflicts with doing the right thing.
+
+**Certainty vs. hope:** A guaranteed bad outcome versus a chance at a good one with risk of catastrophe.
+
+**Justice vs. mercy:** Punishing someone who deserves it versus giving them grace they haven't earned.
+
+**The individual vs. the many:** One person's wellbeing versus a larger group's.
+
+## Timing and Delivery
+
+Dilemmas land hardest when they arrive after investment. Don't put a moral choice in the opening scene — the player hasn't met anyone yet and doesn't care. Plant the seeds of the dilemma early (introduce the characters, establish the conflicting values), then bring the choice to a head when the player is emotionally committed.
+
+In EchoQuest, the AI Game Master can be prompted to build toward a dilemma by seeding the relevant relationships and tensions in your Game Bible. The more clearly you establish who the players will care about and why those people's interests conflict, the more powerful the eventual choice will be.
+
+**[Build your campaign →](/)**
+`,
+  },
+  {
+    daysFromNow: 23,
+    title: "5 Classic D&D Campaigns That Inspired EchoQuest",
+    excerpt: "The best tabletop RPG campaigns of the past fifty years shaped how we think about AI-driven storytelling. Here are five that left the deepest marks on EchoQuest's design.",
+    content: `# 5 Classic D&D Campaigns That Inspired EchoQuest
+
+EchoQuest didn't emerge from nowhere. It's built on fifty years of tabletop RPG design — the campaigns that showed what collaborative storytelling could achieve, the mistakes that revealed its limits, and the moments that proved narrative games could produce genuine emotional experiences. Here are five that shaped our thinking most directly.
+
+## 1. Planescape: Torment (1999)
+
+Not a tabletop campaign but a video game — and perhaps the strongest argument ever made that story is more important than combat in an RPG. Planescape: Torment is famous for its central question ("What can change the nature of a man?") and for NPCs with genuine depth, history, and moral complexity.
+
+What it taught us: Player character backstory isn't flavor text — it's the engine of the story. The Nameless One's amnesia isn't a gimmick; it's the central narrative mechanism. EchoQuest's emphasis on character backstory as an active story input comes directly from this.
+
+## 2. The Curse of Strahd (1983 / 2016)
+
+Ravenloft is the original gothic horror D&D setting, and Curse of Strahd is its crown jewel. What makes it special is Strahd himself — a villain with genuine pathos, a coherent psychology, and a tragic past that makes him sympathetic without excusing anything he's done.
+
+What it taught us: Your antagonist needs to be a person, not a symbol of evil. EchoQuest's AI GM is prompted to give antagonists motivations that make sense — not just power and destruction.
+
+## 3. Campaigns of Keith Baker's Eberron
+
+Eberron is a D&D setting built on moral ambiguity. Good nations did terrible things during the Last War. The "heroic" factions have blood on their hands. Nobody's clean.
+
+What it taught us: Faction design without clean heroes creates the most interesting political choices. EchoQuest's faction system — where every group wants something legitimate but incompatible — traces directly to Eberron's influence.
+
+## 4. Matt Mercer's Critical Role (2015–present)
+
+Critical Role didn't invent anything new mechanically, but it demonstrated to millions of people that watching others play D&D could be genuinely moving television. Moments like Percy's deal with Orthax or Mollymauk's death hit audiences who'd never touched a d20 in their lives.
+
+What it taught us: The emotional power of RPG storytelling isn't locked to participants. The craft of performance, pacing, and character work can move an audience. This influenced how we think about EchoQuest's narration — it should be worth experiencing as a story, not just as a game.
+
+## 5. Apocalypse World (2010)
+
+Vincent Baker's Apocalypse World is a tabletop RPG about post-apocalyptic survival, but its real contribution was mechanical: the "Powered by the Apocalypse" system, where moves trigger from fiction rather than declared actions, and the GM's job is to "make the world seem real and the characters' lives not safe."
+
+What it taught us: The GM's role isn't to run encounters — it's to ask hard questions and create situations, then let players respond. EchoQuest's AI GM prompt architecture is built around this principle: create situations with genuine stakes, then respond honestly to player choices.
+
+**[See EchoQuest's official campaigns →](/library)**
+`,
+  },
+  {
+    daysFromNow: 24,
+    title: "Solo RPG vs. Group Play: The Case for Playing Alone",
+    excerpt: "Most RPGs are designed for groups. But solo play has distinct advantages — and a growing community of players who prefer it. Here's why playing alone might be better than you think.",
+    content: `# Solo RPG vs. Group Play: The Case for Playing Alone
+
+For most of tabletop RPG history, "playing alone" meant you weren't really playing. The assumption was built into the name — *role-playing game*, emphasis on the *game*, which required other people. Solo RPG was a niche within a niche: journaling games, oracle decks, players running both sides of a conversation.
+
+AI changes this completely. EchoQuest is built from the ground up for solo play. Here's why that's worth taking seriously.
+
+## The Scheduling Problem, Honestly
+
+Let's start with the obvious. The biggest single reason D&D campaigns die is scheduling. Getting four to six adults — with jobs, families, and lives — into the same room at the same time, every week, indefinitely, is genuinely hard. Most campaigns die before the story finishes. Many campaigns never start because assembling the group is too hard.
+
+Solo play eliminates this entirely. You play when you want, for as long as you want, and stop when you need to.
+
+## The Performance Anxiety Problem
+
+Tabletop RPGs require performing in front of people. You're improvising dialogue, making decisions out loud, sometimes playing a character who's nothing like you. For many players, this is exactly the appeal. For many others — particularly introverts, people with social anxiety, or players who are newer to the hobby — it's a significant barrier.
+
+Playing alone with an AI GM removes the social pressure entirely. Nobody is judging your roleplay. Nobody is impatient when you take a minute to think. Nobody will remember the time you accidentally called the villain by the wrong name.
+
+## The Pacing Problem
+
+Group play has a pacing problem: five people with different energy levels, different engagement with the current scene, and different amounts of time before they need to leave. The player who wants to spend twenty minutes exploring an NPC's psychology is always in tension with the player who wants to get to the next fight.
+
+Solo play is perfectly paced — to you, specifically. Spend as long as you want interrogating the reluctant blacksmith. Skip briskly through the scenes that don't interest you. The story moves at your tempo.
+
+## What You Lose
+
+Group play produces something solo play genuinely cannot: the surprise and delight of other players doing unexpected things. The moment a fellow player makes an inspired decision that solves a problem in a way nobody planned is irreplaceable. The shared memory of a campaign — the stories you tell each other years later — requires co-participants to exist.
+
+Solo play is different. Not lesser — different. It's a more private, introspective experience. More like reading a novel than watching a film with friends.
+
+## Who Solo Play Is For
+
+- Players who love RPGs but can't commit to a regular group
+- Players who want to explore a character or setting privately before bringing it to a group
+- Players who are new and want to learn without social pressure
+- Players who find group dynamics exhausting
+- Players who simply prefer solitary creative experiences
+
+All of these are valid. EchoQuest is built for all of them. **[Start your solo adventure →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
