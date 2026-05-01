@@ -62,7 +62,7 @@ function SignInForm() {
       if (result?.error) {
         let msg: string;
         if (result.error === "Configuration") {
-          msg = "Server is not fully configured yet. Please contact the site administrator.";
+          msg = "Unable to sign in right now. Please try again in a moment.";
         } else if (result.error === "CredentialsSignin") {
           msg = mode === "signup"
             ? "Could not create account. That email may already be in use."

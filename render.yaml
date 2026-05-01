@@ -34,8 +34,10 @@ services:
         value: 20.11.0
       - key: NEXTAUTH_URL
         sync: false           # e.g. https://echoquest-web.onrender.com
+      - key: AUTH_SECRET
+        generateValue: true   # NextAuth v5 reads AUTH_SECRET; Render auto-generates on first deploy
       - key: NEXTAUTH_SECRET
-        generateValue: true   # Render generates a 32-byte secret on first deploy
+        generateValue: true   # Legacy alias — kept so existing deploys with NEXTAUTH_SECRET still work
       - key: DATABASE_URL
         sync: false           # Supabase session-mode pooler URL — see DEPLOY.md for the correct format
       - key: ANTHROPIC_API_KEY
