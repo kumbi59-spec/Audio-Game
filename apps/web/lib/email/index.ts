@@ -11,6 +11,7 @@ function getResend(): Resend | null {
 // RESEND_FROM must be a sender address on a domain verified in Resend.
 // Example: "EchoQuest <noreply@yourdomain.com>"
 const FROM = process.env["RESEND_FROM"] ?? "EchoQuest <noreply@echoquest.app>";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
 
 async function sendEmail(payload: Parameters<Resend["emails"]["send"]>[0]): Promise<void> {
   const resend = getResend();
@@ -71,7 +72,7 @@ function welcomeHtml(name: string): string {
       AI Game Master. Every feature works by keyboard, voice, and screen reader — built for blind
       and sighted adventurers alike.
     </p>
-    <a href="https://echoquest.app/library"
+    <a href="${SITE_URL}/library"
        style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
       Start Playing →
     </a>
@@ -110,7 +111,7 @@ function upgradeHtml(name: string, tier: string): string {
     <ul style="color:#ccc;font-size:14px;line-height:1.6;padding-left:20px;margin:0 0 24px;">
       ${bullets}
     </ul>
-    <a href="https://echoquest.app/library"
+    <a href="${SITE_URL}/library"
        style="display:inline-block;background:#7c3aed;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">
       Go to Library →
     </a>
