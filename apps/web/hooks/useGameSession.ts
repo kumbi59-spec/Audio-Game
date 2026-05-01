@@ -22,6 +22,7 @@ export function useGameSession() {
     incrementTurnCount,
     updateFlags,
     updateHP,
+    updateLocation,
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
@@ -128,6 +129,9 @@ export function useGameSession() {
                 if (data.flags) {
                   updateFlags(data.flags as Record<string, unknown>);
                 }
+                if (data.locationId) {
+                  updateLocation(data.locationId as string);
+                }
               } else if (eventType === "choices_ready") {
                 // Full response parsed — update choices and add narration entry
                 const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;
@@ -182,7 +186,7 @@ export function useGameSession() {
     },
     [
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
-      setIsGenerating, incrementTurnCount, updateFlags, updateHP,
+      setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateLocation,
       speakText, soundCuesEnabled,
     ]
   );

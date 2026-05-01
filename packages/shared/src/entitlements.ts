@@ -57,7 +57,7 @@ export const TIER_ENTITLEMENTS: Record<Tier, Entitlements> = {
     worldWizard: false,
     maxCampaigns: null,
     sessionTurnLimit: null,
-    publicPublishing: false,
+    publicPublishing: true,
     showAds: false,
     aiMinutesRemaining: null,
   },
@@ -119,6 +119,7 @@ export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
     "Upload your own Game Bible",
     "Unlimited saved campaigns",
     "No per-session turn limits",
+    "Publish worlds to the community library",
   ],
   creator: [
     "Everything in Storyteller",

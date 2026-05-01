@@ -22,6 +22,7 @@ interface GameStore {
   incrementTurnCount: () => void;
   updateFlags: (flags: Record<string, unknown>) => void;
   updateHP: (delta: number) => void;
+  updateLocation: (locationId: string) => void;
   clearSession: () => void;
 }
 
@@ -80,6 +81,11 @@ export const useGameStore = create<GameStore>()(
             character: { ...state.character, stats: { ...state.character.stats, hp: newHp } },
           };
         }),
+
+      updateLocation: (locationId) =>
+        set((state) => ({
+          session: state.session ? { ...state.session, currentLocationId: locationId } : null,
+        })),
 
       clearSession: () =>
         set({ session: null, character: null, world: null, dbSessionId: null }),
