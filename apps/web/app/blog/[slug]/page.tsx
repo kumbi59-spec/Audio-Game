@@ -12,10 +12,13 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-    include: { author: { select: { name: true } } },
-  });
+  let post = null;
+  try {
+    post = await prisma.blogPost.findUnique({
+      where: { slug },
+      include: { author: { select: { name: true } } },
+    });
+  } catch { /* table not yet created */ }
   if (!post) return { title: "Not Found" };
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   return {
@@ -42,10 +45,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await prisma.blogPost.findUnique({
-    where: { slug },
-    include: { author: { select: { name: true } } },
-  });
+  let post = null;
+  try {
+    post = await prisma.blogPost.findUnique({
+      where: { slug },
+      include: { author: { select: { name: true } } },
+    });
+  } catch { /* table not yet created */ }
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 

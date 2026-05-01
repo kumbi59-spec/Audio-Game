@@ -24,11 +24,16 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function BlogPage() {
-  const posts = await prisma.blogPost.findMany({
-    where: { publishedAt: { not: null, lte: new Date() } },
-    orderBy: { publishedAt: "desc" },
-    select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
-  });
+  let posts: { id: string; title: string; slug: string; excerpt: string; publishedAt: Date | null }[] = [];
+  try {
+    posts = await prisma.blogPost.findMany({
+      where: { publishedAt: { not: null, lte: new Date() } },
+      orderBy: { publishedAt: "desc" },
+      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
+    });
+  } catch {
+    // Table may not exist yet during build-time static generation (before migrations run)
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
