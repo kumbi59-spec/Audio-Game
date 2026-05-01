@@ -53,6 +53,57 @@ We're building a community library of player-created worlds, a World Builder Wiz
 Ready to start your first adventure? **[Browse the Adventure Library →](/library)**
 `,
   },
+  {
+    daysFromNow: 2,
+    title: "How to Play Your First EchoQuest Adventure (Beginner's Guide)",
+    excerpt: "Never played a text-based RPG before? No problem. This step-by-step guide walks you through your first EchoQuest session — from picking a world to making your first move.",
+    content: `# How to Play Your First EchoQuest Adventure (Beginner's Guide)
+
+So you've heard about EchoQuest and you're curious — but you've never played an AI-driven RPG before. Maybe you've never played a tabletop RPG at all. That's completely fine. This guide will walk you through everything.
+
+## Step 1: Browse the Adventure Library
+
+When you first arrive at EchoQuest, head to the **Adventure Library**. This is where all available worlds live — both official campaigns built by our team and community-created worlds published by players.
+
+On the free tier, you can access three official prebuilt campaigns. Each one is labeled with a difficulty (Beginner, Intermediate, Advanced) and a genre tag like Fantasy, Horror, or Mystery. Start with a Beginner campaign.
+
+## Step 2: Choose Your Character
+
+Before the adventure begins, you'll create a character. Pick a name, a class (like Rogue, Mage, or Warrior), and write a short backstory. Don't overthink it — the AI Game Master adapts to whoever you decide to be.
+
+Your character has a few simple stats: **HP** (hit points), and any special abilities tied to your class. These change as the story progresses.
+
+## Step 3: Listen to the Opening Scene
+
+Once your session starts, the AI Game Master narrates an opening scene. If you're using the browser TTS voice, it will read this aloud. If you have a premium subscription, the ElevenLabs voice will narrate with richer, more expressive audio.
+
+Take a moment to listen. Pay attention to where you are, who's around you, and what's happening. The scene sets up the situation you need to respond to.
+
+## Step 4: Take Your First Action
+
+Below the narration, you'll see three suggested choices — but you're not limited to them. You can:
+
+- **Click or tap a choice** to select it
+- **Type your own action** in the text box (e.g. "I examine the door for traps")
+- **Speak your action** using the voice input button
+
+The AI GM will respond to exactly what you say. There's no wrong answer — the story adapts.
+
+## Step 5: Keep Going
+
+Each response from the AI GM advances the story. Your HP updates if you take damage, your inventory changes if you pick something up, and ambient sounds shift as you move through the world.
+
+If you want to replay the last narration, press **R** or click the replay button. If you need to pause, your session is saved automatically.
+
+## Tips for New Players
+
+- **Don't be afraid to ask questions in-character.** "I ask the innkeeper what she knows about the disappearances" is a perfectly valid action.
+- **Explore.** The AI GM rewards curiosity. Try examining objects, talking to NPCs, and going off the suggested path.
+- **You can't break the game.** If your action doesn't make sense in the story, the GM will say so gracefully and ask what you'd like to do instead.
+
+Your first adventure is waiting. **[Open the Library →](/library)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
