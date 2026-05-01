@@ -158,6 +158,55 @@ EchoQuest isn't the end of accessible gaming — it's a beginning. We're buildin
 If you're a blind or visually impaired gamer who wants to try EchoQuest, your first session is free. No credit card. No catches. **[Start your adventure →](/library)**
 `,
   },
+  {
+    daysFromNow: 4,
+    title: "5 World-Building Tips That Make Great RPG Campaigns",
+    excerpt: "Whether you're creating a world in EchoQuest's World Builder Wizard or writing a Game Bible from scratch, these five principles separate memorable campaigns from forgettable ones.",
+    content: `# 5 World-Building Tips That Make Great RPG Campaigns
+
+Every great RPG campaign starts with a great world. Not a perfect world — a *interesting* one. A world with problems, history, and people who want things. Here are five principles that will make your world worth adventuring in.
+
+## 1. Give Your World a Central Tension
+
+The best fictional worlds aren't static. Something is wrong — or about to go wrong. Maybe an ancient empire is crumbling and three factions are fighting over its bones. Maybe a plague is spreading and nobody knows the cause. Maybe a god just died, and the faiths that worshipped it are in freefall.
+
+Your players need a world with active stakes. The central tension is the engine that drives your story forward even when players go off-script. Before you write anything else, answer: **What is fundamentally broken about this world?**
+
+## 2. Make Your Factions Want Incompatible Things
+
+Conflict is the soul of drama. And conflict comes easiest when you have groups of people — factions — who each want something legitimate but mutually exclusive.
+
+The merchant guild wants open trade routes. The druids want the forest untouched. The crown wants tax revenue from the timber trade. Nobody is purely evil. Everyone has a reasonable case. Now put your players in the middle and watch the sparks fly.
+
+Aim for three to five factions. Any fewer and the world feels simple. Any more and players lose track.
+
+## 3. History Leaves Ruins — Use Them
+
+Players love discovering things. They love stumbling into a half-buried temple and wondering who built it and why. They love finding a crumbling fort with a name on the map but no explanation.
+
+Before your players arrive, something happened here. Build two or three historical events that left physical traces in the world — ruins, scars, monuments, ghost towns. You don't have to explain them all upfront. Let players encounter a ruin and ask questions. Let the mystery breathe.
+
+## 4. Give NPCs Goals That Exist Without the Players
+
+Novice world-builders create NPCs who exist solely to give quests. Veterans create NPCs who were doing things before the players showed up and will keep doing things regardless.
+
+The blacksmith has a gambling debt she's hiding from her husband. The innkeeper is quietly collecting information for a rebel cell. The city guard captain genuinely believes he's protecting people, even when his methods are cruel.
+
+When an NPC has their own agenda, they feel real. Players pick up on it. It makes the world feel inhabited rather than constructed.
+
+## 5. Establish Clear Sensory Language
+
+An AI Game Master describes your world through text and narration. Help it do that well by giving your world specific sensory language in your Game Bible.
+
+Don't say "the city is dark and gritty." Say: "The city smells of tallow candles, river mud, and frying onions. Cobblestones are slick from morning fog. Voices argue in three languages from upper-floor windows."
+
+Specificity is immersion. The more concrete your world's sensory palette, the more vividly the AI will render it in play.
+
+---
+
+Ready to build your world? EchoQuest Creator plan members get access to the **World Builder Wizard** — a step-by-step AI-assisted tool that turns your ideas into a fully playable campaign. **[See plans →](/)**
+`,
+  },
 ];
 
 function getPublishDate(daysFromNow: number): Date {
