@@ -9,7 +9,9 @@ const ADMIN_EMAILS = (process.env["ADMIN_EMAILS"] ?? "")
 export async function requireAdmin(): Promise<{ id: string; email: string } | null> {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) return null;
-  if (!ADMIN_EMAILS.includes(session.user.email.toLowerCase())) return null;
+  const byEmail = ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes(session.user.email.toLowerCase());
+  const byFlag = (session.user as { isAdmin?: boolean }).isAdmin === true;
+  if (!byEmail && !byFlag) return null;
   return { id: session.user.id, email: session.user.email };
 }
 

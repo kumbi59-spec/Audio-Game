@@ -66,11 +66,14 @@ export default function AdminPage() {
     setSeedResult("");
     try {
       const res = await fetch("/api/admin/blog/seed", { method: "POST" });
-      const data = await res.json() as { created?: string[]; skipped?: string[]; error?: string };
-      if (!res.ok) { setSeedResult(data.error ?? "Seed failed."); return; }
+      let data: { created?: string[]; skipped?: string[]; error?: string } = {};
+      try { data = await res.json(); } catch { /* non-JSON response */ }
+      if (!res.ok) { setSeedResult(data.error ?? `Seed failed (${res.status}).`); return; }
       const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
       setPosts(Array.isArray(newPosts) ? newPosts : []);
       setSeedResult(`Created ${data.created?.length ?? 0} post(s). Skipped ${data.skipped?.length ?? 0} already existing.`);
+    } catch (err) {
+      setSeedResult(err instanceof Error ? err.message : "Seed failed.");
     } finally {
       setSeeding(false);
     }
