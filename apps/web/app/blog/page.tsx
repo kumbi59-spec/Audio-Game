@@ -2,9 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+
 export const metadata: Metadata = {
-  title: "Blog | EchoQuest",
-  description: "Tips, updates, and stories from the EchoQuest team.",
+  title: "Blog",
+  description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
+  alternates: { canonical: `${SITE_URL}/blog` },
+  openGraph: {
+    title: "EchoQuest Blog",
+    description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
+    url: `${SITE_URL}/blog`,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EchoQuest Blog",
+    description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
+  },
 };
 
 export const revalidate = 60;

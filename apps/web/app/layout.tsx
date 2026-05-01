@@ -11,17 +11,52 @@ import { VerificationBanner } from "@/components/VerificationBanner";
 import { auth } from "@/auth";
 
 const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"];
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
 
 export const metadata: Metadata = {
-  title: "EchoQuest — Narrated AI Adventures",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "EchoQuest — Narrated AI RPG Adventures",
+    template: "%s | EchoQuest",
+  },
   description:
-    "An audio-first interactive RPG platform. Play narrated AI-driven adventures with an AI Game Master. Fully accessible for blind and visually impaired players.",
+    "An audio-first AI tabletop RPG platform. Play narrated adventures with an AI Game Master — fully accessible for blind and visually impaired players. Free to start.",
+  keywords: [
+    "audio RPG", "AI game master", "accessible RPG", "blind gaming",
+    "text adventure", "AI storytelling", "narrated adventure", "EchoQuest",
+    "tabletop RPG", "interactive fiction", "AI dungeon master",
+  ],
+  authors: [{ name: "EchoQuest" }],
+  creator: "EchoQuest",
+  publisher: "EchoQuest",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "EchoQuest",
   },
+  openGraph: {
+    type: "website",
+    siteName: "EchoQuest",
+    title: "EchoQuest — Narrated AI RPG Adventures",
+    description:
+      "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible for blind and visually impaired players. Free to start.",
+    url: SITE_URL,
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "EchoQuest — Narrated AI Adventures" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "EchoQuest — Narrated AI RPG Adventures",
+    description:
+      "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible. Free to start.",
+    images: ["/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  alternates: { canonical: SITE_URL },
 };
 
 export const viewport: Viewport = {

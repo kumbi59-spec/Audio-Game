@@ -84,7 +84,64 @@ export default function LandingPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://echoquest.app/#organization",
+        name: "EchoQuest",
+        url: "https://echoquest.app",
+        logo: { "@type": "ImageObject", url: "https://echoquest.app/opengraph-image" },
+        sameAs: [],
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://echoquest.app/#app",
+        name: "EchoQuest",
+        url: "https://echoquest.app",
+        applicationCategory: "GameApplication",
+        operatingSystem: "Web",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          description: "Free to start. Premium plans from $15/month.",
+        },
+        description:
+          "An audio-first AI tabletop RPG platform with a live AI Game Master. Fully accessible for blind and visually impaired players.",
+        screenshot: "https://echoquest.app/opengraph-image",
+        featureList: [
+          "AI Game Master powered by Claude",
+          "Audio-first design with TTS narration",
+          "Fully accessible for blind players",
+          "Community world creation",
+          "Voice command navigation",
+        ],
+        publisher: { "@id": "https://echoquest.app/#organization" },
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://echoquest.app/#website",
+        url: "https://echoquest.app",
+        name: "EchoQuest",
+        publisher: { "@id": "https://echoquest.app/#organization" },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: { "@type": "EntryPoint", urlTemplate: "https://echoquest.app/library" },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-4" aria-label="Site navigation">
@@ -299,5 +356,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
