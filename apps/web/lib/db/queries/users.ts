@@ -99,7 +99,7 @@ export async function resetDailyMinutesIfNeeded(userId: string, tier: string): P
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { aiMinutesResetAt: true },
+    select: { aiMinutesResetAt: true, aiMinutesRemaining: true },
   });
   if (!user) return;
 
@@ -107,9 +107,11 @@ export async function resetDailyMinutesIfNeeded(userId: string, tier: string): P
   startOfToday.setHours(0, 0, 0, 0);
 
   if (user.aiMinutesResetAt < startOfToday) {
+    // Preserve purchased credits above the free daily cap — only top up if below it
+    const refreshed = Math.max(user.aiMinutesRemaining, FREE_DAILY_AI_MINUTES);
     await prisma.user.update({
       where: { id: userId },
-      data: { aiMinutesRemaining: FREE_DAILY_AI_MINUTES, aiMinutesResetAt: new Date() },
+      data: { aiMinutesRemaining: refreshed, aiMinutesResetAt: new Date() },
     });
   }
 }

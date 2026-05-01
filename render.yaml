@@ -27,10 +27,6 @@ services:
       --rolled-back 20260429011215_initial_postgres 2>/dev/null || true &&
       pnpm --filter @audio-rpg/web exec prisma migrate resolve
       --applied 20260429011215_initial_postgres 2>/dev/null || true &&
-      pnpm --filter @audio-rpg/web exec prisma migrate resolve
-      --rolled-back 20260429120000_add_tts_chars 2>/dev/null || true &&
-      pnpm --filter @audio-rpg/web exec prisma migrate resolve
-      --applied 20260429120000_add_tts_chars 2>/dev/null || true &&
       pnpm --filter @audio-rpg/web exec prisma migrate deploy &&
       pnpm --filter @audio-rpg/web start"
     envVars:
