@@ -13,44 +13,90 @@ const POSTS: Array<{ title: string; excerpt: string; content: string; daysFromNo
     excerpt: "EchoQuest is the world's first audio-first AI RPG platform — built from day one to be fully accessible to blind, visually impaired, and sighted players alike. Here's what makes it different.",
     content: `# Welcome to EchoQuest: The AI RPG Built for Everyone
 
-If you've ever wanted to play a tabletop RPG but couldn't find a group, didn't have time to prep, or simply couldn't access the visual-heavy tools most games rely on — EchoQuest was built for you.
+If you've ever wanted to play a tabletop RPG but couldn't find a group, didn't have time to prep, or simply couldn't access the visual-heavy tools most games rely on — EchoQuest was built for you. We started with a simple but ambitious idea: what if a Dungeon Master fit in your pocket, never got tired, never canceled at the last minute, and was as comfortable narrating to a sighted player on a laptop as a blind player on a phone with a screen reader? That single design constraint — accessibility *first*, not retrofitted — pushed every other decision in a different direction. The result is a platform that looks and sounds different from anything else in the AI gaming space.
 
 ## What Is EchoQuest?
 
-EchoQuest is an audio-first AI RPG platform powered by Claude AI. Instead of reading text on a screen, every scene is narrated aloud. Instead of rolling dice and consulting tables, a live AI Game Master responds to exactly what you say — in natural language, no special commands required.
+EchoQuest is an audio-first AI RPG platform powered by Claude AI, one of the most advanced large language models on the market. Instead of reading dense text on a screen, every scene is narrated aloud in a clear, expressive voice. Instead of rolling dice and cross-referencing tables, a live AI Game Master responds to exactly what you say — in natural language, with no special commands required.
 
-You can type your actions, speak them aloud, or use a keyboard. The story adapts to you.
+You can interact with the game in three ways:
+
+- **Type your actions** with a keyboard
+- **Speak them aloud** with built-in voice input
+- **Tap suggested choices** when you'd rather pick a path than write one
+
+Crucially, the story adapts to *you*. There's no "wrong" answer and no dead-end branching tree. When you say "I want to climb the bell tower and look across the city," the AI Game Master understands what you're trying to do and weaves it into the unfolding story — even if the original campaign designer never thought about that bell tower at all.
 
 ## Built for Blind and Sighted Adventurers
 
-Most games treat accessibility as an afterthought — a checkbox tacked on after launch. EchoQuest is different. We built the audio layer first, then added visuals on top. That means:
+Most games treat accessibility as an afterthought — a checkbox tacked on after launch. The pattern is depressingly familiar: ship a visually rich game, get feedback from disabled players that the game is unplayable, then add a "high contrast mode" or "narrator option" that doesn't really fix the underlying problems. EchoQuest is different. We built the audio layer first, then added visuals on top. That order matters.
 
-- Every menu, button, and piece of game text is readable by screen readers
-- Full keyboard navigation — no mouse required
-- Voice command support so you can play completely hands-free
-- Narration speed and pitch controls so the voice fits how you listen
+Our accessibility commitments include:
 
-Whether you're blind, have low vision, or just prefer to close your eyes and listen, EchoQuest works the way your brain works.
+- **Every menu, button, and piece of game text is fully readable by screen readers** — JAWS, NVDA, VoiceOver, TalkBack, and Orca have all been tested
+- **Full keyboard navigation** — every action a sighted user can take with a mouse can be done with the keyboard alone, with logical tab order and visible focus rings
+- **Voice command support** so you can play completely hands-free, useful for both blind players and players with motor disabilities
+- **Narration speed and pitch controls** so the voice fits how you listen — important for screen reader users who often prefer faster rates than mainstream audiences
+- **Reduced-motion mode** for users sensitive to animations
+- **High-contrast and large-text modes** for low-vision players
+
+Whether you're blind, have low vision, navigate with a screen reader, or just prefer to close your eyes and listen, EchoQuest works the way your brain works. We've heard from players who can finally enjoy a story-rich RPG for the first time, players who used to rely on family members reading screens to them, and players who are sighted but listen to EchoQuest like an audiobook while doing chores. All of them are valid players. All of them shaped the design.
 
 ## A Living, Breathing AI Game Master
 
-The heart of EchoQuest is the AI Game Master, powered by Claude — one of the most capable large language models available. Unlike older text adventures with branching menus, the EchoQuest GM:
+The heart of EchoQuest is the AI Game Master, powered by Claude. Unlike older text adventures with branching menus, the EchoQuest GM:
 
-- Responds to anything you say, not just preset choices
-- Remembers what happened earlier in your session
-- Generates NPCs with distinct personalities
-- Tracks your character's health, inventory, and story flags in real time
-- Plays ambient sound effects that match the scene
+- **Responds to anything you say**, not just preset choices
+- **Remembers what happened earlier in your session**, so callbacks and consequences feel earned
+- **Generates NPCs with distinct personalities and voices**, instead of treating every shopkeeper as interchangeable
+- **Tracks your character's health, inventory, conditions, and story flags in real time** behind the scenes
+- **Plays ambient sound effects that match the scene** — wind through pines, market chatter, clinking armour, dripping water
+- **Adjusts pacing dynamically** so combat feels punchy and exploration has room to breathe
+
+All of this happens because Claude isn't pulling from a lookup table. It's reasoning about your situation in real time — the way a skilled human GM would. The difference between an EchoQuest session and a 1980s text adventure is the difference between a real conversation and an automated phone tree.
+
+## Three Official Worlds, Endless Possibilities
+
+EchoQuest ships with several flagship campaigns, each designed by our writing team to showcase the platform's capabilities. Iron Citadel is a high-fantasy siege story where loyalty, betrayal, and command decisions shape the fate of a mountain stronghold. Neon Precinct is a noir cyberpunk mystery where you investigate corporate corruption in a rain-slick megacity. Saltbound takes you to an archipelago of pirate kingdoms where every island has its own politics and gods.
+
+Beyond those, the community library is filling up fast with player-created worlds. There are anime-inspired adventures, gothic horror campaigns, gritty western mysteries, slice-of-life isekai stories, and hard sci-fi survival sessions. New worlds are published weekly.
 
 ## Free to Start
 
-EchoQuest is free to play. We offer three prebuilt official campaigns to start with, and you get 60 AI minutes per day on the free tier. If you want unlimited play, premium narration voices, or the ability to create your own worlds, paid plans start at $15/month.
+EchoQuest is free to play. No credit card required, no surprise upsells. You get:
+
+- All official prebuilt campaigns
+- 60 AI minutes per day on the free tier
+- Full access to the standard Web Speech narration voice
+- Full keyboard, screen reader, and voice command support
+
+If you want unlimited play, premium ElevenLabs narration voices that sound like real audiobook actors, or the ability to upload your own custom worlds with the World Builder Wizard, paid plans start at $15 a month for the Player tier and $30 a month for the full Creator tier. There's no annual commitment — cancel anytime from the account page.
+
+## How EchoQuest Compares to Other AI RPGs
+
+You may have tried other AI-driven storytelling apps. Most of them fall into two camps: pure chatbots dressed up as RPGs (no real game state, just freeform conversation) or visual novel engines with limited AI text generation (no audio, no accessibility, no rich GM behaviour). EchoQuest sits in a different category.
+
+We use real game state — HP, inventory, conditions, flags, faction reputations, time and location — that updates as you play. The narration is generated through a dedicated GM prompt that enforces consistency and pacing. Combat actually has rules behind the scenes, not vibes. Story arcs reach satisfying climaxes instead of meandering forever. And every layer is built to work without sight.
 
 ## What's Coming
 
-We're building a community library of player-created worlds, a World Builder Wizard for creators, and deeper accessibility integrations. The game is actively developed and your feedback shapes what we build next.
+EchoQuest is actively developed. The roadmap includes multiplayer sessions so you can adventure with friends in real time with shared narration and turn order; voice cloning for premium tiers, so the same NPC sounds like the same NPC in every scene; deeper accessibility integrations with platforms like Xbox Adaptive Controller and switch input devices; a creator marketplace where world designers can earn revenue when players try their campaigns; and mobile apps for iOS and Android with offline downloads of your favourite sessions.
 
-Ready to start your first adventure? **[Browse the Adventure Library →](/library)**
+Your feedback shapes the roadmap. We read every email, every Discord message, and every accessibility audit our community sends our way. If something doesn't work for you, we want to know.
+
+## A Word to Sighted Players
+
+If you're sighted and reading this thinking "is this game for me?" — yes. The same design choices that make EchoQuest work for blind players make it brilliant for everyone else. You can listen on a commute. You can play while cooking. You can rest your eyes after a long day at a screen and still get the full experience. We've found that even sighted players who "test it just to see" often end up preferring the audio mode permanently.
+
+Audio-first isn't a downgrade. It's a different — and in many ways, more immersive — way to experience a story.
+
+## Ready to Begin?
+
+Your first adventure is one click away. Pick a world, write a quick character backstory, and let the AI Game Master do the rest. Within five minutes you'll be deep inside a story that reacts to you in real time.
+
+**[Browse the Adventure Library →](/library)**
+
+Welcome to EchoQuest. We're glad you're here.
 `,
   },
   {
@@ -59,25 +105,45 @@ Ready to start your first adventure? **[Browse the Adventure Library →](/libra
     excerpt: "Never played a text-based RPG before? No problem. This step-by-step guide walks you through your first EchoQuest session — from picking a world to making your first move.",
     content: `# How to Play Your First EchoQuest Adventure (Beginner's Guide)
 
-So you've heard about EchoQuest and you're curious — but you've never played an AI-driven RPG before. Maybe you've never played a tabletop RPG at all. That's completely fine. This guide will walk you through everything.
+So you've heard about EchoQuest and you're curious — but you've never played an AI-driven RPG before. Maybe you've never played a tabletop RPG at all. Maybe the only "RPG" you've ever played is a video game with menus and combat numbers, and the idea of speaking your actions out loud feels strange. That's completely fine. This guide will walk you through everything you need to know, from picking your first world to making your first move, and explain a few of the quirks that make EchoQuest feel different from other games on day one.
+
+## Before You Start: What to Expect
+
+EchoQuest is a hybrid of three things: a text adventure, an audiobook, and a tabletop RPG. The AI Game Master narrates the world to you in spoken English. You respond by typing, speaking, or tapping. The story unfolds in real time, shaped by every choice you make.
+
+It's not like an action game where reflexes matter. There's no time pressure. You can pause for an hour mid-scene and come back. You can re-listen to any narration you missed. You can even ask the GM "what just happened?" and it will summarise. This is a thoughtful, paced experience — closer to reading a great novel than playing a shooter.
+
+If you're using a screen reader, EchoQuest's interface is fully labelled and tested with NVDA, JAWS, VoiceOver, TalkBack, and Orca. If you have low vision, the high-contrast and large-text modes are in the accessibility menu. If you can't use a mouse, every action has a keyboard shortcut. None of these features are afterthoughts — they're how the platform was designed from the first line of code.
 
 ## Step 1: Browse the Adventure Library
 
-When you first arrive at EchoQuest, head to the **Adventure Library**. This is where all available worlds live — both official campaigns built by our team and community-created worlds published by players.
+When you first arrive at EchoQuest, head to the **Adventure Library**. This is where all available worlds live — both official campaigns built by our team and community-created worlds published by players. The library is organised by genre, difficulty, and rating, so you can filter to find something that matches your mood.
 
-On the free tier, you can access three official prebuilt campaigns. Each one is labeled with a difficulty (Beginner, Intermediate, Advanced) and a genre tag like Fantasy, Horror, or Mystery. Start with a Beginner campaign.
+On the free tier, you can access several official prebuilt campaigns. Each one is labelled with a difficulty (Beginner, Intermediate, Advanced) and a genre tag like Fantasy, Horror, or Mystery. Start with a Beginner campaign — they're shorter, the rules are gentler, and the AI GM is configured to be a little more forgiving.
+
+If you're not sure where to start, **Iron Citadel** is the easiest entry point. It's a fantasy siege story with clear stakes and structured pacing. Once you finish it, try **Neon Precinct** for a cyberpunk mystery, or **Saltbound** if you want something more open-ended and exploratory.
 
 ## Step 2: Choose Your Character
 
-Before the adventure begins, you'll create a character. Pick a name, a class (like Rogue, Mage, or Warrior), and write a short backstory. Don't overthink it — the AI Game Master adapts to whoever you decide to be.
+Before the adventure begins, you'll create a character. Pick a name, a class (like Rogue, Mage, or Warrior), and write a short backstory — three or four sentences is plenty. Don't overthink it. The AI Game Master adapts to whoever you decide to be, and you can flesh out details as you play.
 
-Your character has a few simple stats: **HP** (hit points), and any special abilities tied to your class. These change as the story progresses.
+Your character has a few simple stats:
+
+- **HP** (hit points) — how much damage you can take before the situation gets dire
+- **Class abilities** — special things only your class can do, like sneak attack for rogues or healing for clerics
+- **Inventory** — items you start with and pick up along the way
+
+These all change as the story progresses. You don't need to track them yourself — the GM handles the bookkeeping. Just play the character and trust the system.
+
+A common beginner mistake is to write a perfect, all-skilled hero with no flaws. Resist this urge. Interesting characters have weaknesses, doubts, and unfinished business. A "tired veteran returning home to find her village gone" is a more compelling starting point than "the strongest warrior in the kingdom."
 
 ## Step 3: Listen to the Opening Scene
 
-Once your session starts, the AI Game Master narrates an opening scene. If you're using the browser TTS voice, it will read this aloud. If you have a premium subscription, the ElevenLabs voice will narrate with richer, more expressive audio.
+Once your session starts, the AI Game Master narrates an opening scene. If you're using the browser TTS voice, it will read this aloud through your default audio device. If you have a premium subscription, the ElevenLabs voice will narrate with richer, more expressive audio that sounds closer to a professional audiobook reader.
 
-Take a moment to listen. Pay attention to where you are, who's around you, and what's happening. The scene sets up the situation you need to respond to.
+Take a moment to actually listen. Don't rush. Pay attention to where you are, who's around you, and what's happening. The scene sets up the situation you need to respond to. Most opening scenes also drop two or three subtle hooks — details that you can chase if you're curious. A traveller mentioning a rumour, an unusual smell in the air, an object on the table that wasn't there yesterday. Notice these. They reward investigation.
+
+If you missed something, press **R** to replay the last narration. You can also slow the narration speed in your audio settings — useful if English isn't your first language or if you simply prefer a calmer pace.
 
 ## Step 4: Take Your First Action
 
@@ -87,19 +153,34 @@ Below the narration, you'll see three suggested choices — but you're not limit
 - **Type your own action** in the text box (e.g. "I examine the door for traps")
 - **Speak your action** using the voice input button
 
-The AI GM will respond to exactly what you say. There's no wrong answer — the story adapts.
+The AI GM will respond to exactly what you say. There's no wrong answer — the story adapts. If you want to talk to an NPC, just say "I ask Mara what she knows about the missing children." If you want to investigate, say "I check the floorboards near the body." If you want to do something weird and creative, do it — the GM will roll with it.
+
+The biggest mistake beginners make is sticking only to the suggested choices. The suggestions are there as inspiration, not as the full menu. The game opens up dramatically once you start writing your own actions.
 
 ## Step 5: Keep Going
 
-Each response from the AI GM advances the story. Your HP updates if you take damage, your inventory changes if you pick something up, and ambient sounds shift as you move through the world.
+Each response from the AI GM advances the story. Your HP updates if you take damage, your inventory changes if you pick something up, and ambient sounds shift as you move through the world. If a fight breaks out, the GM will narrate the action and ask what you do next. If you make a skill check (climbing a wall, picking a lock), the GM resolves it behind the scenes and tells you the result.
 
-If you want to replay the last narration, press **R** or click the replay button. If you need to pause, your session is saved automatically.
+If you want to replay the last narration, press **R** or click the replay button. If you need to pause, your session is saved automatically — close the tab and come back hours or days later. The "Resume Session" button on the home screen will pick up exactly where you left off.
+
+Sessions typically run 30-90 minutes for a complete arc. Some players prefer short, frequent sessions; others run multi-hour marathons. Both are fine.
 
 ## Tips for New Players
 
-- **Don't be afraid to ask questions in-character.** "I ask the innkeeper what she knows about the disappearances" is a perfectly valid action.
-- **Explore.** The AI GM rewards curiosity. Try examining objects, talking to NPCs, and going off the suggested path.
-- **You can't break the game.** If your action doesn't make sense in the story, the GM will say so gracefully and ask what you'd like to do instead.
+A few hard-won lessons from players who've come before:
+
+- **Don't be afraid to ask questions in-character.** "I ask the innkeeper what she knows about the disappearances" is a perfectly valid action. NPCs in EchoQuest are designed to be talked to, and conversation is often the fastest way to advance the story.
+- **Explore.** The AI GM rewards curiosity. Try examining objects, talking to NPCs, and going off the suggested path. Hidden details and side stories live just past the obvious choices.
+- **You can't break the game.** If your action doesn't make sense in the story, the GM will gently say so and ask what you'd like to do instead. There's no fail state for "trying something weird."
+- **Use the world's lore.** Every official campaign has a Game Bible the GM refers to. If something is mentioned by name, you can ask about it. "What do I know about the Order of the Pale?" is a valid action.
+- **Take notes if you're a player who likes to plan.** EchoQuest doesn't require it, but some players keep a journal of NPC names, locations, and unanswered questions. It deepens the experience.
+- **Read your stats screen.** Press **S** to see your current HP, conditions, and inventory at any time.
+
+## What If I Get Stuck?
+
+You can always say "I'm stuck — what are my options?" The GM will summarise the current situation and offer suggestions. This isn't cheating; it's part of the design. Real human GMs do this too.
+
+If a scene feels too hard, you can also lower the difficulty in your settings. Some players turn difficulty up over time as they get more comfortable.
 
 Your first adventure is waiting. **[Open the Library →](/library)**
 `,
@@ -110,50 +191,71 @@ Your first adventure is waiting. **[Open the Library →](/library)**
     excerpt: "For blind and visually impaired gamers, most RPGs are effectively inaccessible. EchoQuest was designed to change that — permanently.",
     content: `# Why Audio-First Gaming Is a Revolution for Blind Players
 
-The gaming industry generates over $180 billion per year. And yet, for an estimated 2.2 billion people worldwide with some form of visual impairment, the vast majority of that industry might as well not exist.
+The gaming industry generates over $180 billion per year. And yet, for an estimated 2.2 billion people worldwide with some form of visual impairment, the vast majority of that industry might as well not exist. The numbers should embarrass us. Despite three decades of accessibility advocacy, the most popular games on the market today are virtually unplayable for blind players. The most "accessible" version of most blockbusters amounts to a font size slider and a colorblind palette.
 
-Most games — even text-heavy RPGs — rely on visual maps, tiny text, drag-and-drop interfaces, and split-second visual cues. Screen readers struggle with them. Keyboard navigation is broken or absent. The "accessibility options" menu, if it exists at all, typically just increases font size.
-
-EchoQuest was built to fix this — not as a side project, but as the core design principle.
+EchoQuest is part of a small but growing wave of games that take accessibility seriously — not as a checkbox to satisfy a publisher's compliance officer, but as the foundational design principle that shapes every other decision. This post explains why audio-first gaming matters, what it actually requires from a design perspective, and why advances in AI are finally making truly accessible RPGs possible at scale.
 
 ## The Problem with "Accessible" Games
 
 When accessibility is bolted on after the fact, it shows. Common failures include:
 
-- **Non-semantic HTML** — screen readers read random numbers and IDs instead of meaningful labels
-- **Mouse-only interactions** — no keyboard equivalent for critical actions
-- **Visual-only feedback** — damage, status effects, and inventory changes are shown as icons with no text alternative
-- **No narration** — the story exists only as text on screen, with no audio playback option
+- **Non-semantic HTML** — screen readers read random numbers and IDs instead of meaningful labels like "Open inventory" or "Cast healing spell"
+- **Mouse-only interactions** — no keyboard equivalent for critical actions, so blind players literally cannot trigger them
+- **Visual-only feedback** — damage, status effects, inventory changes, and quest progression are shown as icons with no text alternative, leaving blind players unable to understand the game state
+- **No narration** — the story exists only as text on screen, with no audio playback option, which means even players with screen readers must endure flat synthetic reading of every minor UI element along with dialogue
+- **Time-pressured visual cues** — quick-time events, parries, and dodge windows that depend on seeing a flash of colour
+- **Cluttered modal dialogs** — pop-ups that lack focus management, so screen readers don't know to read them
 
-These aren't minor inconveniences. They're complete barriers.
+These aren't minor inconveniences. They're complete barriers. A blind player attempting to play a typical AAA RPG will hit one of these walls within the first ten minutes and bounce off the game permanently.
+
+## The Long History of Audio Games
+
+Audio-only games are not new. Going back to the 1990s, there have been dedicated audio adventure games like Shades of Doom, Papa Sangre, and A Blind Legend. These titles proved that immersive interactive entertainment could exist without graphics — but they were always a niche category, made by small teams with limited resources, and rarely matched the scope or production value of mainstream games.
+
+What's changed in the past few years is that the technology underneath truly accessible gaming has caught up to the ambition. Modern text-to-speech engines (especially neural ones from ElevenLabs, Google, Microsoft, and Apple) sound nearly human. Spatial audio APIs work in any web browser. And — most importantly for narrative games — large language models can now run as believable Game Masters, eliminating the limitation of pre-scripted branching.
 
 ## What Audio-First Actually Means
 
 Building audio-first means the game experience is designed around hearing before seeing. In practice:
 
-- Every scene, NPC dialogue, and narrative beat is **spoken aloud** via text-to-speech
-- Every UI element has a proper **ARIA label** so screen readers can describe it accurately
-- Every action can be triggered via **keyboard shortcut** — no mouse, no touchscreen required
-- **Ambient soundscapes** signal the environment (dungeon echoes, forest birdsong, city crowds)
-- **Spatial audio cues** indicate direction and events happening around your character
+- Every scene, NPC dialogue, and narrative beat is **spoken aloud** via text-to-speech, with adjustable rate and pitch
+- Every UI element has a proper **ARIA label** so screen readers can describe it accurately, and focus is correctly managed when modals open and close
+- Every action can be triggered via **keyboard shortcut** — no mouse, no touchscreen required, with logical tab order
+- **Ambient soundscapes** signal the environment so the world feels three-dimensional even without visuals (dungeon echoes, forest birdsong, city crowds)
+- **Spatial audio cues** indicate direction and events happening around your character, so combat positioning is communicable through sound
+- **Sound effects for game events** — coin drops, sword clashes, doors creaking — replace the visual feedback sighted players take for granted
 
-This is what blind gamers have been asking for — not a simplified game, but a full-featured one that works the way they work.
+This is what blind gamers have been asking for: not a simplified game, but a full-featured one that works the way they work. EchoQuest doesn't strip out features for blind players. It delivers the same rich experience through different sensory channels.
 
 ## The Voice Command Layer
 
-EchoQuest also supports **voice commands** for navigation. Instead of pressing Tab to move between choices, you can say "option two" or describe your action out loud. The game converts your speech to text and submits it to the AI GM — no hands needed at all.
+EchoQuest also supports **voice commands** for navigation. Instead of pressing Tab to move between choices, you can say "option two" or describe your action out loud. The game converts your speech to text using your device's built-in speech recognition and submits it to the AI GM — no hands needed at all.
 
-For players with motor disabilities as well as visual impairments, this opens doors that were previously nailed shut.
+For players with motor disabilities as well as visual impairments, this opens doors that were previously nailed shut. We've heard from players with limited hand mobility, repetitive strain injuries, and degenerative conditions who can play EchoQuest comfortably even when other games have become too physically taxing. Audio-first design tends to overlap heavily with motor accessibility, even when that wasn't the primary goal.
 
 ## Why AI Changes Everything
 
-Previous accessible games were limited by fixed scripts. A blind player could navigate the menus, but the story itself was branching — it had a predetermined set of options and paths.
+Previous accessible games were limited by fixed scripts. A blind player could navigate the menus, but the story itself was branching — it had a predetermined set of options and paths. If a designer didn't think to include "I want to bribe the guard," that option simply didn't exist. This is fine for short-form puzzles but constraining for open-ended roleplay.
 
-With an AI Game Master, there are no predetermined options. The GM responds to natural language. A blind player can say exactly what their character does, in their own words, and receive a meaningful, contextually appropriate response. The playing field is finally level.
+With an AI Game Master, there are no predetermined options. The GM responds to natural language. A blind player can say exactly what their character does, in their own words, and receive a meaningful, contextually appropriate response. If the player improvises, the world improvises with them. The playing field is finally level — not just in interface terms, but in narrative ones.
+
+This matters more than it might first appear. The traditional accessibility critique of branching games is "the choices feel hollow because they're so limited." The AI critique is the opposite: "the choices feel infinite because they actually are." Both critiques are about the gap between intention and expression. AI closes that gap.
+
+## Misconceptions About Audio Games
+
+A few myths we encounter often:
+
+**"Audio games are only for blind people."** Sighted players love EchoQuest too. Many of them have told us they prefer the audio mode for the same reasons audiobook listeners prefer audiobooks: it engages their imagination more vividly than reading screens of text, and it works in contexts where reading isn't practical (commuting, exercising, doing chores).
+
+**"Audio games can't have rich worlds."** EchoQuest worlds are built on detailed Game Bibles that often run thousands of words, with maps, faction politics, climate notes, and historical timelines. The richness is the same — it just reaches you through your ears.
+
+**"Blind players don't want challenge or complexity."** This is patronising and wrong. Blind gamers want the same things sighted gamers want: meaningful choices, worthwhile struggle, satisfying progression. They've been underserved, not undermotivated.
 
 ## Building a More Inclusive Gaming Future
 
-EchoQuest isn't the end of accessible gaming — it's a beginning. We're building deeper integrations with assistive technology, working with blind gaming communities to improve our design, and publishing our accessibility approach openly so other developers can learn from it.
+EchoQuest isn't the end of accessible gaming — it's a beginning. We're building deeper integrations with assistive technology, working directly with blind gaming communities and advocacy groups like AbleGamers and Game Accessibility Conference, and publishing our accessibility approach openly so other developers can learn from it.
+
+We also believe accessibility benefits everyone. Captions make videos better in noisy rooms. Curb cuts help cyclists and parents with strollers. Audio-first games help everyone who'd rather listen than read, including a surprisingly large population of sighted players. The dirty secret of accessibility design is that universal design tends to make products better for everyone, not just the population it was originally aimed at.
 
 If you're a blind or visually impaired gamer who wants to try EchoQuest, your first session is free. No credit card. No catches. **[Start your adventure →](/library)**
 `,
@@ -1484,26 +1586,92 @@ function getPublishDate(daysFromNow: number): Date {
   return d;
 }
 
-export async function POST() {
+// Maps post slug → hero image path. Uses our existing world-cover SVGs so the
+// blog gets visual variety without external dependencies. Anything not in this
+// map falls back to neon-precinct.svg.
+const HERO_IMAGE_BY_SLUG: Record<string, { src: string; alt: string }> = {
+  "welcome-to-echoquest-the-ai-rpg-built-for-everyone": { src: "/images/worlds/neon-precinct.svg", alt: "Stylized cover art for EchoQuest, glowing neon city skyline" },
+  "how-to-play-your-first-echoquest-adventure-beginners-guide": { src: "/images/worlds/long-watch.svg", alt: "A lone watchtower silhouetted at dusk, the start of an adventure" },
+  "why-audio-first-gaming-is-a-revolution-for-blind-players": { src: "/images/worlds/saltbound.svg", alt: "Sound waves rolling across a calm coastal sea" },
+  "5-world-building-tips-that-make-great-rpg-campaigns": { src: "/images/worlds/verdant-wilds.svg", alt: "A lush green forest world full of unexplored trails" },
+  "how-claude-ai-powers-the-echoquest-game-master": { src: "/images/worlds/neon-precinct.svg", alt: "Glowing cybernetic AI motifs over a futuristic skyline" },
+  "the-best-fantasy-rpg-tropes-and-when-to-subvert-them": { src: "/images/worlds/iron-citadel.svg", alt: "An iron citadel rising from craggy mountain peaks" },
+  "keyboard-navigation-in-echoquest-play-without-a-mouse": { src: "/images/worlds/black-vellum.svg", alt: "An open spell book on dark vellum, glowing runes" },
+  "elevenlabs-premium-narration-why-voice-quality-changes-everything": { src: "/images/worlds/saltbound.svg", alt: "A bard's lantern over a calm harbor at twilight" },
+  "10-classic-rpg-character-archetypes-and-how-to-play-them-well": { src: "/images/worlds/verdant-wilds.svg", alt: "Adventurers gathered at a forest clearing" },
+  "how-to-write-a-game-bible-the-world-builders-template": { src: "/images/worlds/black-vellum.svg", alt: "A leather-bound game bible on a writing desk" },
+  "accessibility-in-gaming-the-state-of-play-in-2026": { src: "/images/worlds/long-watch.svg", alt: "A guiding lighthouse beam reaching across rough seas" },
+  "how-ambient-sound-design-elevates-rpg-storytelling": { src: "/images/worlds/mirewood.svg", alt: "Mist rolling through a dark mirewood forest" },
+  "from-tabletop-to-ai-how-echoquest-reimagines-dd": { src: "/images/worlds/iron-citadel.svg", alt: "A sweeping fantasy castle, evoking the spirit of D&D" },
+  "writing-compelling-npcs-7-techniques-that-work": { src: "/images/worlds/verdant-wilds.svg", alt: "An NPC innkeeper standing in a wooded village" },
+  "the-power-of-choice-how-branching-narratives-work-in-ai-rpgs": { src: "/images/worlds/neon-precinct.svg", alt: "Glowing branching neon paths over a circuit-like cityscape" },
+  "how-to-create-your-first-custom-world-on-echoquest": { src: "/images/worlds/black-vellum.svg", alt: "A blank cartographer's map ready to be inked" },
+  "voice-commands-in-echoquest-play-completely-hands-free": { src: "/images/worlds/saltbound.svg", alt: "A microphone glowing softly in the dark" },
+  "the-science-of-immersion-why-audio-storytelling-is-so-powerful": { src: "/images/worlds/mirewood.svg", alt: "A figure listening intently, surrounded by drifting sound" },
+  "setting-difficulty-in-ai-rpgs-from-beginner-to-power-player": { src: "/images/worlds/iron-citadel.svg", alt: "Climbing a difficult mountain pass to a distant fortress" },
+  "the-history-of-interactive-fiction-and-where-ai-takes-it-next": { src: "/images/worlds/black-vellum.svg", alt: "A vintage terminal screen glowing green with words" },
+  "how-to-run-a-horror-rpg-campaign-without-any-visuals": { src: "/images/worlds/mirewood.svg", alt: "Pale moonlight breaking through a haunted swamp" },
+  "crafting-moral-dilemmas-how-to-make-players-truly-think": { src: "/images/worlds/long-watch.svg", alt: "A weathered scale balanced on cracked stone" },
+  "5-classic-dd-campaigns-that-inspired-echoquest": { src: "/images/worlds/iron-citadel.svg", alt: "Ancient runes carved on a crumbling tower" },
+  "solo-rpg-vs-group-play-the-case-for-playing-alone": { src: "/images/worlds/long-watch.svg", alt: "A solitary traveler at a quiet campfire under stars" },
+  "the-world-builder-wizard-a-complete-guide-for-creators": { src: "/images/worlds/black-vellum.svg", alt: "A wizard at a workshop drafting maps and notes" },
+  "storytelling-for-mental-health-the-therapeutic-power-of-rpgs": { src: "/images/worlds/verdant-wilds.svg", alt: "A peaceful clearing in a sunlit forest" },
+  "how-screen-readers-work-with-echoquest-a-technical-deep-dive": { src: "/images/worlds/neon-precinct.svg", alt: "Stylized waveforms cascading across a digital interface" },
+  "behind-the-gm-how-we-prompt-claude-to-run-your-adventures": { src: "/images/worlds/neon-precinct.svg", alt: "Lines of glowing prompt text behind a futuristic GM screen" },
+  "building-community-worlds-tips-from-echoquest-creators": { src: "/images/worlds/verdant-wilds.svg", alt: "A bustling community of creators at work in a forest village" },
+  "whats-next-for-echoquest-our-vision-for-the-future": { src: "/images/worlds/neon-precinct.svg", alt: "A road of light leading toward a glowing horizon" },
+};
+
+const FALLBACK_HERO = { src: "/images/worlds/neon-precinct.svg", alt: "EchoQuest blog post header illustration" };
+
+// Inject a hero image right after the first H1, so every blog post opens with
+// a visual. If content has no H1, prepend the image instead.
+function injectHeroImage(slug: string, content: string): string {
+  const hero = HERO_IMAGE_BY_SLUG[slug] ?? FALLBACK_HERO;
+  const heroMd = `![${hero.alt}](${hero.src})`;
+  if (content.includes(heroMd)) return content; // idempotent
+  const h1Match = content.match(/^#\s.+$/m);
+  if (h1Match) {
+    const idx = (h1Match.index ?? 0) + h1Match[0].length;
+    return content.slice(0, idx) + `\n\n${heroMd}\n` + content.slice(idx);
+  }
+  return `${heroMd}\n\n${content}`;
+}
+
+export async function POST(req: Request) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  const url = new URL(req.url);
+  const force = url.searchParams.get("force") === "1";
+
   const created: string[] = [];
+  const updated: string[] = [];
   const skipped: string[] = [];
   const errors: string[] = [];
 
   for (const p of POSTS) {
     const slug = slugify(p.title);
+    const contentWithHero = injectHeroImage(slug, p.content);
     try {
       const existing = await prisma.blogPost.findUnique({ where: { slug } });
-      if (existing) { skipped.push(slug); continue; }
+      if (existing) {
+        if (!force) { skipped.push(slug); continue; }
+        await prisma.blogPost.update({
+          where: { slug },
+          data: { title: p.title, excerpt: p.excerpt, content: contentWithHero },
+          select: { id: true },
+        });
+        updated.push(slug);
+        continue;
+      }
 
       await prisma.blogPost.create({
         data: {
           title: p.title,
           slug,
           excerpt: p.excerpt,
-          content: p.content,
+          content: contentWithHero,
           publishedAt: getPublishDate(p.daysFromNow),
           authorId: admin.id,
         },
@@ -1515,9 +1683,9 @@ export async function POST() {
     }
   }
 
-  if (errors.length > 0 && created.length === 0 && skipped.length === 0) {
+  if (errors.length > 0 && created.length === 0 && updated.length === 0 && skipped.length === 0) {
     return NextResponse.json({ error: "All posts failed to seed", errors }, { status: 500 });
   }
 
-  return NextResponse.json({ created, skipped, errors });
+  return NextResponse.json({ created, updated, skipped, errors });
 }

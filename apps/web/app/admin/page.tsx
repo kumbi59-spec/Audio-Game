@@ -93,17 +93,19 @@ export default function AdminPage() {
   const [seedResult, setSeedResult] = useState("");
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
-  async function seedPosts() {
+  async function seedPosts(force = false) {
     setSeeding(true);
     setSeedResult("");
     try {
-      const res = await fetch("/api/admin/blog/seed", { method: "POST" });
-      let data: { created?: string[]; skipped?: string[]; error?: string } = {};
+      const res = await fetch(`/api/admin/blog/seed${force ? "?force=1" : ""}`, { method: "POST" });
+      let data: { created?: string[]; updated?: string[]; skipped?: string[]; error?: string } = {};
       try { data = await res.json(); } catch { /* non-JSON response */ }
       if (!res.ok) { setSeedResult(data.error ?? `Seed failed (${res.status}).`); return; }
       const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
       setPosts(Array.isArray(newPosts) ? newPosts : []);
-      setSeedResult(`Created ${data.created?.length ?? 0} post(s). Skipped ${data.skipped?.length ?? 0} already existing.`);
+      setSeedResult(
+        `Created ${data.created?.length ?? 0} · Updated ${data.updated?.length ?? 0} · Skipped ${data.skipped?.length ?? 0}.`
+      );
     } catch (err) {
       setSeedResult(err instanceof Error ? err.message : "Seed failed.");
     } finally {
@@ -414,10 +416,16 @@ export default function AdminPage() {
               <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
                 <h2 className="text-base font-semibold" style={{ color: "var(--text)" }}>Posts</h2>
                 <div className="flex gap-2 flex-wrap">
-                  <button onClick={seedPosts} disabled={seeding}
+                  <button onClick={() => seedPosts(false)} disabled={seeding}
                     className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
                     style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                     {seeding ? "Seeding…" : "Seed 30 posts"}
+                  </button>
+                  <button onClick={() => seedPosts(true)} disabled={seeding}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Replaces title, excerpt, and content of existing posts with the latest seed data — preserves publish date and author">
+                    {seeding ? "Updating…" : "Re-seed (update content)"}
                   </button>
                   <button onClick={openNewPost}
                     className="rounded px-3 py-1.5 text-sm font-semibold"

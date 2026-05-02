@@ -104,8 +104,7 @@ export default async function BlogPostPage({ params }: Props) {
 
         <main className="mx-auto max-w-3xl px-6 py-12">
           <article
-            className="prose prose-invert max-w-none"
-            style={{ color: "var(--text)" }}
+            className="blog-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
           <div className="mt-12 border-t pt-8" style={{ borderColor: "var(--border)" }}>
