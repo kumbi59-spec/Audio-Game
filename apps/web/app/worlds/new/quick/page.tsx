@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 
@@ -30,8 +28,7 @@ const GENRE_OPTIONS = [
 
 export default function QuickBuildPage() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const can = useCanWeb();
 
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -51,10 +48,7 @@ export default function QuickBuildPage() {
       setPaywallOpen(true);
       return;
     }
-    const msg =
-      "Quick Build. Answer 4 questions and Claude builds the rest of your world automatically.";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate("Quick Build. Answer 4 questions and Claude builds the rest of your world automatically.");
     titleRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -73,9 +67,7 @@ export default function QuickBuildPage() {
     setBusy(true);
     setError(null);
 
-    const buildMsg = "Building your world. This takes about 10 seconds.";
-    announce(buildMsg);
-    speak(buildMsg, { rate: ttsSpeed, volume });
+    narrate("Building your world. This takes about 10 seconds.");
 
     try {
       const res = await fetch("/api/worlds/quick", {
@@ -95,18 +87,16 @@ export default function QuickBuildPage() {
       if (!res.ok || !data.worldId) {
         const msg = data.error ?? "Could not create world. Please try again.";
         setError(msg);
-        announce(msg, "assertive");
+        narrate(msg, "assertive");
         return;
       }
 
-      const doneMsg = `Your world "${title.trim()}" is ready. Starting character creation.`;
-      announce(doneMsg, "assertive");
-      speak(doneMsg, { rate: ttsSpeed, volume });
+      narrate(`Your world "${title.trim()}" is ready. Starting character creation.`, "assertive");
       router.push(`/create?worldId=${data.worldId}`);
     } catch {
       const msg = "Network error. Please check your connection and try again.";
       setError(msg);
-      announce(msg, "assertive");
+      narrate(msg, "assertive");
     } finally {
       setBusy(false);
     }

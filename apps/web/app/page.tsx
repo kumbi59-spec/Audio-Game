@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useSession } from "next-auth/react";
 
 const FEATURES = [
@@ -64,23 +62,18 @@ const PRICING = [
 
 export default function LandingPage() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const { data: session } = useSession();
 
   useEffect(() => {
-    const welcome = "Welcome to EchoQuest. Audio-first interactive storytelling with an AI Game Master.";
-    announce(welcome);
-    speak(welcome, { rate: ttsSpeed, volume });
+    narrate("Welcome to EchoQuest. Audio-first interactive storytelling with an AI Game Master.");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const upgraded = new URLSearchParams(window.location.search).get("upgraded");
     if (upgraded === "true") {
       void fetch("/api/auth/refresh-tier", { method: "POST" });
-      const msg = "Your plan has been upgraded! Enjoy unlimited play.";
-      announce(msg, "assertive");
-      speak(msg, { rate: ttsSpeed, volume });
+      narrate("Your plan has been upgraded! Enjoy unlimited play.", "assertive");
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

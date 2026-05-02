@@ -6,8 +6,6 @@ import Link from "next/link";
 import { BibleUploader } from "@/components/worlds/BibleUploader";
 import { UploadProgress } from "@/components/worlds/UploadProgress";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import type { UploadProgressEvent } from "@/lib/upload/types";
@@ -16,8 +14,7 @@ type Stage = UploadProgressEvent["stage"];
 
 export default function UploadBiblePage() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const can = useCanWeb();
 
   const [file, setFile] = useState<File | null>(null);
@@ -31,14 +28,11 @@ export default function UploadBiblePage() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const msg = "Upload Game Bible page. Select a PDF, Word document, text file, or JSON to turn your world into an AI-narrated adventure.";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate("Upload Game Bible page. Select a PDF, Word document, text file, or JSON to turn your world into an AI-narrated adventure.");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function announceStage(msg: string, assertive = false) {
-    announce(msg, assertive ? "assertive" : "polite");
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(msg, assertive ? "assertive" : "polite");
   }
 
   async function handleUpload() {

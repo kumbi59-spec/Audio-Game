@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
@@ -38,8 +36,7 @@ interface MyWorld {
 export default function MyWorldsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { announce, narrate } = useAnnouncer();
   const can = useCanWeb();
   const { session: activeSession, world: activeWorld } = useGameStore();
   const activeWorldId =
@@ -84,9 +81,7 @@ export default function MyWorldsPage() {
 
   useEffect(() => {
     if (status !== "authenticated") return;
-    const msg = "My Worlds page. Manage and publish your uploaded worlds.";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate("My Worlds page. Manage and publish your uploaded worlds.");
   }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -107,9 +102,7 @@ export default function MyWorldsPage() {
       if (res.ok) {
         setWorlds((prev) => prev.filter((w) => w.id !== worldId));
         const world = worlds.find((w) => w.id === worldId);
-        const msg = world ? `${world.name} has been deleted.` : "World deleted.";
-        announce(msg);
-        speak(msg, { rate: ttsSpeed, volume });
+        narrate(world ? `${world.name} has been deleted.` : "World deleted.");
       } else {
         let errMsg = "Failed to delete world. Please try again.";
         try {
@@ -137,9 +130,7 @@ export default function MyWorldsPage() {
         const data = (await res.json()) as { ok: boolean; classCount?: number; backgroundCount?: number };
         setReparseResult((prev) => ({ ...prev, [world.id]: { ok: true, classCount: data.classCount ?? 0, backgroundCount: data.backgroundCount ?? 0 } }));
         const classInfo = (data.classCount ?? 0) > 0 ? `${data.classCount} classes` : "no custom classes";
-        const msg = `${world.name} re-analysed. Found ${classInfo} from your game bible.`;
-        announce(msg);
-        speak(msg, { rate: ttsSpeed, volume });
+        narrate(`${world.name} re-analysed. Found ${classInfo} from your game bible.`);
       } else {
         setReparseResult((prev) => ({ ...prev, [world.id]: { ok: false, error: true } }));
       }
@@ -155,9 +146,7 @@ export default function MyWorldsPage() {
       const res = await fetch(`/api/worlds/${world.id}/cover`, { method: "POST" });
       if (res.ok) {
         setCoverGenResult((prev) => ({ ...prev, [world.id]: { ok: true } }));
-        const msg = `Cover image generated for ${world.name}.`;
-        announce(msg);
-        speak(msg, { rate: ttsSpeed, volume });
+        narrate(`Cover image generated for ${world.name}.`);
       } else {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setCoverGenResult((prev) => ({ ...prev, [world.id]: { ok: false, error: data.error ?? "Generation failed" } }));
@@ -179,11 +168,11 @@ export default function MyWorldsPage() {
         setWorlds((prev) =>
           prev.map((w) => (w.id === world.id ? { ...w, isPublic: !w.isPublic } : w))
         );
-        const msg = world.isPublic
-          ? `${world.name} is now private.`
-          : `${world.name} is now public in the library.`;
-        announce(msg);
-        speak(msg, { rate: ttsSpeed, volume });
+        narrate(
+          world.isPublic
+            ? `${world.name} is now private.`
+            : `${world.name} is now public in the library.`,
+        );
       }
     } finally {
       setToggling(null);

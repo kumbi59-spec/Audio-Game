@@ -3,20 +3,16 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 
 export default function NewWorldPage() {
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const can = useCanWeb();
 
   useEffect(() => {
-    const msg =
-      "Create a new world. Choose Quick Build for the fastest path, the World Builder Wizard for full creative control, or upload a Game Bible document.";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(
+      "Create a new world. Choose Quick Build for the fastest path, the World Builder Wizard for full creative control, or upload a Game Bible document.",
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

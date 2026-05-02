@@ -19,8 +19,6 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
   return (
     <section
       aria-label="Story narration"
-      aria-live="polite"
-      aria-relevant="additions"
       ref={regionRef}
       className="h-full"
     >
@@ -29,34 +27,42 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
           Your adventure awaits. Make a choice below to begin.
         </p>
       )}
-      {entries.map((entry) => (
-        <div
-          key={entry.id}
-          className={`mb-4 leading-relaxed ${
-            entry.type === "player_action"
-              ? "font-mono text-sm before:content-['>_']"
-              : entry.type === "system"
-              ? "text-sm italic"
-              : "narration text-base md:text-lg"
-          }`}
-          style={{
-            color:
+      {entries.map((entry) => {
+        const isNarration = entry.type === "narration";
+        return (
+          <div
+            key={entry.id}
+            // GM narration is voiced through the TTS engine. Hide it from
+            // screen readers so VoiceOver / TalkBack don't read it on top
+            // of the spoken narration. Player actions and system messages
+            // are NOT voiced via TTS — keep them screen-reader visible.
+            aria-hidden={isNarration ? true : undefined}
+            className={`mb-4 leading-relaxed ${
               entry.type === "player_action"
-                ? "var(--accent)"
+                ? "font-mono text-sm before:content-['>_']"
                 : entry.type === "system"
-                ? "var(--text-muted)"
-                : "var(--text)",
-          }}
-        >
-          {entry.type === "narration"
-            ? entry.text.split("\n\n").map((para, i) => (
-                <p key={i} className="mb-3">
-                  {para}
-                </p>
-              ))
-            : entry.text}
-        </div>
-      ))}
+                ? "text-sm italic"
+                : "narration text-base md:text-lg"
+            }`}
+            style={{
+              color:
+                entry.type === "player_action"
+                  ? "var(--accent)"
+                  : entry.type === "system"
+                  ? "var(--text-muted)"
+                  : "var(--text)",
+            }}
+          >
+            {isNarration
+              ? entry.text.split("\n\n").map((para, i) => (
+                  <p key={i} className="mb-3">
+                    {para}
+                  </p>
+                ))
+              : entry.text}
+          </div>
+        );
+      })}
 
       {isGenerating && (
         <div

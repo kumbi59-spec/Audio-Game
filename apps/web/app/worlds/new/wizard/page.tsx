@@ -4,16 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak, stopSpeech } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
+import { stopSpeech } from "@/lib/audio/tts-provider";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { STEPS, EMPTY_DRAFT, type Draft, type WizardStep } from "@/lib/wizard/steps";
 
 export default function WorldWizardPage() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const can = useCanWeb();
 
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -35,12 +33,14 @@ export default function WorldWizardPage() {
   const isLast = stepIndex === STEPS.length - 1;
   const isMultiline = step?.kind === "freeform" && (step.id === "pitch" || step.id === "startingScenario");
 
-  // Announce + speak each step on mount and step change
+  // Narrate each step on mount and step change. Uses narrate() so the
+  // message is voiced via TTS only (no duplicate screen-reader read-out)
+  // when TTS is audible, and falls back to the live region when muted.
   useEffect(() => {
     if (!step) return;
-    const msg = `Step ${stepIndex + 1} of ${STEPS.length}. ${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(
+      `Step ${stepIndex + 1} of ${STEPS.length}. ${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`,
+    );
     promptRef.current?.focus();
     return () => stopSpeech();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -90,14 +90,14 @@ export default function WorldWizardPage() {
       if (step.kind === "freeform" && step.required && !trimmed) {
         const msg = "This step requires an answer to continue.";
         setError(msg);
-        announce(msg, "assertive");
+        narrate(msg, "assertive");
         return;
       }
       setError(null);
       setDraft((d) => ({ ...d, [step.id]: trimmed || d[step.id] }));
       setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
     },
-    [step, announce],
+    [step, narrate],
   );
 
   const goBack = useCallback(() => {
@@ -122,21 +122,19 @@ export default function WorldWizardPage() {
       if (!res.ok || !data.worldId) {
         const msg = data.error ?? "Could not create world. Please try again.";
         setError(msg);
-        announce(msg, "assertive");
+        narrate(msg, "assertive");
         return;
       }
-      const doneMsg = `Your world "${finalDraft.title}" is ready. Starting character creation.`;
-      announce(doneMsg, "assertive");
-      speak(doneMsg, { rate: ttsSpeed, volume });
+      narrate(`Your world "${finalDraft.title}" is ready. Starting character creation.`, "assertive");
       router.push(`/create?worldId=${data.worldId}`);
     } catch {
       const msg = "Network error. Please check your connection and try again.";
       setError(msg);
-      announce(msg, "assertive");
+      narrate(msg, "assertive");
     } finally {
       setBusy(false);
     }
-  }, [draft, step, textInput, coverImageUrl, can, router, announce, ttsSpeed, volume]);
+  }, [draft, step, textInput, coverImageUrl, can, router, narrate]);
 
   const startVoiceInput = useCallback(() => {
     interface SpeechRecognitionLike {
@@ -157,7 +155,7 @@ export default function WorldWizardPage() {
          null)
       : null;
     if (!SpeechRecognitionAPI) {
-      announce("Voice input is not supported in this browser.", "assertive");
+      narrate("Voice input is not supported in this browser.", "assertive");
       return;
     }
     recognitionRef.current?.abort();
@@ -167,8 +165,7 @@ export default function WorldWizardPage() {
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
 
-    announce("Listening…");
-    speak("Listening.", { rate: ttsSpeed, volume });
+    narrate("Listening.");
     setListening(true);
 
     rec.onresult = (e) => {
@@ -177,9 +174,7 @@ export default function WorldWizardPage() {
       if (step?.kind === "choice") {
         const matched = matchChoice(step, transcript);
         if (matched) { advance(matched); return; }
-        const msg = "I didn't catch that. Please click one of the listed options.";
-        announce(msg, "assertive");
-        speak(msg, { rate: ttsSpeed, volume });
+        narrate("I didn't catch that. Please click one of the listed options.", "assertive");
       } else {
         setTextInput(transcript);
       }
@@ -187,7 +182,7 @@ export default function WorldWizardPage() {
     rec.onerror = () => { setListening(false); };
     rec.onend = () => { setListening(false); };
     rec.start();
-  }, [step, advance, announce, ttsSpeed, volume]);
+  }, [step, advance, narrate]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -200,12 +195,12 @@ export default function WorldWizardPage() {
       } else if (e.key === "v" || e.key === "V") {
         startVoiceInput();
       } else if (e.key === "r" || e.key === "R") {
-        if (step) speak(step.prompt, { rate: ttsSpeed, volume });
+        if (step) narrate(step.prompt);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [advance, goBack, startVoiceInput, step, isLast, textInput, ttsSpeed, volume]);
+  }, [advance, goBack, startVoiceInput, step, isLast, textInput, narrate]);
 
   if (!step) return null;
 
@@ -377,7 +372,7 @@ export default function WorldWizardPage() {
                           key={i}
                           onClick={() => {
                             setTextInput(s);
-                            speak(s, { rate: ttsSpeed, volume });
+                            narrate(s);
                           }}
                           aria-label={`Use suggestion: ${s}`}
                           disabled={busy}
