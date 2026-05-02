@@ -5,7 +5,15 @@ import { generateAICoverArt } from "@/lib/ai/cover-art-gen";
 
 export const dynamic = "force-dynamic";
 
-// GET — list prebuilt worlds so the client can iterate one at a time
+function providerDiagnostic(): string | null {
+  const provider = process.env["IMAGE_GEN_PROVIDER"]?.toLowerCase();
+  if (!provider) return "IMAGE_GEN_PROVIDER env var is not set";
+  if (provider === "bfl" && !process.env["BFL_API_KEY"]) return "BFL_API_KEY env var is not set";
+  if (provider === "replicate" && !process.env["REPLICATE_API_TOKEN"]) return "REPLICATE_API_TOKEN env var is not set";
+  return null;
+}
+
+// GET — list prebuilt worlds + provider config status
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -16,13 +24,16 @@ export async function GET() {
     orderBy: { createdAt: "asc" },
   });
 
-  return NextResponse.json(worlds);
+  return NextResponse.json({ worlds, configError: providerDiagnostic() });
 }
 
 // POST { worldId } — generate cover for a single world (stays within Render's 30s limit)
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const configError = providerDiagnostic();
+  if (configError) return NextResponse.json({ status: "failed", reason: configError }, { status: 400 });
 
   const { worldId } = (await req.json()) as { worldId?: string };
   if (!worldId) return NextResponse.json({ error: "worldId required" }, { status: 400 });
@@ -40,7 +51,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (!imageUrl) {
-    return NextResponse.json({ status: "failed", name: world.name });
+    return NextResponse.json({ status: "failed", name: world.name, reason: "AI generation returned null — check server logs" });
   }
 
   await prisma.world.update({
