@@ -43,7 +43,11 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    await prisma.user.update({ where: { id: session.user.id }, data: { name: body.name } });
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { name: body.name },
+      select: { id: true },
+    });
   } catch (err) {
     console.error("[me/profile] Failed to update name:", err);
     return NextResponse.json({ error: "Failed to update name. Please try again." }, { status: 500 });
