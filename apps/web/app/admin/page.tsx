@@ -51,6 +51,25 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [forbidden, setForbidden] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [generatingCovers, setGeneratingCovers] = useState(false);
+  const [coverResult, setCoverResult] = useState("");
+
+  async function generateCovers() {
+    setGeneratingCovers(true);
+    setCoverResult("");
+    try {
+      const res = await fetch("/api/admin/worlds/covers", { method: "POST" });
+      const data = await res.json() as { results?: Array<{ name: string; status: string }> };
+      if (!res.ok) { setCoverResult("Failed to generate covers."); return; }
+      const ok = data.results?.filter((r) => r.status === "ok").length ?? 0;
+      const failed = data.results?.filter((r) => r.status === "failed").length ?? 0;
+      setCoverResult(`Generated ${ok} cover(s). Failed: ${failed}.`);
+    } catch (err) {
+      setCoverResult(err instanceof Error ? err.message : "Failed.");
+    } finally {
+      setGeneratingCovers(false);
+    }
+  }
 
   // Blog editor state
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
@@ -315,6 +334,19 @@ export default function AdminPage() {
         {/* Worlds table */}
         {!loading && tab === "worlds" && (
           <div role="tabpanel" aria-label="Community worlds list">
+            <div className="mb-4 flex items-center gap-3 flex-wrap">
+              <button
+                onClick={generateCovers}
+                disabled={generatingCovers}
+                className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 transition-opacity hover:opacity-80"
+                style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              >
+                {generatingCovers ? "Generating…" : "Generate Official Covers"}
+              </button>
+              {coverResult && (
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{coverResult}</p>
+              )}
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="Community worlds">
                 <thead>
