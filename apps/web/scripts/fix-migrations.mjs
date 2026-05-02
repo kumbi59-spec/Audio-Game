@@ -37,12 +37,19 @@ for (const name of MIGRATIONS) {
 
   const sql = readFileSync(sqlPath, "utf8");
 
-  // Split on statement boundaries (semicolons followed by newlines or end-of-file)
-  // and strip comment-only blocks.
+  // Split on statement boundaries (semicolons followed by newlines or end-of-file).
+  // Strip comment lines from each chunk rather than dropping the whole chunk — a
+  // chunk can start with "-- comment\nALTER TABLE ..." and we must keep the SQL.
   const statements = sql
     .split(/;\s*(?:\n|$)/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !s.startsWith("--"));
+    .map((s) =>
+      s
+        .split("\n")
+        .filter((line) => !line.trim().startsWith("--"))
+        .join("\n")
+        .trim()
+    )
+    .filter((s) => s.length > 0);
 
   let ok = true;
   for (const stmt of statements) {
@@ -65,6 +72,12 @@ for (const name of MIGRATIONS) {
     }
   }
 
+  if (!ok) {
+    // Leave migration unresolved so future deploys can retry it.
+    console.error(`[fix-migrations] ${name}: SQL errors above — NOT marking as applied`);
+    continue;
+  }
+
   // Mark as applied in Prisma's _prisma_migrations table so migrate deploy skips it.
   try {
     execSync(`npx prisma migrate resolve --applied "${name}"`, {
@@ -76,7 +89,7 @@ for (const name of MIGRATIONS) {
     // Already recorded as applied — fine.
   }
 
-  console.log(`[fix-migrations] ${name}: ${ok ? "ensured ✓" : "partial (errors above)"}`);
+  console.log(`[fix-migrations] ${name}: ensured ✓`);
 }
 
 // Backfill imageUrl on prebuilt worlds that were seeded before imageUrl was set.
