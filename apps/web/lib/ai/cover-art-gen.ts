@@ -3,7 +3,8 @@
  *
  *   IMAGE_GEN_PROVIDER=bfl                      (Black Forest Labs — recommended)
  *   BFL_API_KEY=bfl_...                          (required when provider=bfl)
- *   MODEL_NAME=black-forest-labs/flux-schnell    (default; only the part after "/" is used)
+ *   MODEL_NAME=black-forest-labs/flux-dev        (default; only the part after "/" is used)
+ *                                                (flux-schnell is Replicate-only; BFL supports flux-dev, flux-pro, flux-pro-1.1)
  *
  *   IMAGE_GEN_PROVIDER=replicate                 (Replicate fallback)
  *   REPLICATE_API_TOKEN=r8_...                   (required when provider=replicate)
@@ -74,8 +75,9 @@ async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
   const apiKey = process.env["BFL_API_KEY"];
   if (!apiKey) return { error: "BFL_API_KEY is not set" };
 
-  // Accept "black-forest-labs/flux-schnell" or just "flux-schnell"
-  const modelEnv = process.env["MODEL_NAME"] ?? "black-forest-labs/flux-schnell";
+  // Accept "black-forest-labs/flux-dev" or just "flux-dev".
+  // Note: flux-schnell is not available on api.bfl.ai — use Replicate provider for it.
+  const modelEnv = process.env["MODEL_NAME"] ?? "black-forest-labs/flux-dev";
   const modelName = modelEnv.includes("/") ? modelEnv.split("/").pop()! : modelEnv;
 
   const controller = new AbortController();
@@ -91,7 +93,7 @@ async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
           prompt: buildPrompt(input),
           width: 1024,
           height: 576,
-          steps: 4,
+          steps: modelName === "flux-schnell" ? 4 : 28,
         }),
       },
       controller.signal,
