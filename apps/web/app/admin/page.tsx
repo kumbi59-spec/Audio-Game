@@ -56,14 +56,26 @@ export default function AdminPage() {
 
   async function generateCovers() {
     setGeneratingCovers(true);
-    setCoverResult("");
+    setCoverResult("Fetching worlds…");
     try {
-      const res = await fetch("/api/admin/worlds/covers", { method: "POST" });
-      const data = await res.json() as { results?: Array<{ name: string; status: string }> };
-      if (!res.ok) { setCoverResult("Failed to generate covers."); return; }
-      const ok = data.results?.filter((r) => r.status === "ok").length ?? 0;
-      const failed = data.results?.filter((r) => r.status === "failed").length ?? 0;
-      setCoverResult(`Generated ${ok} cover(s). Failed: ${failed}.`);
+      const listRes = await fetch("/api/admin/worlds/covers");
+      if (!listRes.ok) { setCoverResult("Failed to fetch worlds."); return; }
+      const worlds = await listRes.json() as Array<{ id: string; name: string }>;
+      let ok = 0, failed = 0;
+      for (let i = 0; i < worlds.length; i++) {
+        const w = worlds[i];
+        setCoverResult(`Generating ${i + 1}/${worlds.length}: ${w.name}…`);
+        try {
+          const res = await fetch("/api/admin/worlds/covers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ worldId: w.id }),
+          });
+          const data = await res.json() as { status?: string };
+          if (res.ok && data.status === "ok") ok++; else failed++;
+        } catch { failed++; }
+      }
+      setCoverResult(`Done — ${ok} generated, ${failed} failed.`);
     } catch (err) {
       setCoverResult(err instanceof Error ? err.message : "Failed.");
     } finally {

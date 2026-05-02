@@ -1,43 +1,53 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
 import { generateAICoverArt } from "@/lib/ai/cover-art-gen";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
 
-export async function POST() {
+// GET — list prebuilt worlds so the client can iterate one at a time
+export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const worlds = await prisma.world.findMany({
     where: { isPrebuilt: true },
-    select: { id: true, name: true, genre: true, tone: true, imageUrl: true },
+    select: { id: true, name: true, genre: true, tone: true },
     orderBy: { createdAt: "asc" },
   });
 
-  const results: Array<{ id: string; name: string; status: "ok" | "skipped" | "failed"; imageUrl?: string }> = [];
+  return NextResponse.json(worlds);
+}
 
-  for (const world of worlds) {
-    const imageUrl = await generateAICoverArt({
-      worldName: world.name,
-      genre: world.genre ?? "",
-      tone: world.tone ?? "",
-    });
+// POST { worldId } — generate cover for a single world (stays within Render's 30s limit)
+export async function POST(req: NextRequest) {
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    if (!imageUrl) {
-      results.push({ id: world.id, name: world.name, status: "failed" });
-      continue;
-    }
+  const { worldId } = (await req.json()) as { worldId?: string };
+  if (!worldId) return NextResponse.json({ error: "worldId required" }, { status: 400 });
 
-    await prisma.world.update({
-      where: { id: world.id },
-      data: { imageUrl },
-      select: { id: true },
-    });
+  const world = await prisma.world.findUnique({
+    where: { id: worldId, isPrebuilt: true },
+    select: { id: true, name: true, genre: true, tone: true },
+  });
+  if (!world) return NextResponse.json({ error: "World not found" }, { status: 404 });
 
-    results.push({ id: world.id, name: world.name, status: "ok", imageUrl: imageUrl.slice(0, 60) + "…" });
+  const imageUrl = await generateAICoverArt({
+    worldName: world.name,
+    genre: world.genre ?? "",
+    tone: world.tone ?? "",
+  });
+
+  if (!imageUrl) {
+    return NextResponse.json({ status: "failed", name: world.name });
   }
 
-  return NextResponse.json({ results });
+  await prisma.world.update({
+    where: { id: world.id },
+    data: { imageUrl },
+    select: { id: true },
+  });
+
+  return NextResponse.json({ status: "ok", name: world.name });
 }
