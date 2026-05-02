@@ -1624,18 +1624,85 @@ const HERO_IMAGE_BY_SLUG: Record<string, { src: string; alt: string }> = {
 
 const FALLBACK_HERO = { src: "/images/worlds/neon-precinct.svg", alt: "EchoQuest blog post header illustration" };
 
-// Inject a hero image right after the first H1, so every blog post opens with
-// a visual. If content has no H1, prepend the image instead.
+// Pool of inline body images. We rotate through these to add 1-2 visuals
+// inside each post body so readers don't face a wall of text. Uses our
+// existing world-cover SVGs for zero external dependencies.
+const INLINE_IMAGE_POOL: Array<{ src: string; alt: string }> = [
+  { src: "/images/worlds/iron-citadel.svg", alt: "An iron citadel rising from craggy mountain peaks" },
+  { src: "/images/worlds/neon-precinct.svg", alt: "A neon-lit cyberpunk skyline at night" },
+  { src: "/images/worlds/saltbound.svg", alt: "A coastal harbor at twilight, lanterns on the water" },
+  { src: "/images/worlds/verdant-wilds.svg", alt: "Sunlit trails winding through a lush green forest" },
+  { src: "/images/worlds/black-vellum.svg", alt: "An open spell book on dark vellum, runes glowing" },
+  { src: "/images/worlds/long-watch.svg", alt: "A lone watchtower silhouetted at dusk" },
+  { src: "/images/worlds/mirewood.svg", alt: "Mist drifting through a dark, ancient mirewood" },
+];
+
+function simpleHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// Pick two body images for a slug that differ from each other and from the hero.
+function inlineImagesFor(slug: string, heroSrc: string): Array<{ src: string; alt: string }> {
+  const candidates = INLINE_IMAGE_POOL.filter((img) => img.src !== heroSrc);
+  const h = simpleHash(slug);
+  const first = candidates[h % candidates.length]!;
+  const second = candidates[(h + 3) % candidates.length]!;
+  return first.src === second.src
+    ? [first, candidates[(h + 5) % candidates.length]!]
+    : [first, second];
+}
+
+// Insert an image into markdown content right after the Nth H2 heading
+// (1-indexed). Returns the original content if there are fewer than n H2s.
+function insertAfterNthH2(content: string, n: number, imageMd: string): string {
+  if (content.includes(imageMd)) return content; // idempotent
+  const re = /^##\s.+$/gm;
+  let match: RegExpExecArray | null;
+  let count = 0;
+  while ((match = re.exec(content)) !== null) {
+    count++;
+    if (count === n) {
+      const idx = match.index + match[0].length;
+      return content.slice(0, idx) + `\n\n${imageMd}\n` + content.slice(idx);
+    }
+  }
+  return content;
+}
+
+// Inject a hero image after the first H1 plus two inline body images at
+// proportional positions, so every post opens with a visual and breaks up
+// long-form text. Idempotent — calling twice doesn't duplicate images.
 function injectHeroImage(slug: string, content: string): string {
   const hero = HERO_IMAGE_BY_SLUG[slug] ?? FALLBACK_HERO;
   const heroMd = `![${hero.alt}](${hero.src})`;
-  if (content.includes(heroMd)) return content; // idempotent
-  const h1Match = content.match(/^#\s.+$/m);
-  if (h1Match) {
-    const idx = (h1Match.index ?? 0) + h1Match[0].length;
-    return content.slice(0, idx) + `\n\n${heroMd}\n` + content.slice(idx);
+  let out = content;
+  if (!out.includes(heroMd)) {
+    const h1Match = out.match(/^#\s.+$/m);
+    if (h1Match) {
+      const idx = (h1Match.index ?? 0) + h1Match[0].length;
+      out = out.slice(0, idx) + `\n\n${heroMd}\n` + out.slice(idx);
+    } else {
+      out = `${heroMd}\n\n${out}`;
+    }
   }
-  return `${heroMd}\n\n${content}`;
+
+  // Count H2s to decide where to drop the inline images.
+  const h2Count = (out.match(/^##\s.+$/gm) ?? []).length;
+  if (h2Count >= 2) {
+    const [img1, img2] = inlineImagesFor(slug, hero.src);
+    // First inline image: after the 2nd H2 (early in the body).
+    out = insertAfterNthH2(out, 2, `![${img1!.alt}](${img1!.src})`);
+    // Second inline image: roughly two-thirds through, but only if there are
+    // enough H2s to avoid stacking it next to the first one.
+    const secondPos = h2Count >= 6 ? Math.min(h2Count - 1, 5) : Math.max(3, h2Count - 1);
+    if (secondPos > 2) {
+      out = insertAfterNthH2(out, secondPos, `![${img2!.alt}](${img2!.src})`);
+    }
+  }
+
+  return out;
 }
 
 export async function POST(req: Request) {
