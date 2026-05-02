@@ -14,7 +14,9 @@
  */
 
 const TIMEOUT_MS = 60_000;
-const BFL_BASE = "https://api.us1.bfl.ai/v1";
+// Global endpoint routes to the nearest regional cluster. Override with
+// BFL_API_BASE if a specific region is desired (e.g. https://api.us.bfl.ai/v1).
+const BFL_BASE = process.env["BFL_API_BASE"] ?? "https://api.bfl.ai/v1";
 
 export interface CoverGenInput {
   worldName: string;
@@ -63,6 +65,7 @@ async function imageUrlToDataUrl(url: string, signal: AbortSignal): Promise<stri
 
 interface BFLResult {
   id: string;
+  polling_url?: string;
   status: string; // "Pending" | "Ready" | "Error" | "Content Moderated" | "Request Moderated"
   result?: { sample?: string };
 }
@@ -100,11 +103,12 @@ async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
       return { error: `BFL: no task id in response — ${detail}` };
     }
 
-    // Always poll — don't trust the initial response status field.
-    // The initial POST may return {} or a non-"Pending" status depending on
-    // BFL API version, so we poll until we get a known terminal status.
+    // BFL requires polling the polling_url returned in the initial response,
+    // because requests to the global endpoint are routed to a regional cluster
+    // and the result is only available on that cluster's host. Fall back to
+    // the legacy get_result path only if polling_url is missing.
     const TERMINAL = new Set(["Ready", "Error", "Content Moderated", "Request Moderated"]);
-    const pollUrl = `${BFL_BASE}/get_result?id=${taskId}`;
+    const pollUrl = created.polling_url ?? `${BFL_BASE}/get_result?id=${taskId}`;
     let result: BFLResult;
     do {
       await new Promise((r) => setTimeout(r, 1500));
