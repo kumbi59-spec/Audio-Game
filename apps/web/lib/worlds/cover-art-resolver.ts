@@ -15,11 +15,8 @@ export async function resolveWorldCoverImage(
   genre: string,
   tone = "",
 ): Promise<string> {
-  try {
-    const ai = await generateAICoverArt({ worldName: name, genre, tone });
-    if (ai) return ai;
-  } catch (err) {
-    console.warn(`[cover-art-resolver] AI generation threw, falling back to SVG: ${(err as Error).message}`);
-  }
+  const result = await generateAICoverArt({ worldName: name, genre, tone });
+  if (result.url) return result.url;
+  if (result.error) console.warn(`[cover-art-resolver] AI generation failed (${result.error}), falling back to SVG`);
   return worldCoverDataUrl(name, genre, tone);
 }

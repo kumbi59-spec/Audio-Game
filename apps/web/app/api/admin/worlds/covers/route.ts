@@ -44,19 +44,19 @@ export async function POST(req: NextRequest) {
   });
   if (!world) return NextResponse.json({ error: "World not found" }, { status: 404 });
 
-  const imageUrl = await generateAICoverArt({
+  const result = await generateAICoverArt({
     worldName: world.name,
     genre: world.genre ?? "",
     tone: world.tone ?? "",
   });
 
-  if (!imageUrl) {
-    return NextResponse.json({ status: "failed", name: world.name, reason: "AI generation returned null — check server logs" });
+  if (result.error) {
+    return NextResponse.json({ status: "failed", name: world.name, reason: result.error });
   }
 
   await prisma.world.update({
     where: { id: world.id },
-    data: { imageUrl },
+    data: { imageUrl: result.url },
     select: { id: true },
   });
 

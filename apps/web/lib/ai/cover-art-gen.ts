@@ -9,9 +9,8 @@
  *   REPLICATE_API_TOKEN=r8_...                   (required when provider=replicate)
  *   REPLICATE_IMAGE_MODEL=black-forest-labs/flux-schnell  (default)
  *
- * Returns a base64 data URL on success, or null on any failure
- * (missing config, network error, model error). The resolver falls back
- * to the deterministic SVG generator on null.
+ * Returns { url } on success or { error } on any failure so callers can
+ * surface the actual provider message rather than a generic "null".
  */
 
 const TIMEOUT_MS = 60_000;
@@ -22,6 +21,10 @@ export interface CoverGenInput {
   genre: string;
   tone: string;
 }
+
+export type CoverGenResult =
+  | { url: string; error?: never }
+  | { url?: never; error: string };
 
 function buildPrompt({ worldName, genre, tone }: CoverGenInput): string {
   const cleanGenre = genre.replace(/[^a-zA-Z0-9 ,-]/g, "").trim();
@@ -64,12 +67,9 @@ interface BFLResult {
   result?: { sample?: string };
 }
 
-async function generateViaBFL(input: CoverGenInput): Promise<string | null> {
+async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
   const apiKey = process.env["BFL_API_KEY"];
-  if (!apiKey) {
-    console.warn("[cover-art-gen] BFL_API_KEY not set");
-    return null;
-  }
+  if (!apiKey) return { error: "BFL_API_KEY is not set" };
 
   // Accept "black-forest-labs/flux-schnell" or just "flux-schnell"
   const modelEnv = process.env["MODEL_NAME"] ?? "black-forest-labs/flux-schnell";
@@ -96,34 +96,38 @@ async function generateViaBFL(input: CoverGenInput): Promise<string | null> {
 
     const taskId = created.id;
     if (!taskId) {
-      console.warn("[cover-art-gen] BFL: no task id in response");
-      return null;
+      const detail = JSON.stringify(created).slice(0, 200);
+      return { error: `BFL: no task id in response — ${detail}` };
     }
 
-    // Poll until Ready or terminal status
-    let result = created;
+    // Always poll — don't trust the initial response status field.
+    // The initial POST may return {} or a non-"Pending" status depending on
+    // BFL API version, so we poll until we get a known terminal status.
+    const TERMINAL = new Set(["Ready", "Error", "Content Moderated", "Request Moderated"]);
     const pollUrl = `${BFL_BASE}/get_result?id=${taskId}`;
-    while (result.status === "Pending" || result.status === "processing") {
+    let result: BFLResult;
+    do {
       await new Promise((r) => setTimeout(r, 1500));
       result = (await fetchJson(
         pollUrl,
         { headers: { "X-Key": apiKey } },
         controller.signal,
       )) as BFLResult;
-    }
+    } while (!TERMINAL.has(result.status));
 
     if (result.status !== "Ready") {
-      console.warn(`[cover-art-gen] BFL task ${result.status}`);
-      return null;
+      return { error: `BFL task ended with status "${result.status}"` };
     }
 
     const sampleUrl = result.result?.sample;
-    if (!sampleUrl) return null;
+    if (!sampleUrl) return { error: "BFL: task Ready but no sample URL in result" };
 
-    return imageUrlToDataUrl(sampleUrl, controller.signal);
+    const url = await imageUrlToDataUrl(sampleUrl, controller.signal);
+    if (!url) return { error: "BFL: failed to download generated image from sample URL" };
+    return { url };
   } catch (err) {
-    console.warn(`[cover-art-gen] BFL generation failed: ${(err as Error).message}`);
-    return null;
+    const msg = (err as Error).message;
+    return { error: `BFL request failed: ${msg}` };
   } finally {
     clearTimeout(timeout);
   }
@@ -163,9 +167,9 @@ async function pollReplicateUntilDone(
   return prediction;
 }
 
-async function generateViaReplicate(input: CoverGenInput): Promise<string | null> {
+async function generateViaReplicate(input: CoverGenInput): Promise<CoverGenResult> {
   const token = process.env["REPLICATE_API_TOKEN"];
-  if (!token) return null;
+  if (!token) return { error: "REPLICATE_API_TOKEN is not set" };
 
   const modelStr = REPLICATE_DEFAULT_MODEL;
   const colonIndex = modelStr.indexOf(":");
@@ -176,10 +180,7 @@ async function generateViaReplicate(input: CoverGenInput): Promise<string | null
 
   if (isVersioned) {
     const version = modelStr.slice(colonIndex + 1);
-    if (!version) {
-      console.warn("[cover-art-gen] version hash missing in REPLICATE_IMAGE_MODEL");
-      return null;
-    }
+    if (!version) return { error: "version hash missing in REPLICATE_IMAGE_MODEL" };
     postUrl = "https://api.replicate.com/v1/predictions";
     body = {
       version,
@@ -188,8 +189,7 @@ async function generateViaReplicate(input: CoverGenInput): Promise<string | null
   } else {
     const [owner, modelName] = modelStr.split("/");
     if (!owner || !modelName) {
-      console.warn("[cover-art-gen] REPLICATE_IMAGE_MODEL must be 'owner/model' or 'owner/model:version'");
-      return null;
+      return { error: "REPLICATE_IMAGE_MODEL must be 'owner/model' or 'owner/model:version'" };
     }
     postUrl = `https://api.replicate.com/v1/models/${owner}/${modelName}/predictions`;
     body = {
@@ -222,22 +222,23 @@ async function generateViaReplicate(input: CoverGenInput): Promise<string | null
       prediction.status !== "canceled"
     ) {
       const pollUrl = prediction.urls?.get;
-      if (!pollUrl) return null;
+      if (!pollUrl) return { error: "Replicate: no polling URL in response" };
       prediction = await pollReplicateUntilDone(pollUrl, token, controller.signal);
     }
 
     if (prediction.status !== "succeeded") {
-      console.warn(`[cover-art-gen] Replicate ${prediction.status}: ${prediction.error ?? "no detail"}`);
-      return null;
+      return { error: `Replicate ${prediction.status}: ${prediction.error ?? "no detail"}` };
     }
 
     const out = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
-    if (!out) return null;
+    if (!out) return { error: "Replicate: succeeded but output array was empty" };
 
-    return imageUrlToDataUrl(out, controller.signal);
+    const url = await imageUrlToDataUrl(out, controller.signal);
+    if (!url) return { error: "Replicate: failed to download generated image" };
+    return { url };
   } catch (err) {
-    console.warn(`[cover-art-gen] Replicate generation failed: ${(err as Error).message}`);
-    return null;
+    const msg = (err as Error).message;
+    return { error: `Replicate request failed: ${msg}` };
   } finally {
     clearTimeout(timeout);
   }
@@ -245,11 +246,10 @@ async function generateViaReplicate(input: CoverGenInput): Promise<string | null
 
 // ── Entry point ────────────────────────────────────────────────────────────
 
-export async function generateAICoverArt(input: CoverGenInput): Promise<string | null> {
+export async function generateAICoverArt(input: CoverGenInput): Promise<CoverGenResult> {
   const provider = process.env["IMAGE_GEN_PROVIDER"]?.toLowerCase();
-  if (!provider) return null;
+  if (!provider) return { error: "IMAGE_GEN_PROVIDER env var is not set" };
   if (provider === "bfl") return generateViaBFL(input);
   if (provider === "replicate") return generateViaReplicate(input);
-  console.warn(`[cover-art-gen] unknown IMAGE_GEN_PROVIDER=${provider}; skipping AI generation`);
-  return null;
+  return { error: `Unknown IMAGE_GEN_PROVIDER="${provider}" (expected "bfl" or "replicate")` };
 }

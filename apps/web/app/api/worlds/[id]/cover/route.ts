@@ -39,19 +39,19 @@ export async function POST(
   if (world.isPrebuilt) return NextResponse.json({ error: "Use admin panel for official worlds" }, { status: 403 });
   if (world.ownerId !== session.user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const imageUrl = await generateAICoverArt({
+  const result = await generateAICoverArt({
     worldName: world.name,
     genre: world.genre ?? "",
     tone: world.tone ?? "",
   });
 
-  if (!imageUrl) {
-    return NextResponse.json({ error: "AI generation returned no image — check server logs for provider error" }, { status: 502 });
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: 502 });
   }
 
   await prisma.world.update({
     where: { id: world.id },
-    data: { imageUrl },
+    data: { imageUrl: result.url },
     select: { id: true },
   });
 
