@@ -4,8 +4,6 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 
 const ADJECTIVES = ["Brave", "Swift", "Iron", "Storm", "Silver", "Dark", "Wild", "Ember", "Frost", "Golden"];
 const NOUNS = ["Wanderer", "Shadow", "Sage", "Caller", "Knight", "Ranger", "Rogue", "Seeker", "Blade", "Warden"];
@@ -18,8 +16,7 @@ function randomName() {
 
 function SignInForm() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const searchParams = useSearchParams();
   const verifyError = searchParams.get("verify_error");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -37,9 +34,7 @@ function SignInForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const msg = mode === "signin" ? "Sign in to EchoQuest." : "Create your EchoQuest account.";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(mode === "signin" ? "Sign in to EchoQuest." : "Create your EchoQuest account.");
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pre-fill a random display name when switching to signup

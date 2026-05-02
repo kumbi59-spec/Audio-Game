@@ -8,11 +8,27 @@ import {
   useRef,
   useState,
 } from "react";
+import { isTTSAudible, speak } from "@/lib/audio/tts-provider";
+import { useAudioStore } from "@/store/audio-store";
 
 interface AnnouncerContextValue {
   announce: (message: string, priority?: "polite" | "assertive") => void;
   announceError: (message: string) => void;
   announceAction: (action: string) => void;
+  /**
+   * Narrate a message to the user using the appropriate audio channel:
+   * - If TTS is audible (volume > 0), speak via TTS only — DOES NOT also
+   *   write to the screen-reader live region, to prevent VoiceOver / TalkBack
+   *   from reading the same message on top of the TTS voice.
+   * - If TTS is muted, route the message to the polite screen-reader live
+   *   region so the user still hears it.
+   *
+   * Use this for narration, step prompts, and other contextual messages
+   * that the user expects to hear spoken. Use plain announce() for UI
+   * feedback like form validation that should always reach the screen
+   * reader regardless of TTS state.
+   */
+  narrate: (message: string, priority?: "polite" | "assertive") => void;
 }
 
 const AnnouncerContext = createContext<AnnouncerContextValue | null>(null);
@@ -58,6 +74,18 @@ export function AudioAnnouncer({ children }: { children: React.ReactNode }) {
     [announce]
   );
 
+  const narrate = useCallback(
+    (message: string, priority: "polite" | "assertive" = "polite") => {
+      if (isTTSAudible()) {
+        const { ttsSpeed, volume } = useAudioStore.getState();
+        void speak(message, { rate: ttsSpeed, volume });
+      } else {
+        announce(message, priority);
+      }
+    },
+    [announce]
+  );
+
   useEffect(() => {
     return () => {
       if (politeTimer.current) clearTimeout(politeTimer.current);
@@ -66,7 +94,7 @@ export function AudioAnnouncer({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AnnouncerContext.Provider value={{ announce, announceError, announceAction }}>
+    <AnnouncerContext.Provider value={{ announce, announceError, announceAction, narrate }}>
       {children}
       {/* Polite live region — non-urgent announcements */}
       <div

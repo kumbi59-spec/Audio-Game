@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 
@@ -50,8 +48,7 @@ function SkeletonCard() {
 
 export default function LibraryPage() {
   const router = useRouter();
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const can = useCanWeb();
   const { session, world: savedWorld, clearSession } = useGameStore();
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
@@ -76,9 +73,7 @@ export default function LibraryPage() {
   function handleTabChange(next: Tab) {
     setTab(next);
     setSelectedGenre("All");
-    const label = next === "official" ? "Official worlds" : "Community worlds";
-    announce(label);
-    speak(label, { rate: ttsSpeed, volume });
+    narrate(next === "official" ? "Official worlds" : "Community worlds");
   }
 
   const tabWorlds = worlds.filter((w) =>

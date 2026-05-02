@@ -3,8 +3,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useGameStore } from "@/store/game-store";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 import { CLASS_DESCRIPTIONS } from "@/types/character";
@@ -22,8 +20,7 @@ function CreateCharacterPage() {
   const [world, setLoadedWorld] = useState<WorldData | null>(null);
   const [worldLoadError, setWorldLoadError] = useState<string | null>(null);
 
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const { setSession, setCharacter, setWorld: setStoreWorld, setDbSessionId } = useGameStore();
 
   const [step, setStep] = useState<Step>("name");
@@ -71,17 +68,13 @@ function CreateCharacterPage() {
 
   useEffect(() => {
     if (!world) return;
-    const msg = `Character creation for ${world.name}. Step 1: Enter your character's name.`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
-  }, [world, announce, ttsSpeed, volume]);
+    narrate(`Character creation for ${world.name}. Step 1: Enter your character's name.`);
+  }, [world, narrate]);
 
   function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    const msg = `Name set to ${name}. Step 2: Choose your class.`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(`Name set to ${name}. Step 2: Choose your class.`);
     setStep("class");
   }
 
@@ -89,32 +82,28 @@ function CreateCharacterPage() {
     setSelectedClass(cls);
     setSelectedWorldClass(null);
     const info = CLASS_DESCRIPTIONS[cls];
-    const msg = `${info.name} selected. ${info.description}. Press Continue to proceed or choose a different class.`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(`${info.name} selected. ${info.description}. Press Continue to proceed or choose a different class.`);
   }
 
   function handleWorldClassSelect(cls: { name: string; description: string }) {
     setSelectedWorldClass(cls.name);
-    const msg = `${cls.name} selected. ${cls.description}. Press Continue to proceed or choose a different class.`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(`${cls.name} selected. ${cls.description}. Press Continue to proceed or choose a different class.`);
   }
 
   function handleClassSubmit() {
     const displayClass = selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name;
-    const msg = `Class confirmed as ${displayClass}. Step 3: Optional backstory. Describe your character's history, or skip this step.`;
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate(
+      `Class confirmed as ${displayClass}. Step 3 of 3: Optional character details. ` +
+      `You can fill in pronouns, age, appearance, and a written backstory, or skip them entirely. ` +
+      `Empty fields are fine — the Game Master will let your character be discovered through play.`,
+    );
     setStep("backstory");
   }
 
-  async function handleStart() {
+  async function handleStart(opts: { skipBackstory?: boolean } = {}) {
     if (!world) return;
     setIsStarting(true);
-    const msg = "Starting your adventure. The Game Master is preparing your world…";
-    announce(msg);
-    speak(msg, { rate: ttsSpeed, volume });
+    narrate("Starting your adventure. The Game Master is preparing your world…");
 
     const classData = CLASS_DESCRIPTIONS[selectedClass];
     const parsedAge = Number.parseInt(age.trim(), 10);
@@ -126,7 +115,7 @@ function CreateCharacterPage() {
       shortDescription: shortDescription.trim() || null,
       class: selectedClass,
       roleTitle: selectedWorldClass ?? null,
-      backstory: backstory.trim(),
+      backstory: opts.skipBackstory ? "" : backstory.trim(),
       stats: { ...classData.startingStats },
       inventory: classData.startingItems.map((item, i) => ({
         id: `item-${i}`,
@@ -473,15 +462,21 @@ function CreateCharacterPage() {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => handleStart()}
+                onClick={() => handleStart({ skipBackstory: true })}
                 disabled={isStarting}
+                aria-label="Begin adventure without writing a backstory"
                 className="flex-1 rounded-lg border border-border py-3 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
-                Skip backstory
+                Skip backstory & begin
               </button>
               <button
                 onClick={() => handleStart()}
                 disabled={isStarting}
+                aria-label={
+                  backstory.trim()
+                    ? "Begin adventure with the backstory you wrote"
+                    : "Begin adventure"
+                }
                 className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 {isStarting ? "Starting…" : "Begin Adventure →"}

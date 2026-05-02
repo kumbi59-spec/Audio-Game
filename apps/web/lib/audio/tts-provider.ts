@@ -69,3 +69,12 @@ export function isSpeaking(): boolean {
 export function isPaused(): boolean {
   return getTTSProvider().isPaused();
 }
+
+/**
+ * True when TTS is the active audio narration channel — i.e. the user has
+ * not muted volume to zero. When false, screen reader live regions should
+ * carry messages instead so blind users still hear them.
+ */
+export function isTTSAudible(): boolean {
+  return useAudioStore.getState().volume > 0;
+}
