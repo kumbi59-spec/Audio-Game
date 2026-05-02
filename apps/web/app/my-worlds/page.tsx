@@ -55,6 +55,8 @@ export default function MyWorldsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [reparsing, setReparsing] = useState<string | null>(null);
   const [reparseResult, setReparseResult] = useState<Record<string, { ok: boolean; classCount?: number; backgroundCount?: number; error?: boolean }>>({});
+  const [generatingCover, setGeneratingCover] = useState<string | null>(null);
+  const [coverGenResult, setCoverGenResult] = useState<Record<string, { ok: boolean; error?: string }>>({});
   const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
   const [trendsLoading, setTrendsLoading] = useState(false);
   const [trendsRequested, setTrendsRequested] = useState(false);
@@ -143,6 +145,27 @@ export default function MyWorldsPage() {
       }
     } finally {
       setReparsing(null);
+    }
+  }
+
+  async function handleGenerateCover(world: MyWorld) {
+    setGeneratingCover(world.id);
+    setCoverGenResult((prev) => { const n = { ...prev }; delete n[world.id]; return n; });
+    try {
+      const res = await fetch(`/api/worlds/${world.id}/cover`, { method: "POST" });
+      if (res.ok) {
+        setCoverGenResult((prev) => ({ ...prev, [world.id]: { ok: true } }));
+        const msg = `Cover image generated for ${world.name}.`;
+        announce(msg);
+        speak(msg, { rate: ttsSpeed, volume });
+      } else {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setCoverGenResult((prev) => ({ ...prev, [world.id]: { ok: false, error: data.error ?? "Generation failed" } }));
+      }
+    } catch {
+      setCoverGenResult((prev) => ({ ...prev, [world.id]: { ok: false, error: "Network error" } }));
+    } finally {
+      setGeneratingCover(null);
     }
   }
 
@@ -389,6 +412,32 @@ export default function MyWorldsPage() {
                         </p>
                       )}
                     </div>
+
+                    {can.tier === "creator" && (
+                      <div className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateCover(world)}
+                          disabled={generatingCover === world.id}
+                          aria-label={`Generate AI cover image for ${world.name}`}
+                          className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        >
+                          {generatingCover === world.id
+                            ? "Generating cover… (up to 30s)"
+                            : coverGenResult[world.id]?.ok
+                            ? "Cover generated ✓"
+                            : coverGenResult[world.id]?.error
+                            ? "Cover failed — try again"
+                            : "Generate AI Cover"}
+                        </button>
+                        {coverGenResult[world.id]?.error && (
+                          <p className="text-center text-xs" style={{ color: "var(--error, #dc2626)" }}>
+                            {coverGenResult[world.id]!.error}
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {confirmDeleteId === world.id ? (
                       <div className="flex gap-2">

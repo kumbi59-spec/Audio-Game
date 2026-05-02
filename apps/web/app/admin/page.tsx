@@ -60,8 +60,9 @@ export default function AdminPage() {
     try {
       const listRes = await fetch("/api/admin/worlds/covers");
       if (!listRes.ok) { setCoverResult("Failed to fetch worlds."); return; }
-      const worlds = await listRes.json() as Array<{ id: string; name: string }>;
-      let ok = 0, failed = 0;
+      const { worlds, configError } = await listRes.json() as { worlds: Array<{ id: string; name: string }>; configError: string | null };
+      if (configError) { setCoverResult(`Config error: ${configError}`); return; }
+      let ok = 0, failed = 0, lastReason = "";
       for (let i = 0; i < worlds.length; i++) {
         const w = worlds[i];
         setCoverResult(`Generating ${i + 1}/${worlds.length}: ${w.name}…`);
@@ -71,11 +72,11 @@ export default function AdminPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ worldId: w.id }),
           });
-          const data = await res.json() as { status?: string };
-          if (res.ok && data.status === "ok") ok++; else failed++;
+          const data = await res.json() as { status?: string; reason?: string };
+          if (res.ok && data.status === "ok") { ok++; } else { failed++; lastReason = data.reason ?? ""; }
         } catch { failed++; }
       }
-      setCoverResult(`Done — ${ok} generated, ${failed} failed.`);
+      setCoverResult(`Done — ${ok} generated, ${failed} failed.${lastReason ? ` Reason: ${lastReason}` : ""}`);
     } catch (err) {
       setCoverResult(err instanceof Error ? err.message : "Failed.");
     } finally {
