@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { listPublicWorlds, seedPrebuiltWorldsIfNeeded } from "@/lib/db/queries/worlds";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
-function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
-  // For prebuilt worlds already in the DB, fall back to the static imageUrl
-  // if the DB row was seeded before imageUrl was added to the upsert.
-  const staticImageUrl = w.isPrebuilt
-    ? (PREBUILT_WORLDS.find((p) => p.id === w.id)?.imageUrl ?? null)
-    : null;
+const PREBUILT_SVG: Record<string, string> = Object.fromEntries(
+  PREBUILT_WORLDS.map((w) => [w.id, (w as { imageUrl?: string }).imageUrl ?? ""])
+);
 
+function resolveImageUrl(id: string, dbUrl: string | null, isPrebuilt: boolean): string | null {
+  if (dbUrl?.startsWith("data:")) return `/api/worlds/${id}/image`;
+  if (dbUrl) return dbUrl;
+  if (isPrebuilt) return PREBUILT_SVG[id] || null;
+  return null;
+}
+
+function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
   return {
     id: w.id,
     name: w.name,
@@ -16,7 +21,7 @@ function shapeWorld(w: Awaited<ReturnType<typeof listPublicWorlds>>[number]) {
     genre: w.genre,
     tone: w.tone,
     isPrebuilt: w.isPrebuilt,
-    imageUrl: w.imageUrl ?? staticImageUrl ?? null,
+    imageUrl: resolveImageUrl(w.id, w.imageUrl, w.isPrebuilt),
     difficulty: w.libraryItem?.difficulty ?? "beginner",
     tags: w.libraryItem?.tags.split(",").map((t) => t.trim()).filter(Boolean) ?? [w.genre, w.tone],
     sortOrder: w.libraryItem?.sortOrder ?? 100,
@@ -46,7 +51,7 @@ export async function GET(_req: NextRequest) {
         genre: w.genre,
         tone: w.tone,
         isPrebuilt: true,
-        imageUrl: w.imageUrl ?? null,
+        imageUrl: (w as { imageUrl?: string }).imageUrl ?? null,
         difficulty: "beginner",
         tags: [w.genre, w.tone],
         sortOrder: i,

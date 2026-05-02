@@ -79,4 +79,30 @@ for (const name of MIGRATIONS) {
   console.log(`[fix-migrations] ${name}: ${ok ? "ensured ✓" : "partial (errors above)"}`);
 }
 
+// Backfill imageUrl on prebuilt worlds that were seeded before imageUrl was set.
+const PREBUILT_SVG = [
+  { id: "prebuilt-shattered-reaches", imageUrl: "/images/worlds/shattered-reaches.svg" },
+  { id: "prebuilt-mirewood",          imageUrl: "/images/worlds/mirewood.svg" },
+  { id: "prebuilt-verdant-wilds",     imageUrl: "/images/worlds/verdant-wilds.svg" },
+  { id: "prebuilt-iron-citadel",      imageUrl: "/images/worlds/iron-citadel.svg" },
+  { id: "prebuilt-crimson-sands",     imageUrl: "/images/worlds/crimson-sands.svg" },
+  { id: "prebuilt-neon-precinct",     imageUrl: "/images/worlds/neon-precinct.svg" },
+  { id: "prebuilt-long-watch",        imageUrl: "/images/worlds/long-watch.svg" },
+  { id: "prebuilt-black-vellum",      imageUrl: "/images/worlds/black-vellum.svg" },
+  { id: "prebuilt-saltbound",         imageUrl: "/images/worlds/saltbound.svg" },
+];
+
+for (const { id, imageUrl } of PREBUILT_SVG) {
+  try {
+    await prisma.$executeRawUnsafe(
+      `UPDATE "World" SET "imageUrl" = $1 WHERE id = $2 AND ("imageUrl" IS NULL OR "imageUrl" = '')`,
+      imageUrl,
+      id,
+    );
+  } catch (err) {
+    console.warn(`[fix-migrations] imageUrl backfill for ${id}: ${err instanceof Error ? err.message : err}`);
+  }
+}
+console.log("[fix-migrations] prebuilt world imageUrl backfill done ✓");
+
 await prisma.$disconnect();
