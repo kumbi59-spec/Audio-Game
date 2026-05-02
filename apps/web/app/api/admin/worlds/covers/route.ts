@@ -13,7 +13,7 @@ export async function POST() {
   const worlds = await prisma.world.findMany({
     where: { isPrebuilt: true },
     select: { id: true, name: true, genre: true, tone: true, imageUrl: true },
-    orderBy: { sortOrder: "asc" },
+    orderBy: { createdAt: "asc" },
   });
 
   const results: Array<{ id: string; name: string; status: "ok" | "skipped" | "failed"; imageUrl?: string }> = [];
