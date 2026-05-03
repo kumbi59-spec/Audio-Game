@@ -1824,50 +1824,62 @@ If you encounter an accessibility barrier in EchoQuest, please report it via our
     excerpt: "The EchoQuest AI Game Master is powered by Claude, but the magic is in how we instruct it. Here's a transparent look at the prompt engineering behind the scenes.",
     content: `# Behind the GM: How We Prompt Claude to Run Your Adventures
 
-Every time you take an action in EchoQuest, Claude receives a carefully structured prompt and generates a response. That prompt is the product of months of design work — testing, iterating, and tuning until the AI GM behaved the way a great human GM would.
+Every time you take an action in EchoQuest, Claude receives a carefully structured prompt and generates a response. That prompt is the product of months of design work — testing, iterating, and tuning until the AI GM behaved the way a great human GM would. Most players never see the prompt; they just experience the output. We think the work is interesting on its own terms, and being transparent about how it operates is part of building trust with players who care about how their stories are made.
 
-We believe in being transparent about how this works.
+This post is a guided tour of the system prompt that powers the AI Game Master. Some specifics are abstracted (the literal prompt is a moving target and includes details we keep private for safety reasons) but the structural choices are public, and we explain why each one is the way it is. If you're a developer building AI applications, the patterns below generalise. If you're a player, you'll come away with a much clearer picture of what the GM is doing on your behalf.
 
 ## The Structure of a GM Prompt
 
 Before Claude sees your action, it receives a system prompt that contains several components:
 
-**Identity and role.** The GM is told explicitly what it is: a skilled, empathetic Game Master running a collaborative RPG. It's told its primary job is to make the player feel capable and engaged while maintaining narrative stakes.
+**Identity and role.** The GM is told explicitly what it is: a skilled, empathetic Game Master running a collaborative RPG. It's told its primary job is to make the player feel capable and engaged while maintaining narrative stakes. We invest a lot of time in this section because the model's self-conception shapes everything else. A GM that thinks of itself as "an AI assistant answering a question" will produce different output than one that thinks of itself as "a Game Master running a session for someone they care about." The framing isn't decorative; it's structural.
 
-**World context.** The entire Game Bible — your world's lore, factions, tone, rules, and constraints — is embedded in the prompt. This is what makes the AI behave consistently with your world rather than defaulting to generic fantasy tropes.
+**World context.** The entire Game Bible — your world's lore, factions, tone, rules, and constraints — is embedded in the prompt. This is what makes the AI behave consistently with your world rather than defaulting to generic fantasy tropes. The Bible is summarised down to a dense, AI-friendly format before being injected; what the model sees is a structured representation, not the raw uploaded document. This pre-processing keeps the context window efficient and the model's grasp of the world precise.
 
-**Character information.** Your character's name, class, backstory, current stats, inventory, and any story flags set by previous choices are included. The GM knows who you are.
+**Character information.** Your character's name, class, backstory, current stats, inventory, and any story flags set by previous choices are included. The GM knows who you are, what you've done, and what your character cares about. Backstory is read carefully — a backstory mentioning a sister is the kind of detail the GM will weaponise, dramatically, when the right scene comes up.
 
-**Location and current state.** Where you are right now, what's around you, and what the AI's current "scene state" is (time of day, active NPCs, recent events).
+**Location and current state.** Where you are right now, what's around you, and what the AI's current "scene state" is (time of day, active NPCs, recent events). Location is re-injected on every turn; the GM doesn't have to remember it from earlier in the conversation history because the system supplies it fresh.
 
-**Recent conversation history.** The last several exchanges between you and the GM, so it has immediate context without reading the entire session history.
+**Recent conversation history.** The last several exchanges between you and the GM, so it has immediate context without reading the entire session history. Older exchanges are condensed into a structured summary that captures the meaningful events without using up context window space on routine narration.
 
-**Instructions for output format.** The GM is told to produce structured output: narration, choices, any state changes, any sound cues. This structured output is what allows EchoQuest to update the game state, trigger sounds, and update your character sheet automatically.
+**Structured game state.** A compact representation of HP, conditions, faction reputations, NPC dispositions, and any story flags. This is the most important consistency tool we have. Rather than relying on the model to remember "you were rude to Sera Volant last session," we explicitly tell the model "current disposition of Sera Volant: cool, +1 (warmed slightly when you returned the locket)." The model doesn't have to remember; it just has to honour what's already written down.
+
+**Instructions for output format.** The GM is told to produce structured output: narration, choices, any state changes, any sound cues. This structured output is what allows EchoQuest to update the game state, trigger sounds, and update your character sheet automatically. The model produces both prose (for the player) and structured data (for the engine) in the same response.
 
 ## What We Ask the GM to Do
 
-Beyond the factual context, we give the GM explicit behavioral instructions:
+Beyond the factual context, we give the GM explicit behavioural instructions:
 
-- Respond to the spirit of the player's action, not just the letter
-- Never say "I can't do that" — always interpret the action charitably and find a way to respond
-- Vary sentence length and rhythm; avoid repetitive sentence structures
-- Use sensory detail — what the player hears, smells, and feels, not just sees
-- End narration at a moment of tension or decision, not resolution
-- Maintain NPC consistency — the same character should speak and behave the same way across scenes
+- Respond to the spirit of the player's action, not just the letter. If the player says "I throw my drink in his face," they're communicating intent (provocation, disrespect, escalation), not asking for a literal physics simulation
+- Never say "I can't do that" — always interpret the action charitably and find a way to respond. The AI's first instinct is sometimes to refuse; we explicitly forbid this
+- Vary sentence length and rhythm; avoid repetitive sentence structures. Without this nudge, AI prose tends toward a uniform medium-length sentence cadence that becomes hypnotic in a bad way
+- Use sensory detail — what the player hears, smells, and feels, not just sees. For an audio-first platform this is doubly important; visual-only descriptions translate poorly to narration
+- End narration at a moment of tension or decision, not resolution. The player should always have something to do
+- Maintain NPC consistency — the same character should speak and behave the same way across scenes. Use the structured game state to verify
+- Honour the player's stated tone preferences. If the player has said they want a tragedy, don't soften the blows
+- "Play to find out what happens" — borrowed from Apocalypse World. Don't push the player toward a predetermined outcome
 
 ## What We Ask the GM Not to Do
 
-- Don't kill characters without clear player agency unless the player has set high difficulty
-- Don't railroad — if the player wants to go somewhere or do something the story didn't anticipate, follow them
-- Don't repeat information the player already knows just to pad narration
-- Don't use the word "suddenly" (a classic bad writing crutch)
-- Don't make the world feel hostile to the player's creative choices
+- Don't kill characters without clear player agency unless the player has set high difficulty. Even then, give the player a chance to escape
+- Don't railroad — if the player wants to go somewhere or do something the story didn't anticipate, follow them. The "story" is whatever happens; it isn't a path the player must walk
+- Don't repeat information the player already knows just to pad narration. The GM should trust the player's memory
+- Don't use the word "suddenly" (a classic bad writing crutch that AI models love). Other banned words and phrases include "in a way that," "a sense of," and excessive use of "perhaps"
+- Don't make the world feel hostile to the player's creative choices. When the player does something unexpected, the GM should be visibly delighted, not annoyed
+- Don't give NPCs the same speech rhythms or vocabulary. Each NPC should sound different
+- Don't apologise mid-scene. If something needs to be different, the player can tell the GM out-of-character; the GM's narration should never break frame to express AI-style hedging
 
 ## The Ongoing Refinement
 
-We tune the prompt continuously based on player feedback. When players report that the GM made an unfair ruling, forgot something important, or narrated inconsistently, we investigate whether the prompt is responsible and update it if so.
+We tune the prompt continuously based on player feedback. When players report that the GM made an unfair ruling, forgot something important, narrated inconsistently, or fell into a particular bad pattern (overusing certain words, defaulting to certain story shapes), we investigate whether the prompt is responsible and update it if so. The fixes propagate to every player simultaneously.
 
-This is one of the advantages of a software-powered GM: we can improve every player's experience simultaneously by improving the instructions.
+Some examples of recent changes: we noticed the GM was ending too many scenes with a question to the player, which felt formulaic. We added an explicit instruction to mix scene endings (sometimes a question, sometimes an action beat, sometimes a silence). We noticed NPCs were drifting toward similar speech patterns over long sessions. We added explicit per-NPC voice guidance to the structured state. We noticed difficulty was too uniform across campaigns. We added more nuanced difficulty tuning based on the player's stated preferences and the campaign's tags.
+
+This is one of the advantages of a software-powered GM: we can improve every player's experience simultaneously by improving the instructions. A great human GM in a tabletop campaign improves only that campaign. A change to our prompt improves every campaign in EchoQuest from that point on.
+
+## What We Don't Promise
+
+We're honest about limitations. The prompt can't make the model perfect. It can't fully eliminate the model's tendency to hedge under uncertainty. It can't give the model human emotional perception. It can't make consistency across hundreds of sessions automatic — we've engineered structured state to compensate, but the AI alone wouldn't manage it. Prompts are a powerful tool, not a magic wand. The GM gets better, year over year, both because the underlying models get better and because we keep refining the instructions. We expect the gap between AI GM and best-of-class human GM to keep narrowing for a long time.
 
 **[Experience the GM yourself →](/library)**
 `,
@@ -1878,24 +1890,27 @@ This is one of the advantages of a software-powered GM: we can improve every pla
     excerpt: "Players who've published worlds to EchoQuest's community library share what they learned — about world-building, about writing for AI, and about what makes a community campaign worth playing.",
     content: `# Building Community Worlds: Tips from EchoQuest Creators
 
-The EchoQuest community library exists because players want to share their worlds. Since we launched creator tools, dozens of worlds have been published — from gritty political thrillers to cozy mystery towns to cosmic horror epics. Here's what creators have learned.
+The EchoQuest community library exists because players want to share their worlds. Since we launched creator tools, dozens of worlds have been published — from gritty political thrillers to cozy mystery towns to cosmic horror epics, from solarpunk anarchies to gothic faerie courts to noir-tinged retro-futures. The community is small enough that creators talk to each other directly, learn from each other's successes and stumbles, and tend to converge on a shared craft. This post is the distillation of what those creators have learned, drawn from interviews with the most-played community worlds and from the patterns we see ourselves when reviewing newly-submitted campaigns.
+
+If you're thinking about publishing your first community world, the advice below is the closest thing we have to a battle-tested playbook. None of it is mandatory; some of the best worlds have broken every rule. But they broke the rules deliberately, with a reason, and that's the difference between intentional choice and accidental rough edge. Read these as defaults to deviate from with purpose.
 
 ## Start With the Opening Scene, Not the Lore
 
-The instinct when building a world is to start with history — the ancient wars, the founding myths, the timeline of major events. Resist this. Players don't experience your world through its history. They experience it through a specific moment: the opening scene.
+The instinct when building a world is to start with history — the ancient wars, the founding myths, the timeline of major events, the cosmology of the gods. Resist this. Players don't experience your world through its history. They experience it through a specific moment: the opening scene. The opening is the only paragraph guaranteed to land. Everything else is optional.
 
-Build the opening first. Who is the player character? Where are they? What's immediately happening? What's the first decision they need to make? A vivid, grounded opening scene does more for player engagement than pages of backstory.
+Build the opening first. Who is the player character? Where are they? What's immediately happening? What's the first decision they need to make? A vivid, grounded opening scene does more for player engagement than pages of backstory. You can always add lore later — and the lore lands harder when it's delivered in response to player questions, in chunks shaped by what the player wants to know.
 
-You can always add lore later. Players who want to explore history can discover it through play.
+A useful rule: if your opening scene's first paragraph could appear in another, completely different world, the opening isn't specific enough. The opening should announce *this* world. Re-read it through the eyes of a player who has never heard of your setting. Are they oriented? Are they tempted? Do they want to know what happens next? If yes, ship it. If no, rewrite.
 
 ## Write for Listening, Not Reading
 
-Community world text gets narrated aloud — either by the browser TTS or by ElevenLabs voices. This changes how you should write.
+Community world text gets narrated aloud — either by the browser TTS or by ElevenLabs voices. This changes how you should write. The cadence of prose that reads beautifully on the page often falls flat when spoken; rhythms that work in audio sometimes look strange in print. Play to the medium.
 
-- Use shorter sentences than you would in prose fiction
-- Avoid complex nested clauses that are hard to parse when heard rather than read
-- Favor concrete sensory detail over abstract description
-- Read your opening scenario aloud before publishing — if it sounds awkward spoken, rewrite it
+- Use shorter sentences than you would in prose fiction. The voice doesn't have your eye's ability to skip ahead and parse a long sentence at a glance
+- Avoid complex nested clauses that are hard to parse when heard rather than read. Rewrite sentences with three sub-clauses into two sentences with two each
+- Favor concrete sensory detail over abstract description. "The smell of woodsmoke and roasted onions" beats "the homey smell" every time
+- Read your opening scenario aloud before publishing — if it sounds awkward spoken, rewrite it. This is the single highest-leverage editing pass available to a community creator
+- Watch out for proper nouns that are easy to read but hard to say. Aeryndel-Tael-Khorin will trip every TTS engine; consider a shorter alternative or a phonetic note
 
 The best community world descriptions have a rhythm to them when read aloud. That's not an accident.
 
@@ -1904,21 +1919,35 @@ The best community world descriptions have a rhythm to them when read aloud. Tha
 The AI Game Master is powerful but needs guardrails to stay consistent with your world. The clearest, most specific constraints produce the best results.
 
 Vague: "Magic is limited in this world."
-Specific: "Magic requires spoken incantations and physical components. It is rare, feared, and associated with the heretical old religion. No character casts magic publicly. The Church executes practitioners."
+Specific: "Magic requires spoken incantations and physical components. It is rare, feared, and associated with the heretical old religion. No character casts magic publicly. The Church executes practitioners. Petitioners sometimes claim to have witnessed miracles; these are usually frauds, sometimes mass hysteria, and rarely something more disturbing."
 
-Specific constraints let the AI make confident, consistent calls when magic-adjacent situations arise in play.
+Specific constraints let the AI make confident, consistent calls when magic-adjacent situations arise in play. They also rule out generic-fantasy defaults the model would otherwise fall into. The model is happy to generate "a wizard with a staff casts a spell" if you let it; if you've told it magic is illegal and feared, it produces something much more interesting instead.
+
+The same principle applies to technology, social structure, religion, and economics. The more your constraints differ from generic fantasy defaults, the more specific you have to be. A world with no kings needs to say so explicitly. A world with universal literacy needs to say so. A world where commerce isn't conducted in coins needs to spell out what is.
 
 ## Design for Replayability
 
-Community worlds get played by many different players with different approaches. Design scenarios that work whether the player is aggressive or cautious, political or action-oriented, suspicious or trusting.
+Community worlds get played by many different players with different approaches. Design scenarios that work whether the player is aggressive or cautious, political or action-oriented, suspicious or trusting, lawful or chaotic, sociable or solitary. The opening should accommodate any of these starting energies and let the player play to their preference.
 
-The best community campaigns have a central tension that creates interesting choices regardless of the approach — because the approach changes which choices are available and what their costs are, but the fundamental tension remains.
+The best community campaigns have a central tension that creates interesting choices regardless of the approach — because the approach changes which choices are available and what their costs are, but the fundamental tension remains. A campaign about "a city on the verge of revolution" will play differently for a sympathetic player and a counter-revolutionary player and a player who just wants to keep their head down, but all three will find interesting things to do because the tension itself doesn't depend on which side they pick.
+
+If your campaign requires the player to pursue a specific goal in a specific way to be interesting, it isn't designed for replayability. It's designed for one play-through. That's a legitimate choice — some short, focused campaigns are great as one-shots — but be honest about it in the description so players know what they're getting.
 
 ## Let the AI Improvise
 
-Some creators try to script every outcome. This doesn't work with an AI GM — it improvises by nature. Instead of trying to control what happens, focus on the furniture: who the characters are, what they want, what the world feels like. The AI will fill in the rest.
+Some creators try to script every outcome — pre-writing branches, anticipating every player choice, attempting to control the AI's responses in detail. This doesn't work with an AI GM. The model improvises by nature, and trying to constrain it into a pre-written script produces stilted, generic output. Instead of trying to control what happens, focus on the furniture: who the characters are, what they want, what the world feels like, what's at stake. The AI will fill in the rest.
 
-Players consistently report that the best community sessions feel like the world was responding intelligently to their specific choices — not following a script. That feeling comes from good furniture, not from scripted outcomes.
+Players consistently report that the best community sessions feel like the world was responding intelligently to their specific choices — not following a script. That feeling comes from good furniture, not from scripted outcomes. A world with detailed factions, rich NPCs, vivid sensory texture, and clear constraints will produce wildly different sessions for different players, all of which feel like authentic stories in that world. A world with a pre-scripted plot will feel like a railroaded video game even when the AI is doing the narration.
+
+## Iterate After Publication
+
+Your first version is a draft. Publish, watch how players actually engage with the world (we provide play telemetry to creators about which scenes get the most time, which choices are most common, where players quit), and revise. The most-played community worlds have all been through three to five major revisions based on real play data. Creators who publish once and never edit usually have lower retention than creators who treat the world as a living document.
+
+Don't take this as a reason to delay publishing. Publish a rough version early; revise based on what you learn. Over six months, that produces a stronger world than working on a perfect version in private for a year.
+
+## Be Generous With Other Creators
+
+The community library benefits from a culture of mutual help. Creators who play other creators' worlds, leave thoughtful feedback, and credit influences openly tend to receive the same in return. We've seen entire small genres emerge from a single creator's work that other creators built on. The library gets richer when everyone treats it as a shared garden rather than a competition.
 
 **[Publish your world →](/worlds/new)**
 `,
@@ -1929,37 +1958,68 @@ Players consistently report that the best community sessions feel like the world
     excerpt: "We've built the foundation. Here's where EchoQuest is headed — the features we're working on, the problems we're solving, and the future of accessible AI-powered storytelling.",
     content: `# What's Next for EchoQuest: Our Vision for the Future
 
-EchoQuest launched with a simple premise: an AI-powered, audio-first RPG that anyone can play regardless of visual ability. That premise is real and working. But we're only at the beginning of what's possible.
+EchoQuest launched with a simple premise: an AI-powered, audio-first RPG that anyone can play regardless of visual ability, motor ability, or whether they have a tabletop group to play with. That premise is real and working. Players are spending tens of thousands of hours inside our worlds. Blind players are reporting that this is the first RPG that has met them on equal footing with sighted players. Tabletop veterans are using EchoQuest to fill in the gaps between their human campaigns. Solo players are finally getting the kind of long-arc narrative experiences they couldn't access any other way. We're proud of where we are.
 
-Here's where we're headed.
+But we're only at the beginning of what's possible. The platform we have today is a foundation — a well-built one, but a foundation. The platform we want to ship over the next two years is much larger, more responsive, and more capable of serving a wider range of players. This post is a frank look at where we're headed: what's in active development, what's coming after, and the long-arc ambitions we're shaping the company around. We'll update this post as items ship.
 
 ## Near-Term: Deeper World Customization
 
-The most-requested feature from creators is more control over world behavior: custom sound cue triggers, more granular NPC behavior rules, the ability to define specific skill check thresholds. These are coming.
+The most-requested feature from creators is more control over world behavior: custom sound cue triggers, more granular NPC behavior rules, the ability to define specific skill check thresholds, support for non-standard stat systems, custom progression schemes, and per-region tone overrides. These are coming. We've prototyped most of them and the question is integration polish, not whether they're feasible.
 
-We're also building an improved character persistence system — so your character's relationships, reputation, and history carry more clearly across sessions. The AI currently does a good job with short-term memory; we're investing in making long-term character history feel more tangible.
+We're also building an improved character persistence system — so your character's relationships, reputation, and history carry more clearly across sessions. The AI currently does a good job with short-term memory; we're investing in making long-term character history feel more tangible. The goal is that, by session fifty, your character's reputation is something the world references casually rather than something you have to remind the GM about.
+
+A related upgrade: the World Builder Wizard is getting an "import from existing tabletop campaign" mode, where you can paste your old session notes and the AI will convert them into a Game Bible for ongoing solo play. We've heard from many tabletop players who want to continue retired campaigns alone; this will let them.
 
 ## Near-Term: Collaborative Play
 
-Solo play is EchoQuest's foundation. But the most requested feature from players is the ability to adventure with a friend — two players, one AI GM, one shared story. Building multiplayer that works well for accessibility (two players might have very different audio setups) is complex, but it's actively in development.
+Solo play is EchoQuest's foundation. But the most requested feature from players is the ability to adventure with a friend — two players, one AI GM, one shared story. Building multiplayer that works well for accessibility (two players might have very different audio setups, different screen reader rates, different connection speeds) is complex, but it's actively in development.
+
+The first multiplayer release will support two-player sessions with synchronised narration, turn-based actions, and shared game state. Three+ player sessions are planned for the release after. We're paying particular attention to mixed-ability play — a sighted and a blind friend playing together should be a great experience for both, with neither at a disadvantage. Most multiplayer features in the industry assume both players have the same input modality. Ours won't.
 
 ## Medium-Term: Voice-First Interface
 
-Right now, EchoQuest is text-first with audio output. The next evolution is voice-first: you speak, the AI responds with voice, and the keyboard/screen is secondary rather than primary. This would be EchoQuest's most significant accessibility leap — a fully conversational RPG where the screen is entirely optional.
+Right now, EchoQuest is text-first with audio output — you read or listen to narration, you type or speak actions. The next evolution is fully voice-first: you speak, the AI responds with voice, and the keyboard/screen is secondary rather than primary. This would be EchoQuest's most significant accessibility leap — a fully conversational RPG where the screen is entirely optional.
+
+This is harder than it sounds because the round-trip latency of voice-in, AI processing, voice-out has to feel natural. We're working on it. When it ships, we expect it to expand the platform's accessibility further — to players with severe motor disabilities, to players who want to play during commutes or chores, and to children and elderly players for whom typing is a barrier.
 
 ## Medium-Term: Adaptive Storytelling
 
-We want EchoQuest to learn from your play style over time. If you consistently engage most with political intrigue, the AI GM should start creating more political scenarios. If you love emotional character moments, your campaigns should contain more of those. Personalization at the story level is a hard problem, but it's the right one to solve.
+We want EchoQuest to learn from your play style over time. If you consistently engage most with political intrigue, the AI GM should start weaving in more political scenarios. If you love emotional character moments, your campaigns should contain more of those. If you reliably skip combat, the GM should structure stories that don't depend on combat for their stakes. Personalization at the story level is a hard problem — most game personalisation is shallow ("you killed orcs, here's more orcs") — but it's the right one to solve.
+
+The opt-in version is straightforward: tell the GM what you like, and the GM honours it. The harder version is implicit personalisation: the system notices, over many sessions, what you actually engage with versus what you skip past, and gradually shifts the world toward your preferences. We're being careful here because there's a fine line between "the world feels tailored to you" and "the world is sycophantically agreeing with you," and the second one ruins stories. We don't want to ship an AI GM that just tells you what you want to hear. The art is making the world feel responsive without losing its independent integrity.
+
+## Medium-Term: A Creator Marketplace
+
+Right now, all community worlds are free for any subscriber to play. Creators get visibility but not revenue. We want to change that — to build a marketplace where world creators can earn money when players try their campaigns, with revenue share for the most-played worlds. The mechanics are still being designed (revenue share percentages, payment thresholds, quality controls), but the principle is clear: people who write great worlds for the platform should be able to make a living from doing so. The current model puts the entire economic upside on us; that's not sustainable for a thriving ecosystem.
+
+## Long-Term: Native Multiplatform Apps
+
+EchoQuest is a web app today. It works on mobile but isn't a native experience. We have iOS and Android apps in design phase, with the goal of full offline-capable downloads of campaigns you've started. The web version will remain first-class — many of our most-engaged players prefer it — but mobile and tablet players deserve a UX optimised for their devices.
+
+Native apps also unlock features the web can't: deeper integration with platform accessibility services (VoiceOver and TalkBack work better in native), background audio for play while screens are locked, and offline narration for travel. These features will land as the apps mature.
 
 ## Long-Term: An Open Platform for Accessibility-First Games
 
-Our biggest ambition isn't EchoQuest itself — it's demonstrating that audio-first, accessibility-first design produces better games that more people can play. We want to publish our accessibility patterns, contribute to open standards, and help other developers build on what we've learned.
+Our biggest ambition isn't EchoQuest itself — it's demonstrating that audio-first, accessibility-first design produces better games that more people can play. We want to publish our accessibility patterns, contribute to open standards, share our prompt engineering learnings, and help other developers build on what we've learned. The blind and visually impaired gaming community has been underserved by the games industry for its entire history. That's a solvable problem. EchoQuest is one solution — but the real goal is a richer ecosystem of accessible games from many creators.
 
-The blind and visually impaired gaming community has been underserved by the games industry for its entire history. That's a solvable problem. EchoQuest is one solution — but the real goal is a richer ecosystem of accessible games from many creators.
+We're also exploring partnerships with organisations doing accessibility research, with universities studying AI-narrated learning, and with mental health adjacent groups using narrative play in clinical settings. The platform can serve more than just entertainment, and we want to support those uses without losing focus on the core game experience.
+
+## What We Won't Do
+
+We want to be clear about a few directions we're not going:
+
+- **No selling player data.** Player conversations with the AI are not training data, are not sold to third parties, and are not used for ad targeting. The privacy of your sessions is non-negotiable
+- **No PvP combat.** EchoQuest is a narrative co-op platform. We're not building competitive multiplayer, ranked ladders, or character-vs-character combat systems. That's not what the platform is for
+- **No NFTs, no crypto, no blockchain integration.** Worlds and characters belong to their creators and players, not to a token economy
+- **No dark patterns to drive subscriptions.** The free tier will remain a complete game. Paid features will be genuine upgrades, not artificial restrictions to force conversions
 
 ## A Note of Gratitude
 
-To every player who's spent time in an EchoQuest world: thank you. Every session teaches us something. Every piece of feedback improves the experience for the players who come after you. You're not just playing a game — you're helping build the future of accessible storytelling.
+To every player who's spent time in an EchoQuest world: thank you. Every session teaches us something. Every piece of feedback improves the experience for the players who come after you. Every creator who has uploaded a Game Bible has expanded what the platform can be for everyone else. You're not just playing a game — you're helping build the future of accessible storytelling.
+
+To the blind and visually impaired players who took a chance on a new platform: thank you for your patience as we got things right. To the sighted players who fell into audio gaming and never went back to visual: thank you for spreading the word. To the creators publishing worlds: thank you for trusting the platform with your imaginations.
+
+We'll see you in the next session.
 
 **[Join us →](/library)**
 `,
