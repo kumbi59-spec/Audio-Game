@@ -28,6 +28,7 @@ export default function ActiveCampaign(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const headingRef = useRef<Text>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const lastBlockedPromptAtRef = useRef(0);
   const session = useSession();
   const can = useCan();
   const { hapticsEnabled } = usePrefs();
@@ -76,6 +77,9 @@ export default function ActiveCampaign(): JSX.Element {
   }, [router, session]);
 
   const announceBlockedInput = useCallback(() => {
+    const now = Date.now();
+    if (now - lastBlockedPromptAtRef.current < 1500) return;
+    lastBlockedPromptAtRef.current = now;
     void playCue("failure");
     speakAfterNarration("Please wait for the narrator to finish.");
   }, []);
