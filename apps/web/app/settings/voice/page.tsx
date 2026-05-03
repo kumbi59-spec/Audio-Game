@@ -153,6 +153,11 @@ export default function VoiceSettingsPage() {
         <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
           Choose voices for the narrator, your character, and NPCs. Settings save automatically across devices.
         </p>
+        <p className="mt-2 text-sm">
+          <Link href="/settings/accessibility" className="underline" style={{ color: "var(--accent)" }}>
+            More accessibility options
+          </Link>
+        </p>
       </header>
 
       <main id="main-content" className="mx-auto max-w-xl px-6 pb-16">

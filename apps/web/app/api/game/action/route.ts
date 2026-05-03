@@ -5,6 +5,7 @@ import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/sa
 import type { InMemorySession, PlayerAction } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import { auth } from "@/auth";
 
 const ActionSchema = z.object({
   action: z.object({
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest) {
     console.error("[action] Zod validation failed:", JSON.stringify((err as { issues?: unknown }).issues ?? err, null, 2));
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
+
+  const authSession = await auth();
 
   const action = body.action as PlayerAction;
   const session = body.session as InMemorySession;
@@ -135,6 +138,13 @@ export async function POST(req: NextRequest) {
               );
               await updateGameState(dbSessionId, { memorySummary: summary });
               send("memory_summary", { summary });
+            }
+
+            if (authSession?.user?.id) {
+              const { getUserTier, resetDailyMinutesIfNeeded, consumeAiMinute } = await import("@/lib/db/queries/users");
+              const tier = await getUserTier(authSession.user.id);
+              await resetDailyMinutesIfNeeded(authSession.user.id, tier);
+              if (tier === "free") await consumeAiMinute(authSession.user.id);
             }
           } catch (dbErr) {
             // DB persistence is best-effort — don't fail the game turn

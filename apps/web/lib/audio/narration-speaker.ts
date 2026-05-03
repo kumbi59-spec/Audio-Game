@@ -125,7 +125,11 @@ export async function speakNarrationMultiVoice(
 
     for (const sentence of sentences) {
       if (signal.aborted) break;
-      await speakFn(sentence, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId });
+      try {
+        await speakFn(sentence, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId });
+      } catch {
+        await speakFn(sentence, { rate: ttsSpeed, pitch: ttsPitch, volume });
+      }
     }
   }
 }

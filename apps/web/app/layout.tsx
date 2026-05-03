@@ -10,6 +10,7 @@ import { AuthProvider } from "./AuthProvider";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
+import { AccessibilityPreferences } from "@/components/accessibility/AccessibilityPreferences";
 import { auth } from "@/auth";
 
 const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"] ?? "ca-pub-9267788778991046";
@@ -75,6 +76,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
+        <AccessibilityPreferences />
         {ADSENSE_PUB_ID && (
           <Script
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUB_ID}`}

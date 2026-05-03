@@ -351,3 +351,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Accessibility preference toggles */
+.a11y-large-controls button,
+.a11y-large-controls [role="button"],
+.a11y-large-controls a,
+.a11y-large-controls input[type="checkbox"],
+.a11y-large-controls input[type="radio"],
+.a11y-large-controls select {
+  min-height: 52px;
+}
+
+.a11y-reduced-motion *,
+.a11y-reduced-motion *::before,
+.a11y-reduced-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
