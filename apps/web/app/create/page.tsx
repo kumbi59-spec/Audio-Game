@@ -210,11 +210,11 @@ function CreateCharacterPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen surface-gradient">
       <SiteHeader />
       <div className="mx-auto max-w-lg px-4 py-8">
         {!world && (
-          <section className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
+          <section className="surface-gradient inner-highlight rounded-lg border border-border p-4 text-sm text-muted-foreground">
             {worldLoadError ?? "Loading world…"}
           </section>
         )}
@@ -223,7 +223,7 @@ function CreateCharacterPage() {
             <button
               type="button"
               onClick={() => router.replace("/library")}
-              className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="surface-gradient inner-highlight rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Back to Library
             </button>
@@ -285,13 +285,13 @@ function CreateCharacterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter a name…"
-                  className="w-full rounded-lg border border-input bg-background px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-3 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
               <button
                 type="submit"
                 disabled={!name.trim()}
-                className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 Continue →
               </button>
@@ -315,7 +315,7 @@ function CreateCharacterPage() {
                       aria-checked={selectedWorldClass === cls.name}
                       onClick={() => handleWorldClassSelect(cls)}
                       aria-label={`${cls.name}: ${cls.description}`}
-                      className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
                         selectedWorldClass === cls.name
                           ? "border-primary bg-accent"
                           : "border-border bg-secondary hover:border-primary/50"
@@ -341,7 +341,7 @@ function CreateCharacterPage() {
                       aria-checked={selectedClass === cls}
                       onClick={() => handleClassSelect(cls as CharacterClass)}
                       aria-label={`${info.name}: ${info.description}`}
-                      className={`flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
                         selectedClass === cls
                           ? "border-primary bg-accent"
                           : "border-border bg-secondary hover:border-primary/50"
@@ -368,7 +368,7 @@ function CreateCharacterPage() {
             <button
               onClick={handleClassSubmit}
               disabled={world.classes && world.classes.length > 0 ? !selectedWorldClass : false}
-              className="w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+              className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
               Continue with {selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name} →
             </button>
@@ -385,7 +385,7 @@ function CreateCharacterPage() {
               Add a quick profile so the Game Master can address your character more naturally.
             </p>
             {world.backgrounds && world.backgrounds.length > 0 && (
-              <div className="mb-4 rounded-lg border border-border bg-secondary/40 p-3">
+              <div className="surface-gradient inner-highlight mb-4 rounded-lg border border-border p-3">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   Available Backgrounds
                 </p>
@@ -412,7 +412,7 @@ function CreateCharacterPage() {
                   value={pronouns}
                   onChange={(e) => setPronouns(e.target.value)}
                   placeholder="e.g. she/her, he/him, they/them"
-                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
               <div>
@@ -428,7 +428,7 @@ function CreateCharacterPage() {
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="e.g. 29"
-                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
               <div className="sm:col-span-2">
@@ -441,7 +441,7 @@ function CreateCharacterPage() {
                   value={shortDescription}
                   onChange={(e) => setShortDescription(e.target.value)}
                   placeholder="e.g. Lean ex-scout with a scar over one eye and close-cropped silver hair"
-                  className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
             </div>
@@ -459,7 +459,7 @@ function CreateCharacterPage() {
                 onChange={(e) => setBackstory(e.target.value)}
                 rows={5}
                 placeholder="e.g. A disgraced soldier seeking redemption after a failed siege…"
-                className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
             <div className="flex gap-3">
@@ -467,7 +467,7 @@ function CreateCharacterPage() {
                 onClick={() => handleStart({ skipBackstory: true })}
                 disabled={isStarting}
                 aria-label="Begin adventure without writing a backstory"
-                className="flex-1 rounded-lg border border-border py-3 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-gradient inner-highlight flex-1 rounded-lg border border-border py-3 text-sm hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 Skip backstory & begin
               </button>
@@ -479,7 +479,7 @@ function CreateCharacterPage() {
                     ? "Begin adventure with the backstory you wrote"
                     : "Begin adventure"
                 }
-                className="flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-active-glow flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 {isStarting ? "Starting…" : "Begin Adventure →"}
               </button>

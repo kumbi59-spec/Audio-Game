@@ -96,6 +96,7 @@ export default function Home(): JSX.Element {
           starting && styles.btnDisabled,
         ]}
       >
+        <View pointerEvents="none" style={styles.topEdgeHighlight} />
         {starting ? (
           <ActivityIndicator color="#fff" />
         ) : (
@@ -177,6 +178,7 @@ function NavCard({
         pressed && styles.btnPressed,
       ]}
     >
+      <View pointerEvents="none" style={styles.topEdgeHighlight} />
       <Text style={styles.navCardLabel}>{label}</Text>
       <Text style={styles.navCardSub}>{sub}</Text>
     </Pressable>
@@ -223,9 +225,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACE[4],
     justifyContent: "center",
     shadowColor: EQ.accent,
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 4 },
+    borderWidth: 1,
+    borderColor: EQ.border2,
+    shadowOpacity: 0.42,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   primaryBtnTitle: { color: "#fff", fontSize: FS.lg, fontWeight: "700" },
   primaryBtnSub: { color: "rgba(255,255,255,0.65)", fontSize: FS.xs, marginTop: 3 },
@@ -239,8 +244,14 @@ const styles = StyleSheet.create({
     borderRadius: R.lg,
     borderWidth: 1,
     borderColor: EQ.border,
+    shadowColor: EQ.bg2,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
     padding: SPACE[4],
     justifyContent: "center",
+    overflow: "hidden",
   },
   navCardWide: { flexBasis: "100%", flexGrow: 0 },
   navCardLabel: { fontSize: FS.sm, fontWeight: "700", color: EQ.text },
@@ -253,4 +264,13 @@ const styles = StyleSheet.create({
   btnPressed: { opacity: 0.75 },
   btnDisabled: { opacity: 0.4 },
   error: { color: EQ.danger, fontWeight: "600", marginTop: SPACE[2] },
+  topEdgeHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 1,
+    right: 1,
+    height: 1,
+    backgroundColor: EQ.border2,
+    opacity: 0.9,
+  },
 });

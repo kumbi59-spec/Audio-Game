@@ -238,6 +238,7 @@ export default function CreateWorld(): JSX.Element {
               ]}
               disabled={busy}
             >
+              <View pointerEvents="none" style={styles.topEdgeHighlight} />
               <Text style={[
                 styles.choiceText,
                 draft[step.id] === opt.value && styles.choiceTextSelected,
@@ -261,6 +262,7 @@ export default function CreateWorld(): JSX.Element {
             (busy || stepIndex === 0) && styles.btnDisabled,
           ]}
         >
+          <View pointerEvents="none" style={styles.topEdgeHighlight} />
           <Text style={styles.navBtnText}>Back</Text>
         </Pressable>
         <Pressable
@@ -270,6 +272,7 @@ export default function CreateWorld(): JSX.Element {
           disabled={busy}
           style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed]}
         >
+          <View pointerEvents="none" style={styles.topEdgeHighlight} />
           <Text style={styles.navBtnText}>Mic</Text>
         </Pressable>
         {step.kind === "freeform" && (
@@ -284,6 +287,7 @@ export default function CreateWorld(): JSX.Element {
               busy && styles.btnDisabled,
             ]}
           >
+            <View pointerEvents="none" style={styles.topEdgeHighlight} />
             {busy ? (
               <ActivityIndicator color="#fff" />
             ) : (
@@ -376,6 +380,12 @@ const styles = StyleSheet.create({
     backgroundColor: EQ.surface2,
     borderWidth: 1,
     borderColor: EQ.border,
+    shadowColor: EQ.bg2,
+    shadowOpacity: 0.32,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    overflow: "hidden",
     paddingHorizontal: SPACE[4],
     justifyContent: "center",
   },
@@ -390,6 +400,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: EQ.border,
     backgroundColor: EQ.surface,
+    shadowColor: EQ.bg2,
+    shadowOpacity: 0.3,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    overflow: "hidden",
     paddingHorizontal: SPACE[4],
     justifyContent: "center",
   },
@@ -402,13 +418,26 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: SPACE[4],
+    borderWidth: 1,
+    borderColor: EQ.border2,
     shadowColor: EQ.accent,
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.38,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 7,
+    overflow: "hidden",
   },
   primaryBtnText: { color: "#fff", fontSize: FS.base, fontWeight: "700" },
   btnPressed: { opacity: 0.75 },
   btnDisabled: { opacity: 0.4 },
   error: { color: EQ.danger, fontWeight: "600" },
+  topEdgeHighlight: {
+    position: "absolute",
+    top: 0,
+    left: 1,
+    right: 1,
+    height: 1,
+    backgroundColor: EQ.border2,
+    opacity: 0.9,
+  },
 });
