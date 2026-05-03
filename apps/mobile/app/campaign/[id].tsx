@@ -33,6 +33,7 @@ export default function ActiveCampaign(): JSX.Element {
   const { hapticsEnabled } = usePrefs();
   const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const canAcceptInput = !session.awaitingGm;
 
   useLandmarkAnnounce(
     "Active campaign",
@@ -85,6 +86,10 @@ export default function ActiveCampaign(): JSX.Element {
 
   const pickChoice = useCallback(
     (choiceId: string, label: string) => {
+      if (!canAcceptInput) {
+        void speakOnce("Please wait for the narrator to finish.");
+        return;
+      }
       if (hapticsEnabled) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
@@ -92,10 +97,14 @@ export default function ActiveCampaign(): JSX.Element {
       session.appendPlayer(label);
       sessionConnection.sendPlayerInput({ kind: "choice", choiceId });
     },
-    [session, hapticsEnabled],
+    [canAcceptInput, session, hapticsEnabled],
   );
 
   const speakFreeform = useCallback(async () => {
+    if (!canAcceptInput) {
+      void speakOnce("Please wait for the narrator to finish.");
+      return;
+    }
     if (hapticsEnabled) {
       void Haptics.selectionAsync();
     }
@@ -111,7 +120,7 @@ export default function ActiveCampaign(): JSX.Element {
     }
     session.appendPlayer(transcript);
     sessionConnection.sendPlayerInput({ kind: "freeform", text: transcript });
-  }, [pickChoice, session, hapticsEnabled]);
+  }, [canAcceptInput, pickChoice, session, hapticsEnabled]);
 
   useVoiceCommands({
     "repeat|read that again": () => {
@@ -128,6 +137,10 @@ export default function ActiveCampaign(): JSX.Element {
       void speakOnce(inv.length === 0 ? "Your bag is empty." : inv.map((i) => `${i.quantity} ${i.name}`).join(", "));
     },
     "save|save and pause|pause": () => {
+      if (!canAcceptInput) {
+        void speakOnce("Please wait for the narrator to finish.");
+        return;
+      }
       sessionConnection.pause();
       void speakOnce("Paused. Returning home.");
       router.replace("/");
@@ -191,7 +204,7 @@ export default function ActiveCampaign(): JSX.Element {
                 accessibilityLabel={`Option ${i + 1} of ${session.choices.length}: ${c.label}`}
                 onPress={() => pickChoice(c.id, c.label)}
                 style={({ pressed }) => [styles.choiceBtn, pressed && styles.choiceBtnPressed]}
-                disabled={session.awaitingGm}
+                disabled={!canAcceptInput}
               >
                 <View style={styles.choiceBadge}>
                   <Text style={styles.choiceBadgeText}>{i + 1}</Text>
@@ -204,7 +217,7 @@ export default function ActiveCampaign(): JSX.Element {
                 accessibilityRole="button"
                 accessibilityLabel="Do something else. Speak a custom action."
                 onPress={speakFreeform}
-                disabled={session.awaitingGm}
+                disabled={!canAcceptInput}
                 style={({ pressed }) => [styles.freeformBtn, pressed && styles.choiceBtnPressed]}
               >
                 <View style={[styles.choiceBadge, styles.choiceBadgeFreeform]}>
