@@ -40,23 +40,24 @@ export class SideEffectProcessor {
   register(bus: DomainEventBus, config: SideEffectConfig): void {
     for (const eventType of config.eventTypes) {
       bus.on(eventType, async (event) => {
-        await this.handleEvent(config.action, event);
+        await this.handleEvent(config, event);
       });
     }
   }
 
-  private async handleEvent(action: SideEffectAction, event: DomainEventEnvelope): Promise<void> {
+  private async handleEvent(config: SideEffectConfig, event: DomainEventEnvelope): Promise<void> {
     this.totalHandled += 1;
     this.latestLagMs = Date.now() - Date.parse(event.occurredAt);
-    if (this.dedupeStore.has(event.dedupeKey)) {
+    const handlerDedupeKey = `${event.dedupeKey}:${config.name}`;
+    if (this.dedupeStore.has(handlerDedupeKey)) {
       this.dedupeHits += 1;
       return;
     }
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       try {
-        await action(event);
-        this.dedupeStore.add(event.dedupeKey);
+        await config.action(event);
+        this.dedupeStore.add(handlerDedupeKey);
         return;
       } catch {
         if (attempt === this.maxRetries) {

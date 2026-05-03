@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "e2e": "tsx scripts/e2e.ts"
+    "e2e": "tsx scripts/e2e.ts",
+    "pretest": "pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.91.0",
