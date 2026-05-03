@@ -8,6 +8,7 @@ import { stopSpeech } from "@/lib/audio/tts-provider";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { STEPS, EMPTY_DRAFT, type Draft, type WizardStep } from "@/lib/wizard/steps";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function WorldWizardPage() {
   const router = useRouter();
@@ -217,6 +218,7 @@ export default function WorldWizardPage() {
         Skip to wizard
       </a>
 
+      <SiteHeader />
       <header className="px-6 py-6">
         <Link
           href="/worlds/new"

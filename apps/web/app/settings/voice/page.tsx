@@ -9,6 +9,7 @@ import { useEntitlementsStore } from "@/store/entitlements-store";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 import type { TTSProviderType, TTSVoice } from "@/types/audio";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const PREVIEW_TEXT =
   "The fog rolls in off the cliffs. Somewhere a bell tolls the watch change. Tonight, the city is yours.";
@@ -144,10 +145,8 @@ export default function VoiceSettingsPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link href="/" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>
-          ← Home
-        </Link>
         <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }} tabIndex={-1}>
           Voice Settings
         </h1>

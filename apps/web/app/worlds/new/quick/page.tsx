@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const GENRE_OPTIONS = [
   "Dark fantasy",
@@ -112,6 +113,7 @@ export default function QuickBuildPage() {
         Skip to form
       </a>
 
+      <SiteHeader />
       <header className="px-6 py-6">
         <Link
           href="/worlds/new"

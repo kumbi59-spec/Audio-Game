@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
 
@@ -37,9 +38,9 @@ export default async function BlogPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
         <div className="mx-auto max-w-3xl">
-          <Link href="/" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← Back to EchoQuest</Link>
           <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>Blog</h1>
           <p className="mt-2 text-base" style={{ color: "var(--text-muted)" }}>Tips, updates, and stories from the team.</p>
         </div>

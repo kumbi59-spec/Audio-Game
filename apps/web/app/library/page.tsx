@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type Tab = "official" | "community";
 
@@ -89,14 +90,8 @@ export default function LibraryPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link
-          href="/"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Back to Home
-        </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1
@@ -202,29 +197,35 @@ export default function LibraryPage() {
             ))}
           </div>
 
-          {/* Genre filter chips */}
+          {/* Genre filter — dropdown */}
           {!loading && genres.length > 1 && (
-            <div
-              role="group"
-              aria-label="Filter by genre"
-              className="mb-6 flex flex-wrap gap-2"
-            >
-              {genres.map((genre) => (
-                <button
-                  key={genre}
-                  aria-pressed={selectedGenre === genre}
-                  onClick={() => setSelectedGenre(genre)}
-                  className="rounded-full px-3 py-1 text-xs font-medium capitalize transition-all"
-                  style={{
-                    backgroundColor: selectedGenre === genre ? "var(--accent)" : "var(--surface-2, var(--surface))",
-                    color: selectedGenre === genre ? "#ffffff" : "var(--text-muted)",
-                    border: `1px solid ${selectedGenre === genre ? "var(--accent)" : "var(--border)"}`,
-                    cursor: "pointer",
-                  }}
-                >
-                  {genre}
-                </button>
-              ))}
+            <div className="mb-6 flex items-center gap-3">
+              <label
+                htmlFor="genre-filter"
+                className="text-xs font-semibold uppercase tracking-widest"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Genre
+              </label>
+              <select
+                id="genre-filter"
+                value={selectedGenre}
+                onChange={(e) => setSelectedGenre(e.target.value)}
+                className="rounded-lg border px-3 py-2 text-sm capitalize focus-visible:outline-none focus-visible:ring-2"
+                style={{
+                  backgroundColor: "var(--surface)",
+                  color: "var(--text)",
+                  borderColor: "var(--border)",
+                  minHeight: "44px",
+                  minWidth: "12rem",
+                }}
+              >
+                {genres.map((genre) => (
+                  <option key={genre} value={genre}>
+                    {genre}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 

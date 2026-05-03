@@ -25,18 +25,33 @@ function ctx(): AudioContext {
 
 /**
  * Call this from any user-gesture handler (click, keydown, touchstart).
- * It resumes a suspended AudioContext and starts any queued ambient track.
+ * Creates the AudioContext if it doesn't exist yet (browsers require this
+ * to happen inside a user gesture so the context isn't born suspended),
+ * resumes it if it's suspended, and starts any queued ambient track.
  */
 export function unlockAudioContext(): void {
-  if (!_ctx) return;
-  if (_ctx.state !== "suspended") return;
-  _ctx.resume().then(() => {
-    if (_pendingAmbient) {
-      const { track, volume } = _pendingAmbient;
-      _pendingAmbient = null;
-      synthPlayAmbient(track, volume);
+  if (typeof window === "undefined") return;
+  // Eagerly create the context inside the gesture so it lands in "running"
+  // rather than "suspended" state on browsers that enforce autoplay policy.
+  if (!_ctx) {
+    try {
+      _ctx = new AudioContext();
+    } catch {
+      return;
     }
-  }).catch(() => {});
+  }
+  const ac = _ctx;
+  const flushPending = () => {
+    if (!_pendingAmbient) return;
+    const { track, volume } = _pendingAmbient;
+    _pendingAmbient = null;
+    synthPlayAmbient(track, volume);
+  };
+  if (ac.state === "suspended") {
+    ac.resume().then(flushPending).catch(() => {});
+  } else {
+    flushPending();
+  }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

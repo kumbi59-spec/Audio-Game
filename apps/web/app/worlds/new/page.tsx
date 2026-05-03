@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default function NewWorldPage() {
   const { narrate } = useAnnouncer();
@@ -20,14 +21,8 @@ export default function NewWorldPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link
-          href="/library"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Back to Library
-        </Link>
         <h1
           className="text-2xl font-bold"
           style={{ color: "var(--text)" }}
