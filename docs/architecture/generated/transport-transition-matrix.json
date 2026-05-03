@@ -1,0 +1,590 @@
+[
+  {
+    "from": "disconnected",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "disconnected",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "connected",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "connected",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "connected",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "connected",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "connected",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "joined",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "joined",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "joined",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "closed",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": false,
+    "reason": "already_terminal"
+  }
+]

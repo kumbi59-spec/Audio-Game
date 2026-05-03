@@ -3,8 +3,8 @@ import {
   ServerEvent,
   type SessionState,
   type SessionTrigger,
-  transitionSession,
 } from "@audio-rpg/shared";
+import { evaluateTransportTransition } from "../transport/state-machine.js";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
@@ -81,7 +81,7 @@ export async function registerSessionRoutes(
     };
 
     const transitionState = (trigger: SessionTrigger): boolean => {
-      const result = transitionSession({ from: sessionState, trigger });
+      const result = evaluateTransportTransition({ from: sessionState, trigger, context: { hasSession: Boolean(session) } });
       if (!result.ok) {
         emitInvalidTransition(result.from, result.to, result.trigger, result.reason);
         return false;
