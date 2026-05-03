@@ -15,6 +15,7 @@ import {
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
 import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
+import type { DomainEventBus } from "../events/domain-events.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -70,6 +71,7 @@ export interface Session {
 
 export interface OrchestratorDeps {
   memory: MemoryStore;
+  domainEvents?: DomainEventBus;
   /**
    * Produces the next GM turn. Defaults to the real Claude-backed
    * generator; tests inject a deterministic fake so the WebSocket
@@ -239,6 +241,14 @@ export async function runTurn(
     turn,
   });
   await deps.persistState(session.campaignId, nextState);
+  if (deps.domainEvents) {
+    await deps.domainEvents.publish({
+      type: "TurnResolved",
+      eventId: randomUUID(),
+      campaignId: session.campaignId,
+      turnNumber: nextState.turn_number,
+    });
+  }
   if (deps.persistPresentedChoices) {
     await deps.persistPresentedChoices(session.campaignId, turn.presented_choices);
   }

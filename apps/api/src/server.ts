@@ -12,8 +12,10 @@ import { registerWorldRoutes } from "./routes/worlds.js";
 import { registerWizardRoutes } from "./routes/wizard.js";
 import { registerAuthRoutes } from "./routes/auth.js";
 import { getSessionMetricsSnapshot } from "./observability/session-metrics.js";
+import { incrementSessionMetric } from "./observability/session-metrics.js";
 import { getStorageBackend } from "./state/store.js";
 import { resolveModelPolicy } from "./gm/model-policy.js";
+import { DomainEventBus } from "./events/domain-events.js";
 
 export interface BuildServerOptions {
   /** Override the GM turn generator (tests inject a deterministic fake). */
@@ -27,6 +29,13 @@ export async function buildServer(options: BuildServerOptions = {}) {
     logger: {
       level: options.logLevel ?? process.env["LOG_LEVEL"] ?? "info",
     },
+  });
+  const domainEvents = new DomainEventBus();
+  const handledDomainEventIds = new Set<string>();
+  domainEvents.on("TurnResolved", (event) => {
+    if (handledDomainEventIds.has(event.eventId)) return;
+    handledDomainEventIds.add(event.eventId);
+    incrementSessionMetric("turnResolvedEvents");
   });
 
   await app.register(cors, {
@@ -55,6 +64,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
   await registerTtsRoutes(app);
   await registerSttRoutes(app);
   await registerSessionRoutes(app, {
+    domainEvents,
     ...(options.turnGenerator ? { turnGenerator: options.turnGenerator } : {}),
   });
 

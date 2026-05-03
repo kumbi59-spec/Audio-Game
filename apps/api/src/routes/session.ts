@@ -6,6 +6,7 @@ import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
 import { tierFromToken } from "../auth/entitlements.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
+import type { DomainEventBus } from "../events/domain-events.js";
 import {
   normalizeClientEventV1,
   serializeServerEvent,
@@ -15,6 +16,8 @@ import {
 export interface SessionRouteOptions {
   /** Injected GM turn generator; defaults to the real Claude path. */
   turnGenerator?: TurnGenerator;
+  /** Shared domain event bus instance from API bootstrapping. */
+  domainEvents?: DomainEventBus;
 }
 
 /**
@@ -148,6 +151,9 @@ export async function registerSessionRoutes(
             {
               memory: getMemoryStore(),
               ...getPersistence(),
+              ...(options.domainEvents
+                ? { domainEvents: options.domainEvents }
+                : {}),
               ...(options.turnGenerator
                 ? { generateTurn: options.turnGenerator }
                 : {}),
