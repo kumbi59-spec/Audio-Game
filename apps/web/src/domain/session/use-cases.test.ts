@@ -1,10 +1,11 @@
+import type { InMemorySession } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { describe, expect, it, vi } from "vitest";
 import { advanceSession, reconcileOptimisticState, resumeSession, startSession, validateActionEligibility, type SessionBundle } from "./use-cases";
 
 const bundle = {
-  session: { id: "s1", turnCount: 2, isGenerating: false, choices: ["Look", "Run"], revision: 4 },
+  session: ({ id: "s1", worldId: "w1", characterId: "c1", status: "active", turnCount: 2, currentLocationId: null, timeOfDay: "morning", weather: "clear", globalFlags: {}, npcStates: {}, memorySummary: "", history: [], narrationLog: [], choices: ["Look", "Run"], isGenerating: false } as unknown as InMemorySession),
   character: ({ id: "c1", name: "Rook", class: "ranger", race: "human", level: 1, backstory: "", avatarPrompt: "", stats: { hp: 10, maxHp: 10, strength: 1, dexterity: 1, intelligence: 1, charisma: 1, level: 1, experience: 0 }, customStats: {}, inventory: [], quests: [] } as unknown as CharacterData),
   world: ({ id: "w1", name: "Wilds", description: "", locations: [] } as unknown as WorldData),
   dbSessionId: null,

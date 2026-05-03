@@ -1,14 +1,8 @@
 import type { CharacterData } from "@/types/character";
-import type { PlayerAction } from "@/types/game";
+import type { InMemorySession, PlayerAction } from "@/types/game";
 import type { WorldData } from "@/types/world";
 
-export interface SessionSnapshot {
-  id: string;
-  turnCount: number;
-  isGenerating: boolean;
-  choices: string[];
-  revision?: number;
-}
+export type SessionSnapshot = InMemorySession;
 export interface SessionBundle { session: SessionSnapshot; character: CharacterData; world: WorldData; dbSessionId: string | null; }
 export interface ActionEligibility { allowed: boolean; reason?: "missing_context" | "turn_in_flight" | "invalid_choice"; }
 export interface ActionRequestGateway { submit(input: { action: PlayerAction; session: SessionSnapshot; character: CharacterData; world: WorldData; dbSessionId?: string; signal: AbortSignal; }): Promise<Response>; }

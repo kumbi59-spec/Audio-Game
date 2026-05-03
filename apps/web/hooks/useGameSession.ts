@@ -112,7 +112,7 @@ export function useGameSession() {
 
         const res = await retryWithBackoff(() => advanceSession(gateway, {
           action: normalizedAction,
-          session: { id: session.id, turnCount: session.turnCount, isGenerating: session.isGenerating, choices: session.choices, revision: (session as { revision?: number }).revision },
+          session,
           character,
           world,
           dbSessionId,
