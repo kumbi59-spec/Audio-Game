@@ -73,6 +73,36 @@ export const FS = {
 } as const;
 
 
+
+
+/** Role-based typography tokens. */
+export const TYPE = {
+  display: {
+    fontSize: FS.hero,
+    fontWeight: "800",
+    letterSpacing: -0.7,
+    lineHeight: 40,
+  },
+  title: {
+    fontSize: FS.xl,
+    fontWeight: "700",
+    letterSpacing: -0.3,
+    lineHeight: 28,
+  },
+  label: {
+    fontSize: FS.xs,
+    fontWeight: "600",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    lineHeight: 16,
+  },
+  caption: {
+    fontSize: FS.sm,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+    lineHeight: 20,
+  },
+} as const;
 /**
  * Motion tokens tuned for subtle, readable UI feedback.
  * Keep movement small (1–2px / tiny scale) for accessibility.

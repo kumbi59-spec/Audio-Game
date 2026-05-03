@@ -23,7 +23,7 @@ import {
 import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
-import { EQ, MOTION, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
+import { EQ, MOTION, R, SPACE, FS, TOUCH_MIN, TYPE } from "@/design/tokens";
 import { useCan } from "@/entitlements/store";
 import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
@@ -338,17 +338,17 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: EQ.bg },
   container: { padding: SPACE[6], gap: SPACE[4] },
 
-  h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5 },
+  h1: { ...TYPE.display, color: EQ.text },
 
   dots: { flexDirection: "row", gap: SPACE[1], alignItems: "center" },
   // Step indicators: small reveal shift + opacity change to keep transitions subtle.
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: EQ.surface3, opacity: 0.72, transform: [{ translateY: 1 }] },
   dotActive: { width: 24, borderRadius: 4, backgroundColor: EQ.accent, opacity: 1, transform: [{ translateY: -1 }] },
   dotDone: { backgroundColor: EQ.accent2, opacity: 0.94, transform: [{ translateY: 0 }] },
-  progress: { fontSize: FS.xs, color: EQ.textFaint, letterSpacing: 0.5 },
+  progress: { ...TYPE.label, color: EQ.textFaint },
 
-  prompt: { fontSize: FS.xl, fontWeight: "700", color: EQ.text, lineHeight: 28 },
-  helper: { fontSize: FS.sm, color: EQ.textMuted, lineHeight: 20, marginTop: -SPACE[2] },
+  prompt: { ...TYPE.title, color: EQ.text },
+  helper: { ...TYPE.caption, color: EQ.textMuted, marginTop: -SPACE[2] },
 
   input: {
     borderWidth: 1,
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   inputMulti: { minHeight: 120, textAlignVertical: "top" },
 
   suggestionsSection: { gap: SPACE[2] },
-  suggestionsLabel: { fontSize: 10, fontWeight: "600", color: EQ.textFaint, letterSpacing: 1.2 },
+  suggestionsLabel: { ...TYPE.label, color: EQ.textFaint },
   suggestionSpinner: { alignSelf: "flex-start", marginTop: SPACE[1], opacity: MOTION.subtleOpacity },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
   chip: {
