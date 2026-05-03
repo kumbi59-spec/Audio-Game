@@ -217,9 +217,22 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "request_recap") {
-        if (!transitionState(sessionState, "request_recap")) {
+        const recapReturnState: SessionState | null =
+          sessionState === "turn_complete"
+            ? "turn_complete"
+            : sessionState === "joined"
+              ? "joined"
+              : null;
+
+        if (!recapReturnState) {
+          emitInvalidTransition(sessionState, "awaiting_recap", "request_recap");
           return;
         }
+
+        if (!transitionState("awaiting_recap", "request_recap")) {
+          return;
+        }
+
         const memory = getMemoryStore();
         incrementSessionMetric("recapRequests");
         try {
@@ -237,9 +250,8 @@ export async function registerSessionRoutes(
             summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
           });
         }
-        if (!transitionState(sessionState, "recap_completed")) {
-          return;
-        }
+
+        transitionState(recapReturnState, "recap_completed");
         return;
       }
 

@@ -483,6 +483,105 @@ describe("session end-to-end", () => {
     retryWs.close();
     await retryApp.close();
   });
+  it("serves recap requests from stable active states", async () => {
+    const res = await fetch(`http://${baseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Rec" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${baseUrl}/session`);
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    ws.send(JSON.stringify({ type: "request_recap" }));
+    await waitForEvent(events, "recap_ready");
+
+    const recap = events.find((evt) => evt.type === "recap_ready");
+    expect(recap).toBeTruthy();
+    ws.close();
+  });
+
+  it("rejects recap requests while a turn is generating", async () => {
+    let releaseTurn: (() => void) | null = null;
+    const blockedTurn = new Promise<void>((resolve) => {
+      releaseTurn = resolve;
+    });
+
+    const slowApp = await buildServer({
+      logLevel: "warn",
+      turnGenerator: async () => {
+        await blockedTurn;
+        return fakeTurn;
+      },
+    });
+    await slowApp.listen({ port: 0, host: "127.0.0.1" });
+    const addr = slowApp.server.address() as AddressInfo;
+    const slowBaseUrl = `127.0.0.1:${addr.port}`;
+
+    const res = await fetch(`http://${slowBaseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Slow" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${slowBaseUrl}/session`);
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    ws.send(
+      JSON.stringify({
+        type: "player_input",
+        input: { kind: "utility", command: "begin" },
+      }),
+    );
+
+    await new Promise((r) => setTimeout(r, 50));
+    ws.send(JSON.stringify({ type: "request_recap" }));
+
+    await waitForErrorCode(events, "invalid_state_transition");
+    const invalidTransition = events.find(
+      (evt) => evt.type === "error" && evt.code === "invalid_state_transition",
+    );
+    expect(invalidTransition).toMatchObject({
+      type: "error",
+      code: "invalid_state_transition",
+      recoverable: true,
+    });
+
+    releaseTurn?.();
+    await waitForEvent(events, "turn_complete");
+
+    ws.close();
+    await slowApp.close();
+  });
+
 });
 
 function chunk(text: string, size: number): string[] {
