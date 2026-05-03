@@ -106,7 +106,10 @@ export function GameShell() {
 
   return (
     <>
-      <AmbientPlayer />
+      <AmbientPlayer
+        isNarratorSpeaking={speaking}
+        isNarratorLoading={session.isGenerating}
+      />
       <AudioUnlocker />
       <KeyboardShortcuts
         onChoiceSelect={handleChoiceSelect}
