@@ -3,6 +3,7 @@ export const SessionStates = [
   "connected",
   "joined",
   "awaiting_gm",
+  "awaiting_recap",
   "turn_complete",
   "closed",
 ] as const;
@@ -14,9 +15,10 @@ export function canTransition(from: SessionState, to: SessionState): boolean {
   const allowed: Record<SessionState, SessionState[]> = {
     disconnected: ["connected"],
     connected: ["joined", "closed"],
-    joined: ["awaiting_gm", "closed"],
+    joined: ["awaiting_gm", "awaiting_recap", "closed"],
     awaiting_gm: ["turn_complete", "closed"],
-    turn_complete: ["awaiting_gm", "closed"],
+    awaiting_recap: ["joined", "turn_complete", "closed"],
+    turn_complete: ["awaiting_gm", "awaiting_recap", "closed"],
     closed: [],
   };
   return allowed[from].includes(to);
