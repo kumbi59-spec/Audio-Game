@@ -1072,45 +1072,55 @@ But the AI is always available. Always patient. Always responsive. And within a 
     excerpt: "Ready to go beyond the official campaigns and build something of your own? Here's a step-by-step walkthrough of both paths to creating a custom world on EchoQuest.",
     content: `# How to Create Your First Custom World on EchoQuest
 
-Playing official campaigns is a great way to learn EchoQuest. But the moment you have a world in your head — a setting you've always wanted to play in, a story you've always wanted to tell — it's time to build your own.
+Playing official campaigns is a great way to learn EchoQuest. The flagship campaigns — Iron Citadel, Neon Precinct, Saltbound — are designed to showcase what the platform can do, and they make excellent training grounds for new players. But the moment you have a world in your head — a setting you've always wanted to play in, a story you've always wanted to tell, a tone of fiction nobody is currently writing — it's time to build your own. Custom worlds are where EchoQuest goes from "an interesting AI game" to "the place I tell my own stories."
 
-EchoQuest offers two paths to custom world creation: **uploading a Game Bible** and the **World Builder Wizard**. Here's how each one works and which to choose.
+EchoQuest offers two paths to custom world creation: **uploading a Game Bible** and the **World Builder Wizard**. Both produce fully playable campaigns, both work with the same AI Game Master, and both can be revised after creation. The right one depends on whether you're starting from a document or starting from a blank page. This post walks through both, explains which to choose, and shares the practical mistakes first-time world-builders make so you can skip them.
 
 ## Path 1: Upload a Game Bible (Storyteller Plan)
 
-If you already have a document describing your world — even rough notes — the Game Bible upload is the fastest path.
+If you already have a document describing your world — even rough notes — the Game Bible upload is the fastest path. This is the option for people whose worlds have been kicking around in a notebook, a Google Doc, or an old novel draft for years. You don't have to retype any of it.
 
-**Step 1:** Write your world document. It can be a Word file, a PDF, or plain text. Cover the basics: setting, tone, factions, major NPCs, and an opening scenario. See our [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template) for a detailed guide.
+**Step 1:** Write your world document. It can be a Word file, a PDF, or plain text. Cover the basics: setting, tone, factions, major NPCs, and an opening scenario. See our [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template) for a detailed guide. The format is flexible — section headings help the AI extract structure, but plain prose is fine too.
 
 **Step 2:** Go to **My Worlds → Upload a Game Bible**.
 
-**Step 3:** Select your file (up to 10MB). EchoQuest's AI reads your document and extracts the world structure — locations, NPCs, lore, rules.
+**Step 3:** Select your file (up to 10MB). EchoQuest's AI reads your document and extracts the world structure — locations, NPCs, lore, rules. This usually takes ten to thirty seconds depending on document length. You'll see a progress indicator with a brief description of what the AI is currently parsing ("Identifying factions… Extracting major NPCs… Parsing constraints…").
 
-**Step 4:** Review the generated world. You'll see a preview of what the AI extracted. If anything is missing or wrong, you can edit the world settings directly.
+**Step 4:** Review the generated world. You'll see a preview of what the AI extracted. If anything is missing or wrong, you can edit the world settings directly. This step is important — the AI sometimes interprets a single colourful sentence as a faction, or misses a constraint that was implied rather than stated. A two-minute review at this stage saves real frustration later.
 
 **Step 5:** Play. Your world is immediately available in your library.
 
+The upload path is the right choice when: you have an existing setting from a tabletop campaign, a novel, or an old worldbuilding project; you prefer drafting in a familiar word processor rather than a web wizard; or you want maximum control over the source text the AI reads.
+
 ## Path 2: World Builder Wizard (Creator Plan)
 
-The World Builder Wizard is a guided, step-by-step tool for building a world from scratch — no pre-written document needed. Claude AI assists at each step, offering suggestions you can accept, modify, or ignore.
+The World Builder Wizard is a guided, step-by-step tool for building a world from scratch — no pre-written document needed. Claude AI assists at each step, offering suggestions you can accept, modify, or ignore. The wizard is closer to a conversation than a form: you sketch an idea, the AI offers to flesh it out, you accept the parts you like and edit the rest.
 
-**Step 1:** Name your world and write a one-sentence pitch. ("A crumbling empire where three noble houses compete to fill a power vacuum.")
+**Step 1:** Name your world and write a one-sentence pitch. ("A crumbling empire where three noble houses compete to fill a power vacuum.") The pitch is the seed for everything that follows. Be specific. "A fantasy world" doesn't give the AI anything to work with; "A late-medieval merchant republic where a sea-god has just stopped answering prayers" sets a tone the wizard can build on.
 
-**Step 2:** Choose your genre, tone, and content rating.
+**Step 2:** Choose your genre, tone, and content rating. Genre is broad (fantasy, sci-fi, horror, modern, historical, weird). Tone is the modifier (gritty, hopeful, comedic, melancholy). Content rating sets the limits the AI will respect (family-friendly, standard, mature). These settings are guard rails for the AI, not a cage — you can play whatever you want within them.
 
-**Step 3:** Define your factions. The Wizard prompts you for each one and suggests personalities and goals.
+**Step 3:** Define your factions. The Wizard prompts you for each one and suggests personalities, goals, and willingness-to-do based on your pitch. You can accept, edit, or replace each suggestion. Aim for three to five factions; the wizard will warn you if you're going below or above the sweet spot.
 
-**Step 4:** Build your opening location and starting scenario. Where does the story begin? What's immediately at stake?
+**Step 4:** Build your opening location and starting scenario. Where does the story begin? What's immediately at stake? The wizard will draft an opening scenario based on your pitch and let you tweak it. Don't be afraid to push back on the AI's first draft — it will gladly try again with different framing.
 
-**Step 5:** Set your constraints. What rules govern this world? What can't happen?
+**Step 5:** Set your constraints. What rules govern this world? What can't happen? Constraints sharpen everything else. "No resurrection magic," "no firearms," "no telepathy," "the gods are silent" — each constraint pushes the world's stories in a particular direction.
 
-**Step 6:** Generate and play. The Wizard compiles your inputs into a full game session.
+**Step 6:** Generate and play. The Wizard compiles your inputs into a full game session. You'll see the generated world summary, can edit anything that doesn't feel right, and then jump straight into your first scene.
+
+The wizard is the right choice when: you're starting from a vague idea rather than an existing document; you want collaborative AI input on shaping the world; or you're new to worldbuilding and benefit from prompts that ensure you've covered the essentials.
 
 ## Tips for First-Time World Builders
 
-- **Start smaller than you think.** A single city with three factions and one crisis is enough for ten sessions. You can expand later.
-- **Don't over-explain magic.** The AI GM will extrapolate rules for you. Focus on the *feel* of magic in your world, not the system mechanics.
-- **Name your starting NPC.** Give the first character the player meets a specific name, personality, and one secret. This person will anchor the whole early game.
+**Start smaller than you think.** A single city with three factions and one crisis is enough for ten sessions. You can expand later. New world-builders almost always overshoot, drafting continents and pantheons before any character has set foot in a single tavern. A small, dense world plays better than a large, vague one. Confine your first world to a single region.
+
+**Don't over-explain magic.** The AI GM will extrapolate rules for you. Focus on the *feel* of magic in your world, not the system mechanics. "Magic is rare and feared, takes hours to cast, and always leaves the caster physically drained" is more useful than three pages of mana-cost calculations. Mechanics belong in a tabletop rulebook; feelings belong in a Game Bible.
+
+**Name your starting NPC.** Give the first character the player meets a specific name, personality, mannerism, and one secret. This person will anchor the whole early game. A starting NPC who is fully realised gives the AI a model to follow when generating subsequent NPCs.
+
+**Write the opening scene yourself.** The single highest-leverage 200 words you can write are the first scene. The AI will set the tone for everything afterwards based on what it sees in scene one. If you want a tense political thriller, the opening scene should be a tense political moment, not "you wake up at an inn." Whatever the opening is, the campaign will lean into.
+
+**Iterate.** Your first world is going to have weak spots you only notice after playing it for a few sessions. That's fine. You can edit a published world at any time. World-builders who treat their first attempt as a draft, not a final, end up with much better second worlds.
 
 **[Create your world →](/worlds/new)**
 `,
@@ -1121,21 +1131,27 @@ The World Builder Wizard is a guided, step-by-step tool for building a world fro
     excerpt: "EchoQuest supports full voice command navigation — meaning you can play an entire session without touching a keyboard or mouse. Here's how to set it up and get the most out of it.",
     content: `# Voice Commands in EchoQuest: Play Completely Hands-Free
 
-For players who can't use a keyboard or mouse — whether due to motor disabilities, repetitive strain injuries, or simply preferring to play while their hands are busy — EchoQuest's voice command system makes the full game experience accessible via speech alone.
+For players who can't use a keyboard or mouse — whether due to motor disabilities, repetitive strain injuries, recovery from surgery, or simply preferring to play while their hands are busy with something else — EchoQuest's voice command system makes the full game experience accessible via speech alone. You can play an entire campaign, from the title screen to the final scene, without ever touching a physical input device. That's not a marketing line; it's a tested capability we treat as a release-blocking baseline.
+
+This post is a complete guide to voice play. We cover how the system works under the hood, how to set it up for the best accuracy, what voice navigation can do beyond submitting actions, and how voice combines with other accessibility tools to produce a fully hands-free, eyes-free experience. If you're new to voice control or sceptical that it can carry a full RPG session, the walkthrough below should answer most of your concerns.
 
 ## How It Works
 
-EchoQuest uses the Web Speech API, available in Chrome and Edge, to convert your spoken words into text in real time. When you activate voice input (by pressing the microphone button or its keyboard shortcut), you speak your action out loud. It's transcribed and submitted to the AI Game Master exactly as if you'd typed it.
+EchoQuest uses the Web Speech API, available in Chrome and Edge, to convert your spoken words into text in real time. The Web Speech API is the same speech-recognition technology that powers many enterprise dictation tools and accessibility apps. It runs primarily server-side in the browser vendor's infrastructure, but it's exposed as a standard API any web page can call. When you activate voice input (by pressing the microphone button or its keyboard shortcut), you speak your action out loud. It's transcribed and submitted to the AI Game Master exactly as if you'd typed it.
 
-There's no special command syntax. Just speak naturally: *"I ask the guard where the prisoner was taken"* or *"I try to pick the lock on the chest."*
+There's no special command syntax. Just speak naturally: *"I ask the guard where the prisoner was taken"* or *"I try to pick the lock on the chest"* or *"I look around the room for anything out of place."* The transcription is forwarded to the GM verbatim, so you never have to learn a special vocabulary or memorise specific phrases.
+
+The voice path stays consistent with the rest of EchoQuest's accessibility design: it's a different way to issue the same commands, not a separate "voice mode" with reduced features. Every action you can take by typing, you can take by speaking, and the game responds identically either way.
 
 ## Setting Up Voice Input
 
-1. Open EchoQuest in Chrome or Edge (Firefox support is limited by browser API availability)
-2. When prompted, allow microphone access
+1. Open EchoQuest in Chrome or Edge (Firefox support is limited by browser API availability — Safari support is partial and we recommend Chrome or Edge if either is available to you)
+2. When prompted, allow microphone access. EchoQuest only listens when you've explicitly activated voice input — there's no always-on listening
 3. During a game session, click the microphone icon in the input area, or press **V** to activate
-4. Speak your action clearly — a transcription preview appears as you speak
-5. Pause briefly when done; the transcription submits automatically, or press **Enter** to submit manually
+4. Speak your action clearly — a transcription preview appears as you speak so you can see what's being captured before it's submitted
+5. Pause briefly when done; the transcription submits automatically, or press **Enter** to submit manually if you want explicit control
+
+If you're using a screen reader, the voice activation button announces its current state ("Voice input on" or "Voice input off") and is fully keyboard-reachable.
 
 ## Navigation Voice Commands
 
@@ -1147,19 +1163,35 @@ Beyond submitting actions, you can navigate the game UI by voice:
 | "Replay" | Repeat the last narration |
 | "Pause" / "Resume" | Toggle TTS narration |
 | "Settings" | Open the settings panel |
+| "Help" | Open the keyboard/voice shortcut overlay |
+| "Cancel" | Close any open dialog |
+| "Inventory" | Open the character inventory panel |
+| "Stats" | Open the character stats panel |
+
+These navigation commands are processed locally — they don't require AI inference and trigger immediately. Action submissions, by contrast, go through the AI GM and produce narrated responses.
+
+A useful pattern: combine voice navigation with voice actions in a single session. "Option two" picks the second suggested choice. Then "I draw my sword and step toward the door" submits a custom action. Then "Replay" if you need the response read again. The game remains responsive throughout, and your hands never leave wherever they happen to be.
 
 ## Tips for Best Accuracy
 
-- **Use a headset or directional microphone** — ambient noise significantly degrades transcription accuracy
-- **Speak at a moderate pace** — the API transcribes better at conversational speed than very fast or slow speech
-- **Unique character names** — if your world uses fantasy names, spell them out the first time and let autocorrect learn them
-- **Rephrase if needed** — if a transcription comes out wrong, just speak the correction; the AI GM handles small inconsistencies gracefully
+- **Use a headset or directional microphone** — ambient noise significantly degrades transcription accuracy. Built-in laptop mics work but are noticeably less reliable than even a basic USB headset
+- **Speak at a moderate pace** — the API transcribes better at conversational speed than very fast or very slow speech. If you're naturally a fast speaker, slowing down by twenty percent often eliminates most transcription errors
+- **Unique character names** — if your world uses fantasy names, spell them out phonetically the first time and the API will often pick them up for the rest of the session. Some players keep a small character-name reference open during the first scene to help with pronunciation
+- **Rephrase if needed** — if a transcription comes out wrong, just speak the correction; the AI GM handles small inconsistencies gracefully and will respond to "I meant to say I draw the dagger, not the dragon" as fluidly as to a perfectly transcribed action
+- **Quiet rooms help** — even a high-end mic struggles with TV-on-in-the-background. Voice plays best in the same conditions that make any audio call easier
+- **Check microphone gain** — too high causes clipping, too low causes drop-outs. Most operating systems have a microphone test built into accessibility settings; spend two minutes calibrating before a long session
 
 ## Combining Voice and Screen Reader
 
-If you use both voice input and a screen reader, you can set the screen reader to announce new narration automatically. The combination creates a fully hands-free, eyes-free experience: you speak your actions, the game responds, the screen reader reads the response aloud.
+If you use both voice input and a screen reader, you can set the screen reader to announce new narration automatically. The combination creates a fully hands-free, eyes-free experience: you speak your actions, the game responds, the screen reader reads the response aloud, you respond again. The rhythm is remarkably close to a phone call with a very patient, very imaginative friend.
 
-This is the use case we're most proud of — a complete RPG experience for players with both visual and motor disabilities.
+This is the use case we're most proud of — a complete RPG experience for players with both visual and motor disabilities. If you're in this category, please reach out. We learn the most from your feedback, and we want to know whenever something doesn't work.
+
+## Beyond Disability: Why Sighted Players Use Voice
+
+A growing number of EchoQuest players use voice input not because they need to, but because they prefer it. Voice play feels different from typing. The session has a cadence closer to spoken storytelling. Your character's voice and your voice are the same voice for a moment, which can produce a kind of immersion typed play never quite reaches.
+
+Some players use voice for action submission and keyboard for navigation. Some use voice while doing chores around the house — the game waits while they cook, then responds when they speak. Some use voice as a way to give their wrists a break during long sessions. There's no wrong combination, and you can switch in and out at any time.
 
 **[Try voice commands in a free session →](/library)**
 `,
@@ -1170,41 +1202,51 @@ This is the use case we're most proud of — a complete RPG experience for playe
     excerpt: "Why does a well-told audio story create such vivid mental images? The answer is rooted in how our brains process sound, language, and imagination — and it explains why EchoQuest hits differently.",
     content: `# The Science of Immersion: Why Audio Storytelling Is So Powerful
 
-Ask someone to describe a book they loved and they'll tell you about images: the color of a room, the way a character moved, a face they can still picture clearly. Ask where those images came from and they'll pause — those images were never in the book. Their brain created them.
+Ask someone to describe a book they loved and they'll tell you about images: the colour of a room, the way a character moved, a face they can still picture clearly. Ask where those images came from and they'll pause — those images were never in the book. Their brain created them. The author wrote sentences. Your reader's mind filled in the rest, and most of what you remember loving wasn't on the page at all. It was in you.
 
-This is the miracle of narrative immersion. And audio storytelling, it turns out, is particularly good at triggering it.
+This is the miracle of narrative immersion. And audio storytelling, it turns out, is particularly good at triggering it. Some of the most enduring experiences in modern media — long-form podcasts that listeners return to weekly for years, audiobooks that listeners credit with carrying them through dark times, radio dramas that defined whole generations — work specifically because audio bypasses some of the cognitive bottlenecks that other media create. This post is a tour of the research behind audio's particular power, and a frank explanation of why EchoQuest is structured the way it is.
 
 ## What Happens in Your Brain During a Story
 
-Neuroscience research using fMRI has shown something remarkable: when we process a narrative, the same brain regions activate as if we were experiencing the events directly. Descriptions of movement activate motor cortex. Descriptions of smell activate olfactory cortex. Stories don't just inform — they simulate.
+Neuroscience research using fMRI has shown something remarkable: when we process a narrative, the same brain regions activate as if we were experiencing the events directly. Descriptions of movement activate motor cortex. Descriptions of smell activate olfactory cortex. Descriptions of texture activate the somatosensory regions associated with touch. The brain doesn't just understand stories — it simulates them. The simulations are partial and imperfect, but they're real, and they produce real emotional responses.
 
-This is true for all narrative, but it's especially pronounced for **audio storytelling** because of how listening engages us differently from reading.
+This is the cognitive substrate underneath the everyday experience of being "lost in a book." You aren't really lost; you're running a model. The model uses real cognitive machinery: emotional centres, motor planning regions, even, in some cases, the same circuits that process social interactions in your actual life. Stories, in a meaningful sense, *happen to you* even when nobody is moving and nothing is on screen.
+
+This is true for all narrative, but it's especially pronounced for audio storytelling because of how listening engages us differently from reading. Audio engages the simulation engine without competing with it for cognitive resources, which turns out to matter a lot.
 
 ## Reading vs. Listening
 
-When you read text, your visual cortex is busy processing the words on the page. There's cognitive competition for that channel — you're simultaneously decoding symbols and imagining scenes.
+When you read text, your visual cortex is busy processing the words on the page. There's cognitive competition for that channel — you're simultaneously decoding symbols and imagining scenes. Skilled readers are remarkably efficient at this, but the imagination work is always sharing space with the reading work. Some of the bandwidth your visual imagination would use for picturing a room is being used to recognise the shape of "room" on the page.
 
-When you *listen*, your visual cortex is largely free. It becomes available to construct the mental images that the narration describes. Studies on audiobook listeners vs. readers show that audiobook listeners frequently report stronger visualization and emotional response to the same material.
+When you *listen*, your visual cortex is largely free. It becomes available to construct the mental images that the narration describes. Studies on audiobook listeners vs. readers show that audiobook listeners frequently report stronger visualization and emotional response to the same material. The same paragraph, read silently and read aloud, produces measurably different mental experiences. The audio version is, on average, more vivid.
 
-This is why radio dramas, podcasts, and audiobooks produce such vivid internal worlds — and why narrated games can produce an immersion that visual games sometimes struggle to match.
+This is why radio dramas, podcasts, and audiobooks produce such vivid internal worlds — and why narrated games can produce an immersion that visual games sometimes struggle to match. Visual games give you the picture and ask you to react to it. Audio games hand you the seed and let your imagination grow it. The grown thing is yours in a way the rendered thing never quite is.
 
 ## The Role of Voice Performance
 
-The way something is spoken shapes how it's experienced. A sentence delivered slowly, with a slight pause before the key word, creates anticipation that the same sentence read silently does not. Vocal performance — rhythm, pitch, pace, silence — communicates emotional context that the reader of silent text must supply themselves.
+The way something is spoken shapes how it's experienced. A sentence delivered slowly, with a slight pause before the key word, creates anticipation that the same sentence read silently does not. Vocal performance — rhythm, pitch, pace, silence — communicates emotional context that the reader of silent text must supply themselves. The text "she said his name" can be devastating, casual, sarcastic, or fearful depending on how it's spoken. The reader has to decide which; the listener is told.
 
-This is why EchoQuest invests in narration quality. The ElevenLabs voices aren't just reading text. They're performing it — letting the story breathe in ways that flat TTS cannot.
+A great voice performance gives you free emotional context. The reader has to infer "this scene is tense" from prose; the listener gets "this scene is tense" carried in the voice itself, without any cognitive work required to extract it. That freed-up cognitive work goes back into imagination, which is what creates the heightened immersion audio listeners report.
+
+This is why EchoQuest invests in narration quality. The ElevenLabs voices aren't just reading text. They're performing it — letting the story breathe in ways that flat TTS cannot. The performance is part of the cognitive scaffolding that makes the audio path produce stronger immersion. Strip the performance out and the audio advantage shrinks. Layer it back in and you get the full effect.
 
 ## Ambient Sound as Cognitive Scaffolding
 
-Sound doesn't just accompany the story in EchoQuest — it pre-loads the mental environment. When you hear cave drips and echoes before a narration begins, your brain has already partially constructed the setting. The narration fills in a space that ambient sound has sketched.
+Sound doesn't just accompany the story in EchoQuest — it pre-loads the mental environment. When you hear cave drips and echoes before a narration begins, your brain has already partially constructed the setting. The narration fills in a space that ambient sound has sketched. By the time the GM says "the corridor opens into a vast chamber," your imagination has been priming for "vast chamber" for several seconds and the rendering is faster, sharper, more emotionally complete.
 
-This is the same technique used in film scoring: the music tells you how to feel about what you're about to see. Ambient sound tells you where you are before you hear what's happening there.
+This is the same technique used in film scoring: the music tells you how to feel about what you're about to see. Ambient sound tells you where you are before you hear what's happening there. The scaffolding effect is well-documented in film theory and applies just as cleanly to audio-only storytelling. Soundscape priming is one of the cheapest, most effective immersion tools available, and it's almost free in production cost compared to the alternatives.
 
 ## Why This Matters for Blind Players
 
-For sighted players, audio immersion is a choice — a different mode. For blind and visually impaired players, it's the native mode. They bring to audio storytelling exactly the cognitive skills it demands: attention to sound, practiced visualization, and the habit of building complete worlds from partial information.
+For sighted players, audio immersion is a choice — a different mode they can opt into for the cognitive benefits. For blind and visually impaired players, it's the native mode. They bring to audio storytelling exactly the cognitive skills it demands: attention to sound, practised visualization, the habit of building complete worlds from partial information, the ability to track multiple sound sources simultaneously, the reading of voice tone for emotional content. Many blind players have been doing all of this every day of their lives.
 
-Far from being a compromise, audio-first gaming may be the format that plays to blind players' strengths.
+Far from being a compromise, audio-first gaming may be the format that plays to blind players' strengths. We've heard from blind players who say EchoQuest is the first time they've experienced an RPG where they're not at any disadvantage compared to sighted players — and, in some cases, may be at an advantage. The visualisation skills built up over a lifetime of listening transfer directly. The pattern recognition for voice tone is sharper. The patience for building a world from sound rather than from a glance at a screen is already there.
+
+## Why This Matters for Sighted Players
+
+The reverse is also true: sighted players who try audio-first gaming often discover capacities they didn't know they had. Visualization gets sharper with practice. Emotional reading of voice performance gets more nuanced. The cognitive muscles that audio play uses are present in sighted brains too — they're just under-trained because most sighted media doesn't need them. Many EchoQuest players report that other forms of audio entertainment — audiobooks, podcasts, radio dramas — feel richer to them after a few months of regular play, because their listening attention has been re-tuned.
+
+This isn't an argument that audio is "better than" visual. They're different. Both produce powerful experiences. But for narrative immersion specifically, audio has structural advantages that the science backs up, and EchoQuest is designed to take full advantage of them.
 
 **[Experience it for yourself →](/library)**
 `,
