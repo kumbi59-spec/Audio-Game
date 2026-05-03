@@ -14,6 +14,7 @@ import {
 } from "@audio-rpg/gm-engine";
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
 import { randomUUID } from "node:crypto";
+import { config } from "../config.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -99,13 +100,20 @@ export async function runTurn(
   });
 
   const generate = deps.generateTurn ?? generateGmTurn;
-  const turn = await generate({
+  const turnPromise = generate({
     bible: session.bible,
     userPrompt,
     onText: (chunk) => {
       emit({ type: "narration_chunk", turnId, text: chunk, done: false });
     },
   });
+
+  const turn = await Promise.race([
+    turnPromise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("gm_turn_timeout")), config.GM_TURN_TIMEOUT_MS),
+    ),
+  ]);
 
   emit({ type: "narration_chunk", turnId, text: "", done: true });
   emit({

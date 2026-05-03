@@ -1,3 +1,4 @@
+import { isMimeExtensionCoherent } from "./guards";
 export { ACCEPTED_MIME_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "./constants";
 
 const PDF_MIME = "application/pdf";
@@ -22,6 +23,9 @@ export async function extractText(
   filename: string
 ): Promise<string> {
   const fileExt = ext(filename);
+  if (!isMimeExtensionCoherent(mimeType, filename)) {
+    throw new Error("Uploaded file type does not match filename extension");
+  }
 
   if (mimeType === PDF_MIME || PDF_EXTS.has(fileExt)) {
     const { parsePdf } = await import("./parsers/pdf");
