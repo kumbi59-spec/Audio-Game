@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 
-const GA_ID = process.env["NEXT_PUBLIC_GA_ID"];
+const GA_ID = process.env["NEXT_PUBLIC_GA_ID"] ?? "G-HH47SHDC3E";
 
 declare global {
   interface Window {
@@ -30,9 +30,8 @@ function PageViewTracker({ gaId }: { gaId: string }) {
 }
 
 /**
- * Loads Google Analytics 4 when NEXT_PUBLIC_GA_ID is set. Renders nothing
- * (and skips network calls) when the env var is missing, so dev and
- * unconfigured deployments stay quiet.
+ * Loads Google Analytics 4 using NEXT_PUBLIC_GA_ID, or falls back to
+ * the required production measurement ID.
  */
 export function GoogleAnalytics() {
   if (!GA_ID) return null;
