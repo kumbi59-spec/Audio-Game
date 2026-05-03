@@ -22,6 +22,7 @@ import { useCan } from "@/entitlements/store";
 import { AdBanner } from "@/entitlements/AdBanner";
 import { AiMinutesSheet } from "@/entitlements/AiMinutesSheet";
 import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
+import { parseChoiceCommand } from "@/domain/session/use-cases";
 
 export default function ActiveCampaign(): JSX.Element {
   const router = useRouter();
@@ -132,9 +133,8 @@ export default function ActiveCampaign(): JSX.Element {
     void speakOnce("Listening.");
     const transcript = await captureUtterance();
     if (!transcript) return;
-    const matchedNumber = transcript.trim().match(/^(?:choice\s*)?(one|two|three|four|five|1|2|3|4|5)\b/i);
-    if (matchedNumber?.[1]) {
-      const idx = wordToIndex(matchedNumber[1]);
+    const idx = parseChoiceCommand(transcript);
+    if (idx !== null) {
       const choice = session.choices[idx];
       if (choice) { pickChoice(choice.id, choice.label); return; }
     }
@@ -310,17 +310,6 @@ function DockButton({ label, hint, onPress }: { label: string; hint: string; onP
       <Text style={styles.dockBtnText}>{label}</Text>
     </Pressable>
   );
-}
-
-function wordToIndex(word: string): number {
-  switch (word.toLowerCase()) {
-    case "one":   case "1": return 0;
-    case "two":   case "2": return 1;
-    case "three": case "3": return 2;
-    case "four":  case "4": return 3;
-    case "five":  case "5": return 4;
-    default: return -1;
-  }
 }
 
 const styles = StyleSheet.create({

@@ -7,6 +7,7 @@ import type {
 } from "@audio-rpg/shared";
 import { applyMutations } from "@audio-rpg/gm-engine";
 import { updateNpcVoiceMap } from "@/audio/narrator";
+import { buildPlayerTranscript, buildTranscriptPlainText } from "@/domain/session/use-cases";
 
 export interface TranscriptEntry {
   id: string;
@@ -85,19 +86,25 @@ export const useSession = create<SessionSlice>((set, get) => ({
     }),
 
   appendPlayer: (text) =>
-    set((s) => ({
+    set((s) => {
+      const transcript = buildPlayerTranscript(text);
+      if (!transcript) {
+        return {};
+      }
+      return {
       transcript: [
         ...s.transcript,
         {
           id: `player-${s.transcript.length}`,
           role: "player",
-          text,
+          text: transcript,
           streaming: false,
         },
       ],
       awaitingGm: true,
       choices: [],
-    })),
+    };
+  }),
 
   handleEvent: (evt) => {
     switch (evt.type) {
@@ -185,10 +192,5 @@ export const useSession = create<SessionSlice>((set, get) => ({
 }));
 
 export function transcriptPlainText(): string {
-  return useSession
-    .getState()
-    .transcript.map(
-      (t) => `${t.role === "gm" ? "GM" : "You"}: ${t.text}`,
-    )
-    .join("\n\n");
+  return buildTranscriptPlainText(useSession.getState().transcript);
 }
