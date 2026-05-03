@@ -18,6 +18,12 @@ import { fileURLToPath } from "url";
 import { PrismaClient } from "@prisma/client";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
+const databaseUrl = process.env.DATABASE_URL ?? "";
+
+if (!/^postgres(ql)?:\/\//.test(databaseUrl)) {
+  console.log("[fix-migrations] skipping: DATABASE_URL is missing or not a postgres:// URL");
+  process.exit(0);
+}
 
 const MIGRATIONS = [
   "20260429120000_add_tts_chars",
