@@ -319,6 +319,26 @@ describe("session end-to-end", () => {
     expect(body.session.duplicateInputs).toBeGreaterThan(0);
   });
 
+  it("reports storage backend in health and metrics", async () => {
+    const expectedBackend = process.env["DATABASE_URL"] ? "postgres" : "memory";
+
+    const healthRes = await fetch(`http://${baseUrl}/health`);
+    expect(healthRes.status).toBe(200);
+    const health = (await healthRes.json()) as {
+      ok: boolean;
+      storageBackend: "memory" | "postgres";
+    };
+    expect(health.ok).toBe(true);
+    expect(health.storageBackend).toBe(expectedBackend);
+
+    const metricsRes = await fetch(`http://${baseUrl}/metrics`);
+    expect(metricsRes.status).toBe(200);
+    const metrics = (await metricsRes.json()) as {
+      storageBackend: "memory" | "postgres";
+    };
+    expect(metrics.storageBackend).toBe(expectedBackend);
+  });
+
   it("rejects an invalid session token", async () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     await new Promise<void>((resolve, reject) => {
