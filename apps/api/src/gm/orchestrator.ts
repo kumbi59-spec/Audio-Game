@@ -18,6 +18,7 @@ import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
 import { createEventEnvelope, type DomainEventBus } from "../events/domain-events.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
+import { DEGRADED_MODE_COPY, ReliabilityErrorCode } from "@audio-rpg/shared";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -35,8 +36,11 @@ const sleep = (ms: number): Promise<void> =>
 const TURN_RELIABILITY_POLICY = {
   timeoutMs: config.GM_TURN_TIMEOUT_MS,
   maxRetries: config.GM_TURN_MAX_RETRIES,
+  requestDeadlineMs: config.TURN_REQUEST_DEADLINE_MS,
   fallbackMode: "safe_continue_choices",
 } as const;
+
+const circuitState = { failures: 0, openUntil: 0 };
 
 function degradedMessage(errorClass: ProviderErrorClass): string {
   if (errorClass === "rate_limit") return "The game master is busy right now. We used a safe fallback turn.";
@@ -129,6 +133,12 @@ export async function runTurn(
         ? input.text
         : `utility:${input.command}`;
 
+  if (config.GM_CIRCUIT_BREAKER_ENABLED && Date.now() < circuitState.openUntil) {
+    emit({ type: "error", code: ReliabilityErrorCode.CircuitOpen, recoverable: true, message: DEGRADED_MODE_COPY.circuit_open });
+    throw new Error(ReliabilityErrorCode.CircuitOpen);
+  }
+  const deadlineAt = Date.now() + TURN_RELIABILITY_POLICY.requestDeadlineMs;
+
   await deps.persistTurn({
     campaignId: session.campaignId,
     turnNumber: session.state.turn_number,
@@ -193,7 +203,7 @@ export async function runTurn(
       break;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error("gm_turn_failed");
-      const errorClass = classifyProviderError(lastError);
+      const errorClass = Date.now() >= deadlineAt ? "timeout" : classifyProviderError(lastError);
       recordFailureClass(errorClass);
       console.warn(
         JSON.stringify({
@@ -208,7 +218,7 @@ export async function runTurn(
         }),
       );
 
-      const willRetry = attempt < maxAttempts - 1;
+      const willRetry = attempt < maxAttempts - 1 && Date.now() < deadlineAt;
       if (willRetry) {
         const backoffMs = attemptNumber * config.GM_TURN_RETRY_BACKOFF_MS;
         if (backoffMs > 0) {
@@ -219,18 +229,25 @@ export async function runTurn(
   }
 
   if (!turn) {
-    const failureClass = classifyProviderError(lastError ?? new Error("gm_turn_failed"));
-    const degraded = degradedMessage(failureClass);
+    const failureClass = Date.now() >= deadlineAt ? "timeout" : classifyProviderError(lastError ?? new Error("gm_turn_failed"));
+    const code: ReliabilityErrorCode = Date.now() >= deadlineAt ? ReliabilityErrorCode.DeadlineExceeded : ReliabilityErrorCode.GmDegradedMode;
+    const degraded = DEGRADED_MODE_COPY[code] ?? degradedMessage(failureClass);
     emit({
       type: "error",
-      code: "gm_degraded_mode",
+      code,
       recoverable: true,
       message: degraded,
     });
+    circuitState.failures += 1;
+    if (config.GM_CIRCUIT_BREAKER_ENABLED && circuitState.failures >= config.GM_CIRCUIT_BREAKER_FAILURE_THRESHOLD) {
+      circuitState.openUntil = Date.now() + config.GM_CIRCUIT_BREAKER_COOLDOWN_MS;
+    }
     incrementSessionMetric("turnFallbackSafeContinueChoices");
     recordOutcome("exhausted_retries");
     throw lastError ?? new Error("gm_turn_failed");
   }
+
+  circuitState.failures = 0;
 
   if (maxAttempts === 1) {
     recordOutcome("success_first_try");
