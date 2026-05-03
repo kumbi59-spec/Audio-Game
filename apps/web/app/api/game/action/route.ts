@@ -62,6 +62,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (authSession?.user?.id) {
+    const { getUserTier, resetDailyMinutesIfNeeded, getAiMinutesRemaining } = await import("@/lib/db/queries/users");
+    const tier = await getUserTier(authSession.user.id);
+    if (tier === "free") {
+      await resetDailyMinutesIfNeeded(authSession.user.id, tier);
+      const remaining = await getAiMinutesRemaining(authSession.user.id);
+      if ((remaining ?? 0) <= 0) {
+        return NextResponse.json(
+          { error: "ai_minutes_exhausted", message: "You have used all free AI minutes for today. Please upgrade or come back tomorrow." },
+          { status: 402 }
+        );
+      }
+    }
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -141,10 +156,12 @@ export async function POST(req: NextRequest) {
             }
 
             if (authSession?.user?.id) {
-              const { getUserTier, resetDailyMinutesIfNeeded, consumeAiMinute } = await import("@/lib/db/queries/users");
+              const { getUserTier, consumeAiMinute } = await import("@/lib/db/queries/users");
               const tier = await getUserTier(authSession.user.id);
-              await resetDailyMinutesIfNeeded(authSession.user.id, tier);
-              if (tier === "free") await consumeAiMinute(authSession.user.id);
+              if (tier === "free") {
+                const charged = await consumeAiMinute(authSession.user.id);
+                if (!charged) send("quota_warning", { code: "ai_minutes_exhausted" });
+              }
             }
           } catch (dbErr) {
             // DB persistence is best-effort — don't fail the game turn

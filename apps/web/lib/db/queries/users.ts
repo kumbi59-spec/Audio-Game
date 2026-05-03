@@ -93,12 +93,22 @@ export async function addAiMinutes(userId: string, minutes: number) {
 }
 
 
-export async function consumeAiMinute(userId: string): Promise<void> {
-  await prisma.user.updateMany({
+export async function consumeAiMinute(userId: string): Promise<boolean> {
+  const result = await prisma.user.updateMany({
     where: { id: userId, aiMinutesRemaining: { gt: 0 } },
     data: { aiMinutesRemaining: { decrement: 1 } },
   });
+  return result.count > 0;
 }
+
+
+export async function getAiMinutesRemaining(userId: string): Promise<number | null> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { aiMinutesRemaining: true } });
+  return user?.aiMinutesRemaining ?? null;
+}
+
+
+
 
 const FREE_DAILY_AI_MINUTES = 60;
 
