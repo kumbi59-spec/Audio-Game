@@ -10,16 +10,26 @@ const NUMBER_WORD_TO_INDEX: Record<string, number> = {
   three: 2,
   four: 3,
   five: 4,
+  six: 5,
+  seven: 6,
+  eight: 7,
+  nine: 8,
   "1": 0,
   "2": 1,
   "3": 2,
   "4": 3,
   "5": 4,
+  "6": 5,
+  "7": 6,
+  "8": 7,
+  "9": 8,
 };
 
 export function parseChoiceCommand(text: string): number | null {
   const normalized = buildPlayerTranscript(text).toLowerCase();
-  const matchedNumber = normalized.match(/^(?:choice\s*)?(one|two|three|four|five|1|2|3|4|5)\b/i);
+  const matchedNumber = normalized.match(
+    /^(?:choice\s*)?(one|two|three|four|five|six|seven|eight|nine|1|2|3|4|5|6|7|8|9)\b/i,
+  );
   if (!matchedNumber?.[1]) return null;
   return NUMBER_WORD_TO_INDEX[matchedNumber[1]] ?? null;
 }
