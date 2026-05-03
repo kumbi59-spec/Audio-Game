@@ -257,12 +257,12 @@ function CreateCharacterPage() {
           {["name", "class", "backstory"].map((s, i) => (
             <div
               key={s}
-              className={`h-1.5 flex-1 rounded-full motion-step ${
+              className={`progress-segment h-1.5 flex-1 rounded-full motion-step ${
                 i < (step === "name" ? 0 : step === "class" ? 1 : 2)
-                  ? "bg-primary"
+                  ? "bg-primary progress-segment-fill"
                   : i === (step === "name" ? 0 : step === "class" ? 1 : 2)
-                  ? "bg-primary/60 motion-step-active"
-                  : "bg-muted motion-step-idle"
+                  ? "bg-primary/60 motion-step-active progress-segment-fill"
+                  : "bg-muted motion-step-idle progress-segment-pending"
               }`}
             />
           ))}

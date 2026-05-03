@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -39,6 +41,8 @@ export default function CreateWorld(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const dotProgress = useRef(STEPS.map((_, i) => new Animated.Value(i === 0 ? 1 : 0))).current;
 
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
@@ -48,6 +52,28 @@ export default function CreateWorld(): JSX.Element {
     `Step ${stepIndex + 1} of ${STEPS.length}. ${step?.prompt ?? ""}`,
     headingRef,
   );
+
+  useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setReduceMotion(enabled);
+    });
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    dotProgress.forEach((value, i) => {
+      Animated.timing(value, {
+        toValue: i <= stepIndex ? 1 : 0,
+        duration: reduceMotion ? 0 : 160,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, [dotProgress, reduceMotion, stepIndex]);
 
   useEffect(() => {
     if (!step) return;
@@ -163,16 +189,30 @@ export default function CreateWorld(): JSX.Element {
 
       {/* Step progress dots */}
       <View style={styles.dots}>
-        {STEPS.map((_, i) => (
-          <View
+        {STEPS.map((_, i) => {
+          const anim = dotProgress[i];
+          const isActive = i === stepIndex;
+          const isComplete = i < stepIndex;
+          return (
+          <Animated.View
             key={i}
             style={[
               styles.dot,
-              i === stepIndex && styles.dotActive,
-              i < stepIndex && styles.dotDone,
+              isActive && styles.dotActive,
+              isComplete && styles.dotDone,
+              {
+                opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.58, 1] }),
+                transform: [{
+                  scale: anim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [reduceMotion ? 1 : 0.92, 1],
+                  }),
+                }],
+              },
             ]}
           />
-        ))}
+        );
+        })}
       </View>
       <Text style={styles.progress}>Step {stepIndex + 1} of {STEPS.length}</Text>
 
@@ -342,9 +382,18 @@ const styles = StyleSheet.create({
 
   dots: { flexDirection: "row", gap: SPACE[1], alignItems: "center" },
   // Step indicators: small reveal shift + opacity change to keep transitions subtle.
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: EQ.surface3, opacity: 0.72, transform: [{ translateY: 1 }] },
-  dotActive: { width: 24, borderRadius: 4, backgroundColor: EQ.accent, opacity: 1, transform: [{ translateY: -1 }] },
-  dotDone: { backgroundColor: EQ.accent2, opacity: 0.94, transform: [{ translateY: 0 }] },
+  dot: { width: 8, height: 8, borderRadius: 999, backgroundColor: EQ.surface3, opacity: 0.58 },
+  dotActive: {
+    width: 22,
+    borderRadius: 999,
+    backgroundColor: EQ.accent,
+    shadowColor: EQ.accent,
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 5,
+  },
+  dotDone: { backgroundColor: EQ.accentBg, borderWidth: 1, borderColor: EQ.accent, opacity: 0.92 },
   progress: { ...TYPE.label, color: EQ.textFaint },
 
   prompt: { ...TYPE.title, color: EQ.text },

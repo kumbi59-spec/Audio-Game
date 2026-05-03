@@ -303,12 +303,28 @@
     transition:
       transform var(--motion-normal) var(--ease-emphasized),
       opacity var(--motion-normal) var(--ease-standard),
-      background-color var(--motion-normal) var(--ease-standard);
+      background-color var(--motion-normal) var(--ease-standard),
+      box-shadow var(--motion-normal) var(--ease-standard);
+  }
+
+  .progress-segment {
+    transform-origin: left center;
+  }
+
+  .progress-segment-fill {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  .progress-segment-pending {
+    transform: scaleX(0.88);
+    opacity: 0.72;
   }
 
   .motion-step-active {
     transform: translateY(-1px);
     opacity: 1;
+    box-shadow: 0 0 0 2px var(--accent-dim), 0 0 14px var(--accent-dim);
   }
 
   .motion-step-idle {
@@ -336,6 +352,8 @@
 
     .motion-cta:hover,
     .motion-cta:active,
+    .progress-segment-fill,
+    .progress-segment-pending,
     .motion-step-active,
     .motion-step-idle,
     .motion-loading:hover {
