@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface AdminUser {
   id: string;
@@ -255,8 +256,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="border-b px-6 py-6" style={{ borderColor: "var(--border)" }}>
-        <Link href="/" className="mb-2 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← Home</Link>
         <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>Admin Dashboard</h1>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>Signed in as {session?.user?.email}</p>
       </header>

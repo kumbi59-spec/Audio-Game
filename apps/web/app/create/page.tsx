@@ -10,6 +10,7 @@ import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
 import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type Step = "name" | "class" | "backstory" | "starting";
 
@@ -209,8 +210,9 @@ function CreateCharacterPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8">
-      <div className="mx-auto max-w-lg">
+    <div className="min-h-screen">
+      <SiteHeader />
+      <div className="mx-auto max-w-lg px-4 py-8">
         {!world && (
           <section className="rounded-lg border border-border bg-secondary/40 p-4 text-sm text-muted-foreground">
             {worldLoadError ?? "Loading world…"}

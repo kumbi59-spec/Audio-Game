@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const TIER_LABELS: Record<string, { label: string; color: string }> = {
   free:         { label: "Free",        color: "#6b7280" },
@@ -150,10 +151,8 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link href="/" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>
-          ← Home
-        </Link>
         <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
           Account
         </h1>

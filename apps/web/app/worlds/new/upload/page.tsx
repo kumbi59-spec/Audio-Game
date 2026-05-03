@@ -9,6 +9,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import type { UploadProgressEvent } from "@/lib/upload/types";
+import { SiteHeader } from "@/components/SiteHeader";
 
 type Stage = UploadProgressEvent["stage"];
 
@@ -117,14 +118,8 @@ export default function UploadBiblePage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link
-          href="/"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Back to Home
-        </Link>
         <h1
           className="text-2xl font-bold"
           style={{ color: "var(--text)" }}

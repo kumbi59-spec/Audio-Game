@@ -5,6 +5,7 @@ import { Fragment } from "react";
 import { marked } from "marked";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const revalidate = 60;
 
@@ -104,6 +105,7 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+        <SiteHeader />
         <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto max-w-3xl">
             <Link href="/blog" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← All posts</Link>

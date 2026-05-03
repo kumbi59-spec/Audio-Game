@@ -8,6 +8,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface EngagementSeries {
   days: string[];
@@ -185,14 +186,8 @@ export default function MyWorldsPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <SiteHeader />
       <header className="px-6 py-8">
-        <Link
-          href="/library"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
-        >
-          ← Back to Library
-        </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1
             className="text-2xl font-bold"
