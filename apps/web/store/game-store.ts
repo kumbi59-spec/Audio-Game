@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, QuestMutation } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import { normalizeChoiceList } from "@/src/domain/game/use-cases";
 
 interface GameStore {
   session: InMemorySession | null;
@@ -51,7 +52,7 @@ export const useGameStore = create<GameStore>()(
 
       setChoices: (choices) =>
         set((state) => ({
-          session: state.session ? { ...state.session, choices } : null,
+          session: state.session ? { ...state.session, choices: normalizeChoiceList(choices) } : null,
         })),
 
       setIsGenerating: (value) =>
