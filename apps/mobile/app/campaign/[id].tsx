@@ -65,11 +65,15 @@ export default function ActiveCampaign(): JSX.Element {
   useEffect(() => {
     return () => {
       stopNarration();
-      void sessionConnection.close();
-      session.reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const leaveCampaign = useCallback(() => {
+    sessionConnection.pause();
+    session.reset();
+    router.replace("/");
+  }, [router, session]);
 
   // Show paywall when the free-tier turn limit is hit
   useEffect(() => {
@@ -141,9 +145,8 @@ export default function ActiveCampaign(): JSX.Element {
         void speakOnce("Please wait for the narrator to finish.");
         return;
       }
-      sessionConnection.pause();
       void speakOnce("Paused. Returning home.");
-      router.replace("/");
+      leaveCampaign();
     },
     "do something else|custom action|speak": () => { void speakFreeform(); },
   });
@@ -238,7 +241,7 @@ export default function ActiveCampaign(): JSX.Element {
         <DockButton
           label="Exit"
           hint="Save and return home"
-          onPress={() => { sessionConnection.pause(); router.replace("/"); }}
+          onPress={leaveCampaign}
         />
       </View>
 
