@@ -16,7 +16,7 @@ import { generateGmTurn, generateSceneSummary } from "./claude.js";
 import { classifyProviderError, type ProviderErrorClass } from "./claude.js";
 import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
-import type { DomainEventBus } from "../events/domain-events.js";
+import { createEventEnvelope, type DomainEventBus } from "../events/domain-events.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
 
 const SCENE_SUMMARY_EVERY = 15;
@@ -266,12 +266,15 @@ export async function runTurn(
   });
   await deps.persistState(session.campaignId, nextState);
   if (deps.domainEvents) {
-    await deps.domainEvents.publish({
-      type: "TurnResolved",
-      eventId: randomUUID(),
-      campaignId: session.campaignId,
-      turnNumber: nextState.turn_number,
-    });
+    await deps.domainEvents.publish(
+      createEventEnvelope({
+        eventType: "game.turn_committed",
+        aggregateId: session.campaignId,
+        version: nextState.turn_number,
+        dedupeKey: `turn:${session.campaignId}:${nextState.turn_number}`,
+        payload: { campaignId: session.campaignId, turnNumber: nextState.turn_number },
+      }),
+    );
   }
   if (deps.persistPresentedChoices) {
     await deps.persistPresentedChoices(session.campaignId, turn.presented_choices);

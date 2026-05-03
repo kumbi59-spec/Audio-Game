@@ -15,7 +15,8 @@ import { getSessionMetricsSnapshot } from "./observability/session-metrics.js";
 import { incrementSessionMetric } from "./observability/session-metrics.js";
 import { getStorageBackend } from "./state/store.js";
 import { resolveModelPolicy } from "./gm/model-policy.js";
-import { DomainEventBus } from "./events/domain-events.js";
+import { InMemoryDomainEventBus } from "./events/domain-events.js";
+import { registerDefaultSideEffects, SideEffectProcessor } from "./events/side-effects.js";
 
 export interface BuildServerOptions {
   /** Override the GM turn generator (tests inject a deterministic fake). */
@@ -30,12 +31,12 @@ export async function buildServer(options: BuildServerOptions = {}) {
       level: options.logLevel ?? process.env["LOG_LEVEL"] ?? "info",
     },
   });
-  const domainEvents = new DomainEventBus();
-  const handledDomainEventIds = new Set<string>();
-  domainEvents.on("TurnResolved", (event) => {
-    if (handledDomainEventIds.has(event.eventId)) return;
-    handledDomainEventIds.add(event.eventId);
-    incrementSessionMetric("turnResolvedEvents");
+  const domainEvents = new InMemoryDomainEventBus();
+  const sideEffects = new SideEffectProcessor();
+  registerDefaultSideEffects(domainEvents, sideEffects, {
+    analytics: async (event) => {
+      if (event.eventType === "game.turn_committed") incrementSessionMetric("turnResolvedEvents");
+    },
   });
 
   await app.register(cors, {
@@ -55,9 +56,11 @@ export async function buildServer(options: BuildServerOptions = {}) {
   app.get("/metrics", async () => ({
     storageBackend: getStorageBackend(),
     session: getSessionMetricsSnapshot(),
+    domainEvents: sideEffects.getTelemetry(),
+    deadLetters: sideEffects.getDeadLetters().length,
   }));
 
-  await registerAuthRoutes(app);
+  await registerAuthRoutes(app, domainEvents);
   await registerWorldRoutes(app);
   await registerWizardRoutes(app);
   await registerCampaignRoutes(app);
