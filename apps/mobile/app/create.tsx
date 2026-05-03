@@ -191,6 +191,7 @@ export default function CreateWorld(): JSX.Element {
         <View style={styles.dots}>
           {STEPS.map((_, i) => {
             const anim = dotProgress[i];
+            if (!anim) return null;
             const isActive = i === stepIndex;
             const isComplete = i < stepIndex;
             return (
