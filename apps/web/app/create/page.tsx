@@ -231,42 +231,41 @@ function CreateCharacterPage() {
         )}
         {world && (
           <>
-        <Link
-          href="/library"
-          className="mb-6 inline-block text-sm text-muted-foreground motion-cta hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          ← Back to Library
-        </Link>
+        <section className="surface-gradient inner-highlight mb-6 rounded-xl border border-border/90 p-4 sm:p-5">
+          <h1 className="mb-1 text-2xl font-bold" tabIndex={-1} data-focus-on-mount>
+            Create Your Character
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            World: <strong>{world.name}</strong>
+          </p>
+        </section>
 
-        <h1 className="mb-1 text-2xl font-bold" tabIndex={-1} data-focus-on-mount>
-          Create Your Character
-        </h1>
-        <p className="mb-6 text-sm text-muted-foreground">
-          World: <strong>{world.name}</strong>
-        </p>
+        <section className="surface-gradient inner-highlight mb-6 rounded-xl border border-border bg-background/60 p-4 shadow-sm sm:p-5">
+          {/* Progress */}
+          <div
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={3}
+            aria-valuenow={step === "name" ? 1 : step === "class" ? 2 : 3}
+            aria-label="Character creation progress"
+            className="flex gap-2"
+          >
+            {["name", "class", "backstory"].map((s, i) => (
+              <div
+                key={s}
+                className={`progress-segment h-1.5 flex-1 rounded-full motion-step ${
+                  i < (step === "name" ? 0 : step === "class" ? 1 : 2)
+                    ? "bg-primary progress-segment-fill"
+                    : i === (step === "name" ? 0 : step === "class" ? 1 : 2)
+                    ? "bg-primary/60 motion-step-active progress-segment-fill"
+                    : "bg-muted motion-step-idle progress-segment-pending"
+                }`}
+              />
+            ))}
+          </div>
+        </section>
 
-        {/* Progress */}
-        <div
-          role="progressbar"
-          aria-valuemin={1}
-          aria-valuemax={3}
-          aria-valuenow={step === "name" ? 1 : step === "class" ? 2 : 3}
-          aria-label="Character creation progress"
-          className="mb-8 flex gap-2"
-        >
-          {["name", "class", "backstory"].map((s, i) => (
-            <div
-              key={s}
-              className={`progress-segment h-1.5 flex-1 rounded-full motion-step ${
-                i < (step === "name" ? 0 : step === "class" ? 1 : 2)
-                  ? "bg-primary progress-segment-fill"
-                  : i === (step === "name" ? 0 : step === "class" ? 1 : 2)
-                  ? "bg-primary/60 motion-step-active progress-segment-fill"
-                  : "bg-muted motion-step-idle progress-segment-pending"
-              }`}
-            />
-          ))}
-        </div>
+        <section className="surface-gradient inner-highlight mb-6 rounded-xl border border-border/90 bg-background/70 p-4 shadow-md sm:p-5">
 
         {/* Step: Name */}
         {step === "name" && (
@@ -486,6 +485,15 @@ function CreateCharacterPage() {
             </div>
           </section>
         )}
+        </section>
+        <section className="surface-gradient inner-highlight rounded-xl border border-border/80 bg-background/50 px-4 py-3 sm:px-5">
+          <Link
+            href="/library"
+            className="inline-block text-sm text-muted-foreground motion-cta hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            ← Back to Library
+          </Link>
+        </section>
           </>
         )}
       </div>

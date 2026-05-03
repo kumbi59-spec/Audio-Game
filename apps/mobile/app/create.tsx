@@ -183,114 +183,118 @@ export default function CreateWorld(): JSX.Element {
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.container}>
-      <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
-        Create World
-      </Text>
-
-      {/* Step progress dots */}
-      <View style={styles.dots}>
-        {STEPS.map((_, i) => {
-          const anim = dotProgress[i];
-          const isActive = i === stepIndex;
-          const isComplete = i < stepIndex;
-          return (
-          <Animated.View
-            key={i}
-            style={[
-              styles.dot,
-              isActive && styles.dotActive,
-              isComplete && styles.dotDone,
-              {
-                opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.58, 1] }),
-                transform: [{
-                  scale: anim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [reduceMotion ? 1 : 0.92, 1],
-                  }),
-                }],
-              },
-            ]}
-          />
-        );
-        })}
-      </View>
-      <Text style={styles.progress}>Step {stepIndex + 1} of {STEPS.length}</Text>
-
-      <Text accessibilityRole="text" style={styles.prompt}>{step.prompt}</Text>
-      {step.kind === "freeform" && step.helper && (
-        <Text style={styles.helper}>{step.helper}</Text>
-      )}
-
-      {step.kind === "freeform" ? (
-        <>
-          <TextInput
-            accessibilityLabel={step.prompt}
-            accessibilityHint={step.helper}
-            style={[styles.input, (step.id === "pitch" || step.id === "startingScenario") && styles.inputMulti]}
-            value={textInput}
-            onChangeText={setTextInput}
-            editable={!busy}
-            autoFocus
-            multiline={step.id === "pitch" || step.id === "startingScenario"}
-            placeholderTextColor={EQ.textFaint}
-            placeholder="Type or speak your answer…"
-          />
-
-          {/* Claude suggestion chips */}
-          {(loadingSuggestions || suggestions.length > 0) && (
-            <View style={styles.suggestionsSection}>
-              <Text style={styles.suggestionsLabel}>
-                {loadingSuggestions ? "Getting ideas…" : "SUGGESTIONS"}
-              </Text>
-              {loadingSuggestions ? (
-                <ActivityIndicator color={EQ.accent} size="small" style={styles.suggestionSpinner} />
-              ) : (
-                <View style={styles.chips}>
-                  {suggestions.map((s, i) => (
-                    <Pressable
-                      key={i}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Use suggestion: ${s}`}
-                      onPress={() => { setTextInput(s); void speakOnce(s); }}
-                      disabled={busy}
-                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed, pressed && styles.btnPressedTransform]}
-                    >
-                      <Text style={styles.chipText}>{s}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
-        </>
-      ) : (
-        <View style={styles.choices}>
-          {step.options.map((opt) => (
-            <Pressable
-              key={opt.value}
-              accessibilityRole="button"
-              accessibilityLabel={opt.label}
-              onPress={() => advance(opt.value)}
-              style={({ pressed }) => [
-                styles.choiceBtn,
-                draft[step.id] === opt.value && styles.choiceBtnSelected,
-                pressed && styles.btnPressed,
-                pressed && styles.btnPressedTransform,
+      <View style={styles.zoneHero}>
+        <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
+          Create World
+        </Text>
+        {/* Step progress dots */}
+        <View style={styles.dots}>
+          {STEPS.map((_, i) => {
+            const anim = dotProgress[i];
+            const isActive = i === stepIndex;
+            const isComplete = i < stepIndex;
+            return (
+            <Animated.View
+              key={i}
+              style={[
+                styles.dot,
+                isActive && styles.dotActive,
+                isComplete && styles.dotDone,
+                {
+                  opacity: anim.interpolate({ inputRange: [0, 1], outputRange: [0.58, 1] }),
+                  transform: [{
+                    scale: anim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [reduceMotion ? 1 : 0.92, 1],
+                    }),
+                  }],
+                },
               ]}
-              disabled={busy}
-            >
-              <View pointerEvents="none" style={styles.topEdgeHighlight} />
-              <Text style={[
-                styles.choiceText,
-                draft[step.id] === opt.value && styles.choiceTextSelected,
-              ]}>
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
+            />
+          );
+          })}
         </View>
-      )}
+        <Text style={styles.progress}>Step {stepIndex + 1} of {STEPS.length}</Text>
+      </View>
 
+      <View style={styles.zonePrimary}>
+        <Text accessibilityRole="text" style={styles.prompt}>{step.prompt}</Text>
+        {step.kind === "freeform" && step.helper && (
+          <Text style={styles.helper}>{step.helper}</Text>
+        )}
+
+        {step.kind === "freeform" ? (
+          <>
+            <TextInput
+              accessibilityLabel={step.prompt}
+              accessibilityHint={step.helper}
+              style={[styles.input, (step.id === "pitch" || step.id === "startingScenario") && styles.inputMulti]}
+              value={textInput}
+              onChangeText={setTextInput}
+              editable={!busy}
+              autoFocus
+              multiline={step.id === "pitch" || step.id === "startingScenario"}
+              placeholderTextColor={EQ.textFaint}
+              placeholder="Type or speak your answer…"
+            />
+
+            {/* Claude suggestion chips */}
+            {(loadingSuggestions || suggestions.length > 0) && (
+              <View style={styles.suggestionsSection}>
+                <Text style={styles.suggestionsLabel}>
+                  {loadingSuggestions ? "Getting ideas…" : "SUGGESTIONS"}
+                </Text>
+                {loadingSuggestions ? (
+                  <ActivityIndicator color={EQ.accent} size="small" style={styles.suggestionSpinner} />
+                ) : (
+                  <View style={styles.chips}>
+                    {suggestions.map((s, i) => (
+                      <Pressable
+                        key={i}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Use suggestion: ${s}`}
+                        onPress={() => { setTextInput(s); void speakOnce(s); }}
+                        disabled={busy}
+                        style={({ pressed }) => [styles.chip, pressed && styles.chipPressed, pressed && styles.btnPressedTransform]}
+                      >
+                        <Text style={styles.chipText}>{s}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={styles.choices}>
+            {step.options.map((opt) => (
+              <Pressable
+                key={opt.value}
+                accessibilityRole="button"
+                accessibilityLabel={opt.label}
+                onPress={() => advance(opt.value)}
+                style={({ pressed }) => [
+                  styles.choiceBtn,
+                  draft[step.id] === opt.value && styles.choiceBtnSelected,
+                  pressed && styles.btnPressed,
+                  pressed && styles.btnPressedTransform,
+                ]}
+                disabled={busy}
+              >
+                <View pointerEvents="none" style={styles.topEdgeHighlight} />
+                <Text style={[
+                  styles.choiceText,
+                  draft[step.id] === opt.value && styles.choiceTextSelected,
+                ]}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+      </View>
+
+      <View style={styles.zoneSecondary}>
       <View style={styles.nav}>
         <Pressable
           accessibilityRole="button"
@@ -338,11 +342,13 @@ export default function CreateWorld(): JSX.Element {
             )}
           </Pressable>
         )}
-      </View>
+      </View></View>
 
-      {error && (
-        <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
-      )}
+      <View style={styles.zoneUtility}>
+        {error && (
+          <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
+        )}
+      </View>
 
       <UpgradePrompt
         visible={paywallVisible}
@@ -377,6 +383,10 @@ function matchChoice(step: Extract<WizardStep, { kind: "choice" }>, transcript: 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: EQ.bg },
   container: { padding: SPACE[6], gap: SPACE[4] },
+  zoneHero: { borderRadius: R.xl, borderWidth: 1, borderColor: EQ.border, backgroundColor: "rgba(255,255,255,0.02)", padding: SPACE[4], gap: SPACE[2] },
+  zonePrimary: { borderRadius: R.xl, borderWidth: 1, borderColor: EQ.border2, backgroundColor: "rgba(255,255,255,0.03)", padding: SPACE[4], gap: SPACE[3], shadowColor: EQ.bg2, shadowOpacity: 0.24, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  zoneSecondary: { borderRadius: R.xl, borderWidth: 1, borderColor: EQ.border, backgroundColor: "rgba(255,255,255,0.025)", padding: SPACE[4], shadowColor: EQ.bg2, shadowOpacity: 0.2, shadowRadius: 7, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  zoneUtility: { borderRadius: R.lg, borderWidth: 1, borderColor: EQ.border, backgroundColor: "rgba(255,255,255,0.015)", paddingHorizontal: SPACE[3], paddingVertical: SPACE[2] },
 
   h1: { ...TYPE.display, color: EQ.text },
 
