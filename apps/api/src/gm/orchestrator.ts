@@ -18,6 +18,42 @@ import { config } from "../config.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
+type GmTurnOutcome = "success_first_try" | "success_on_retry" | "exhausted_retries";
+
+const gmTurnMetrics = {
+  success_first_try: 0,
+  success_on_retry: 0,
+  exhausted_retries: 0,
+};
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+function classifyAttemptError(error: Error): {
+  error_code: string;
+  category: "timeout" | "provider_error";
+} {
+  if (error.message === "gm_turn_timeout") {
+    return { error_code: "gm_turn_timeout", category: "timeout" };
+  }
+  return {
+    error_code: error.message || "gm_turn_failed",
+    category: "provider_error",
+  };
+}
+
+function recordOutcome(outcome: GmTurnOutcome): void {
+  gmTurnMetrics[outcome] += 1;
+  console.info(
+    JSON.stringify({
+      event: "gm_turn_outcome",
+      metric: "gm_turn_outcome_total",
+      outcome,
+      ...gmTurnMetrics,
+    }),
+  );
+}
+
 export type TurnGenerator = (args: {
   bible: GameBible;
   userPrompt: string;
@@ -105,6 +141,7 @@ export async function runTurn(
   const maxAttempts = Math.max(1, config.GM_TURN_MAX_RETRIES + 1);
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const attemptNumber = attempt + 1;
     const attemptChunks: string[] = [];
     try {
       const turnPromise = generate({
@@ -128,14 +165,53 @@ export async function runTurn(
       for (const chunk of attemptChunks) {
         emit({ type: "narration_chunk", turnId, text: chunk, done: false });
       }
+      console.info(
+        JSON.stringify({
+          event: "gm_turn_attempt",
+          attempt: attemptNumber,
+          max_attempts: maxAttempts,
+          status: "success",
+          timeout: false,
+          provider_error: false,
+        }),
+      );
       break;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error("gm_turn_failed");
+      const { error_code, category } = classifyAttemptError(lastError);
+      console.warn(
+        JSON.stringify({
+          event: "gm_turn_attempt",
+          attempt: attemptNumber,
+          max_attempts: maxAttempts,
+          status: "failure",
+          error_code,
+          timeout: category === "timeout",
+          provider_error: category === "provider_error",
+        }),
+      );
+
+      const willRetry = attempt < maxAttempts - 1;
+      if (willRetry) {
+        const backoffMs = attemptNumber * config.GM_TURN_RETRY_BACKOFF_MS;
+        if (backoffMs > 0) {
+          await sleep(backoffMs);
+        }
+      }
     }
   }
 
   if (!turn) {
+    recordOutcome("exhausted_retries");
     throw lastError ?? new Error("gm_turn_failed");
+  }
+
+  if (maxAttempts === 1) {
+    recordOutcome("success_first_try");
+  } else if (lastError) {
+    recordOutcome("success_on_retry");
+  } else {
+    recordOutcome("success_first_try");
   }
 
   emit({ type: "narration_chunk", turnId, text: "", done: true });
