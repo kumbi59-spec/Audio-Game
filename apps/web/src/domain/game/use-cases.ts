@@ -3,7 +3,19 @@ export function selectChoice(choiceLabel: string): string {
 }
 
 export function normalizeChoiceList(choices: string[]): string[] {
-  return choices
-    .map(selectChoice)
-    .filter((choice, index, arr) => choice.length > 0 && arr.indexOf(choice) === index);
+  const seen = new Set<string>();
+  const normalizedChoices: string[] = [];
+
+  for (const choice of choices) {
+    const normalizedChoice = selectChoice(choice);
+
+    if (normalizedChoice.length === 0 || seen.has(normalizedChoice)) {
+      continue;
+    }
+
+    seen.add(normalizedChoice);
+    normalizedChoices.push(normalizedChoice);
+  }
+
+  return normalizedChoices;
 }
