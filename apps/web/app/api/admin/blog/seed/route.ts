@@ -266,43 +266,55 @@ If you're a blind or visually impaired gamer who wants to try EchoQuest, your fi
     excerpt: "Whether you're creating a world in EchoQuest's World Builder Wizard or writing a Game Bible from scratch, these five principles separate memorable campaigns from forgettable ones.",
     content: `# 5 World-Building Tips That Make Great RPG Campaigns
 
-Every great RPG campaign starts with a great world. Not a perfect world — a *interesting* one. A world with problems, history, and people who want things. Here are five principles that will make your world worth adventuring in.
+Every great RPG campaign starts with a great world. Not a perfect world — an *interesting* one. A world with problems, history, and people who want things. The most common world-building mistake new creators make is trying to be exhaustive: drafting page after page of geography, language families, and pantheons before any character has moved through the world. By the time the first session starts, the writer is exhausted and the world feels like an encyclopedia rather than a place where stories happen.
+
+These five principles flip that priority. Instead of describing what your world *is*, they help you describe what's *happening* in it — and what could happen next, depending on what your players choose to do. Whether you're using EchoQuest's World Builder Wizard or hand-writing a Game Bible from scratch, applying any one of these tips will improve your world. Applying all five will transform it.
 
 ## 1. Give Your World a Central Tension
 
-The best fictional worlds aren't static. Something is wrong — or about to go wrong. Maybe an ancient empire is crumbling and three factions are fighting over its bones. Maybe a plague is spreading and nobody knows the cause. Maybe a god just died, and the faiths that worshipped it are in freefall.
+The best fictional worlds aren't static. Something is wrong — or about to go wrong. Maybe an ancient empire is crumbling and three factions are fighting over its bones. Maybe a plague is spreading and nobody knows the cause. Maybe a god just died, and the faiths that worshipped it are in freefall. Maybe two countries that have shared a border for a thousand years are mobilising armies for the first time, and nobody is sure why.
 
-Your players need a world with active stakes. The central tension is the engine that drives your story forward even when players go off-script. Before you write anything else, answer: **What is fundamentally broken about this world?**
+Your players need a world with active stakes. The central tension is the engine that drives your story forward even when players go off-script. It's why the next conversation in a tavern matters, why every road feels like it could lead somewhere consequential, why an NPC's offhand remark might be a clue. Before you write anything else, answer this question in a single sentence: **What is fundamentally broken about this world, and what happens if no one fixes it?** Write that answer down. Pin it to the top of your Game Bible. Every scene, every NPC, every location should connect back to that one sentence in some way.
+
+A useful test: imagine your players ignore the main plot completely and just wander. Does the world still feel charged? If it does, you have a central tension. If everything goes flat the moment the players turn left, you don't — you have a single quest dressed up as a setting.
 
 ## 2. Make Your Factions Want Incompatible Things
 
-Conflict is the soul of drama. And conflict comes easiest when you have groups of people — factions — who each want something legitimate but mutually exclusive.
+Conflict is the soul of drama. And conflict comes easiest when you have groups of people — factions — who each want something legitimate but mutually exclusive. The trick isn't to invent villains; it's to invent legitimate, sympathetic groups whose goals don't fit together.
 
-The merchant guild wants open trade routes. The druids want the forest untouched. The crown wants tax revenue from the timber trade. Nobody is purely evil. Everyone has a reasonable case. Now put your players in the middle and watch the sparks fly.
+The merchant guild wants open trade routes through the old forest. The druids want the forest untouched. The crown wants tax revenue from the timber trade and doesn't want to alienate either side. The forest itself, in some half-mythic way, wants to be left alone. Nobody here is purely evil. Everyone has a reasonable case if you sit them down for tea. Now put your players in the middle and watch the sparks fly.
 
-Aim for three to five factions. Any fewer and the world feels simple. Any more and players lose track.
+Aim for three to five factions. Any fewer and the world feels simple — players quickly identify a "good guys versus bad guys" axis and the moral interest collapses. Any more and players lose track of who hates whom and why. For each faction, write down three things: what they want, what they fear, and what they'd never do. The "never do" is the most important — it tells you when a faction will compromise and when they'll fight to the last person. When the AI Game Master is improvising a scene with that faction, those three answers will guide every line of dialogue.
 
 ## 3. History Leaves Ruins — Use Them
 
-Players love discovering things. They love stumbling into a half-buried temple and wondering who built it and why. They love finding a crumbling fort with a name on the map but no explanation.
+Players love discovering things. They love stumbling into a half-buried temple and wondering who built it and why. They love finding a crumbling fort with a name on the map but no explanation, or a road that ends abruptly in the middle of a swamp, or a graveyard where every headstone is from the same year.
 
-Before your players arrive, something happened here. Build two or three historical events that left physical traces in the world — ruins, scars, monuments, ghost towns. You don't have to explain them all upfront. Let players encounter a ruin and ask questions. Let the mystery breathe.
+Before your players arrive, something happened here. Build two or three historical events that left physical traces in the world — ruins, scars, monuments, ghost towns. You don't have to explain them all upfront. In fact, you *shouldn't*. Let players encounter a ruin and ask questions. Let the mystery breathe. Some of the most memorable RPG moments are when a player asks "what's that?" about something the writer hadn't planned to be important, and the GM (human or AI) gets to spin a small thread of history on the spot.
+
+A good rule: write at least one piece of history that nobody alive remembers correctly. The truth has been distorted by retellings, propaganda, or simple time. When your players unearth the real story, it feels like archaeology, not exposition. The world becomes a place that *was* before they got there — which is what makes it feel real once they do.
 
 ## 4. Give NPCs Goals That Exist Without the Players
 
-Novice world-builders create NPCs who exist solely to give quests. Veterans create NPCs who were doing things before the players showed up and will keep doing things regardless.
+Novice world-builders create NPCs who exist solely to give quests. They wait at the tavern with a problem, hand it to the players, and disappear. Veterans create NPCs who were doing things before the players showed up and will keep doing things regardless of whether the players ever speak to them.
 
-The blacksmith has a gambling debt she's hiding from her husband. The innkeeper is quietly collecting information for a rebel cell. The city guard captain genuinely believes he's protecting people, even when his methods are cruel.
+The blacksmith has a gambling debt she's hiding from her husband. The innkeeper is quietly collecting information for a rebel cell — every traveller who passes through is a potential source. The city guard captain genuinely believes he's protecting people, even when his methods cross into cruelty. The street vendor near the temple is saving every copper to send her son to scribe school three cities away, and her prices reflect that ambition more than the price of vegetables.
 
-When an NPC has their own agenda, they feel real. Players pick up on it. It makes the world feel inhabited rather than constructed.
+When an NPC has their own agenda, three things happen. First, players pick up on it within seconds — there's a quality of presence that transparent quest-givers never have. Second, the NPC stays interesting across multiple visits. The blacksmith doesn't just have a different pre-written line each scene; she has an arc the players can intersect with at any point. Third, when a player does something unexpected, the NPC has a believable reaction, because you already know what they want and what they fear. Give every named NPC at least one secret, one ongoing problem, and one thing they'd never tell a stranger.
 
 ## 5. Establish Clear Sensory Language
 
-An AI Game Master describes your world through text and narration. Help it do that well by giving your world specific sensory language in your Game Bible.
+An AI Game Master describes your world through text and narration. Help it do that well by giving your world specific sensory language in your Game Bible. The single biggest predictor of whether an AI-narrated scene will feel atmospheric or generic is whether the source material gave the model concrete sensory anchors to draw from.
 
-Don't say "the city is dark and gritty." Say: "The city smells of tallow candles, river mud, and frying onions. Cobblestones are slick from morning fog. Voices argue in three languages from upper-floor windows."
+Don't say "the city is dark and gritty." That's a marketing tagline, not a description. Say: "The city smells of tallow candles, river mud, and frying onions. Cobblestones are slick from morning fog. Voices argue in three languages from upper-floor windows. Bells from the harbor ring on the half-hour and nobody on the streets seems to notice anymore." Now the AI has something to riff on. The next scene the model writes will reach for those textures because you put them in front of it.
 
-Specificity is immersion. The more concrete your world's sensory palette, the more vividly the AI will render it in play.
+Specificity is immersion. The more concrete your world's sensory palette — what it smells like, what sounds drift through the air, what the light does at different times of day, what people are eating and wearing — the more vividly the AI will render it in play. For an audio-first platform like EchoQuest, sound details matter doubly: how does this place echo? What's the rhythm of footsteps on its streets? What's the dominant background hum, and what punctuates it?
+
+## Putting It All Together
+
+These five principles aren't a checklist you tick off in order — they reinforce each other. A central tension produces faction conflict. Faction conflict produces history. History produces ruins. Ruins produce NPCs with strong opinions about the past. Strong NPCs need sensory language to come alive in narration. If you stay disciplined about answering all five questions for any region you build, the world will feel layered no matter how small you make it.
+
+Start small. A single town with one central tension, three factions, two ruins, six NPCs with secrets, and a clear sensory palette will run a 10-session campaign with room to spare. You can always expand outward. What you can't do is bolt depth onto a world that was designed flat. Build a small world that feels alive and your players will fight you to spend more time in it.
 
 ---
 
@@ -315,50 +327,61 @@ Ready to build your world? EchoQuest Creator plan members get access to the **Wo
     excerpt: "What actually happens when you type an action in EchoQuest? Here's a plain-language look at how Claude AI drives the AI Game Master — and why it's different from older text adventure systems.",
     content: `# How Claude AI Powers the EchoQuest Game Master
 
-When you type "I draw my sword and demand the merchant explain himself," something remarkable happens. Within seconds, a fully contextual narrative response appears — one that remembers who the merchant is, what happened three scenes ago, and what your character's personality is like. How does that work?
+When you type "I draw my sword and demand the merchant explain himself," something remarkable happens. Within seconds, a fully contextual narrative response appears — one that remembers who the merchant is, what happened three scenes ago, what your character's personality is like, and even the price you tried to haggle to in the previous market visit. The merchant might back down. He might call for the city guard. He might recognise you and ask, with terror in his voice, why you've come back. None of these responses were written in advance. So how does that work?
+
+This post is a plain-language tour of what's actually happening under the hood when you take an action in EchoQuest. No deep machine-learning theory required. By the end you'll have an accurate mental model of what the AI Game Master can do, what it can't, and why EchoQuest is structured the way it is.
 
 ## The Old Way: Decision Trees
 
-Text adventures and early visual novels worked by mapping every possible player input to a predetermined response. If you typed "go north," the game checked a table and returned the "north room" text. If you typed anything else, you got "I don't understand that."
+Text adventures and early visual novels worked by mapping every possible player input to a predetermined response. If you typed "go north," the game checked a table and returned the "north room" text. If you typed anything else, you got "I don't understand that." Designers tried to anticipate every reasonable command, then added more whenever a beta tester surprised them. There were tricks to widen the parser — synonym tables, pattern matching, "guess the verb" mechanics — but the underlying limit was the same: every meaningful response had to be written by a human in advance.
 
-This was fine for simple puzzles, but it breaks down immediately when you try to have a conversation, act creatively, or do anything the designer didn't anticipate. The world felt hollow because it literally was — it only contained what someone explicitly programmed.
+This was fine for simple puzzles, but it breaks down immediately when you try to have a conversation, act creatively, or do anything the designer didn't anticipate. The world felt hollow because it literally was — it only contained what someone explicitly programmed. The classic frustration of "I can see the rope on the table but I can't pick it up" wasn't bad design; it was the parser running out of pre-written content. AI Dungeon, around 2019, was the first big public attempt to escape that ceiling using language models. It worked — but only loosely. State drifted, characters forgot their names, plot threads dissolved. The next leap, the one EchoQuest is built on, is what happens when you wrap a much more capable language model in a structured game system that holds the world together.
 
 ## The New Way: Language Models
 
-EchoQuest uses Claude, a large language model developed by Anthropic, as the core of the AI Game Master. Claude doesn't work from a lookup table. Instead, it understands your input as natural language and generates a contextually appropriate response from scratch, every time.
+EchoQuest uses Claude, a large language model developed by Anthropic, as the core of the AI Game Master. Claude doesn't work from a lookup table. Instead, it understands your input as natural language and generates a contextually appropriate response from scratch, every time. The model has been trained on an enormous amount of text — fiction, dialogue, technical writing, philosophy, jokes, recipes, cultural references — so it has an unusually deep grasp of how human conversations and stories work.
 
 That means:
 
-- You can phrase your actions any way you want
-- The GM understands intent, not just keywords
-- Responses feel natural and varied rather than canned
-- The story can go in directions nobody predetermined
+- You can phrase your actions any way you want — "draw my sword," "unsheathe my blade," "ready my weapon," or even "let him know I'm not joking" all land in roughly the same place
+- The GM understands intent, not just keywords — it cares about *what* you're trying to accomplish, not which exact verbs you used
+- Responses feel natural and varied rather than canned — the same situation, played twice, will produce two different paragraphs of narration
+- The story can go in directions nobody predetermined — the writer of the world only had to set up the conditions; the model improvises within them
+
+The flip side: a language model on its own doesn't remember anything between calls and doesn't enforce rules. It will happily contradict itself if you let it. That's why the EchoQuest GM is more than just Claude — it's Claude wrapped in a game engine that supplies memory and constraints.
 
 ## What the GM Actually Knows
 
 Before Claude generates a response to your action, it receives a detailed system prompt containing:
 
-- **World information**: the setting, tone, factions, and lore from your campaign's Game Bible
-- **Your character**: name, class, stats, backstory, and current inventory
-- **Current context**: where you are, what's around you, recent events
-- **Conversation history**: the last several exchanges in your session
-- **Rules**: how to handle combat, skill checks, NPC behavior, and narrative pacing
+- **World information**: the setting, tone, factions, and lore from your campaign's Game Bible. This is the same Game Bible the world creator wrote, condensed and structured so Claude can keep the world consistent without using up the entire context window on backstory
+- **Your character**: name, class, stats, backstory, current inventory, conditions like "wounded" or "exhausted," and any relationships you've established with named NPCs
+- **Current context**: where you are, what's around you, what time of day it is, what's happened in this scene so far
+- **Conversation history**: the last several exchanges in your session, plus a summarised digest of older events that fall outside the live window
+- **Rules**: how to handle combat, skill checks, NPC behavior, and narrative pacing — these are the EchoQuest "house rules" written into the GM persona
 
-This is called the *context window* — everything the AI knows before it writes its next response. The richer the context, the more coherent and immersive the story.
+This is called the *context window* — everything the AI knows before it writes its next response. The richer and more relevant the context, the more coherent and immersive the story. A lot of EchoQuest's engineering work goes into deciding what to include. Ten thousand tokens of pristine, scene-relevant context will produce far better narration than a hundred thousand tokens of unfiltered transcript.
 
 ## Why Responses Feel Consistent
 
-One of the challenges with AI Game Masters is maintaining consistency — the same NPC shouldn't forget your name between scenes, and the laws of the world shouldn't arbitrarily change. EchoQuest addresses this by:
+One of the challenges with AI Game Masters is maintaining consistency — the same NPC shouldn't forget your name between scenes, the laws of the world shouldn't arbitrarily change, and a story flag set in chapter one should still be set in chapter five. EchoQuest addresses this by:
 
-- Storing key story facts and character state in a structured game state (not just relying on the conversation history)
-- Injecting a summary of past events when sessions continue after a break
-- Using the world's Game Bible as a persistent ground truth the AI always references
+- Storing key story facts and character state in a structured game state separate from the conversation history. HP, inventory, faction reputations, completed quests, and named NPC dispositions live in a database — they're injected fresh every turn rather than depending on the model "remembering" them
+- Injecting a summary of past events when sessions continue after a break. If you played three sessions last week and come back, the GM gets a bullet-point recap of what happened so it can pick up exactly where you left off
+- Using the world's Game Bible as a persistent ground truth the AI always references, so the model can't quietly drift off-canon. If your world says elves are extinct, the GM won't introduce a friendly elven shopkeeper in scene fourteen
+- Re-injecting the active scene's location description before any combat or skill check, so spatial details stay stable even when the model's attention has moved
+
+The combined effect is a session where the GM feels like the same GM across hours of play. NPCs you met early in the campaign greet you by the name they used last time. The kingdom's politics evolve in directions consistent with what you've already established. The world has continuity even though, technically, every response is generated from scratch.
 
 ## The Human Design Behind the AI
 
-Claude doesn't invent the rules — we do. The EchoQuest team writes the system prompt that defines how the GM should behave: how to pace tension, when to offer choices versus let the player freeform, how harsh or forgiving to be with consequences. The AI executes those rules with intelligence and creativity.
+Claude doesn't invent the rules — we do. The EchoQuest team writes the system prompt that defines how the GM should behave: how to pace tension, when to offer choices versus let the player freeform, how harsh or forgiving to be with consequences, how to handle player goals that conflict with the campaign's central tension, when to say "yes, and" and when to push back. We've iterated on that prompt for hundreds of hours, comparing how different versions handle the same scenarios, and we keep refining it as players send us moments that didn't land the way we wanted.
 
-Think of it like a very skilled, very fast co-author. We set the creative constraints. Claude fills in the story within them.
+Think of it like a very skilled, very fast co-author. We set the creative constraints. Claude fills in the story within them. The AI is genuinely creative — surprising even us with NPCs, twists, and lines of dialogue that we'd never have thought to write — but it's creating inside a frame we shaped. That's the secret to an AI GM that consistently produces the kind of story you signed up for, instead of drifting into generic fantasy mush by hour two.
+
+## What This Means for You
+
+When you sit down to play, you don't have to think about any of this. You type or speak whatever your character does, and the world responds. But knowing what's underneath helps you play to its strengths. Be specific about what your character wants. Reference earlier moments — the GM is listening. Ask NPCs questions you genuinely don't know the answer to; the model is at its best when there's room to surprise you. And remember that the world has its own logic: if something feels off, it's worth asking the GM about it in-character. Often, what looks like an inconsistency is actually a thread waiting to be pulled.
 
 Ready to see it in action? **[Play a free session →](/library)**
 `,
@@ -369,49 +392,67 @@ Ready to see it in action? **[Play a free session →](/library)**
     excerpt: "Chosen heroes, dark lords, and magical prophecies are RPG staples for good reason. But knowing when to lean in — and when to flip the script — is what separates a good campaign from a great one.",
     content: `# The Best Fantasy RPG Tropes — And When to Subvert Them
 
-Tropes get a bad reputation. People use the word like an insult, as if familiar story elements are somehow lazy. But tropes exist because they work — they're shorthand that lets players instantly understand the stakes and their role in the story. The trick isn't avoiding them. It's knowing when to use them straight and when to twist them.
+Tropes get a bad reputation. People use the word like an insult, as if familiar story elements are somehow lazy. But tropes exist because they work — they're shorthand that lets players instantly understand the stakes and their role in the story. When a player sees a hooded figure in a tavern corner, they know to pay attention. When a king mentions a rumour from a distant province, they know it's a hook. Tropes are the load-bearing walls of genre fiction. Tear them all out and the building collapses; players don't know how to read the world anymore.
+
+The real skill isn't avoiding tropes. It's knowing when to use them *straight* and when to *twist* them. A campaign that subverts every cliché feels nihilistic and exhausting — nothing means what it appears to mean, so why pay attention? A campaign that subverts nothing feels like beige fanfiction — every beat is exactly what you expected. The masters of fantasy storytelling, from Le Guin to Jemisin to Pratchett, lean into well-worn tropes for emotional resonance and twist them at moments where the twist actually means something. This post walks through five of the most useful fantasy tropes and shows how to deploy each one for maximum impact, played either way.
 
 ## The Chosen Hero
 
 **The trope:** One special person, foretold by prophecy, is destined to save the world.
 
-**Why it works:** It puts the player at the centre of the story. It justifies why *your character* is the one taking action when everyone else stays home.
+**Why it works:** It puts the player at the centre of the story. It justifies why *your character* is the one taking action when everyone else stays home. It gives the world a built-in narrative engine — events have always been moving toward this person — and it gives the player permission to feel important. RPGs are power fantasies, and the chosen-hero trope is the most efficient way to grant that fantasy without the player having to earn it through tedious early-game errands.
 
-**How to subvert it:** Make the prophecy wrong. Or make it technically correct but describing someone the players would never expect. Or have multiple people who each believe they're the chosen one — and they're all partly right. The chosen hero trope is most interesting when the "choosing" turns out to mean something different than power.
+**Use it straight when:** You want a clear, motivational arc and your players are new to RPGs. The trope is a scaffold for first-time players who need to understand "why am I the one doing this?" Don't overthink it — the chosen-hero frame is comforting for a reason. Many of the most-loved campaigns in the genre play it dead straight and just execute well.
+
+**How to subvert it:** Make the prophecy wrong. Or make it technically correct but describing someone the players would never expect — the prophecy is about the players' *enemy*, who fulfils it by being defeated. Or have multiple people who each believe they're the chosen one, and they're *all* partly right, and the resolution requires them to cooperate instead of compete. The chosen-hero trope is most interesting when the "choosing" turns out to mean something different than power. A prophecy that names someone "the one who will end the war" doesn't have to mean the one who wins — it could be the one who refuses to fight, or the one who dies in the right place at the right time.
 
 ## The Dark Lord
 
 **The trope:** An ancient evil wants to cover the world in darkness. Destroy the MacGuffin, defeat the villain.
 
-**Why it works:** Clear stakes. Obvious enemy. Satisfying endgame.
+**Why it works:** Clear stakes. Obvious enemy. Satisfying endgame. Players know what they're fighting for and against from minute one. The dark lord gives a campaign gravity — a finish line, a crescendo to build toward, an antagonist whose every move is a credible threat to everything the players care about.
 
-**How to subvert it:** Give the dark lord a legitimate grievance. Maybe they were wronged by the civilization your players are defending. Maybe their "darkness" is actually a necessary ecological reset the current power structure is suppressing. A villain who makes a coherent argument is far more unsettling than one who just wants chaos.
+**Use it straight when:** You want momentum. A campaign without a clear final boss can drift into picaresque vignettes that never quite resolve. Sometimes you want the cathartic crash of "we beat the dark lord and saved the kingdom." Don't apologise for it.
+
+**How to subvert it:** Give the dark lord a legitimate grievance. Maybe they were wronged by the civilization your players are defending. Maybe their "darkness" is actually a necessary ecological reset the current power structure is suppressing. Maybe the dark lord is their own former teacher, or their parent, or the version of themselves they're trying not to become. A villain who makes a coherent argument is far more unsettling than one who just wants chaos. The most disturbing dark lords are the ones who, halfway through the final speech, you realise you partially agree with. Players will be talking about that scene for years.
+
+A particularly good twist: the dark lord *is* defeated by the conventional means everyone said would work — and the world gets worse as a result. The "darkness" was the only thing holding something else back. Now what?
 
 ## The Ancient Ruin With a Secret
 
-**The trope:** Players explore a crumbling structure, find puzzles, discover lore, fight a guardian.
+**The trope:** Players explore a crumbling structure, find puzzles, discover lore, fight a guardian, leave with treasure.
 
-**Why it works:** Exploration, mystery, and reward in one neat package.
+**Why it works:** Exploration, mystery, and reward in one neat package. Ruins are video-game level design adapted to RPGs — clear spatial structure, gradual revelation, decisive conclusion. They give players a self-contained adventure with measurable progress.
 
-**How to subvert it:** The ruin isn't ancient — it's recent, and someone faked the aging. Or the "guardian" is the last survivor, not a monster, and has been waiting there for rescue for fifty years. Or the lore players find inside directly contradicts the history everyone outside believes.
+**Use it straight when:** Your campaign needs a breather between heavier story arcs. A clean dungeon crawl is a palate cleanser. It's also where lower-stakes character moments often happen — players banter through corridors, solve a puzzle together, share a brief tense moment with the boss. Skip them entirely and your campaign turns into a wall of dialogue.
+
+**How to subvert it:** The ruin isn't ancient — it's recent, and someone faked the aging to draw treasure-hunters into a trap. Or the "guardian" is the last survivor, not a monster, and has been waiting there for rescue for fifty years; their hostility is desperation, not malice. Or the lore players find inside directly contradicts the history everyone outside the ruin believes, and the players have to decide whether to bring the truth out or let the comfortable lie persist. Or — most cruelly — the ruin's "treasure" is a sealed evil that your campaign's villains have been counting on the players to release.
 
 ## The Wise Old Mentor
 
 **The trope:** An experienced figure guides the players early on, then steps back (or dies dramatically) so the players can grow.
 
-**Why it works:** Orients new players. Provides early direction without railroading.
+**Why it works:** Orients new players. Provides early direction without railroading. Establishes the world's tone and stakes through someone who has the authority to do so. Mentor figures are the load-bearing characters of episodic fantasy — Gandalf, Obi-Wan, Yoda, Vimes, Granny Weatherwax. They tell the audience what kind of story we're in.
 
-**How to subvert it:** The mentor is wrong. Not maliciously — genuinely, confidently, catastrophically wrong about something important. Players who trusted them completely get a harsh lesson about authority. Players who questioned them get vindicated. Either way, the story becomes about more than following instructions.
+**Use it straight when:** You want a confident voice to set up the campaign. New players especially benefit from a mentor — it's a built-in tutorial NPC who can naturally explain the world's rules without breaking immersion.
 
-## The Magical Macguffin
+**How to subvert it:** The mentor is wrong. Not maliciously — genuinely, confidently, catastrophically wrong about something important. Players who trusted them completely get a harsh lesson about authority. Players who questioned them get vindicated. Or the mentor isn't who they say they are; the friendly old wizard is the dark lord's brother, and his "guidance" has been steering the players exactly where the antagonist wants them. Or the mentor is fully sincere and dies as the trope demands — but the lessons they tried to teach turn out to be inadequate for the actual problem the players face. The campaign's central question becomes: how do we move forward when the wise voice we relied on isn't here anymore and was never going to have the answer anyway?
+
+## The Magical MacGuffin
 
 **The trope:** An object of great power must be found, protected, or destroyed.
 
-**Why it works:** Creates a clear objective that can travel anywhere and involve anyone.
+**Why it works:** Creates a clear objective that can travel anywhere and involve anyone. The Ring, the Triforce, the Crystal of Whatever — these objects let writers structure long stories around a single goal that gives every scene a reason to happen. They also let players physically *carry* the stakes, which keeps them present.
 
-**How to subvert it:** The MacGuffin doesn't work as advertised. Or it works perfectly — but activating it requires a moral compromise the players didn't anticipate. Or the "evil" faction trying to steal it actually has a better plan for it than the "good" faction trying to keep it.
+**Use it straight when:** You want a long campaign with a clear through-line and lots of side adventures. The MacGuffin is permission to wander; everything you encounter on the way to/from it is fair game.
 
----
+**How to subvert it:** The MacGuffin doesn't work as advertised. The legendary sword that was supposed to slay the dark lord just... doesn't. Or it works perfectly — but activating it requires a moral compromise the players didn't anticipate; the sword feeds on the wielder's life. Or the "evil" faction trying to steal it actually has a better plan for it than the "good" faction trying to keep it, and the players have to decide which side they were on all along. Or the MacGuffin turns out not to be an object at all — it's a person, an idea, or a memory, and the entire fetch-quest framing was a misdirection. The reveal that the thing the players have been chasing was inside them all along works exactly once and is utterly devastating when it does.
+
+## The Meta-Trope: Earned Subversion
+
+The single most important rule of trope subversion is this: subversion only works if the trope was credible first. A "the chosen one was wrong all along" twist falls flat if the players never believed in the chosen one to begin with. The setup has to feel sincere — sometimes for an entire campaign — before the rug-pull lands. This is why first-time GMs often produce subversion that feels cheap: they're winking at the audience from scene one, and there's nothing to subvert because nothing was ever real.
+
+Play your tropes straight long enough that the players relax into them. *Then* twist. The longer the runway, the bigger the impact. A "secret villain" reveal in scene three is a mild surprise; in scene thirty, after the villain has been the players' favourite NPC, it can change the entire emotional shape of the campaign.
 
 The best campaigns use tropes as a foundation, then surprise players with the first floor they build on top. In EchoQuest, the AI Game Master can follow your lead — tell it your world's central tension and faction goals, and it will find the moments to subvert expectations naturally. **[Start building your world →](/)**
 `,
@@ -422,7 +463,9 @@ The best campaigns use tropes as a foundation, then surprise players with the fi
     excerpt: "EchoQuest is fully playable with a keyboard alone. Here's every shortcut, focus order, and navigation trick you need to know for a seamless mouse-free experience.",
     content: `# Keyboard Navigation in EchoQuest: Play Without a Mouse
 
-Whether you're a keyboard power user, a blind player using a screen reader, or someone whose mouse just broke, EchoQuest is designed to work completely without one. Every feature is reachable by keyboard. Every action is triggerable by shortcut.
+Whether you're a keyboard power user, a blind player using a screen reader, or someone whose mouse just broke ten minutes before a session, EchoQuest is designed to work completely without one. Every feature is reachable by keyboard. Every action is triggerable by shortcut. There is no place in the game — main menu, world library, character creation, active session, settings, account management — where you'll be forced to grab a mouse to make progress. We test that promise constantly, including with users who literally cannot use a mouse, and we treat any keyboard trap as a release-blocking bug.
+
+This post is the complete reference for keyboard players. We cover the basics first (tab, focus, escape), then in-game shortcuts during a session, then the screen-reader integration story, and finally power-user tricks that experienced keyboard players love. If you're brand new to keyboard-first navigation, the first section is everything you need; the rest you can pick up over your first few sessions.
 
 ## The Core Navigation Model
 
@@ -432,8 +475,11 @@ EchoQuest follows standard web accessibility patterns, so if you know how to nav
 - **Shift+Tab** moves focus backward
 - **Enter** or **Space** activates the focused button or link
 - **Escape** closes modals and dismisses overlays
+- **Arrow keys** move within compound widgets (lists, sliders, tab panels)
 
-Focus is always visible — there's a clear highlight ring around whichever element is active.
+Focus is always visible — there's a clear highlight ring around whichever element is active. We chose a high-contrast indicator that meets WCAG 2.2's focus-visible criterion, so it remains visible against every background colour in the app, including the dark theme. Sighted keyboard users sometimes complain that focus rings are "ugly"; ours is intentionally noticeable so blind-with-residual-vision players and motor-disabled players who navigate slowly never lose track of where they are.
+
+The tab order is logical, not visual. Reading order goes top-to-bottom, left-to-right within a section, then forward to the next section. We deliberately don't use CSS tricks that would visually rearrange content without rearranging the DOM, because that desynchronises tab order from what's on screen. If you ever encounter a place where tab order seems wrong, that's a bug — please report it.
 
 ## In-Game Shortcuts
 
@@ -448,31 +494,54 @@ During a play session, these shortcuts let you act quickly without reaching for 
 | **Space** | Pause / resume TTS narration |
 | **↑ / ↓** | Adjust narration volume |
 | **M** | Toggle ambient sound on/off |
+| **?** | Open the keyboard shortcuts help overlay |
+| **Esc** | Close any open menu or dialog |
+
+A few notes on the design choices behind these:
+
+The number keys for choices were chosen because they're consistent across keyboard layouts worldwide and don't conflict with screen reader pass-through modes. The "T" for text input is intentionally a single letter so switch users (who often map a single key to "type") can engage the input in one keystroke. The "R" for replay is one of the most-used keys in screen-reader sessions — re-listening to narration is the equivalent of re-reading a paragraph for sighted players, and we made it a single keypress for that reason.
+
+The shortcut overlay (?) is your safety net. If you ever forget what key does what, press ? from anywhere in the app and you'll get an accessible dialog listing all current shortcuts. The dialog itself is fully keyboard-navigable and announces its content to screen readers automatically.
 
 ## Screen Reader Compatibility
 
-EchoQuest is tested with NVDA, JAWS, and VoiceOver. Key accessibility features:
+EchoQuest is tested with NVDA, JAWS, and VoiceOver, with regular smoke tests on TalkBack (Android) and Orca (Linux). Key accessibility features:
 
-- All game text is rendered as semantic HTML, not images
-- Narration log entries are marked as ARIA live regions so screen readers announce new content automatically
-- Choice buttons have descriptive labels (not just "Option 1")
-- Status changes — HP updates, inventory changes, location shifts — are announced via a screen reader-only live region
+- All game text is rendered as semantic HTML, not images, so screen readers can read it natively
+- Narration log entries are marked as ARIA live regions so screen readers announce new content automatically as the AI GM responds
+- Choice buttons have descriptive labels (not just "Option 1") — they include the actual choice text, so a screen reader user gets the same information as a sighted player
+- Status changes — HP updates, inventory changes, location shifts — are announced via a screen reader-only live region (using a polite ARIA live setting), so they don't interrupt the main narration
+- Heading structure is consistent: each scene opens with a level-2 heading announcing the location, so screen reader users can navigate by heading like they would on a well-structured webpage
+- Form fields have visible and programmatically associated labels (no placeholder-only inputs)
+
+The result: a screen reader user playing EchoQuest hears the narration, knows when their HP changes, can hear what choices are available, and can act on them, all without ever leaving their preferred screen-reader rhythm.
 
 ## The Skip Link
 
-At the top of every page, before any navigation, there's a hidden skip link that becomes visible on focus: **"Skip to main content."** This lets screen reader and keyboard users jump straight to the game area without tabbing through the nav bar on every page load.
+At the top of every page, before any navigation, there's a hidden skip link that becomes visible on focus: **"Skip to main content."** This lets screen reader and keyboard users jump straight to the game area without tabbing through the nav bar on every page load. It's the single most useful accessibility feature on the site for repeat visitors — once you know it's there, you'll use it constantly.
+
+If you're a sighted user who has never noticed the skip link, that's intentional; it's positioned off-screen visually until it receives focus, then it pops into view at the top-left. Tab from the address bar on any EchoQuest page and it's the very first thing you'll hit.
 
 ## Setting Up Your Preferred Voice
 
-If you're using a system screen reader alongside EchoQuest's built-in TTS, you may want to mute the browser TTS to avoid double-narration. Go to **Settings → Voice** and set TTS Provider to "Off" — the screen reader will then read game text through your preferred voice.
+If you're using a system screen reader alongside EchoQuest's built-in TTS, you may want to mute the browser TTS to avoid double-narration. Go to **Settings → Voice** and set TTS Provider to "Off" — the screen reader will then read game text through your preferred voice. This is the configuration most blind players who use NVDA or JAWS prefer, because it keeps narration consistent with the rest of their browsing experience and respects whatever voice rate they've already trained themselves to listen at.
+
+If you're not using a system screen reader, the built-in TTS gives you ElevenLabs-quality narration on paid tiers and a clean browser-TTS fallback on free. Either way, narration speed is adjustable in two-step increments from 0.7× to 2.0×. Most experienced screen reader users will turn EchoQuest's narration off entirely and let their own screen reader handle text, then enable our ambient sound layer separately for atmosphere.
 
 ## Tips for Power Users
 
-- Keep the game in a **dedicated browser tab** and use your browser's tab shortcut (Ctrl+Tab) to switch back without losing focus position
-- Use **browser zoom** (Ctrl+plus) to increase text size without affecting the game layout
-- The text input field supports **standard browser editing shortcuts** — Home/End, Ctrl+A, Ctrl+Z for undo
+- Keep the game in a **dedicated browser tab** and use your browser's tab shortcut (Ctrl+Tab / Cmd+Option+arrow) to switch back without losing focus position. EchoQuest preserves focus across re-entry, so coming back from another tab puts you exactly where you left off.
+- Use **browser zoom** (Ctrl+plus / Cmd+plus) to increase text size without affecting the game layout. We use relative units throughout, so zoom up to 200% and the layout still works.
+- The text input field supports **standard browser editing shortcuts** — Home/End, Ctrl+A, Ctrl+Z for undo, Ctrl+Backspace to delete the previous word. If you write long custom actions, those shortcuts make a real difference.
+- If you're on a screen reader, use **heading navigation** (H key in NVDA/JAWS, Ctrl+Option+Cmd+H in VoiceOver) to jump between scene transitions in a long log
+- The **R key replays the last narration**. We hear from blind players that this is the most-used keyboard shortcut on the entire site — it's the audio equivalent of re-reading a sentence
+- If a session feels stuck, **Tab through the game area** to find the focused choice or text field. Sometimes focus has landed somewhere unexpected after a slow network response
 
-Questions about accessibility? Reach us at the support link in the footer. We respond to every message. **[Start playing →](/library)**
+## Reporting Issues
+
+If something doesn't work for you with the keyboard or your screen reader, please tell us. We treat every accessibility report as a release-blocking bug. The fastest channel is the contact link in the footer of every page. Include the browser, screen reader, and the exact action you were trying to take. We respond to every message.
+
+EchoQuest is built on the principle that accessibility isn't a separate experience — it's the same experience, available through whatever input modality you prefer. Keyboard-only play isn't a "lite" version of the game. It's the same world, the same AI GM, the same stories, reached through different keys. **[Start playing →](/library)**
 `,
   },
   {
@@ -481,44 +550,57 @@ Questions about accessibility? Reach us at the support link in the footer. We re
     excerpt: "There's a big difference between a robotic TTS voice reading words and a voice that actually performs them. Here's why EchoQuest's ElevenLabs integration is a game-changer for immersion.",
     content: `# ElevenLabs Premium Narration: Why Voice Quality Changes Everything
 
-Text-to-speech has been around for decades. Early versions sounded robotic — flat, monotone, mispronouncing every proper noun. They were useful but not enjoyable. That era is over.
+Text-to-speech has been around for decades. Early versions sounded robotic — flat, monotone, mispronouncing every proper noun, breaking every long sentence into chunks that landed in all the wrong places. They were useful but not enjoyable. The voice in your accessible operating system, the voice in your GPS, the voice that read your spam emails out loud — these were all the same kind of voice, and we'd come to accept that "computer voice" meant "tolerate it." That era is over.
 
-EchoQuest's premium narration, powered by ElevenLabs, represents a genuine leap in what AI voice can do. Here's what changes when you switch from browser TTS to premium voices.
+EchoQuest's premium narration, powered by ElevenLabs, represents a genuine leap in what AI voice can do. Players who upgrade often describe the same experience: they stop noticing the voice and start noticing the *story*. The narration becomes invisible the way a great audiobook narrator's performance is invisible — you're inside the world, not aware of someone reading to you. This post is a tour of what changes when you switch from browser TTS to premium voices, what's still imperfect, and how to choose between the two for different play styles.
 
 ## The Difference Is Emotional Expressiveness
 
 Browser TTS reads words. ElevenLabs voices *perform* them.
 
-When the AI Game Master describes a tense confrontation, a premium voice will lower slightly in pitch, speak more deliberately. When narrating an exciting chase, the pace quickens. When an NPC is frightened, you can hear it. These micro-variations in delivery aren't programmed — they emerge from the model's understanding of the text's emotional register.
+When the AI Game Master describes a tense confrontation, a premium voice will lower slightly in pitch, speak more deliberately, and add a half-beat of pause before the line that lands. When narrating an exciting chase, the pace quickens, breath compresses, words run together exactly the way a real reader would do it. When an NPC is frightened, you can hear it in the voice — there's a tightness, a slight tremor, a pitch creeping upward. When an NPC is amused, there's a smile in the voice that you can hear without seeing. These micro-variations in delivery aren't programmed by us — they emerge from the model's understanding of the text's emotional register, the same way a human reader internalises tone from context.
 
-For an audio-first game, this isn't a cosmetic feature. It's the difference between reading a stage direction and watching a performance.
+For an audio-first game, this isn't a cosmetic feature. It's the difference between reading a stage direction and watching a performance. A line like "she crossed her arms and waited" is, in plain TTS, just twelve syllables in a row. With premium narration, it has rhythm — a beat of arrival on "crossed," a slight stretch on "waited" that signals the silence after. The text the AI generates is the same; the experience of receiving it is utterly different.
 
 ## Handling Fantasy Proper Nouns
 
-One perennial problem with TTS in RPGs is proper noun pronunciation. Generic voices mangle invented names constantly — a character called Aeryndel comes out as "Ay-ren-del" or worse.
+One perennial problem with TTS in RPGs is proper noun pronunciation. Generic voices mangle invented names constantly — a character called Aeryndel comes out as "Ay-ren-del" one minute and "Air-in-DELL" the next, and the inconsistency alone breaks immersion. Place names are even worse. A common pattern in browser TTS is to read "Eldarath" as three different words across a single session, which is the auditory equivalent of a typo on every page.
 
-ElevenLabs models handle this better than any browser voice we've tested. The phonetic patterns of fantasy naming conventions (common in Tolkien-influenced fantasy) are well-represented in training data. You'll still hear occasional mispronunciations, but far fewer.
+ElevenLabs models handle this better than any browser voice we've tested. The phonetic patterns of fantasy naming conventions (common in Tolkien-influenced fantasy, Welsh-derived names, Old Norse-influenced terms) are well-represented in training data, and the model has a stronger sense of internal consistency — once it lands on a pronunciation for an unusual name, it tends to use the same pronunciation later in the same passage. You'll still hear occasional mispronunciations, especially for unique made-up names with unusual letter combinations, but they're rare and they stay consistent.
+
+For names you care deeply about, your Game Bible's pronunciation notes section (a feature available in the World Builder Wizard) can guide the GM to spell them out phonetically before the first scene. We've found that getting one early-session pronunciation correct usually carries through the whole campaign.
 
 ## Choosing Your Voice
 
 EchoQuest Storyteller and Creator subscribers can choose from a curated set of narrator voices with different personalities:
 
-- **Deep & Dramatic** — a low, resonant voice suited to dark fantasy and horror
-- **Warm & Engaging** — a friendly, mid-range voice that works for adventure and comedy
-- **Precise & Cool** — a crisp, articulate voice ideal for mystery and political intrigue
-- **Energetic** — a faster, enthusiastic voice for action-heavy campaigns
+- **Deep & Dramatic** — a low, resonant voice suited to dark fantasy, horror, and grim political thrillers. Reaches for gravitas naturally.
+- **Warm & Engaging** — a friendly, mid-range voice that works for adventure and comedy. The closest to a contemporary audiobook narrator.
+- **Precise & Cool** — a crisp, articulate voice ideal for mystery, political intrigue, and hard sci-fi. Doesn't oversell.
+- **Energetic** — a faster, enthusiastic voice for action-heavy campaigns. Loves dramatic moments.
+- **Soft & Reflective** — a gentle, contemplative voice well-suited to slice-of-life campaigns, dream-logic stories, and emotionally vulnerable scenes.
 
-You can preview each voice and switch between them at any time in Settings.
+You can preview each voice and switch between them at any time in Settings. We recommend trying a few minutes of each on the world you're about to play. The right voice for a noir cyberpunk campaign is usually not the right voice for cosy fantasy slice-of-life. Players sometimes assign a permanent voice to a campaign and stick with it, the way you might re-listen to your favourite audiobook narrator across a series.
 
 ## Speed and Pitch Controls
 
 Premium narration also supports speed and pitch adjustment, giving you full control over how the voice sounds. Some players prefer a faster pace for action scenes; others like a slower, more deliberate read for atmospheric moments. You can change these mid-session without restarting.
 
+Speed adjustment is the more common one. Default speed is calibrated for a fresh listener — clear and unhurried. If you've played for a few hours and the narration starts to feel slow, push it up to 1.2× or 1.4×. Most experienced screen-reader users find 1.5× to 2.0× perfectly comfortable. Pitch adjustment is subtler; a small downshift can make any voice feel weightier without changing its character, which is useful when you want to lean into a darker tone for a single scene.
+
 ## Is Free TTS Good Enough?
 
-Yes — and we've put real work into making the browser TTS experience as good as possible. Free users get narration that clearly communicates everything in the scene. The gap between browser TTS and premium is real but not the difference between playable and unplayable.
+Yes — and we've put real work into making the browser TTS experience as good as possible. Free users get narration that clearly communicates everything in the scene. We tune the SSML hints we pass to browser TTS to give the best possible result with the system voice you have installed. The gap between browser TTS and premium is real but not the difference between playable and unplayable. We've watched plenty of free-tier players play long, deeply engaged sessions without ever upgrading, and they get the full game.
 
-If you primarily use a screen reader with your own preferred voice, the built-in narration may matter less to you than the quality of the game text itself.
+If you primarily use a screen reader with your own preferred voice, the built-in narration may matter less to you than the quality of the game text itself. Many of our most invested blind players keep EchoQuest's TTS off entirely and let NVDA, JAWS, or VoiceOver handle the words at whatever rate they're already trained to listen at. For those players, the value of EchoQuest is the AI GM, the game state, and the world design — not the voice we ship. We respect that and have made sure the experience without our TTS is just as complete.
+
+## When Premium Really Shines
+
+There are two situations where the gap between free and premium is most noticeable. The first is **first-time emotional moments** — the first scene where an NPC dies, the first time your character has to confess something painful, the first betrayal. Premium voices commit to the moment in a way that browser TTS doesn't, and the difference can be a lump in your throat versus a piece of information passing by.
+
+The second is **long sessions**. Browser TTS is fine for ten minutes. After two hours, the unchanging cadence becomes draining, and you start tuning out — which means you start missing details. Premium narration's natural variation keeps your attention engaged for far longer. Players who play in long stretches almost universally upgrade for this reason.
+
+If neither of those applies — if you mostly play in short bursts and don't need the emotional theatricality — free is genuinely fine and we want you on it. EchoQuest's free tier isn't a hobbled trial. It's a complete game.
 
 Premium narration is included in the Storyteller plan ($15/month) and Creator plan ($29/month). **[Compare plans →](/)**
 `,
@@ -529,61 +611,87 @@ Premium narration is included in the Storyteller plan ($15/month) and Creator pl
     excerpt: "From the brooding rogue to the idealistic paladin, RPG archetypes endure because they work. Here are ten classic character types, what makes each compelling, and one tip for playing them memorably.",
     content: `# 10 Classic RPG Character Archetypes (And How to Play Them Well)
 
-Character archetypes exist in RPGs for the same reason they exist in literature: they're proven. They give players an emotional entry point, a set of instincts to act from, and a relationship to the world that generates interesting choices. Here are ten that appear again and again — and how to make each one feel like yours.
+Character archetypes exist in RPGs for the same reason they exist in literature: they're proven. They give players an emotional entry point, a set of instincts to act from, and a relationship to the world that generates interesting choices. The brooding rogue, the idealistic paladin, the haunted scholar — these aren't lazy shortcuts. They're patterns refined over thousands of years of storytelling because they reliably produce dramatic friction. A character who fits squarely into one of these archetypes will *always* have something to do in a scene, because the archetype itself implies attitudes, contradictions, and goals.
+
+The mistake new players make is choosing an archetype and stopping there. They write "the brooding rogue" on the character sheet and assume that's enough. It isn't. An archetype is a starting point, a chassis. What makes a character memorable is the *specificity* layered on top of it — the particular wound, the named lost person, the precise moral line they refuse to cross. This post walks through ten archetypes that show up across virtually every RPG genre, what makes each one work, and one concrete tip for each on how to make it feel uniquely yours.
 
 ## 1. The Reluctant Hero
 *"I just want to go home."*
 
-They didn't ask for this. The world dragged them in anyway. This archetype works because the internal conflict — wanting safety vs. doing what's right — creates constant dramatic tension. **Play it well by:** having a specific thing they're trying to get back to, not just "normal life." A person, a place, a promise.
+They didn't ask for this. The world dragged them in anyway. This archetype works because the internal conflict — wanting safety vs. doing what's right — creates constant dramatic tension. Every choice is a small re-decision: stay involved, or walk away? It also gives the AI Game Master something to riff on; the world can keep finding ways to make leaving impossible, and each one feels personal.
+
+**Play it well by:** having a specific thing they're trying to get back to, not just "normal life." A person, a place, a promise. "I want to go home to my sister, who is waiting at our farm in the eastern valley, and I told her I'd be back before the harvest" is infinitely better than "I just want to go home." Specificity gives the GM something to weaponise — when home becomes harder to reach, the loss is concrete, and when the hero finally chooses to stay involved, the cost is real.
 
 ## 2. The Disgraced Noble
 *"I used to have everything."*
 
-Status lost, reputation destroyed, but the manners and instincts of privilege remain. Creates comedy, tragedy, and interesting friction with less privileged party members. **Play it well by:** letting them be genuinely competent in courtly situations — the disgrace shouldn't erase their skills.
+Status lost, reputation destroyed, but the manners and instincts of privilege remain. Creates comedy, tragedy, and interesting friction with less privileged party members. The disgraced noble can lecture a king on table etiquette while sleeping under a bridge — the gap between what they know and what they have is the engine of every interesting scene.
+
+**Play it well by:** letting them be genuinely competent in courtly situations — the disgrace shouldn't erase their skills. Decide why they were disgraced (a scandal? a coup? a bet they shouldn't have lost?) and whether they want their station back or not. A noble who is *trying* to climb back up plays very differently from one who has accepted the fall and uses the freedom of obscurity. Both are great. Pick one early.
 
 ## 3. The True Believer
 *"The cause is worth any price."*
 
-A character whose faith — in a god, an ideology, a person — defines every choice. Works best when that faith is tested. **Play it well by:** establishing what the faith actually demands in concrete terms, so when it conflicts with other values, the dilemma is real.
+A character whose faith — in a god, an ideology, a person — defines every choice. Works best when that faith is tested. The interesting question for the true believer is never "will they do the right thing?" but "what does the *cause* say is right when the situation is genuinely murky?"
+
+**Play it well by:** establishing what the faith actually demands in concrete terms, so when it conflicts with other values, the dilemma is real. "She believes in justice" is meaningless. "She believes the goddess of justice requires every sworn oath to be kept, even when keeping it leads to suffering" is a scene-generator. A true believer should have a specific moment from their past where they were tested and held the line — that moment is the GM's tool for cracking them later.
 
 ## 4. The Cynical Veteran
 *"I've seen how this ends."*
 
-Seen too much, trusts no one, survives on instinct. A classic dark fantasy archetype. **Play it well by:** showing what they *were* before the cynicism set in — one relationship or value they haven't abandoned.
+Seen too much, trusts no one, survives on instinct. A classic dark fantasy archetype. The veteran's value to the party is their pattern recognition — they've watched factions like this one rise and fall before, and they know exactly what's coming. The veteran's danger is their inertia; they assume the worst, and sometimes the worst is happening but sometimes it isn't.
+
+**Play it well by:** showing what they *were* before the cynicism set in — one relationship or value they haven't abandoned. The veteran who still writes letters to their dead commander's widow every winter is a far more interesting character than the veteran who is uniformly bitter. The remnant of who they used to be is what other party members can connect to, and what eventually pulls them back into caring.
 
 ## 5. The Eager Apprentice
 *"Teach me everything."*
 
-Enthusiastic, possibly reckless, learning on the job. Works especially well if there's a mentor dynamic in the group. **Play it well by:** having them make a specific type of mistake repeatedly until a pivotal moment forces genuine growth.
+Enthusiastic, possibly reckless, learning on the job. Works especially well if there's a mentor dynamic in the group. The apprentice is permission to ask questions the player genuinely doesn't know the answer to, which means everyone at the table (including the GM) can think out loud through them.
+
+**Play it well by:** having them make a specific type of mistake repeatedly until a pivotal moment forces genuine growth. The apprentice who keeps trying to solve every problem with their newest spell is more memorable than the generic eager learner. When they finally realise the solution to the climactic problem doesn't involve magic at all, the arc lands. Pick one mistake-pattern early; let it cost them; let it stop costing them in the moment that matters.
 
 ## 6. The Outsider
 *"Your customs are strange to me."*
 
-A character from elsewhere — another culture, another world, another era. Offers a lens to examine the world's assumptions. **Play it well by:** making their outsider perspective come from somewhere specific, not just generic naivety.
+A character from elsewhere — another culture, another world, another era. Offers a lens to examine the world's assumptions. The outsider lets you ask, in-character, all the questions a player wants to ask out-of-character. Why does this kingdom worship that god? Why is this currency worth what it's worth? Why is this conversation suddenly so awkward?
+
+**Play it well by:** making their outsider perspective come from somewhere specific, not just generic naivety. The outsider who comes from a strict matriarchal society and is bewildered by the kingdom's male-only knighthood is interesting; the outsider who is just confused by everything is annoying. Decide what the *home* culture's assumptions are, then let those assumptions shape every reaction. The home culture itself becomes a character through them.
 
 ## 7. The Reluctant Monster
 *"I am what I am. It doesn't define me."*
 
-A character with a monstrous nature (curse, heritage, past) trying to live differently. **Play it well by:** letting the monster nature surface in useful, even heroic ways — the archetype is more interesting when the "curse" becomes a tool.
+A character with a monstrous nature (curse, heritage, past) trying to live differently. The reluctant monster's drama is the daily refusal — every morning they choose, again, not to be what others assume they are.
+
+**Play it well by:** letting the monster nature surface in useful, even heroic ways — the archetype is more interesting when the "curse" becomes a tool. A vampire who refuses to feed on humans is fine; a vampire who has learned to use just enough of their nature to save someone, at a personal cost, is unforgettable. The reluctant monster shouldn't be self-loathing about every aspect of themselves. They should be selectively, surgically self-controlled, with one clear thing they will absolutely not do.
 
 ## 8. The Con Artist with a Heart
 *"I only steal from people who deserve it."*
 
-Charming, untrustworthy, surprisingly principled. **Play it well by:** establishing their actual moral line clearly — the thing they won't do regardless of the payoff.
+Charming, untrustworthy, surprisingly principled. The con artist gives every social scene a buzz of "what are they really up to?" — and lets the player improvise lies and schemes the GM has to react to in real time.
+
+**Play it well by:** establishing their actual moral line clearly — the thing they won't do regardless of the payoff. A con artist who won't cheat children. A con artist who won't betray a partner mid-job. A con artist who will steal from anyone but won't cause physical harm. The line is what makes the archetype dramatic instead of unpleasant. Without the line, they're just a thief; with it, they're a thief with a code, which is one of the most enduring character types in storytelling.
 
 ## 9. The Scholar Out of Their Depth
 *"Theoretically, I know how this works."*
 
-Brilliant in their domain, helpless in the field. **Play it well by:** having their expertise save the group in one key moment they didn't expect.
+Brilliant in their domain, helpless in the field. The scholar's competence-incompetence gap is endlessly entertaining and gives the rest of the party a clear role: keep this person alive long enough to get to the place where their knowledge actually solves the problem.
+
+**Play it well by:** having their expertise save the group in one key moment they didn't expect. Decide what the scholar's specialty is — ancient pre-imperial languages, religious heraldry, medicinal botany — and trust the GM to set up a moment where that specialty is exactly what's needed. The reveal where the scholar finally gets to *be* useful, after a campaign of being clearly the least dangerous member of the group, is one of the best pay-offs in tabletop tradition.
 
 ## 10. The Haunted Survivor
 *"I should have died. Others did."*
 
-Survivor's guilt, driven forward by ghosts. **Play it well by:** naming the people they lost. Specific names, specific memories. That's what makes them real.
+Survivor's guilt, driven forward by ghosts. The haunted survivor has the most inner motion of any archetype — they're constantly arguing with people who aren't there. Good GMs will have those people show up in dreams, in chance encounters, in chance resemblances on the road.
 
----
+**Play it well by:** naming the people they lost. Specific names, specific memories, specific things they wish they'd said before the end. "She lost her unit in the war" is generic. "She lost Captain Hessen, who taught her to ride; she lost Tomas, who used to laugh at every one of her jokes; she lost Ela, who was three months from her contract ending and a return to her village in the south" is heartbreaking, and now the GM has three threads to pull at when the world wants to test her. Specificity is empathy made writable.
 
-Pick one of these for your next EchoQuest session. Tell the AI Game Master a sentence or two about your character's archetype in the backstory field, and watch how the story bends around who you are. **[Create your character →](/library)**
+## Mixing Archetypes
+
+Once you have one of these ten in mind, you can layer a second archetype on top to create something more textured. The Disgraced Noble who is also a True Believer is far more interesting than either alone — their fall happened because they refused to compromise their faith, and now they're holding onto that faith in poverty. The Con Artist with a Heart who is also a Haunted Survivor stole because they couldn't save the people they were trying to support. The Eager Apprentice who is also an Outsider is learning a new culture's magic system while still flinching at half its assumptions.
+
+Don't stack more than two. Beyond that, the character starts to feel like a checklist. But two distinct archetype lenses, with a shared specific wound underneath, is reliably the recipe for a character your AI Game Master will treat as the protagonist of a story rather than a generic adventurer.
+
+Pick one of these for your next EchoQuest session. Tell the AI Game Master a sentence or two about your character's archetype in the backstory field, including the specific named details, and watch how the story bends around who you are. **[Create your character →](/library)**
 `,
   },
   {
@@ -592,7 +700,9 @@ Pick one of these for your next EchoQuest session. Tell the AI Game Master a sen
     excerpt: "A Game Bible is the document that defines everything about your RPG world — lore, factions, tone, rules. Here's a practical template you can fill in and upload to EchoQuest today.",
     content: `# How to Write a Game Bible: The World-Builder's Template
 
-A Game Bible is the single document that defines your world. It's what the AI Game Master reads before your first session begins. A great Game Bible produces consistent, immersive storytelling. A vague one produces a Generic Fantasy Experience™. Here's how to write one worth playing.
+A Game Bible is the single document that defines your world. It's what the AI Game Master reads before your first session begins, what it refers back to when a player asks an unexpected question, what it leans on to keep the world consistent across thirty hours of play. A great Game Bible produces consistent, immersive storytelling. A vague one produces a Generic Fantasy Experience™ — every world becomes interchangeable, every NPC sounds the same, every scene drifts toward the median of the model's training data.
+
+This post is a practical, fillable template. By the end, you'll have either a complete Game Bible draft or a clear understanding of what's still missing. Whether you're writing a new world from scratch or polishing one you've been incubating for years, the structure below is what we've found produces the best AI GM behaviour. It's also short on purpose: a great Bible can be six to ten pages. You don't need a hundred. The AI doesn't read better with more text — it reads better with denser text.
 
 ## What Goes in a Game Bible
 
@@ -605,25 +715,45 @@ Think of your Game Bible as answers to six questions:
 5. **What are the rules?**
 6. **Where does the story start?**
 
+If your draft answers all six clearly and specifically, you have a playable world. If any of them is vague, the AI GM will fill the gap with the most generic version of that thing in fantasy fiction. The whole point of a Bible is to crowd out the generic with your specific.
+
 ## Section 1: World Overview (1–2 paragraphs)
 
-Name your world. Describe its scope (one city? a continent? multiple realms?). Give the historical period feel — medieval, Renaissance, post-apocalyptic, secondary-world modern. State the dominant tone: gritty and realistic, high fantasy, cosmic horror, political thriller, fairy tale.
+Name your world. Describe its scope (one city? a continent? multiple realms?). Give the historical period feel — medieval, Renaissance, post-apocalyptic, secondary-world modern, near-future, far-future. State the dominant tone: gritty and realistic, high fantasy, cosmic horror, political thriller, fairy tale, slice-of-life. Pin the geography just enough that the AI knows the shape of the map without needing every contour.
 
-*Example: "Valdenmoor is a decaying empire in its third century of slow collapse. Think late Roman Empire crossed with the Venetian Republic — bureaucratic corruption, mercenary armies, fading gods. The tone is dark and political, with occasional moments of unexpected grace."*
+*Example: "Valdenmoor is a decaying empire in its third century of slow collapse. Think late Roman Empire crossed with the Venetian Republic — bureaucratic corruption, mercenary armies, fading gods. The capital is a port city built on the ruins of three older cities, layered like sediment. Travel between provinces is by river, road, or in expensive cases, by airship. The tone is dark and political, with occasional moments of unexpected grace. Magic exists but is rare, slow, and treated with suspicion."*
+
+The reference to specific real-world analogues is important. "Late Roman Empire" gives the AI a coherent texture to draw from in a way that "ancient kingdom" never will. Don't be afraid to cite influences. The AI recognises them and uses them as scaffolding.
 
 ## Section 2: The Central Conflict
 
-What is the one tension that defines the current moment in your world? This should be specific and active — something that is happening right now, not ancient history.
+What is the one tension that defines the current moment in your world? This should be specific and active — something that is happening right now, not ancient history. The conflict is the engine. Without it, the world is a museum.
 
-*Example: "The Emperor just died without an heir. Three Archduchies are mobilizing armies. A fourth is secretly negotiating with a foreign power. The Church has declared it will name the next emperor from among the clergy. Civil war is two weeks away."*
+*Example: "The Emperor just died without an heir. Three Archduchies are mobilizing armies. A fourth is secretly negotiating with a foreign power. The Church has declared it will name the next emperor from among the clergy. Civil war is two weeks away. No major faction is ready, but none can afford to wait."*
+
+Notice the temporal specificity — "two weeks away" gives the world a clock. The AI will use that clock. Scenes will reference it without you having to tell them to. The pressure stays on without any extra effort.
 
 ## Section 3: Factions (3–5)
 
 For each faction, write 2–3 sentences covering: who they are, what they want, and what they're willing to do to get it. Don't write histories — write current agendas.
 
+A faction template that works well:
+- **Name** (and what people call them informally)
+- **Public goal** (what they say they want)
+- **Real goal** (what they actually want, if different)
+- **Willing to do** (what's on the table — bribery, assassination, alliance with a hated rival, public scandal)
+- **Won't do** (the line that defines them)
+- **Internal weakness** (the thing that could fracture them)
+
+Three to five factions is the sweet spot. Two feels binary; six feels like homework. Each faction should have at least one other faction it considers an enemy and one it considers a complicated ally — never simple goodwill, never simple hatred.
+
 ## Section 4: Tone & Sensory Language
 
-Give the GM a list of sensory details specific to your world. What does the capital city smell like? What sounds fill a tavern? What does magic look like when cast? These details make the difference between generic narration and immersive storytelling.
+Give the GM a list of sensory details specific to your world. What does the capital city smell like? What sounds fill a tavern? What does magic look like when cast? What's different about the way the rich and poor districts smell, sound, look? What does the dominant religion's incense smell like? What's the texture underfoot in the marketplace?
+
+These details make the difference between generic narration and immersive storytelling. The AI is excellent at picking up sensory cues from the source material and weaving them naturally into descriptions, but only if you provide them. Three sentences of sensory detail per major location goes a remarkably long way.
+
+A good practice: write a single sentence that captures each location's "first ten seconds" — what does a visitor notice first? "The Spice Quarter announces itself at fifty paces by the smell of cardamom, dried fish, and burning sandalwood; under that, the constant clatter of small handcarts on cobble." That sentence will inform every scene set there.
 
 ## Section 5: Rules & Constraints
 
@@ -632,16 +762,32 @@ What can't happen in your world? What are the hard limits? Examples:
 - "This world has no elves or dwarves — all characters are human"
 - "Death is permanent and treated with gravitas — no resurrection magic"
 - "Technology is equivalent to 1400s Europe — no gunpowder yet"
+- "There are no gods, but there are ancient creatures people sometimes mistake for gods"
+- "Travel between continents takes weeks; teleportation does not exist"
 
-The GM will respect these constraints throughout your campaign.
+The GM will respect these constraints throughout your campaign. Constraints are clarifying. They make the AI's improvisation tighter because it has fewer easy outs.
+
+The most powerful constraint is usually a "no." A "no resurrection" rule means deaths matter. A "no gunpowder" rule means battles have a specific shape. A "no telepathy" rule means information has to travel at the speed of horses. Each constraint produces interesting downstream consequences in play.
 
 ## Section 6: Opening Scenario
 
 Describe the first scene in 2–3 sentences. Where is the player character? What's immediately happening? What's the first decision they need to make?
 
+*Example: "You're a junior aide in the Imperial Chancery on the night the Emperor dies. The chamber is in chaos. A high-ranking official just handed you a sealed letter and asked you to deliver it to the Archduke of the Northern Reach — without telling anyone. You don't know what's in the letter, but you can see the official is sweating and a guard captain is pushing through the crowd toward you."*
+
+The opening scenario should drop the player into immediate, mid-stakes action with a specific choice. It should not start with "you wake up in a tavern." Anything-but-a-tavern is a useful guideline here.
+
+## Section 7 (Optional): Pronunciation Notes
+
+If your world has invented names with non-obvious pronunciations, list them with a phonetic guide. The AI can use these to keep narration consistent. "Aeryndel — pronounced AIR-in-del. Tovaryn — TOH-vah-rin. The capital, Khel-im-Karras — KEHL-im-CAR-ras." The model will respect these once they're written down.
+
 ## Uploading Your Bible
 
-EchoQuest accepts Game Bibles as plain text, PDF, or DOCX files up to 10MB. The AI parses your document, extracts the world data, and creates a playable campaign. Storyteller plan and above includes Bible upload access. **[See plans →](/)**
+EchoQuest accepts Game Bibles as plain text, PDF, or DOCX files up to 10MB. The AI parses your document, extracts the world data, and creates a playable campaign. Plain text is preferred for fastest processing, but well-formatted PDFs work too.
+
+After upload, you can preview how the AI has interpreted your world before publishing. This is a good moment to spot anything missing — if the AI's summary of your factions sounds vague, your faction section probably needs to be tighter. Iterate, re-upload, repeat.
+
+Storyteller plan and above includes Bible upload access. **[See plans →](/)**
 `,
   },
   {
@@ -650,35 +796,49 @@ EchoQuest accepts Game Bibles as plain text, PDF, or DOCX files up to 10MB. The 
     excerpt: "The gaming industry has made real progress on accessibility over the past decade — but significant gaps remain, especially for blind and visually impaired players. Here's an honest look at where things stand.",
     content: `# Accessibility in Gaming: The State of Play in 2026
 
-The conversation around gaming accessibility has shifted dramatically over the past decade. What was once a niche concern addressed by volunteer modders is now something major studios publish accessibility trailers for. Progress is real. But so are the remaining gaps.
+The conversation around gaming accessibility has shifted dramatically over the past decade. What was once a niche concern addressed by volunteer modders — text-injectors, screen-reader patches, mouse-replacement utilities held together with duct tape — is now something major studios publish accessibility trailers for, hire dedicated accessibility leads to oversee, and build full QA streams around. Progress is real. But so are the remaining gaps. This post is an honest look at where the industry stands in 2026, what's actually been solved, and where players who don't see a screen the way most players do are still being left behind.
+
+We write this from a particular vantage point: as the makers of an audio-first AI RPG, we spend a lot of time talking with blind, low-vision, and motor-disabled players about what does and doesn't work in mainstream games. We test EchoQuest against the same standards we'd hold any other game to. The summary below isn't an attack on the industry — many of the largest studios have made remarkable, sincere progress — but it's also not a victory lap.
 
 ## What's Improved
 
-**Subtitle and caption standards** have risen significantly. Most major releases now include speaker labels, sound effect descriptions, and positioning information in captions — not just dialogue transcripts.
+**Subtitle and caption standards** have risen significantly. Most major releases now include speaker labels, sound effect descriptions, and positioning information in captions — not just dialogue transcripts. Captions have evolved from "transcript on screen" to a genuine secondary information channel: who is speaking, what they sound like, what non-speech sound is happening, and where it's coming from. The 2020s also saw the rise of customisable subtitle styling — backgrounds, sizes, fonts, contrast — as a baseline expectation rather than a bonus.
 
-**Colorblind modes** are nearly universal in AAA titles. Multiple colorblind profiles (deuteranopia, protanopia, tritanopia) are standard.
+**Colorblind modes** are nearly universal in AAA titles. Multiple colorblind profiles (deuteranopia, protanopia, tritanopia) are standard. Many studios go further, offering customisable colour swaps and high-contrast modes for low-vision players. The "red and green health bars in a competitive shooter" problem that defined a generation of accessibility complaints has largely been solved.
 
-**Controller remapping** is now expected. Players with motor disabilities can remap any button to any input, use single-switch or eye-tracking setups, and adjust timing windows.
+**Controller remapping** is now expected. Players with motor disabilities can remap any button to any input, use single-switch or eye-tracking setups, and adjust timing windows. The Xbox Adaptive Controller and PlayStation Access Controller have moved hardware accessibility forward in real, lasting ways. Console-level OS support for switch input means that even games without first-class accessibility settings often work through OS-level remapping.
 
-**Cognitive accessibility options** — simplified UI, objective markers, difficulty presets — have expanded significantly. Games like *The Last of Us Part II* published detailed accessibility documentation alongside launch.
+**Cognitive accessibility options** — simplified UI, objective markers, difficulty presets — have expanded significantly. Games like *The Last of Us Part II* published detailed accessibility documentation alongside launch, with over sixty individual accessibility settings spanning vision, hearing, motor, and cognitive needs. *Forza Motorsport* offers a screen reader for menus that actually works. *Hogwarts Legacy* added high-contrast outlines around interactive elements. Pattern by pattern, the AAA market has built up a real practice.
+
+**Industry awareness** has shifted. Game Accessibility Conferences are now standard fixtures of the calendar. Major publishers fund external accessibility consultants. Disability-led studios like Specialeffect.org.uk advise productions across the industry. There's a vocabulary now — terminology like "co-design," "shadow casts," "lived experience leads" — that didn't exist in industry contexts a decade ago.
 
 ## Where Significant Gaps Remain
 
-**Blind and low vision players** remain dramatically underserved. Visual UI, map navigation, inventory management, and most combat systems require sight to use effectively. Screen reader support is rare and often broken when it exists. The percentage of mainstream games that a totally blind player can complete is tiny.
+**Blind and low vision players** remain dramatically underserved. Visual UI, map navigation, inventory management, and most combat systems require sight to use effectively. Screen reader support is rare and often broken when it exists — buttons that do nothing, menus that read in scrambled order, status that updates silently. The percentage of mainstream games that a totally blind player can complete from start to finish, unaided, is tiny. That's not because the design is impossible — it's because audio-first design hasn't been treated as a real commercial priority.
 
-**Audio description** — verbal descriptions of visual cutscenes and story moments — is almost nonexistent outside of a handful of exceptions.
+The exceptions prove the rule. *The Vale: Shadow of the Crown*, *A Hero's Call*, *Frequency Missing*, and a handful of others demonstrate that fully-audio gameplay is not only feasible but emotionally powerful. None of them have AAA budgets behind them.
 
-**Accessible documentation** — tutorials, wikis, strategy guides — is rarely produced in accessible formats.
+**Audio description** — verbal descriptions of visual cutscenes and story moments — is almost nonexistent outside of a handful of exceptions. The film and TV industry built audio description into its workflows decades ago; the games industry still treats it as an afterthought. A blind player watching the cinematic ending of a story they've spent forty hours playing often gets only the dialogue, with no sense of what's happening on screen.
 
-**Small and indie studios** lack the resources that large studios have invested in accessibility tooling and testing. The accessibility gap between AAA and indie is enormous.
+**Accessible documentation** — tutorials, wikis, strategy guides — is rarely produced in accessible formats. Most fan wikis use complex visual layouts that screen readers struggle with. YouTube guides assume vision. Even official documentation often relies on annotated screenshots. A blind player wanting to "look up how to beat this boss" frequently has fewer resources than they would have had in 1995, when GameFAQs text walkthroughs were the norm.
+
+**Small and indie studios** lack the resources that large studios have invested in accessibility tooling and testing. The accessibility gap between AAA and indie is enormous and growing. An accessibility lead, contract consultants, and a dedicated QA pass cost real money. Most indie teams know this matters and feel terrible that they can't afford to do it well. The lack of free, easy-to-integrate accessibility tooling for common engines is a structural problem the industry hasn't yet solved.
+
+**Multiplayer accessibility** lags single-player by years. Voice chat without transcription, twitch reaction times without configurable assists, and visual-only callouts continue to lock disabled players out of competitive ecosystems. Some games have made progress here (Microsoft's auto-transcription in chat is a real step), but the pattern is patchy.
 
 ## Why EchoQuest Takes a Different Approach
 
-Rather than retrofitting accessibility into an existing visual system, EchoQuest starts from the other direction: everything is audio and text first. The visual elements — images, interface design — are added on top of a system that works without them.
+Rather than retrofitting accessibility into an existing visual system, EchoQuest starts from the other direction: everything is audio and text first. The visual elements — images, interface design — are added on top of a system that works without them. We don't have a "blind mode." We have one mode, designed from the ground up to work whether you're sighted or not.
 
-This isn't just philosophy. It changes the architecture. A screen reader reading EchoQuest's HTML gets clean, semantic, meaningful labels. A keyboard user gets logical tab order. A voice user gets commands that map to real game actions.
+This isn't just philosophy. It changes the architecture. A screen reader reading EchoQuest's HTML gets clean, semantic, meaningful labels because the labels were written with screen readers in mind from day one. A keyboard user gets logical tab order because the layout was designed for keyboard traversal first and arranged visually second. A voice user gets commands that map to real game actions because the action verbs themselves were chosen to be easy to speak. The audio description "problem" doesn't exist for us, because every scene is described in narration by default. The visual additions never displaced the audio source of truth.
 
-We're not done. We test with blind players regularly and publish our accessibility findings. We believe the best thing we can do for accessible gaming broadly is demonstrate that audio-first design is commercially viable and creatively rich.
+We're not done. We test with blind players regularly and publish our accessibility findings — including the bugs we ship by accident, because hiding them helps nobody. We believe the best thing we can do for accessible gaming broadly is demonstrate that audio-first design is commercially viable and creatively rich, so the industry sees it as something worth investing in rather than charity. Audio-first isn't a downgrade; it's a different way to experience a story, and in many ways a more immersive one. We hope to make that case loudly enough that it changes the conversation.
+
+## What You Can Do
+
+If you're a player who cares about accessibility, the most useful thing is to vote with your money for studios that take it seriously. Buy from publishers who publish accessibility trailers. Leave reviews that mention specific accessibility features that worked or didn't. Tell developers when something locks you out — many of them genuinely don't know.
+
+If you're a developer, the lowest-effort first step is just to test your game with a screen reader for an hour. The first hour produces enough findings to keep you busy for a month. After that, talk to actual disabled players — the disability advocacy community in games is generous and well-organised, and their feedback transforms products.
 
 **[Try EchoQuest free — no account required for your first session →](/library)**
 `,
@@ -689,37 +849,51 @@ We're not done. We test with blind players regularly and publish our accessibili
     excerpt: "The crackle of a fire, distant thunder, the low hum of a dungeon — ambient sound does more for immersion than any visual effect. Here's the science and craft behind EchoQuest's soundscapes.",
     content: `# How Ambient Sound Design Elevates RPG Storytelling
 
-Close your eyes. Imagine a stone dungeon corridor. Now add: the slow drip of water echoing off walls, the distant scrape of something moving, the faint smell of torch smoke. You're there instantly. That's what ambient sound does. It collapses the distance between description and experience.
+Close your eyes. Imagine a stone dungeon corridor. Now add: the slow drip of water echoing off walls, the distant scrape of something moving, the faint smell of torch smoke. You're there instantly. Now imagine the same scene without any of that — just the sentence "you walk down a dungeon corridor." It's the same words, but the place isn't real anymore. That's what ambient sound does. It collapses the distance between description and experience.
+
+For an audio-first game like EchoQuest, ambient sound is not decoration. It's a primary information channel — second only to narration in how it communicates the world. When the soundscape is right, players don't *hear* it; they hear *through* it, the way you stop noticing the sound of rain ten minutes after it starts but everything you do afterwards is shaped by the fact that it's still raining. This post is a tour of how ambient sound design works, the layers that make a good soundscape, and how EchoQuest stitches those layers together in real time as your story unfolds.
 
 ## The Neuroscience of Audio Immersion
 
-Research in spatial audio and presence consistently shows that soundscapes activate the same cognitive processes as real environments. When your auditory cortex receives information consistent with "underground stone corridor," your threat assessment, spatial reasoning, and emotional state all shift accordingly — regardless of whether you're looking at an image.
+Research in spatial audio and presence consistently shows that soundscapes activate the same cognitive processes as real environments. When your auditory cortex receives information consistent with "underground stone corridor," your threat assessment, spatial reasoning, emotional state, and even your body's posture all shift accordingly — regardless of whether you're looking at an image. The brain is built to use sound as a map. It cannot really turn that mapping off.
 
-For blind and visually impaired players, this isn't just immersion: it's orientation. Ambient sound communicates where you are and what kind of space you're in with precision that text description alone can't match.
+This is why a horror film's soundtrack can produce physical fear without a single jump-scare image, why ASMR works at all, why guided meditation is more effective with the right environmental track underneath. We are auditory beings whose vision happens to dominate our conscious attention. Take vision out of the equation and the ear remains a sophisticated, fully-functional sensory instrument that has been evolving to keep us alive in three-dimensional space for hundreds of thousands of years.
+
+For blind and visually impaired players, this isn't just immersion: it's orientation. Ambient sound communicates where you are and what kind of space you're in with precision that text description alone can't match. A "narrow corridor" sounds different from a "vast chamber" — the reverb tells you. A "near a river" location sounds different from a "deep forest" — the spectral character tells you. Players using only audio can locate themselves in a fictional environment with surprising accuracy if the sound design is doing its job.
+
+For sighted players, the effect is subtler but no less real. Ambient sound is the difference between reading and being inside a scene. Players who play EchoQuest with sound on and players who play with sound off have measurably different engagement patterns. The first group plays longer, remembers more, and reports stronger emotional reactions to the same narrative beats.
 
 ## How EchoQuest's Soundscapes Work
 
-Each location in an EchoQuest campaign has an associated ambient sound tag — things like "dungeon", "forest", "tavern", "ocean", "battlefield", "throne_room". When the AI Game Master moves you to a new location, the ambient track crossfades to the appropriate soundscape.
+Each location in an EchoQuest campaign has an associated ambient sound tag — things like "dungeon," "forest," "tavern," "ocean," "battlefield," "throne_room," "marketplace," "ship_at_sea," "cathedral_interior." When the AI Game Master moves you to a new location, the ambient track crossfades to the appropriate soundscape over a few seconds. The crossfade is intentional: a hard cut would feel jarring, but a slow blend mirrors the way your ear actually adjusts when you walk into a new space.
 
-The AI generates **state_change** events that include a **locationId**. EchoQuest uses that to trigger the matching audio loop on the client. The result is that sound shifts automatically as you move through the world — no button presses required.
+The AI generates structured state-change events that include a location identifier. EchoQuest's client uses that to trigger the matching audio loop without any button presses required from the player. From your perspective, you take an action like "I push through the heavy doors into the courtyard," and the sound of the great hall fades down while the sound of wind, distant horses, and a busy courtyard fades up. You didn't tell the system to change the music. The system noticed the location changed and updated the world accordingly.
+
+This kind of ambient continuity is something tabletop GMs have always wished they could give their tables. A few exceptionally dedicated GMs run laptops loaded with sound effect playlists, frantically clicking between tracks as scenes change. EchoQuest does it automatically, and the AI itself is the one deciding what scene we're in.
 
 ## The Layers of a Good Soundscape
 
 Effective ambient sound isn't just one loop. It's typically three layers:
 
-**Base layer:** The constant environmental drone — rain, wind, cave echo, city crowd noise. This runs continuously and establishes the space.
+**Base layer:** The constant environmental drone — rain, wind, cave echo, city crowd noise, the low rumble of a working harbour. This runs continuously and establishes the space. It's the layer your ear adjusts to and stops consciously noticing within thirty seconds, but it's the layer doing the most work to keep the scene anchored. Remove it and the room flattens immediately.
 
-**Mid layer:** Periodic sounds that occur every few seconds — a fire popping, distant church bells, an owl calling. These prevent the base layer from feeling stale.
+**Mid layer:** Periodic sounds that occur every few seconds — a fire popping, distant church bells, an owl calling, a dog barking down the street, a glass clinking in a tavern. These prevent the base layer from feeling stale and add the rhythm of "things happening" that gives a place life. The mid layer is also where world identity lives. A medieval European village has different mid-layer textures than a desert oasis, and the same handful of sounds played at different intervals can completely change a scene's emotional register.
 
-**Event layer:** Triggered sounds tied to specific story moments — a door creaking open, a crowd going silent, thunder cracking at a dramatic reveal. These are the ones that create goosebumps.
+**Event layer:** Triggered sounds tied to specific story moments — a door creaking open, a crowd going silent, thunder cracking at a dramatic reveal, a sword being drawn. These are the ones that create goosebumps. Event-layer sounds are inherently dramatic because they break the established pattern. They're the moment the soundscape stops being background and becomes action.
 
-EchoQuest currently handles the base and mid layers automatically. Event-layer sounds are triggered by the AI GM via sound cue events in the SSE stream.
+EchoQuest currently handles the base and mid layers automatically and event-layer sounds are triggered by the AI GM via sound cue events in the narration stream. We're continuing to expand the cue catalogue based on what scenes the GM most often wants to punctuate. Thunder, doors, footsteps, weapon draws, music swells, and quiet — yes, *quiet* is a sound cue too — are all part of the toolkit.
+
+## The Power of Silence
+
+The most underused tool in soundscape design is silence. A scene that has been carrying a lush ambient texture for ten minutes, then drops to silence for a single beat, will land harder than any scream. Silence focuses attention. It tells the listener: *something just changed, pay attention to what comes next*. Used sparingly, it's the most dramatic transition in audio storytelling.
+
+EchoQuest's GM uses brief silence beats around major reveals, sudden NPC deaths, and moments where the world holds its breath. These are usually two- to three-second pauses, just long enough that you notice they happened, just short enough that they don't feel like a glitch.
 
 ## Volume Control
 
-Ambient sound can overwhelm narration if it's too loud — particularly for players using hearing aids or who process audio differently. EchoQuest lets you adjust ambient volume independently of narration volume, or disable ambient sound entirely without affecting the TTS voice.
+Ambient sound can overwhelm narration if it's too loud — particularly for players using hearing aids, who process audio differently, or who are listening on devices with limited dynamic range. EchoQuest lets you adjust ambient volume independently of narration volume, or disable ambient sound entirely without affecting the TTS voice. We've also added an auto-duck setting that lowers ambient volume slightly whenever the GM is speaking, then restores it after the line ends. Most players find auto-duck helpful enough to leave on permanently.
 
-You'll find the ambient volume slider in **Settings → Voice** and in the in-game audio controls panel. **[Play your first session →](/library)**
+You'll find the ambient volume slider in Settings → Voice and in the in-game audio controls panel. If something doesn't sound right — either too loud, too quiet, or just not matching the scene — let us know. The soundscape catalogue is something we keep expanding based on player feedback. **[Play your first session →](/library)**
 `,
   },
   {
@@ -728,37 +902,47 @@ You'll find the ambient volume slider in **Settings → Voice** and in the in-ga
     excerpt: "Dungeons & Dragons has shaped RPGs for fifty years. EchoQuest inherits its DNA — the AI Game Master, the open-ended action system, the collaborative storytelling — while solving the biggest problems tabletop has never cracked.",
     content: `# From Tabletop to AI: How EchoQuest Reimagines D&D
 
-Dungeons & Dragons turned 50 years old recently. In that half-century, it defined what a role-playing game is: a human Game Master, a set of rules, dice, and a table full of players deciding what their characters do. That formula proved so compelling it generated an entire industry.
+Dungeons & Dragons turned 50 years old recently. In that half-century, it defined what a role-playing game is: a human Game Master, a set of rules, dice, and a table full of players deciding what their characters do. The original 1974 boxed set was three thin booklets in brown wrappers, sold out of Gary Gygax's basement in mimeographed runs. By the 2020s, D&D was a billion-dollar property, a cultural reference point in mainstream movies and TV, and the spark behind a whole industry of tabletop, video, and audio games. That formula — a Game Master narrating a world while players collaborate on the story — proved so compelling it generated everything that came after, including EchoQuest.
 
-EchoQuest is built in that tradition. But it solves some problems that tabletop never could.
+EchoQuest is built squarely in that tradition. We don't see ourselves as competing with tabletop D&D; we see ourselves as the latest answer to a question D&D players have been asking for decades — *can we have this experience without needing to gather five busy adults in a room every Wednesday night?* This post lays out what tabletop got right, what it never solved, and how EchoQuest's AI Game Master both inherits and diverges from the form.
 
 ## What D&D Got Right
 
-**The open action system.** In D&D, you can try to do anything. The GM adjudicates it. There's no menu of options, no locked skill tree — if you can describe an action, you can attempt it. This is what makes tabletop feel alive compared to video games with finite option sets.
+**The open action system.** In D&D, you can try to do anything. The GM adjudicates it. There's no menu of options, no locked skill tree, no list of approved verbs — if you can describe an action, you can attempt it. Want to climb the chandelier and drop on the orc? Roll for it. Want to bribe the captain of the guard with a story that's only half true? Roll for it. Want to compose a song that calms the angry mob? Roll for it. This is what makes tabletop feel alive compared to video games with finite option sets. It's the difference between a story you're telling and a story you're playing through.
 
-**The collaborative story.** The best D&D sessions are co-authored. The GM sets the world and responds to players; players act in unexpected ways and the GM adapts. The story becomes something nobody planned.
+**The collaborative story.** The best D&D sessions are co-authored. The GM sets the world and responds to players; players act in unexpected ways and the GM adapts. The story becomes something nobody planned, and the surprises are the best parts. A great GM doesn't have a script; they have a world and a willingness to follow what the players do with it. A great player doesn't read the GM's mind; they take risks the GM has to honour. This iterative co-authorship is the single most addictive thing about tabletop, and it's what no single-player video game has ever quite replicated.
 
-**The persistent character.** Your character grows over time — gains abilities, forms relationships, carries the weight of past choices. The accumulation of history is what makes the emotional highs hit hard.
+**The persistent character.** Your character grows over time — gains abilities, forms relationships, carries the weight of past choices. The character you play in the final session isn't the character you played in the first. Their scars are real. Their relationships are real. Their reputation is real. The accumulation of history is what makes the emotional highs hit hard, because by the time something matters to your character, you've spent dozens of hours becoming attached to them.
 
-EchoQuest preserves all three of these.
+EchoQuest preserves all three of these. The action system is fully open — you can type or speak any action, however weird, and the AI GM will adjudicate it. The story is genuinely collaborative — the GM is improvising responses to your actual choices, not branching through a tree someone wrote in advance. And the character is persistent — every session continues from where the last one ended, with relationships, conditions, inventory, and reputation all preserved.
 
 ## What Tabletop Couldn't Solve
 
-**Scheduling.** Getting five adults in the same room at the same time, every week, indefinitely, is genuinely difficult. This is the single biggest reason D&D campaigns die. EchoQuest is available whenever you are.
+**Scheduling.** Getting five adults in the same room at the same time, every week, indefinitely, is genuinely difficult. This is the single biggest reason D&D campaigns die. The first session is exciting; by session twelve, two players have new jobs, one has a baby, one is on a different continent for three months, and the campaign quietly stops without ever formally ending. Online tabletop tools (Roll20, Foundry) help, but they don't solve scheduling — they just make it slightly easier to gather. EchoQuest is available whenever you are. Twenty minutes between meetings, an hour before bed, a long weekend. The campaign waits for you and continues exactly where you left off.
 
-**The GM burden.** Running a good tabletop game requires enormous preparation — writing NPCs, building encounters, running improv for hours. Most people who want to play don't want to (or can't) carry that load. EchoQuest's AI GM handles it entirely.
+**The GM burden.** Running a good tabletop game requires enormous preparation — writing NPCs, building encounters, running improv for hours, retroactively patching plot holes, designing maps, statting custom monsters, remembering everyone's character details, refereeing rules disputes. Most people who want to play don't want to (or can't) carry that load, which is why most tabletop groups have a chronic GM shortage. There are usually five people who want to play and one person who reluctantly volunteers to run things. EchoQuest's AI GM handles it entirely. You're free to be a player.
 
-**The social anxiety barrier.** Tabletop RPGs require performing in front of people — improvising dialogue, making decisions out loud, being judged by your peers. For many players, this is exciting. For many others, it's a barrier that keeps them away from a hobby they'd otherwise love. EchoQuest is a private space.
+**The social anxiety barrier.** Tabletop RPGs require performing in front of people — improvising dialogue, making decisions out loud, being judged by your peers, sometimes voicing characters very different from yourself. For many players, this is exciting and an essential part of the appeal. For many others — especially players who are introverted, neurodivergent, anxious, or simply new to RPGs — it's a barrier that keeps them away from a hobby they'd otherwise love. EchoQuest is a private space. You can try the most outlandish character you've never had the courage to play at a table. Nobody is watching. Nobody is judging. The only audience is the AI, and it will play along sincerely.
 
-**Accessibility.** As discussed elsewhere on this blog, tabletop RPGs are deeply visual — maps, character sheets, books, dice. EchoQuest replaces all of that with audio and keyboard-accessible text.
+**Accessibility.** As discussed elsewhere on this blog, tabletop RPGs are deeply visual — maps, character sheets, books, dice, miniatures, battle grids, illustrated handouts. The hobby has a real and growing accessible-tabletop community, but it requires substantial adaptation work to play. EchoQuest replaces all of that with audio and keyboard-accessible text. A blind player can play the same campaign as a sighted player, with no special accommodations and no second-class experience.
+
+**Cost.** A real tabletop campaign means books, dice, miniatures, often a paid subscription to an online tabletop tool, sometimes a professional GM. The price of admission can run hundreds of dollars before a single session has been played. EchoQuest's free tier is a complete game.
 
 ## What's Different About AI as GM
 
-A human GM makes judgment calls informed by years of creative experience, social reading of the table, and genuine emotional investment in the story. An AI GM makes judgment calls informed by training data and a carefully designed system prompt.
+A human GM makes judgment calls informed by years of creative experience, social reading of the table, and genuine emotional investment in the story. An AI GM makes judgment calls informed by training data and a carefully designed system prompt. These are not the same thing, and pretending they are would be insulting to both human GMs and to honest software design.
 
-The AI doesn't get tired. It doesn't play favorites. It doesn't railroad you toward its preferred story. It doesn't have bad nights. But it also doesn't have the spark of genuine human creativity — the unexpected callback, the perfect improv moment, the tear in a seasoned GM's eye.
+The AI doesn't get tired. It doesn't play favourites. It doesn't railroad you toward its preferred story arc. It doesn't have bad nights. It will improvise patiently for hours without any of the "are we wrapping up soon?" body language a human GM communicates around session four. If you want to take twenty minutes deciding what to say to a single NPC, the AI will wait. If you want to play at three in the morning, the AI is there.
 
-EchoQuest is not a replacement for a great human GM and a great group. It's something different: a solo or intimate experience, available anytime, that captures enough of what makes tabletop magical to produce real joy.
+But the AI also doesn't have the spark of genuine human creativity — the unexpected callback to a joke from session two, the perfect improv moment when a player misspeaks and the table laughs together for ten minutes, the tear in a seasoned GM's eye when their longest-running player finally lets their character grieve. AI GMs in 2026 are remarkably good at sustained, consistent, atmospheric narration. They are not yet capable of the very best moments a great human GM can produce. We're honest about that.
+
+What an AI GM can do — uniquely well — is *availability*. A great human GM is rare and busy. A good AI GM is always there. For a player who wants regular RPG experiences and can't reliably gather a tabletop group, that availability is the difference between playing and not playing at all.
+
+## The Hybrid Future
+
+Many EchoQuest players use the platform alongside tabletop campaigns, not instead of them. They run a Wednesday-night D&D group with friends and a Saturday-morning solo EchoQuest campaign with a different character. The two experiences scratch different itches. Tabletop gives you the social joy of co-creation with people you love. EchoQuest gives you the solo joy of a story that's exactly the rhythm you want, exactly when you want it.
+
+EchoQuest is not a replacement for a great human GM and a great group. It's something different: a solo or intimate experience, available anytime, that captures enough of what makes tabletop magical to produce real joy. If you've never been able to find a tabletop group, this might be your way in. If you've had one for years, it might be your way to keep playing in the weeks the table can't meet.
 
 **[Start your first adventure →](/library)**
 `,
@@ -769,39 +953,61 @@ EchoQuest is not a replacement for a great human GM and a great group. It's some
     excerpt: "The best NPCs feel like people with lives outside the scenes they appear in. Here are seven techniques for building characters your players will remember long after the campaign ends.",
     content: `# Writing Compelling NPCs: 7 Techniques That Work
 
-NPCs are the human heartbeat of any RPG world. They're who your players talk to, trust, fight, fall for, and mourn. A flat NPC is a vending machine: dispenses information, forgotten immediately. A real NPC changes how players feel about the world they're in. Here's how to write the latter.
+NPCs are the human heartbeat of any RPG world. They're who your players talk to, trust, fight, fall for, betray, and mourn. A flat NPC is a vending machine: dispenses information, forgotten immediately, indistinguishable from the next one. A real NPC changes how players feel about the world they're in — sometimes for an entire campaign, sometimes for years afterwards. Veteran tabletop players still talk about the bartender they met in session two of a long-dead campaign. The character had three lines of dialogue and a specific limp. That's the bar.
+
+The seven techniques below are the patterns we see in NPCs that consistently produce that kind of memory. They work for human GMs at a tabletop and they work even better as Game Bible entries that an AI GM can lean on across many sessions, because the AI's strength is consistency, and characters built from these patterns are easy to be consistent about. Use them as a checklist when you're writing your roster — if an NPC matches all seven, they'll be unforgettable. If they match only one or two, you have a vending machine.
 
 ## 1. Give Them One Specific Want
 
-Not a vague motivation — a specific, current desire. Not "she wants power" but "she wants to be appointed to the city council before her rival is, and she has three weeks." Specificity creates urgency. Urgency creates drama.
+Not a vague motivation — a specific, current desire. Not "she wants power" but "she wants to be appointed to the city council before her rival is, and she has three weeks." Specificity creates urgency. Urgency creates drama. The window — three weeks — gives the GM something to escalate against, and gives the player a reason to make decisions that ripple beyond their own goals.
+
+The want should be something the player could plausibly help with or get in the way of. "She wants enlightenment over the next forty years" is a fine human desire and a useless NPC desire. "She wants to find her sister, who disappeared into the eastern provinces last winter," is something a session can move forward.
 
 ## 2. Give Them One Thing They Won't Do
 
-Every character has a line they won't cross. This line defines who they actually are. A mercenary who'll take any job except killing children is more interesting than one with no limits. The line creates the dilemma: eventually, players will find a situation that tests it.
+Every character has a line they won't cross. This line defines who they actually are — more accurately than their stated values, more accurately than their public reputation. A mercenary who'll take any job except killing children is more interesting than one with no limits. A scholar who'll lie about anything except the contents of a primary source is more interesting than one with no limits. The line creates the dilemma: eventually, players will find a situation where doing what the NPC wants requires crossing the line. That's where character reveals itself.
+
+The line also gives the NPC a way to refuse cleanly. When the NPC says "I won't help you with this," the player knows it's not a stat block; it's a person.
 
 ## 3. Let Them Want Something From the Players Specifically
 
-The most engaging NPCs aren't neutral — they want something from *these* characters, for *this* reason. The blacksmith doesn't just sell weapons; she's been watching the party and wants to hire them for something she's too afraid to do herself. Interest is mutual. Engagement goes both ways.
+The most engaging NPCs aren't neutral — they want something from *these* characters, for *this* reason, that they would not want from random other adventurers. The blacksmith doesn't just sell weapons; she's been watching the party and wants to hire them for something she's too afraid to do herself, because the way they treated the apprentice yesterday told her they're the right people. Interest is mutual. Engagement goes both ways.
+
+This technique alone fixes more bad RPG dialogue than any other. NPCs who are interested in the players become interesting to the players. NPCs who treat the players as one more group passing through fade into the background no matter how cleverly they're written.
 
 ## 4. Give Them a Physical Habit or Mannerism
 
-One specific, repeatable behavior that the AI GM (or you, at the table) can consistently deploy. Not "she's nervous" but "she always straightens objects on a table when she's thinking." This mannerism becomes a signal — players will recognize it and read into it. When she starts straightening things during a negotiation, they'll pay attention.
+One specific, repeatable behavior that the AI GM (or you, at the table) can consistently deploy. Not "she's nervous" but "she always straightens objects on a table when she's thinking." Not "he's intimidating" but "he stops talking mid-sentence whenever someone enters the room." This mannerism becomes a signal — players will recognize it and read into it. When she starts straightening things during a negotiation, they'll pay attention. When he stops talking, they'll know someone has just walked in.
+
+The trick is to pick mannerisms that are visible (or describable) in narration. Internal moods are hard for an AI to render consistently. Physical habits are easy. The mannerism becomes the character's signature, and the AI can deploy it confidently in every scene.
 
 ## 5. Make Them Competent at Something Unrelated to Their Role
 
-The innkeeper is also a retired sailor who can navigate by stars. The wizard's apprentice is a remarkably skilled liar. The gruff guard captain writes poetry in his off hours. Competence in an unexpected area makes a character feel three-dimensional — they exist beyond their job title.
+The innkeeper is also a retired sailor who can navigate by stars. The wizard's apprentice is a remarkably skilled liar. The gruff guard captain writes poetry in his off hours. Competence in an unexpected area makes a character feel three-dimensional — they exist beyond their job title. It also gives the GM a useful tool: when the players ask for help with something the obvious NPC can't help with, the unexpected NPC can.
+
+The unrelated competence should be specific enough to deploy. "She's good with horses" is generic. "She can identify the breed of any horse from its hoof print" is something a scene can be built around.
 
 ## 6. Let Them Be Partly Wrong
 
-Characters who are completely correct about everything are boring. Give your NPCs a mistaken belief they're confident about. Not a character flaw that makes them unlikeable — just a specific thing they've got wrong that will matter eventually. The mentor who's wrong about the enemy's motivation. The ally who trusts the wrong person. Real people are wrong about things. So should NPCs be.
+Characters who are completely correct about everything are boring. Worse, they're often used by GMs as exposition delivery vehicles, and players learn to mistrust anyone who is suspiciously confident. Give your NPCs a mistaken belief they're confident about. Not a character flaw that makes them unlikeable — just a specific thing they've got wrong that will matter eventually. The mentor who's wrong about the enemy's motivation. The ally who trusts the wrong person. The shopkeeper who is certain a regular customer is innocent of a crime they actually did commit.
+
+Real people are wrong about things, and they hold those wrong beliefs alongside many right ones, and the wrongness rarely makes them villains. NPCs should work the same way. When the players eventually discover the mistaken belief, the NPC's reaction — denial, embarrassment, recalibration, doubling down — becomes a character-defining moment.
 
 ## 7. Let Them Change
 
-The NPCs players meet at the start of a campaign shouldn't be exactly the same people at the end — not if the players have genuinely interacted with them. An NPC who trusted the party and was betrayed should become more guarded. One who witnessed the party's heroism should become more hopeful. Change is what separates a character from a fixture.
+The NPCs players meet at the start of a campaign shouldn't be exactly the same people at the end — not if the players have genuinely interacted with them. An NPC who trusted the party and was betrayed should become more guarded. One who witnessed the party's heroism should become more hopeful. One who was forced to make a hard choice in a scene with the party should carry that choice's weight into every later appearance. Change is what separates a character from a fixture.
 
----
+This is the technique that's hardest to enforce in tabletop and easiest to enforce with an AI GM, because the AI is keeping a structured record of who the players have done what to. Every named NPC in EchoQuest carries a "disposition" toward each player character that updates based on actions. By session ten, the NPCs the players have treated well genuinely treat them differently from the NPCs they've treated badly. The world remembers.
 
-In EchoQuest, the AI Game Master uses your Game Bible to build NPCs that match these principles. The richer your character descriptions, the more consistently the AI can maintain them across sessions. **[Build your world →](/)**
+## A Worked Example
+
+Imagine a Game Bible entry that uses all seven:
+
+> **Sera Volant** — A retired city guardswoman, mid-fifties, runs a stew kitchen near the river docks. (1) **Wants:** to track down the bandit captain who killed her old patrol partner two years ago; she's been quietly questioning travelers ever since. (2) **Won't:** turn anyone over to the current city watch, who covered up the original killing. (3) **Wants from the party:** they look like people who can travel out of the city; she wants information about a specific roadside inn. (4) **Mannerism:** drums her fingers on the counter when listening to lies. (5) **Unexpected competence:** keeps a bee garden on the roof; her honey is the best in the district and she barters it for information. (6) **Wrong about:** she believes her old captain was clean; he wasn't. (7) **Will change:** if the party brings her real information about the bandit, she'll start to relax for the first time in two years.
+
+That's a single NPC who can carry a campaign on her own.
+
+In EchoQuest, the AI Game Master uses your Game Bible to build NPCs that match these principles. The richer and more specific your character descriptions, the more consistently the AI can maintain them across dozens of sessions. Don't write an NPC for every villager — pick the dozen or so who matter and give them all seven. **[Build your world →](/)**
 `,
   },
   {
@@ -810,39 +1016,52 @@ In EchoQuest, the AI Game Master uses your Game Bible to build NPCs that match t
     excerpt: "Every choice in an RPG creates a branch. In old systems, branches were finite and pre-written. In an AI RPG, branches are infinite — which changes everything about how story works.",
     content: `# The Power of Choice: How Branching Narratives Work in AI RPGs
 
-Choice is what separates a game from a book. When you choose, you create. When your choice matters — when it genuinely changes what happens next — you're invested in a way no passive story can produce.
+Choice is what separates a game from a book. When you choose, you create. When your choice matters — when it genuinely changes what happens next — you're invested in a way no passive story can produce. The whole appeal of role-playing games rests on this single asymmetry: in a book, you witness; in an RPG, you decide. Decision is what makes the same hour spent with a story feel five times longer in memory than an hour with a film, because every minute, you were doing something.
 
-But building choice has always been a problem in games.
+But building choice has always been a problem in games. The history of game design is, in large part, the history of designers trying to give players the experience of meaningful choice without writing a separate game for every possible decision. Every era's solution has had its own ceiling. This post walks through the old models, explains how AI-driven narrative breaks past those ceilings, and is honest about the new limitations that come along for the ride.
 
 ## The Old Model: Choose Your Own Adventure
 
-Traditional branching narratives — including video game dialogue trees — work by pre-writing every possible branch. If there are five decision points and three options each, you need 243 unique story paths to cover all combinations. That's before you account for players who want to do something not on the list.
+Traditional branching narratives — including video game dialogue trees — work by pre-writing every possible branch. The classic *Choose Your Own Adventure* paperbacks of the 1980s let you flip to page 47 or page 53 based on a single decision; *Mass Effect*'s celebrated dialogue wheel was the same idea with voice acting and 3D graphics. The math is brutal. If there are five decision points and three options each, you need 243 unique story paths to cover all combinations. Real games never write 243 paths. They write a few, then quietly funnel divergent decisions back to the same trunk after a few scenes.
 
-The result: the illusion of choice. A small number of pre-written responses dressed up as a vast decision space. Players quickly learn that most choices don't matter, and the few that do lead to the same handful of outcomes.
+The result: the illusion of choice. A small number of pre-written responses dressed up as a vast decision space. Players quickly learn that most choices don't matter, and the few that do lead to the same handful of outcomes. The savvy player starts gaming the system — picking dialogue options not because they fit their character but because they're trying to unlock the "good" ending. The story stops being a story and becomes a flowchart with prose attached.
+
+There were heroic attempts to break out of this. Tabletop RPGs solved the branching problem by putting a human GM in charge of improvisation; the GM is the engine that turns infinite player choices into appropriate responses. Some video games (the Telltale and Quantic Dream catalogues) leaned hard into "consequences will follow" framing while quietly hiding the same trunk-and-funnel structure underneath. But the underlying problem — finite hand-written content — never went away.
 
 ## The AI Model: Responsive Generation
 
-In EchoQuest, the AI Game Master doesn't pre-write branches. It reads your action — whatever you say or type — and generates the next narrative beat in response. The story is constructed on the fly, constrained by your world's rules and the current context.
+In EchoQuest, the AI Game Master doesn't pre-write branches. It reads your action — whatever you say or type — and generates the next narrative beat in response. The story is constructed on the fly, constrained by your world's rules and the current context, but never selected from a list of pre-built options.
 
 This means:
 
-- **Any action is valid.** There's no "I don't understand that" for sensible in-world actions.
-- **Choices compound.** The consequence of your action in scene 3 can still be affecting the story in scene 47, because the AI carries context.
-- **Side paths are real.** If you decide to investigate the merchant guild instead of following the main quest, the AI will follow you there and build something out.
+- **Any action is valid.** There's no "I don't understand that" for sensible in-world actions. If you can describe it, the AI can adjudicate it. Try to bribe the dragon? Roll for it. Try to teach the dragon a song? Roll for it.
+- **Choices compound.** The consequence of your action in scene 3 can still be affecting the story in scene 47, because the AI carries context and the structured game state remembers explicit decisions.
+- **Side paths are real.** If you decide to investigate the merchant guild instead of following the main quest, the AI will follow you there and build something out. The "main quest" is a suggestion the world is leaning into, not a rail. Stepping off the rail doesn't break the game.
+- **Failure produces story.** In a pre-written branching game, the only response to "you fail your check" is whatever the writer prepared. In an AI RPG, failure is a generative moment — the AI improvises an interesting consequence specific to your situation, not a generic fail-state.
 
 ## The Texture of Meaningful Choice
 
-What makes a choice feel meaningful isn't just that it changes the plot. It's that it reveals character — yours. The choice to spare a villain reveals something about who you are. So does the choice to negotiate before fighting, or to ask a bystander's name before they matter to the story.
+What makes a choice feel meaningful isn't just that it changes the plot. It's that it reveals character — yours. The choice to spare a villain reveals something about who you are. So does the choice to negotiate before fighting, or to ask a bystander's name before they matter to the story, or to insist on a slower, less efficient route through a city because you want to see it. These character-revealing choices don't change the plot in dramatic ways, but they accumulate into a portrait of who your character is.
 
-The AI GM in EchoQuest is designed to honor choices that reveal character. When you do something unexpected but consistent with who your character is, the GM responds in kind — NPCs remember, situations reflect back what you've done.
+Pre-written branching almost never honours these. There's no developer time to write three different responses to "I ask the bartender what his name is" depending on whether the player asked it warmly, gruffly, or sarcastically. There just isn't. So pre-written games either omit such choices entirely or render them with the same canned text regardless of intent.
+
+The AI GM in EchoQuest is designed to honour exactly these kinds of choices. When you do something unexpected but consistent with who your character is, the GM responds in kind — NPCs remember, situations reflect back what you've done. A character who has been polite to every shopkeeper in town will find that town reacts very differently to them than a character who has been brusque, even if both characters made the "same" major plot choices. The plot is identical. The story is not.
+
+## What Choice Reveals About Story
+
+A common observation in long-running EchoQuest sessions: players start out making choices because they're trying to "win" or to find the canonical path, then gradually shift to making choices because they reflect who their character is becoming. The game stops being a tree to optimise and starts being a person to inhabit. That shift, when it happens, is the single biggest predictor of whether someone will keep playing for months.
+
+The shift happens because the AI GM consistently honours character-driven choices over plot-driven ones. If you stay true to your character's flaws, the world responds. If you betray your character's principles for tactical advantage, the world responds. There's no global "right answer" the AI is trying to nudge you toward. There's just the world reacting to who you are.
 
 ## The Limits of AI Choice
 
-AI narrative isn't perfect. Long-term consequence tracking is harder than short-term. A choice you made twenty sessions ago may not be remembered as precisely as one you made two scenes back. We mitigate this with structured game state — key facts about your choices are stored explicitly, not just in the conversation history.
+AI narrative isn't perfect, and we'd rather be honest about the gaps than oversell. Long-term consequence tracking is harder than short-term. A choice you made twenty sessions ago may not be remembered as precisely as one you made two scenes back. We mitigate this with structured game state — key facts about your choices, faction reputations, and major NPC dispositions are stored explicitly, not just in the conversation history — but the texture of older moments fades. The AI may remember *that* you spared the villain in chapter four, but not the exact words you said when you did it.
 
-And the AI doesn't experience your choices emotionally the way a human GM might. It won't be visibly moved by a sacrifice or surprised by a twist the way a person is.
+And the AI doesn't experience your choices emotionally the way a human GM might. It won't be visibly moved by a sacrifice or surprised by a twist the way a person is. The performance of being moved is there in the narration; the actual being-moved is not. For some players that doesn't matter; for others it's a meaningful absence.
 
-But it's always available. Always patient. Always responsive. And within a session, the responsiveness is remarkable.
+There's also a particular failure mode where the AI, asked to handle a choice that's genuinely ambiguous, will produce text that hedges in both directions instead of committing. This is a side effect of training models to avoid being wrong; in narrative terms, it produces blandness. We work around this by asking the GM, in its system prompt, to commit to consequences rather than equivocate. The result is far stronger than vanilla AI, but moments of hedge still happen.
+
+But the AI is always available. Always patient. Always responsive. And within a session, the responsiveness is remarkable. New players sometimes spend their first session deliberately trying to break the game — making absurd choices, attempting impossible things — and discover, gradually, that the game keeps going. The AI just keeps responding. After a while, breaking it stops being interesting and you start making the choices your character would actually make. That's the moment EchoQuest becomes the kind of RPG that ruins other games for you.
 
 **[See the difference for yourself →](/library)**
 `,
@@ -853,45 +1072,55 @@ But it's always available. Always patient. Always responsive. And within a sessi
     excerpt: "Ready to go beyond the official campaigns and build something of your own? Here's a step-by-step walkthrough of both paths to creating a custom world on EchoQuest.",
     content: `# How to Create Your First Custom World on EchoQuest
 
-Playing official campaigns is a great way to learn EchoQuest. But the moment you have a world in your head — a setting you've always wanted to play in, a story you've always wanted to tell — it's time to build your own.
+Playing official campaigns is a great way to learn EchoQuest. The flagship campaigns — Iron Citadel, Neon Precinct, Saltbound — are designed to showcase what the platform can do, and they make excellent training grounds for new players. But the moment you have a world in your head — a setting you've always wanted to play in, a story you've always wanted to tell, a tone of fiction nobody is currently writing — it's time to build your own. Custom worlds are where EchoQuest goes from "an interesting AI game" to "the place I tell my own stories."
 
-EchoQuest offers two paths to custom world creation: **uploading a Game Bible** and the **World Builder Wizard**. Here's how each one works and which to choose.
+EchoQuest offers two paths to custom world creation: **uploading a Game Bible** and the **World Builder Wizard**. Both produce fully playable campaigns, both work with the same AI Game Master, and both can be revised after creation. The right one depends on whether you're starting from a document or starting from a blank page. This post walks through both, explains which to choose, and shares the practical mistakes first-time world-builders make so you can skip them.
 
 ## Path 1: Upload a Game Bible (Storyteller Plan)
 
-If you already have a document describing your world — even rough notes — the Game Bible upload is the fastest path.
+If you already have a document describing your world — even rough notes — the Game Bible upload is the fastest path. This is the option for people whose worlds have been kicking around in a notebook, a Google Doc, or an old novel draft for years. You don't have to retype any of it.
 
-**Step 1:** Write your world document. It can be a Word file, a PDF, or plain text. Cover the basics: setting, tone, factions, major NPCs, and an opening scenario. See our [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template) for a detailed guide.
+**Step 1:** Write your world document. It can be a Word file, a PDF, or plain text. Cover the basics: setting, tone, factions, major NPCs, and an opening scenario. See our [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template) for a detailed guide. The format is flexible — section headings help the AI extract structure, but plain prose is fine too.
 
 **Step 2:** Go to **My Worlds → Upload a Game Bible**.
 
-**Step 3:** Select your file (up to 10MB). EchoQuest's AI reads your document and extracts the world structure — locations, NPCs, lore, rules.
+**Step 3:** Select your file (up to 10MB). EchoQuest's AI reads your document and extracts the world structure — locations, NPCs, lore, rules. This usually takes ten to thirty seconds depending on document length. You'll see a progress indicator with a brief description of what the AI is currently parsing ("Identifying factions… Extracting major NPCs… Parsing constraints…").
 
-**Step 4:** Review the generated world. You'll see a preview of what the AI extracted. If anything is missing or wrong, you can edit the world settings directly.
+**Step 4:** Review the generated world. You'll see a preview of what the AI extracted. If anything is missing or wrong, you can edit the world settings directly. This step is important — the AI sometimes interprets a single colourful sentence as a faction, or misses a constraint that was implied rather than stated. A two-minute review at this stage saves real frustration later.
 
 **Step 5:** Play. Your world is immediately available in your library.
 
+The upload path is the right choice when: you have an existing setting from a tabletop campaign, a novel, or an old worldbuilding project; you prefer drafting in a familiar word processor rather than a web wizard; or you want maximum control over the source text the AI reads.
+
 ## Path 2: World Builder Wizard (Creator Plan)
 
-The World Builder Wizard is a guided, step-by-step tool for building a world from scratch — no pre-written document needed. Claude AI assists at each step, offering suggestions you can accept, modify, or ignore.
+The World Builder Wizard is a guided, step-by-step tool for building a world from scratch — no pre-written document needed. Claude AI assists at each step, offering suggestions you can accept, modify, or ignore. The wizard is closer to a conversation than a form: you sketch an idea, the AI offers to flesh it out, you accept the parts you like and edit the rest.
 
-**Step 1:** Name your world and write a one-sentence pitch. ("A crumbling empire where three noble houses compete to fill a power vacuum.")
+**Step 1:** Name your world and write a one-sentence pitch. ("A crumbling empire where three noble houses compete to fill a power vacuum.") The pitch is the seed for everything that follows. Be specific. "A fantasy world" doesn't give the AI anything to work with; "A late-medieval merchant republic where a sea-god has just stopped answering prayers" sets a tone the wizard can build on.
 
-**Step 2:** Choose your genre, tone, and content rating.
+**Step 2:** Choose your genre, tone, and content rating. Genre is broad (fantasy, sci-fi, horror, modern, historical, weird). Tone is the modifier (gritty, hopeful, comedic, melancholy). Content rating sets the limits the AI will respect (family-friendly, standard, mature). These settings are guard rails for the AI, not a cage — you can play whatever you want within them.
 
-**Step 3:** Define your factions. The Wizard prompts you for each one and suggests personalities and goals.
+**Step 3:** Define your factions. The Wizard prompts you for each one and suggests personalities, goals, and willingness-to-do based on your pitch. You can accept, edit, or replace each suggestion. Aim for three to five factions; the wizard will warn you if you're going below or above the sweet spot.
 
-**Step 4:** Build your opening location and starting scenario. Where does the story begin? What's immediately at stake?
+**Step 4:** Build your opening location and starting scenario. Where does the story begin? What's immediately at stake? The wizard will draft an opening scenario based on your pitch and let you tweak it. Don't be afraid to push back on the AI's first draft — it will gladly try again with different framing.
 
-**Step 5:** Set your constraints. What rules govern this world? What can't happen?
+**Step 5:** Set your constraints. What rules govern this world? What can't happen? Constraints sharpen everything else. "No resurrection magic," "no firearms," "no telepathy," "the gods are silent" — each constraint pushes the world's stories in a particular direction.
 
-**Step 6:** Generate and play. The Wizard compiles your inputs into a full game session.
+**Step 6:** Generate and play. The Wizard compiles your inputs into a full game session. You'll see the generated world summary, can edit anything that doesn't feel right, and then jump straight into your first scene.
+
+The wizard is the right choice when: you're starting from a vague idea rather than an existing document; you want collaborative AI input on shaping the world; or you're new to worldbuilding and benefit from prompts that ensure you've covered the essentials.
 
 ## Tips for First-Time World Builders
 
-- **Start smaller than you think.** A single city with three factions and one crisis is enough for ten sessions. You can expand later.
-- **Don't over-explain magic.** The AI GM will extrapolate rules for you. Focus on the *feel* of magic in your world, not the system mechanics.
-- **Name your starting NPC.** Give the first character the player meets a specific name, personality, and one secret. This person will anchor the whole early game.
+**Start smaller than you think.** A single city with three factions and one crisis is enough for ten sessions. You can expand later. New world-builders almost always overshoot, drafting continents and pantheons before any character has set foot in a single tavern. A small, dense world plays better than a large, vague one. Confine your first world to a single region.
+
+**Don't over-explain magic.** The AI GM will extrapolate rules for you. Focus on the *feel* of magic in your world, not the system mechanics. "Magic is rare and feared, takes hours to cast, and always leaves the caster physically drained" is more useful than three pages of mana-cost calculations. Mechanics belong in a tabletop rulebook; feelings belong in a Game Bible.
+
+**Name your starting NPC.** Give the first character the player meets a specific name, personality, mannerism, and one secret. This person will anchor the whole early game. A starting NPC who is fully realised gives the AI a model to follow when generating subsequent NPCs.
+
+**Write the opening scene yourself.** The single highest-leverage 200 words you can write are the first scene. The AI will set the tone for everything afterwards based on what it sees in scene one. If you want a tense political thriller, the opening scene should be a tense political moment, not "you wake up at an inn." Whatever the opening is, the campaign will lean into.
+
+**Iterate.** Your first world is going to have weak spots you only notice after playing it for a few sessions. That's fine. You can edit a published world at any time. World-builders who treat their first attempt as a draft, not a final, end up with much better second worlds.
 
 **[Create your world →](/worlds/new)**
 `,
@@ -902,21 +1131,27 @@ The World Builder Wizard is a guided, step-by-step tool for building a world fro
     excerpt: "EchoQuest supports full voice command navigation — meaning you can play an entire session without touching a keyboard or mouse. Here's how to set it up and get the most out of it.",
     content: `# Voice Commands in EchoQuest: Play Completely Hands-Free
 
-For players who can't use a keyboard or mouse — whether due to motor disabilities, repetitive strain injuries, or simply preferring to play while their hands are busy — EchoQuest's voice command system makes the full game experience accessible via speech alone.
+For players who can't use a keyboard or mouse — whether due to motor disabilities, repetitive strain injuries, recovery from surgery, or simply preferring to play while their hands are busy with something else — EchoQuest's voice command system makes the full game experience accessible via speech alone. You can play an entire campaign, from the title screen to the final scene, without ever touching a physical input device. That's not a marketing line; it's a tested capability we treat as a release-blocking baseline.
+
+This post is a complete guide to voice play. We cover how the system works under the hood, how to set it up for the best accuracy, what voice navigation can do beyond submitting actions, and how voice combines with other accessibility tools to produce a fully hands-free, eyes-free experience. If you're new to voice control or sceptical that it can carry a full RPG session, the walkthrough below should answer most of your concerns.
 
 ## How It Works
 
-EchoQuest uses the Web Speech API, available in Chrome and Edge, to convert your spoken words into text in real time. When you activate voice input (by pressing the microphone button or its keyboard shortcut), you speak your action out loud. It's transcribed and submitted to the AI Game Master exactly as if you'd typed it.
+EchoQuest uses the Web Speech API, available in Chrome and Edge, to convert your spoken words into text in real time. The Web Speech API is the same speech-recognition technology that powers many enterprise dictation tools and accessibility apps. It runs primarily server-side in the browser vendor's infrastructure, but it's exposed as a standard API any web page can call. When you activate voice input (by pressing the microphone button or its keyboard shortcut), you speak your action out loud. It's transcribed and submitted to the AI Game Master exactly as if you'd typed it.
 
-There's no special command syntax. Just speak naturally: *"I ask the guard where the prisoner was taken"* or *"I try to pick the lock on the chest."*
+There's no special command syntax. Just speak naturally: *"I ask the guard where the prisoner was taken"* or *"I try to pick the lock on the chest"* or *"I look around the room for anything out of place."* The transcription is forwarded to the GM verbatim, so you never have to learn a special vocabulary or memorise specific phrases.
+
+The voice path stays consistent with the rest of EchoQuest's accessibility design: it's a different way to issue the same commands, not a separate "voice mode" with reduced features. Every action you can take by typing, you can take by speaking, and the game responds identically either way.
 
 ## Setting Up Voice Input
 
-1. Open EchoQuest in Chrome or Edge (Firefox support is limited by browser API availability)
-2. When prompted, allow microphone access
+1. Open EchoQuest in Chrome or Edge (Firefox support is limited by browser API availability — Safari support is partial and we recommend Chrome or Edge if either is available to you)
+2. When prompted, allow microphone access. EchoQuest only listens when you've explicitly activated voice input — there's no always-on listening
 3. During a game session, click the microphone icon in the input area, or press **V** to activate
-4. Speak your action clearly — a transcription preview appears as you speak
-5. Pause briefly when done; the transcription submits automatically, or press **Enter** to submit manually
+4. Speak your action clearly — a transcription preview appears as you speak so you can see what's being captured before it's submitted
+5. Pause briefly when done; the transcription submits automatically, or press **Enter** to submit manually if you want explicit control
+
+If you're using a screen reader, the voice activation button announces its current state ("Voice input on" or "Voice input off") and is fully keyboard-reachable.
 
 ## Navigation Voice Commands
 
@@ -928,19 +1163,35 @@ Beyond submitting actions, you can navigate the game UI by voice:
 | "Replay" | Repeat the last narration |
 | "Pause" / "Resume" | Toggle TTS narration |
 | "Settings" | Open the settings panel |
+| "Help" | Open the keyboard/voice shortcut overlay |
+| "Cancel" | Close any open dialog |
+| "Inventory" | Open the character inventory panel |
+| "Stats" | Open the character stats panel |
+
+These navigation commands are processed locally — they don't require AI inference and trigger immediately. Action submissions, by contrast, go through the AI GM and produce narrated responses.
+
+A useful pattern: combine voice navigation with voice actions in a single session. "Option two" picks the second suggested choice. Then "I draw my sword and step toward the door" submits a custom action. Then "Replay" if you need the response read again. The game remains responsive throughout, and your hands never leave wherever they happen to be.
 
 ## Tips for Best Accuracy
 
-- **Use a headset or directional microphone** — ambient noise significantly degrades transcription accuracy
-- **Speak at a moderate pace** — the API transcribes better at conversational speed than very fast or slow speech
-- **Unique character names** — if your world uses fantasy names, spell them out the first time and let autocorrect learn them
-- **Rephrase if needed** — if a transcription comes out wrong, just speak the correction; the AI GM handles small inconsistencies gracefully
+- **Use a headset or directional microphone** — ambient noise significantly degrades transcription accuracy. Built-in laptop mics work but are noticeably less reliable than even a basic USB headset
+- **Speak at a moderate pace** — the API transcribes better at conversational speed than very fast or very slow speech. If you're naturally a fast speaker, slowing down by twenty percent often eliminates most transcription errors
+- **Unique character names** — if your world uses fantasy names, spell them out phonetically the first time and the API will often pick them up for the rest of the session. Some players keep a small character-name reference open during the first scene to help with pronunciation
+- **Rephrase if needed** — if a transcription comes out wrong, just speak the correction; the AI GM handles small inconsistencies gracefully and will respond to "I meant to say I draw the dagger, not the dragon" as fluidly as to a perfectly transcribed action
+- **Quiet rooms help** — even a high-end mic struggles with TV-on-in-the-background. Voice plays best in the same conditions that make any audio call easier
+- **Check microphone gain** — too high causes clipping, too low causes drop-outs. Most operating systems have a microphone test built into accessibility settings; spend two minutes calibrating before a long session
 
 ## Combining Voice and Screen Reader
 
-If you use both voice input and a screen reader, you can set the screen reader to announce new narration automatically. The combination creates a fully hands-free, eyes-free experience: you speak your actions, the game responds, the screen reader reads the response aloud.
+If you use both voice input and a screen reader, you can set the screen reader to announce new narration automatically. The combination creates a fully hands-free, eyes-free experience: you speak your actions, the game responds, the screen reader reads the response aloud, you respond again. The rhythm is remarkably close to a phone call with a very patient, very imaginative friend.
 
-This is the use case we're most proud of — a complete RPG experience for players with both visual and motor disabilities.
+This is the use case we're most proud of — a complete RPG experience for players with both visual and motor disabilities. If you're in this category, please reach out. We learn the most from your feedback, and we want to know whenever something doesn't work.
+
+## Beyond Disability: Why Sighted Players Use Voice
+
+A growing number of EchoQuest players use voice input not because they need to, but because they prefer it. Voice play feels different from typing. The session has a cadence closer to spoken storytelling. Your character's voice and your voice are the same voice for a moment, which can produce a kind of immersion typed play never quite reaches.
+
+Some players use voice for action submission and keyboard for navigation. Some use voice while doing chores around the house — the game waits while they cook, then responds when they speak. Some use voice as a way to give their wrists a break during long sessions. There's no wrong combination, and you can switch in and out at any time.
 
 **[Try voice commands in a free session →](/library)**
 `,
@@ -951,41 +1202,51 @@ This is the use case we're most proud of — a complete RPG experience for playe
     excerpt: "Why does a well-told audio story create such vivid mental images? The answer is rooted in how our brains process sound, language, and imagination — and it explains why EchoQuest hits differently.",
     content: `# The Science of Immersion: Why Audio Storytelling Is So Powerful
 
-Ask someone to describe a book they loved and they'll tell you about images: the color of a room, the way a character moved, a face they can still picture clearly. Ask where those images came from and they'll pause — those images were never in the book. Their brain created them.
+Ask someone to describe a book they loved and they'll tell you about images: the colour of a room, the way a character moved, a face they can still picture clearly. Ask where those images came from and they'll pause — those images were never in the book. Their brain created them. The author wrote sentences. Your reader's mind filled in the rest, and most of what you remember loving wasn't on the page at all. It was in you.
 
-This is the miracle of narrative immersion. And audio storytelling, it turns out, is particularly good at triggering it.
+This is the miracle of narrative immersion. And audio storytelling, it turns out, is particularly good at triggering it. Some of the most enduring experiences in modern media — long-form podcasts that listeners return to weekly for years, audiobooks that listeners credit with carrying them through dark times, radio dramas that defined whole generations — work specifically because audio bypasses some of the cognitive bottlenecks that other media create. This post is a tour of the research behind audio's particular power, and a frank explanation of why EchoQuest is structured the way it is.
 
 ## What Happens in Your Brain During a Story
 
-Neuroscience research using fMRI has shown something remarkable: when we process a narrative, the same brain regions activate as if we were experiencing the events directly. Descriptions of movement activate motor cortex. Descriptions of smell activate olfactory cortex. Stories don't just inform — they simulate.
+Neuroscience research using fMRI has shown something remarkable: when we process a narrative, the same brain regions activate as if we were experiencing the events directly. Descriptions of movement activate motor cortex. Descriptions of smell activate olfactory cortex. Descriptions of texture activate the somatosensory regions associated with touch. The brain doesn't just understand stories — it simulates them. The simulations are partial and imperfect, but they're real, and they produce real emotional responses.
 
-This is true for all narrative, but it's especially pronounced for **audio storytelling** because of how listening engages us differently from reading.
+This is the cognitive substrate underneath the everyday experience of being "lost in a book." You aren't really lost; you're running a model. The model uses real cognitive machinery: emotional centres, motor planning regions, even, in some cases, the same circuits that process social interactions in your actual life. Stories, in a meaningful sense, *happen to you* even when nobody is moving and nothing is on screen.
+
+This is true for all narrative, but it's especially pronounced for audio storytelling because of how listening engages us differently from reading. Audio engages the simulation engine without competing with it for cognitive resources, which turns out to matter a lot.
 
 ## Reading vs. Listening
 
-When you read text, your visual cortex is busy processing the words on the page. There's cognitive competition for that channel — you're simultaneously decoding symbols and imagining scenes.
+When you read text, your visual cortex is busy processing the words on the page. There's cognitive competition for that channel — you're simultaneously decoding symbols and imagining scenes. Skilled readers are remarkably efficient at this, but the imagination work is always sharing space with the reading work. Some of the bandwidth your visual imagination would use for picturing a room is being used to recognise the shape of "room" on the page.
 
-When you *listen*, your visual cortex is largely free. It becomes available to construct the mental images that the narration describes. Studies on audiobook listeners vs. readers show that audiobook listeners frequently report stronger visualization and emotional response to the same material.
+When you *listen*, your visual cortex is largely free. It becomes available to construct the mental images that the narration describes. Studies on audiobook listeners vs. readers show that audiobook listeners frequently report stronger visualization and emotional response to the same material. The same paragraph, read silently and read aloud, produces measurably different mental experiences. The audio version is, on average, more vivid.
 
-This is why radio dramas, podcasts, and audiobooks produce such vivid internal worlds — and why narrated games can produce an immersion that visual games sometimes struggle to match.
+This is why radio dramas, podcasts, and audiobooks produce such vivid internal worlds — and why narrated games can produce an immersion that visual games sometimes struggle to match. Visual games give you the picture and ask you to react to it. Audio games hand you the seed and let your imagination grow it. The grown thing is yours in a way the rendered thing never quite is.
 
 ## The Role of Voice Performance
 
-The way something is spoken shapes how it's experienced. A sentence delivered slowly, with a slight pause before the key word, creates anticipation that the same sentence read silently does not. Vocal performance — rhythm, pitch, pace, silence — communicates emotional context that the reader of silent text must supply themselves.
+The way something is spoken shapes how it's experienced. A sentence delivered slowly, with a slight pause before the key word, creates anticipation that the same sentence read silently does not. Vocal performance — rhythm, pitch, pace, silence — communicates emotional context that the reader of silent text must supply themselves. The text "she said his name" can be devastating, casual, sarcastic, or fearful depending on how it's spoken. The reader has to decide which; the listener is told.
 
-This is why EchoQuest invests in narration quality. The ElevenLabs voices aren't just reading text. They're performing it — letting the story breathe in ways that flat TTS cannot.
+A great voice performance gives you free emotional context. The reader has to infer "this scene is tense" from prose; the listener gets "this scene is tense" carried in the voice itself, without any cognitive work required to extract it. That freed-up cognitive work goes back into imagination, which is what creates the heightened immersion audio listeners report.
+
+This is why EchoQuest invests in narration quality. The ElevenLabs voices aren't just reading text. They're performing it — letting the story breathe in ways that flat TTS cannot. The performance is part of the cognitive scaffolding that makes the audio path produce stronger immersion. Strip the performance out and the audio advantage shrinks. Layer it back in and you get the full effect.
 
 ## Ambient Sound as Cognitive Scaffolding
 
-Sound doesn't just accompany the story in EchoQuest — it pre-loads the mental environment. When you hear cave drips and echoes before a narration begins, your brain has already partially constructed the setting. The narration fills in a space that ambient sound has sketched.
+Sound doesn't just accompany the story in EchoQuest — it pre-loads the mental environment. When you hear cave drips and echoes before a narration begins, your brain has already partially constructed the setting. The narration fills in a space that ambient sound has sketched. By the time the GM says "the corridor opens into a vast chamber," your imagination has been priming for "vast chamber" for several seconds and the rendering is faster, sharper, more emotionally complete.
 
-This is the same technique used in film scoring: the music tells you how to feel about what you're about to see. Ambient sound tells you where you are before you hear what's happening there.
+This is the same technique used in film scoring: the music tells you how to feel about what you're about to see. Ambient sound tells you where you are before you hear what's happening there. The scaffolding effect is well-documented in film theory and applies just as cleanly to audio-only storytelling. Soundscape priming is one of the cheapest, most effective immersion tools available, and it's almost free in production cost compared to the alternatives.
 
 ## Why This Matters for Blind Players
 
-For sighted players, audio immersion is a choice — a different mode. For blind and visually impaired players, it's the native mode. They bring to audio storytelling exactly the cognitive skills it demands: attention to sound, practiced visualization, and the habit of building complete worlds from partial information.
+For sighted players, audio immersion is a choice — a different mode they can opt into for the cognitive benefits. For blind and visually impaired players, it's the native mode. They bring to audio storytelling exactly the cognitive skills it demands: attention to sound, practised visualization, the habit of building complete worlds from partial information, the ability to track multiple sound sources simultaneously, the reading of voice tone for emotional content. Many blind players have been doing all of this every day of their lives.
 
-Far from being a compromise, audio-first gaming may be the format that plays to blind players' strengths.
+Far from being a compromise, audio-first gaming may be the format that plays to blind players' strengths. We've heard from blind players who say EchoQuest is the first time they've experienced an RPG where they're not at any disadvantage compared to sighted players — and, in some cases, may be at an advantage. The visualisation skills built up over a lifetime of listening transfer directly. The pattern recognition for voice tone is sharper. The patience for building a world from sound rather than from a glance at a screen is already there.
+
+## Why This Matters for Sighted Players
+
+The reverse is also true: sighted players who try audio-first gaming often discover capacities they didn't know they had. Visualization gets sharper with practice. Emotional reading of voice performance gets more nuanced. The cognitive muscles that audio play uses are present in sighted brains too — they're just under-trained because most sighted media doesn't need them. Many EchoQuest players report that other forms of audio entertainment — audiobooks, podcasts, radio dramas — feel richer to them after a few months of regular play, because their listening attention has been re-tuned.
+
+This isn't an argument that audio is "better than" visual. They're different. Both produce powerful experiences. But for narrative immersion specifically, audio has structural advantages that the science backs up, and EchoQuest is designed to take full advantage of them.
 
 **[Experience it for yourself →](/library)**
 `,
@@ -996,17 +1257,21 @@ Far from being a compromise, audio-first gaming may be the format that plays to 
     excerpt: "How hard should your game be? EchoQuest gives you control over pacing, consequences, and challenge — here's how to dial in the experience that fits you.",
     content: `# Setting Difficulty in AI RPGs: From Beginner to Power Player
 
-One of the most personal things about an RPG is its difficulty. Some players want to feel like heroes — empowered, effective, moving through a story that rewards them. Others want to be challenged, humbled, forced to think carefully about every decision. Both are valid. EchoQuest is designed to serve both.
+One of the most personal things about an RPG is its difficulty. Some players want to feel like heroes — empowered, effective, moving through a story that rewards them. Others want to be challenged, humbled, forced to think carefully about every decision. Some want lethal combat but forgiving narrative; some want forgiving combat but devastating narrative; some want both lethal. Some want to take their time with puzzles; some want to be told the answer when they're stuck. All of these are valid play styles, and trying to map them to a single Easy/Normal/Hard slider does a disservice to the depth of what RPG difficulty actually is.
+
+EchoQuest is designed to serve every one of those preferences. The AI GM is responsive to how you tell it you want to play, and it can shift mid-campaign when your taste shifts. This post is a guide to thinking about difficulty as multiple dials rather than a single slider, the language to use when telling the GM what you want, and how to find the configuration that fits your particular sense of fun.
 
 ## The Three Dials of Difficulty
 
-In a traditional video game, difficulty is one setting: Easy, Normal, Hard. In an AI RPG, difficulty is more nuanced. There are three separate dimensions:
+In a traditional video game, difficulty is one setting: Easy, Normal, Hard. In an AI RPG, difficulty is more nuanced. There are three separate dimensions, and they're independent of each other:
 
-**1. Combat lethality.** How quickly does your HP drop? How often do consequences leave permanent marks? High lethality means every fight matters and retreat is a real option. Low lethality means you can be aggressive and recover quickly.
+**1. Combat lethality.** How quickly does your HP drop? How often do consequences leave permanent marks? Does a missed parry mean a sprained wrist or a severed hand? High lethality means every fight matters and retreat is a real option; you'll think hard about whether to engage at all, and tactical decisions like positioning and timing become genuinely important. Low lethality means you can be aggressive and recover quickly; combat is fast, exciting, and rarely a campaign-ending threat.
 
-**2. Puzzle and mystery difficulty.** Does the AI GM give hints? Does it confirm when you're on the right track? Lower difficulty means more guidance; higher difficulty means the world doesn't hold your hand.
+**2. Puzzle and mystery difficulty.** Does the AI GM give hints? Does it confirm when you're on the right track? Does it call out details the player would notice but the character might miss? Lower difficulty means more guidance; the GM gently steers you toward the next clue when you've been stuck for a while. Higher difficulty means the world doesn't hold your hand; you might miss a critical detail entirely and have to live with the consequences of solving things imperfectly.
 
-**3. Narrative consequence weight.** Do your choices have lasting effects that the GM tracks carefully? Or is the story more forgiving, letting you shift direction without permanent consequences?
+**3. Narrative consequence weight.** Do your choices have lasting effects that the GM tracks carefully? Or is the story more forgiving, letting you shift direction without permanent consequences? High consequence weight means a betrayal in chapter two will still shape every social scene in chapter ten; low consequence weight means the world is friendly to course corrections, and the GM is willing to gloss over inconsistencies if it produces better story.
+
+These three dials can be set independently. A player might want high narrative consequence weight (their decisions matter forever) with low combat lethality (fights are fun but not deadly). Another might want high lethality (every wound is a real threat) but low puzzle difficulty (they want help when stuck). EchoQuest's GM honours all combinations.
 
 ## How to Communicate Difficulty to Your AI GM
 
@@ -1016,30 +1281,44 @@ The clearest way to set expectations is in your opening prompt or character back
 - *"I want a gritty, realistic experience. Injuries should matter and bad decisions should cost me."*
 - *"I prefer narrative immersion over mechanical challenge — focus on story quality over difficulty."*
 - *"Play this like a hard-mode dungeon crawl. No hints, no safety net, permanent consequences."*
+- *"I want low-lethality combat but high social stakes — fights should be exciting but not deadly; lying to NPCs should have lasting consequences."*
+- *"This is a tragedy. Make hard things hard. Don't soften the blows. I want to feel my character's losses."*
 
-The AI GM reads these instructions and calibrates accordingly. You can also adjust mid-session by stating your preferences directly: "Let's make things more dangerous from here on" is a perfectly valid player action.
+The AI GM reads these instructions and calibrates accordingly. The more specific you are, the better it can tune. You can also adjust mid-session by stating your preferences directly: "Let's make things more dangerous from here on" is a perfectly valid player action, and the GM will start raising the stakes from the next scene onward.
+
+A pattern that works well: state your preferences early and once. The GM remembers them through the campaign and won't ask again unless the campaign's needs change. If you find yourself dying too often, say so. If you're winning every fight too easily, say so. The GM treats these as legitimate calibrations, not as the player asking for an easier game.
 
 ## The Beginner Experience
 
 If you're new to RPGs, EchoQuest's official beginner campaigns are designed to onboard you gently:
 
-- The opening scenarios are clear and directed — you always have an obvious first action
-- The AI GM will offer suggestions if you're stuck for more than one turn
-- Combat encounters are scaled to be survivable even with poor decisions
-- The story rewards exploration and curiosity without punishing wrong turns
+- The opening scenarios are clear and directed — you always have an obvious first action, so you're never staring at a blank prompt wondering where to start
+- The AI GM will offer suggestions if you're stuck for more than one turn — gently, in-narrative, without breaking the fiction
+- Combat encounters are scaled to be survivable even with poor decisions; "wipe" outcomes are rare in beginner campaigns
+- The story rewards exploration and curiosity without punishing wrong turns; investigating a dead-end side path is treated as a story moment, not as a wasted turn
+- NPCs are forgiving of social fumbles; if you say something awkward, the world doesn't end
+
+If at any point the beginner experience starts feeling too easy, you can simply tell the GM you'd like more challenge. The dial moves immediately.
 
 ## The Power Player Experience
 
 For veterans who want a real challenge:
 
-- Choose "Intermediate" or "Advanced" campaigns in the library
-- Tell the GM explicitly that you want high difficulty and meaningful consequences
-- Engage with the world's politics and factions rather than just combat — the deepest challenges in EchoQuest are social and moral, not just mechanical
-- Try running without choosing from suggested options at all — type your own actions every turn
+- Choose "Intermediate" or "Advanced" campaigns in the library, which have high-lethality enemies and consequence-heavy plotlines built in
+- Tell the GM explicitly that you want high difficulty and meaningful consequences, including death as a real outcome
+- Engage with the world's politics and factions rather than just combat — the deepest challenges in EchoQuest are social and moral, not just mechanical. A fight you can plan; a faction war where every move makes someone hate you is much harder to optimise
+- Try running without choosing from suggested options at all — type your own actions every turn. Suggested options are training wheels; ignoring them turns the game into a writing exercise where the world reacts to whatever you actually invent
+- Run a campaign with permadeath enabled. There's no UI flag for this; you simply tell the GM at the start that if your character dies, the campaign ends. The threat changes everything. Sessions hit harder when you know the run is mortal
+
+## The Middle Path
+
+Most experienced EchoQuest players settle into a middle setting: medium-high lethality (real risk, real recovery), medium puzzle difficulty (the GM doesn't volunteer answers but will respond honestly when asked), high narrative consequence weight (the world remembers everything). This combination produces the kind of long-running campaign that earns its dramatic moments. Easy losses don't sting. Hard losses on a path you chose with full awareness of the stakes are unforgettable.
 
 ## A Note on Content Rating
 
-EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the darkness of themes and the intensity of violence. This is separate from mechanical difficulty — a Family-rated campaign can still be strategically challenging; a Mature-rated one can be narratively intense without being mechanically hard.
+EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the darkness of themes and the intensity of violence. This is separate from mechanical difficulty — a Family-rated campaign can still be strategically challenging; a Mature-rated one can be narratively intense without being mechanically hard. Choose the content rating based on the kind of fiction you want to read, not based on how hard you want the game to be.
+
+The two settings interact in interesting ways. A Mature-rated, high-lethality campaign can be punishing. A Family-rated, low-lethality, high-consequence campaign can still be deeply moving — the consequences are interpersonal and emotional, not violent. There's no single "best" combination. There's only what's right for the story you want to tell.
 
 **[Browse campaigns by difficulty →](/library)**
 `,
@@ -1050,43 +1329,54 @@ EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the
     excerpt: "From Colossal Cave Adventure in 1976 to AI-driven RPGs in 2026, interactive fiction has always been about one thing: giving readers agency. Here's the full arc.",
     content: `# The History of Interactive Fiction — And Where AI Takes It Next
 
-Every medium has a moment where it discovers what it can uniquely do. For film it was editing. For television it was serialization. For interactive fiction, the discovery is still unfolding — and AI might be the moment it finally arrives.
+Every medium has a moment where it discovers what it can uniquely do. For film it was editing — the realisation that you could cut between two shots and create meaning that was in neither. For television it was serialization — the discovery that telling a story over a hundred hours could produce emotional depths that a two-hour film couldn't reach. For interactive fiction, the discovery is still unfolding. The medium has spent fifty years experimenting with what makes a *reader-as-protagonist* story work, and AI might be the moment it finally arrives at its native form.
+
+This post is a brief history of how we got here, why each successive era of interactive fiction made certain things possible and others impossible, and what AI specifically unlocks that nothing before it could. If you've ever wondered why text adventures lived and died, why Twine took off, or why AI Dungeon was a glimpse of something even though it couldn't quite hold together, the arc below explains the through-line.
 
 ## 1976: The Colossal Cave
 
-Interactive fiction begins, depending on who you ask, in 1976 with Colossal Cave Adventure — a text game written by Will Crowther, a caver and programmer, to share his love of Kentucky's Mammoth Cave with his daughters. You typed directions and actions. The game responded with descriptions. A world built from words.
+Interactive fiction begins, depending on who you ask, in 1976 with Colossal Cave Adventure — a text game written by Will Crowther, a caver and programmer at BBN Technologies, to share his love of Kentucky's Mammoth Cave with his daughters. You typed directions and actions. The game responded with descriptions. A world built entirely from words. Don Woods later expanded the game with fantasy elements (puzzles, treasures, magic words) and it spread through the early ARPANET like wildfire.
 
-It was primitive by any measure. But it introduced the core idea: you could exist inside a story and make it move.
+It was primitive by any measure — a simple parser, a static map, a fixed inventory of commands. But it introduced the core idea that everything afterwards would build on: you could exist inside a story and make it move. The story was somewhere. You were inside it. Your typed words changed what happened next. Every subsequent decade of interactive fiction is, in some sense, a refinement of that single insight.
 
 ## The Parser Era (1977–1993)
 
-Infocom turned the cave into an industry. Zork, Hitchhiker's Guide to the Galaxy, Planescape — text adventures became a genre. Parsers grew more sophisticated. You could type "put the blue bottle on the second shelf" and the game would (sometimes) understand.
+Infocom turned the cave into an industry. Zork, Hitchhiker's Guide to the Galaxy, Planetfall, A Mind Forever Voyaging, Trinity — text adventures became a serious commercial genre. Infocom's parsers were the most sophisticated of the era; you could type "put the blue bottle on the second shelf" and the game would parse the sentence structure, identify the verb and the objects, check that you had the bottle and the shelf was reachable, and (sometimes) understand. The puzzle design that emerged from that capability was extraordinary. Trinity ends with a meditation on nuclear weapons that still hits as hard as anything in fiction.
 
-The limitation was always the parser. It understood a finite vocabulary. Step outside it and you got "I don't know the word X." The illusion of infinite possibility constantly collided with finite implementation.
+The limitation was always the parser. It understood a finite vocabulary. Step outside it and you got "I don't know the word X." The illusion of infinite possibility constantly collided with finite implementation. Players developed a kind of metaphorical psychic communion with the parser, learning to phrase their actions in the way the designer expected. "Examine the chest" worked; "look in the chest" didn't. The genre became a vocabulary game wrapped around a story, and that ceiling, though high, was real. The commercial collapse of the early 90s was as much about the limits of the form as about the rise of graphical games.
 
 ## The Hyperlink Era (1993–2010)
 
-The web killed commercial text adventures but birthed hypertext fiction. Twine, Inform, Choice of Games — authors created branching narratives where clicking a link was the gesture of choice instead of typing a command. The player became a reader making decisions at key moments.
+The web killed commercial text adventures but birthed hypertext fiction. Twine, Inform 7, Choice of Games, the entire interactive-fiction-festival ecosystem — authors created branching narratives where clicking a link was the gesture of choice instead of typing a command. The player became a reader making decisions at key moments. Production cost dropped to near zero; a single author with no programming background could ship a full interactive story.
 
-Branching solved the parser problem by constraining choice entirely. But it introduced a new one: every branch had to be pre-written. Stories became finite decision trees with the illusion of freedom.
+Branching solved the parser problem by constraining choice entirely. There was nothing to misunderstand because the player could only pick from offered options. But it introduced a new one: every branch had to be pre-written. Stories became finite decision trees with the illusion of freedom. The ambitious works of this era — Photopia, Galatea, Howling Dogs — used the branching constraint as an aesthetic choice rather than a limitation, but the constraint was always there. You were never doing anything the author hadn't anticipated.
+
+## The Hybrid Era (2010–2019)
+
+Episodic adventure games (Telltale, Quantic Dream) and visual novels brought hyperlinked branching to a mass audience and dressed it up in 3D characters, voice acting, and cinematic camera work. The promise — *your choices matter* — was sincere and partially fulfilled, but the underlying structure remained the branching tree. Many players who loved the *experience* of these games could feel the constraints of the form: most choices made minor cosmetic differences, a handful made big ones, and all eventually funneled back to the same trunk.
+
+In the parallel tabletop world, online tools like Roll20 and Foundry made remote D&D viable. Live-streamed actual-play shows like Critical Role demonstrated to an enormous audience what *real* interactive narrative looked like — a human GM improvising in response to player choices, with no pre-written branches, no false constraints, and emergent stories that nobody could have planned. This raised the ceiling on what interactive fiction's audience expected. Branching trees started to feel anachronistic when actual-play sessions could be watched on YouTube.
 
 ## The AI Era (2020–present)
 
-Large language models changed what's possible. For the first time, a system could understand natural language input and generate contextually appropriate narrative responses — not from a lookup table, but from learned patterns across enormous amounts of human writing.
+Large language models changed what's possible. For the first time, a system could understand natural language input and generate contextually appropriate narrative responses — not from a lookup table, but from learned patterns across enormous amounts of human writing. AI Dungeon, in late 2019, was the first widely-played AI-driven interactive fiction. It was rough — state drifted, characters forgot their names, plots dissolved into nonsense — but it demonstrated something that hadn't been demonstrated before: a story engine with no pre-written branches and no fixed vocabulary, that could still produce coherent fiction in response to anything you typed.
 
-The implications are enormous. The parser problem disappears: you can say anything. The branching problem disappears: the story isn't pre-written. The GM burden problem disappears: an AI can run a session without human prep.
+The implications are enormous. The parser problem disappears: you can say anything. The branching problem disappears: the story isn't pre-written. The GM burden problem disappears: an AI can run a session without human prep. Each of those was an obstacle that defined an entire era of interactive fiction. Removing all three simultaneously isn't an iteration — it's a category shift.
 
-EchoQuest is built on this foundation. But we're early. Current AI narrative has real limitations: long-term memory is imperfect, consistency across many sessions requires engineering work, and the emotional depth of a skilled human author remains unmatched.
+EchoQuest is built on this foundation. We're using a model far more capable than what AI Dungeon had access to in 2019, wrapped in a structured game engine that holds the world together where the AI alone would drift. But we're early. Current AI narrative has real limitations: long-term memory is imperfect, consistency across many sessions requires engineering work, and the emotional depth of a skilled human author at their best remains unmatched. We talk about these limits openly because pretending they don't exist would be insulting to the form's future.
 
 ## What Comes Next
 
 The trajectory points toward AI narrative that:
-- Maintains perfect consistency across hundreds of sessions
-- Adapts its style and pacing to individual players over time
-- Generates original music, voice, and eventually images that match the story
-- Supports genuinely multiplayer experiences where multiple players' choices interact
+- Maintains perfect consistency across hundreds of sessions, with structured memory that doesn't fade
+- Adapts its style and pacing to individual players over time, learning what beats land for *you* specifically
+- Generates original music, voice, and eventually images that match the story in real time
+- Supports genuinely multiplayer experiences where multiple players' choices interact through shared AI improvisation
+- Reaches the emotional ceiling of human-authored fiction — not by mimicking it, but by being honest about what AI can do well and refining those capacities
 
-We're at the beginning of this arc. The best interactive fiction in history hasn't been written yet.
+We're at the beginning of this arc, somewhere in the equivalent of 1978 for the parser era — a few interesting experiments shipped, the best work of the medium still ahead. The history of interactive fiction is full of moments where something previously unthinkable became commonplace within five years. We expect the next five to produce things that make our 2026 experiences feel as quaint as Zork feels now.
+
+The best interactive fiction in history hasn't been written yet. It will probably be written by an AI, in collaboration with human creators, in response to the choices of a human player who didn't know any of it was possible the day they started.
 
 **[Play the current state of the art →](/library)**
 `,
@@ -1097,42 +1387,49 @@ We're at the beginning of this arc. The best interactive fiction in history hasn
     excerpt: "Horror is one of the most powerful genres in RPGs — and one that translates remarkably well to audio. Here's how to build and run a campaign that genuinely unsettles players through sound and story alone.",
     content: `# How to Run a Horror RPG Campaign Without Any Visuals
 
-Horror might seem like the hardest genre to pull off without visuals — no flickering lights, no monster designs, no sudden cuts to a terrifying face. But in practice, audio horror is some of the most effective horror that exists. Radio dramas, podcasts, and horror audiobooks regularly produce responses that visual horror struggles to match.
+Horror might seem like the hardest genre to pull off without visuals — no flickering lights, no monster designs, no sudden cuts to a terrifying face. But in practice, audio horror is some of the most effective horror that exists. Radio dramas in the 1940s, podcasts in the 2010s, horror audiobooks across decades, and now AI-narrated audio RPGs have all produced fear responses that visual horror struggles to match. The classic radio adaptation of "The War of the Worlds" caused mass panic in 1938 not despite the lack of visuals but *because* of it. Listeners' imaginations filled in details no special effects budget could ever afford.
 
-Here's why — and how to use it.
+This post is a craft guide for building and running horror campaigns in EchoQuest. Some of the techniques apply to any audio storytelling; others are specific to running interactive horror, where the player's own choices determine how deep the dread goes. If horror isn't your genre, the underlying principles — about pacing, withheld information, and the power of suggestion — generalise to any tense scene in any campaign.
 
 ## Why Audio Horror Works
 
-Fear lives in the imagination. The monster you can't see is almost always scarier than the one on screen. When a horror film shows you the creature, your brain categorizes it: "CGI wolf, cost $3 million, actors were on a set." The fear deflates.
+Fear lives in the imagination. The monster you can't see is almost always scarier than the one on screen. When a horror film shows you the creature, your brain categorizes it: "CGI wolf, cost $3 million, actors were on a set." The fear deflates. The thing has been resolved, given dimensions, made into a known entity. Once it's known, it's manageable. Once it's manageable, it isn't terrifying anymore.
 
-When the narration says "you hear something large moving in the dark beyond the reach of your lantern," your brain generates the monster. And it generates exactly the version you personally find most terrifying, drawing from your own fears and imagery. No budget could match that.
+When the narration says "you hear something large moving in the dark beyond the reach of your lantern," your brain generates the monster. And it generates exactly the version *you personally* find most terrifying, drawing from your own fears and imagery. No film budget could match that. A million-dollar prosthetic monster looks the same to every viewer; an unseen audio monster looks different to every listener and is custom-tailored, by your own subconscious, to scare *you* specifically.
+
+This is why blind horror enthusiasts often have a nuanced vocabulary about audio horror that sighted critics lack. They've been listening to fear that the imagination assembles for them their whole lives. The sighted players who eventually fall in love with audio horror often describe the experience as "discovering they were missing something." They were. The thing they were missing was their own imagination's contribution to the fear.
 
 ## The Craft of Audio Horror
 
-**Sound design is your biggest tool.** A cave drip. A long silence. The sound of something wet. These ambient details create dread before anything narratively threatening happens. Set the sound environment early and let it do work before the story catches up.
+**Sound design is your biggest tool.** A cave drip. A long silence. The sound of something wet. These ambient details create dread before anything narratively threatening happens. Set the sound environment early and let it do work before the story catches up. EchoQuest's automatic ambient layer handles much of this — when the location switches to a horror-tagged scene, the soundscape changes accordingly. But you can also explicitly call for sound cues in your Game Bible: "this scene begins with two seconds of silence, then a single dripping sound."
 
-**Withhold information deliberately.** Horror is the gap between what your player knows and what they suspect. Don't reveal too much. Let them hear something without explaining it. Let them find evidence of something terrible without showing the event itself.
+**Withhold information deliberately.** Horror is the gap between what your player knows and what they suspect. Don't reveal too much. Let them hear something without explaining it. Let them find evidence of something terrible without showing the event itself. The blood on the wall is scarier than the killing it implies. The empty room with three plates set for dinner is scarier than the people who used to live there. The AI GM is naturally inclined to over-explain — a tendency you can correct by telling it explicitly, in the world's tone notes, that horror in this world reveals itself through implication, not exposition.
 
-**Make the mundane wrong.** The most effective horror isn't about monsters — it's about familiar things behaving incorrectly. An NPC who knew the player's name without being told. A room that's slightly larger on the inside than the outside. A child's laughter from a place where no child could be.
+**Make the mundane wrong.** The most effective horror isn't about monsters — it's about familiar things behaving incorrectly. An NPC who knew the player's name without being told. A room that's slightly larger on the inside than the outside. A child's laughter from a place where no child could be. A clock that ticks at the wrong rhythm. A road that turns differently each time you walk it. The wrongness should be small enough that the player isn't sure they're imagining it. Doubt is the texture of horror.
 
-**Use silence.** Narrate a scene ending with something alarming, then go quiet. Let the player decide what to do. The silence after "you hear it stop moving" is more frightening than any follow-up description.
+**Use silence.** Narrate a scene ending with something alarming, then go quiet. Let the player decide what to do. The silence after "you hear it stop moving" is more frightening than any follow-up description. EchoQuest's GM can be told to sit on a silent beat — "after this line, leave the player in silence until they take their next action." Many of the most memorable horror moments in our test campaigns came from a deliberately held silence right after a partial reveal.
 
-**Escalate slowly.** The player should feel a slow creep of wrongness for several scenes before anything overtly threatens them. By the time the danger is explicit, the dread is already deep.
+**Escalate slowly.** The player should feel a slow creep of wrongness for several scenes before anything overtly threatens them. By the time the danger is explicit, the dread is already deep. The classic structure is: scene 1 establishes the world as normal; scene 2 introduces a single small wrong thing; scenes 3-5 layer more wrongness while the player tries to rationalise; scene 6 is when something undeniable happens. The audience should be ahead of the player by scene 4 — they know something is terribly wrong, but the player character is still trying to convince themselves there's a normal explanation.
+
+**Use the player's name.** Once your character has been named, the GM saying that name in a scene where it shouldn't be said — by an NPC who shouldn't know it, in a place where it shouldn't be heard, in a tone that doesn't feel right — is one of the most effective horror moves available. The name is the player's hook. Twist that hook and you twist the player.
+
+**Don't be afraid of dark endings.** Horror that always resolves cleanly isn't really horror. The best horror campaigns are willing to end in something other than triumph. A pyrrhic victory, a cost the character carries forever, a survival that feels worse than the alternative. Tell the GM up front that this campaign has darker possible endings; the world will lean into them when the choices warrant it.
 
 ## Building a Horror World in EchoQuest
 
 When writing your Game Bible for a horror campaign:
 
-- Define the central horror clearly for yourself, but reveal it to players gradually
-- Write specific sensory details for each location — horror lives in specifics
-- Give your primary antagonist or threat a distinctive sound (before the player ever "sees" it)
-- Establish what's normal in this world so deviations register as wrong
-- Set content rating to Teen or Mature to allow genuine darkness
+- Define the central horror clearly for yourself, but reveal it to players gradually. Write down what the threat actually is, what it wants, what its rules are. The AI GM needs to know to be consistent. The player does not, and shouldn't, until the moment is earned
+- Write specific sensory details for each location — horror lives in specifics. "The hospital corridor" is generic; "The hospital corridor where the linoleum has buckled in places that make you walk slightly off-rhythm, the fluorescents flicker every 14 seconds, and there's a faint smell of formaldehyde that gets stronger near the locked door at the end" is a place
+- Give your primary antagonist or threat a distinctive sound (before the player ever "sees" it). The player should learn to dread that sound across multiple scenes. The first time they hear it, they shouldn't recognise it. The third time, they should know they're in trouble before anything else has happened
+- Establish what's normal in this world so deviations register as wrong. Horror requires a baseline. If everything is creepy from scene one, the player calibrates to that and nothing escalates
+- Set content rating to Teen or Mature to allow genuine darkness. Family-rated horror exists, but it sits at a lower ceiling
 
 **Example opening:**
-*"You've been assigned to document the decommissioned hospital on the edge of town. The front door is already open, which the records say it shouldn't be. Inside, the smell of antiseptic has been replaced by something older and wetter. Your torch throws shadows that seem to resolve into shapes a half-second after you look away."*
 
-That's a complete horror opening with no monsters and no jump scares — just wrongness.
+*"You've been assigned to document the decommissioned hospital on the edge of town. The front door is already open, which the records say it shouldn't be. Inside, the smell of antiseptic has been replaced by something older and wetter. Your torch throws shadows that seem to resolve into shapes a half-second after you look away. Your radio is playing static, and you don't remember turning it on."*
+
+That's a complete horror opening with no monsters and no jump scares — just wrongness, accumulating. Notice the specific sensory details: the door, the smell, the shadow timing, the radio. Each one is a small wrong thing. By the time the player decides what to do, they're already deep inside the dread.
 
 **[Start your horror campaign →](/library)**
 `,
@@ -1143,47 +1440,57 @@ That's a complete horror opening with no monsters and no jump scares — just wr
     excerpt: "The best RPG moments aren't fights — they're choices where every option costs something. Here's how to design moral dilemmas that stick with players long after the session ends.",
     content: `# Crafting Moral Dilemmas: How to Make Players Truly Think
 
-A player who finishes a session still thinking about a decision they made — that's the mark of a great campaign. Combat gets forgotten. Political intrigue fades. But a genuine moral dilemma, one where they weren't sure what the right answer was, stays.
+A player who finishes a session still thinking about a decision they made — that's the mark of a great campaign. Combat gets forgotten. Political intrigue fades. But a genuine moral dilemma, one where they weren't sure what the right answer was, stays. Players talk about those moments years later. They debate them with friends. They write think-pieces about them. Some of them shape how the player approaches future stories — and, occasionally, how they approach their actual lives.
 
-Here's how to build those moments.
+This is the highest thing a campaign can produce, and it's also the most easily faked. The internet is full of "morality systems" that present themselves as deep choices but are really tests of whether you read the dialogue carefully. This post is a guide to designing dilemmas that aren't tests, that can't be optimised, and that genuinely make a thoughtful player struggle. Whether you're writing a Game Bible for a custom EchoQuest world or running a tabletop campaign with friends, the same principles apply.
 
 ## The Anatomy of a Real Dilemma
 
 A fake dilemma: "Do you save the village or let the bandits burn it?"
 
-Nobody picks "let the bandits burn it." There's no tension. It's a test of whether the player is good or evil, and most players will pass it without a second thought.
+Nobody picks "let the bandits burn it." There's no tension. It's a test of whether the player is good or evil, and most players will pass it without a second thought. Worse, the player will sense they're being tested and resent the question. Fake dilemmas hurt campaign tone because they signal to the player that the GM thinks moral choices have obvious answers.
 
-A real dilemma: "The village Elder helped the bandits in exchange for protection of his daughter, who is now wanted by the crown. Do you turn him in — which will legally protect the village but condemn his daughter — or protect his secret, which means living under bandit influence indefinitely?"
+A real dilemma: "The village Elder helped the bandits in exchange for protection of his daughter, who is now wanted by the crown. The bandits are gone now, but the daughter is hiding in the village under a false name. Do you turn the Elder in — which will legally protect the village from charges of harbouring criminals but condemn his daughter as well — or protect his secret, which means the crown will eventually find a different scapegoat in the village instead?"
 
-Now there's tension. There's no clean answer. Whatever the player chooses, they're losing something and choosing who bears the cost.
+Now there's tension. There's no clean answer. Whatever the player chooses, they're losing something and choosing who bears the cost. The Elder did something wrong; he also did it for love. The crown's law is legitimate; the crown's punishment is disproportionate. The village deserves protection; protection costs people. There's no algorithm that solves this.
 
 ## The Four Ingredients
 
-**1. Legitimate values on both sides.** Both options must serve something the player actually cares about. If one option is clearly better, it's not a dilemma — it's a puzzle with a right answer.
+**1. Legitimate values on both sides.** Both options must serve something the player actually cares about. If one option is clearly better, it's not a dilemma — it's a puzzle with a right answer. The hardest dilemmas pit two of the player's stated values against each other. A character who values both loyalty and justice will be torn when those values demand opposite actions. A character who values both mercy and the safety of innocents will be torn when sparing one person endangers many.
 
-**2. No third option (initially).** Players will always look for the creative solution that costs nothing. That's fine — let them try. But the default state of the dilemma should have no clean escape. If they find a clever third path, reward that creativity. But design the scenario assuming they won't.
+**2. No third option (initially).** Players will always look for the creative solution that costs nothing. That's fine — let them try, and let your AI GM honour creative attempts. But the default state of the dilemma should have no clean escape. If they find a clever third path that genuinely solves both sides, reward that creativity wholeheartedly; that's their moment of player virtuosity. But design the scenario assuming they won't, because most of the time, life-shaped problems don't have third options. The player's job is to choose under genuine constraint.
 
-**3. Personal stakes.** Abstract dilemmas ("save one person or five") are philosophy class exercises. Dilemmas become emotionally real when the people involved are named characters the player has already met and cared about.
+**3. Personal stakes.** Abstract dilemmas ("save one person or five") are philosophy class exercises. They have a "correct" utilitarian answer and produce intellectual rather than emotional engagement. Dilemmas become emotionally real when the people involved are named characters the player has already met and cared about. The Elder isn't "an Elder" — he's the man who let the players sleep in his barn, who told them about his late wife's apple pies, who twice gave them rations they were too proud to ask for. Now they have to decide whether to turn him in. The same dilemma with strangers is barely a dilemma. With the Elder, it's a wound.
 
-**4. Irreversibility.** The decision should feel permanent. If the player can always undo their choice later, there's no weight to making it.
+**4. Irreversibility.** The decision should feel permanent. If the player can always undo their choice later, there's no weight to making it. The classic gaming trick of "save before the choice, see both outcomes, pick the one you like" defeats moral choice entirely. EchoQuest doesn't support save-scumming for exactly this reason — there's no rewind. The choice you made is the choice you made. Knowing that going in changes how you sit with the decision.
 
 ## Types of Moral Dilemmas That Work
 
-**The lesser evil:** Both options cause harm. Which harm is more acceptable?
+**The lesser evil.** Both options cause harm. Which harm is more acceptable? This is the structural form most often associated with dilemmas, but it's not the only one. The risk is making both harms abstract; ground them in specific named people for full impact.
 
-**The betrayal:** Keeping a promise or a loyalty conflicts with doing the right thing.
+**The betrayal.** Keeping a promise or a loyalty conflicts with doing the right thing. The player promised to protect the prince; the prince is corrupt. The player swore an oath to the temple; the temple is asking them to do something the player believes is wrong. These are particularly powerful because they put the player's relationship with their own integrity at stake.
 
-**Certainty vs. hope:** A guaranteed bad outcome versus a chance at a good one with risk of catastrophe.
+**Certainty vs. hope.** A guaranteed bad outcome versus a chance at a good one with risk of catastrophe. Take the guaranteed loss of one person's life, or roll the dice on saving everyone but possibly losing them all. Mathematicians can argue about expected value forever; characters who care about the people involved cannot.
 
-**Justice vs. mercy:** Punishing someone who deserves it versus giving them grace they haven't earned.
+**Justice vs. mercy.** Punishing someone who deserves it versus giving them grace they haven't earned. The villain has been captured and is at the player's mercy. They've done unforgivable things. The player can have them executed with full legal cover. They can also let them go, knowing that mercy might mean the villain hurts someone else, or might mean the villain becomes someone different. There's no formula.
 
-**The individual vs. the many:** One person's wellbeing versus a larger group's.
+**The individual vs. the many.** One person's wellbeing versus a larger group's. Sacrifice one to save many is the classic frame, but the more subtle version is when the "individual" is someone the player loves and the "many" are abstract. Brains don't actually do utility calculations when love is on the table.
+
+**The cost of staying.** A dilemma the player doesn't realise they're in. Continuing to support an ally who is gradually becoming something the player doesn't recognise. Walking away might save the player but condemn the ally. Staying might condemn the player and barely help the ally. These are the slowest dilemmas, sometimes unfolding across an entire campaign.
 
 ## Timing and Delivery
 
-Dilemmas land hardest when they arrive after investment. Don't put a moral choice in the opening scene — the player hasn't met anyone yet and doesn't care. Plant the seeds of the dilemma early (introduce the characters, establish the conflicting values), then bring the choice to a head when the player is emotionally committed.
+Dilemmas land hardest when they arrive after investment. Don't put a moral choice in the opening scene — the player hasn't met anyone yet and doesn't care. Plant the seeds of the dilemma early (introduce the characters, establish the conflicting values), then bring the choice to a head when the player is emotionally committed. The ideal dilemma uses people the player has spent at least three or four sessions with.
 
-In EchoQuest, the AI Game Master can be prompted to build toward a dilemma by seeding the relevant relationships and tensions in your Game Bible. The more clearly you establish who the players will care about and why those people's interests conflict, the more powerful the eventual choice will be.
+The presentation matters too. A great dilemma isn't introduced with "you must choose." It's introduced with consequences arriving — the crown's investigators ride into town, the daughter is recognised, the Elder asks to speak to the player privately. The player understands they're at a crossroads through events, not announcements. By the time the GM asks "what do you do?", the player has been thinking about it for ten minutes already.
+
+Also: don't telegraph the right answer. If your campaign has tells (NPCs nodding approvingly when the player gets it "right"), players will stop engaging with the choice and start optimising for the response. The AI GM should treat both major choices in a real dilemma with respect — neither should be punished as obviously wrong, and neither should be celebrated as obviously right. Both should be lived with.
+
+## After the Choice
+
+The most important phase of a dilemma is what happens *after* the player has chosen. The world should react. The Elder, if turned in, should be executed off-screen and his daughter should appear later, alone, with a face the player can't forget. The Elder, if protected, should keep finding small ways to demonstrate his gratitude that subtly remind the player what they did. The choice doesn't end at the moment of decision; it ripples forward.
+
+In EchoQuest, the AI Game Master can be prompted to build toward a dilemma by seeding the relevant relationships and tensions in your Game Bible, and to honour the consequences afterwards by tracking the choice in structured game state. The more clearly you establish who the players will care about and why those people's interests conflict, the more powerful the eventual choice will be — and the longer it will linger after the session ends.
 
 **[Build your campaign →](/)**
 `,
@@ -1194,37 +1501,49 @@ In EchoQuest, the AI Game Master can be prompted to build toward a dilemma by se
     excerpt: "The best tabletop RPG campaigns of the past fifty years shaped how we think about AI-driven storytelling. Here are five that left the deepest marks on EchoQuest's design.",
     content: `# 5 Classic D&D Campaigns That Inspired EchoQuest
 
-EchoQuest didn't emerge from nowhere. It's built on fifty years of tabletop RPG design — the campaigns that showed what collaborative storytelling could achieve, the mistakes that revealed its limits, and the moments that proved narrative games could produce genuine emotional experiences. Here are five that shaped our thinking most directly.
+EchoQuest didn't emerge from nowhere. It's built on fifty years of tabletop RPG design — the campaigns that showed what collaborative storytelling could achieve, the mistakes that revealed its limits, the moments that proved narrative games could produce genuine emotional experiences. When we sat down to write the system prompt for EchoQuest's AI GM, we weren't designing in a vacuum; we were trying to capture what made the campaigns we'd loved actually work, then asking what an AI could do well in that lineage.
+
+This is a list of the five campaigns and games that shaped our thinking most directly. None of them are AI-driven. All of them are pre-EchoQuest. But each one taught us something about what good narrative gaming feels like, and the lessons live inside the AI Game Master's behaviour today. If you're a long-time tabletop player, you'll recognise the inheritance. If you're new to RPGs, this is also a half-decent reading list — these are works worth knowing whatever platform you eventually play on.
 
 ## 1. Planescape: Torment (1999)
 
-Not a tabletop campaign but a video game — and perhaps the strongest argument ever made that story is more important than combat in an RPG. Planescape: Torment is famous for its central question ("What can change the nature of a man?") and for NPCs with genuine depth, history, and moral complexity.
+Not a tabletop campaign but a video game — and perhaps the strongest argument ever made that story is more important than combat in an RPG. Black Isle's Planescape: Torment is famous for its central question ("What can change the nature of a man?") and for NPCs with genuine depth, history, and moral complexity. The protagonist, the Nameless One, awakens on a slab in a mortuary in a city that exists between planes of reality, with no memory of who he is and no understanding of why he can't die. Most of the game is figuring out the answer to that question, and the answer is harder and stranger than any RPG before or since attempted.
 
-What it taught us: Player character backstory isn't flavor text — it's the engine of the story. The Nameless One's amnesia isn't a gimmick; it's the central narrative mechanism. EchoQuest's emphasis on character backstory as an active story input comes directly from this.
+What it taught us: Player character backstory isn't flavor text — it's the engine of the story. The Nameless One's amnesia isn't a gimmick; it's the central narrative mechanism, the lens through which every NPC interaction is filtered. The companions you gather aren't standard fantasy archetypes — they're a floating skull who used to be a teacher, a chaste prostitute who's also a succubus, a fallen angel who's working through something. EchoQuest's emphasis on character backstory as an active story input comes directly from this. The backstory you write isn't a bio; it's a knot of unresolved questions the world will keep tugging at.
 
 ## 2. The Curse of Strahd (1983 / 2016)
 
-Ravenloft is the original gothic horror D&D setting, and Curse of Strahd is its crown jewel. What makes it special is Strahd himself — a villain with genuine pathos, a coherent psychology, and a tragic past that makes him sympathetic without excusing anything he's done.
+Ravenloft is the original gothic horror D&D setting, and Curse of Strahd — both the 1983 original I6 module and its 2016 5th-edition reimagining — is its crown jewel. What makes it special is Strahd von Zarovich himself — a villain with genuine pathos, a coherent psychology, and a tragic past that makes him sympathetic without excusing anything he's done. He's a vampire, yes; he's also a man who fell in love with the wrong person, made a desperate bargain, and has been paying for it for centuries while continuing to make new versions of the same mistake.
 
-What it taught us: Your antagonist needs to be a person, not a symbol of evil. EchoQuest's AI GM is prompted to give antagonists motivations that make sense — not just power and destruction.
+What it taught us: Your antagonist needs to be a person, not a symbol of evil. EchoQuest's AI GM is prompted to give antagonists motivations that make sense — not just power and destruction. The model is instructed, when generating a major villain, to ask itself "what does this person want, why do they want it, and what happened to them that made wanting that feel acceptable?" The villain who emerges from that prompt is much more like Strahd than like a generic dark lord. They're terrifying because they're coherent.
 
 ## 3. Campaigns of Keith Baker's Eberron
 
-Eberron is a D&D setting built on moral ambiguity. Good nations did terrible things during the Last War. The "heroic" factions have blood on their hands. Nobody's clean.
+Eberron is a D&D setting Keith Baker created in 2002 (published in 2004) that's built explicitly on moral ambiguity. The premise: a hundred-year war just ended in a peace treaty nobody really trusts. Good nations did terrible things during the war. The "heroic" factions have blood on their hands. The dragonmarked houses, the church, the nations themselves — nobody's clean. The setting is full of people trying to live in the aftermath of choices that everyone made and no one wants to admit to.
 
-What it taught us: Faction design without clean heroes creates the most interesting political choices. EchoQuest's faction system — where every group wants something legitimate but incompatible — traces directly to Eberron's influence.
+What it taught us: Faction design without clean heroes creates the most interesting political choices. When players know that every faction has legitimacy and every faction has shadows, the question stops being "which side is good?" and becomes "what kind of person am I going to be in a world where there is no clean side?" EchoQuest's faction system — where every group wants something legitimate but incompatible, every group has a "won't do," and no faction is presented to the player as the canonical good guys — traces directly to Eberron's influence. We learned from Keith that grey is more interesting than black-and-white, and that the GM's job is to honour the legitimate parts of every faction even while letting players choose sides.
 
 ## 4. Matt Mercer's Critical Role (2015–present)
 
-Critical Role didn't invent anything new mechanically, but it demonstrated to millions of people that watching others play D&D could be genuinely moving television. Moments like Percy's deal with Orthax or Mollymauk's death hit audiences who'd never touched a d20 in their lives.
+Critical Role didn't invent anything new mechanically, but it demonstrated to millions of people that watching others play D&D could be genuinely moving television. Moments like Percy's deal with Orthax, Mollymauk's death, Vex's resurrection, the second campaign's Traveler reveal — these hit audiences who'd never touched a d20 in their lives. The show's success rewrote the audience's expectations for what RPG sessions could feel like. People who came to D&D after Critical Role expected long-arc emotional payoffs, character moments that earned tears, and consequences that compounded over hundreds of hours.
 
-What it taught us: The emotional power of RPG storytelling isn't locked to participants. The craft of performance, pacing, and character work can move an audience. This influenced how we think about EchoQuest's narration — it should be worth experiencing as a story, not just as a game.
+What it taught us: The emotional power of RPG storytelling isn't locked to participants. The craft of performance, pacing, and character work can move an audience. This influenced how we think about EchoQuest's narration — it should be worth experiencing as a story, not just as a game. We instruct our AI GM to deliver narration with the rhythm and care of a great performer, not just the efficiency of a competent referee. Sessions should sound like a story being told, because at their best, that's what they are.
+
+It also taught us something about long-arc patience. Critical Role's most devastating moments often pay off setups from a hundred hours earlier. EchoQuest's structured memory is partially designed to enable that — to remember the seed planted in session three when the consequence finally lands in session forty.
 
 ## 5. Apocalypse World (2010)
 
-Vincent Baker's Apocalypse World is a tabletop RPG about post-apocalyptic survival, but its real contribution was mechanical: the "Powered by the Apocalypse" system, where moves trigger from fiction rather than declared actions, and the GM's job is to "make the world seem real and the characters' lives not safe."
+Vincent Baker's Apocalypse World is a tabletop RPG about post-apocalyptic survival, but its real contribution was mechanical: the "Powered by the Apocalypse" system, where moves trigger from fiction rather than declared actions, and the GM's job is to "make the world seem real and the characters' lives not safe." The PbtA philosophy spread rapidly through indie tabletop circles and is now a foundational design school. Its core insight is that the GM doesn't have to plan encounters; the GM has to create situations, ask provocative questions, and respond to whatever the players do.
 
-What it taught us: The GM's role isn't to run encounters — it's to ask hard questions and create situations, then let players respond. EchoQuest's AI GM prompt architecture is built around this principle: create situations with genuine stakes, then respond honestly to player choices.
+What it taught us: The GM's role isn't to run encounters — it's to ask hard questions and create situations, then let players respond. EchoQuest's AI GM prompt architecture is built around this principle: create situations with genuine stakes, then respond honestly to player choices. We tell the AI to "play to find out what happens" — a phrase Vincent uses repeatedly in PbtA's core texts — instead of pushing the player toward a predetermined outcome. The model that emerges is much closer to a curious, present GM than to a dungeon master grinding through prepared content.
+
+The PbtA emphasis on "soft moves" (foreshadowing) and "hard moves" (consequence) is also visible in EchoQuest's pacing logic. The AI is instructed to make soft moves often, hard moves rarely, and to escalate from soft to hard whenever players give it permission by acting carelessly. That rhythm is what makes the world feel alive without overwhelming the player.
+
+## What These Five Have in Common
+
+Looking at the list, there's a through-line: every one of these works trusts the players. Planescape trusts them with a strange, dense, melancholic world. Curse of Strahd trusts them with a villain whose motives matter. Eberron trusts them to choose sides in a world without clean ones. Critical Role trusts them to sit with hours of slow character development. Apocalypse World trusts them to create the story alongside the GM rather than be led through it.
+
+EchoQuest is built on the same trust. The AI Game Master isn't trying to deliver a pre-written experience to the player; it's trying to be present, attentive, and responsive to a player who is co-authoring a story that nobody could have planned. That's the inheritance. We didn't invent the philosophy. We translated it into something an AI could carry, and we keep refining it as we learn what works.
 
 **[See EchoQuest's official campaigns →](/library)**
 `,
@@ -1235,33 +1554,47 @@ What it taught us: The GM's role isn't to run encounters — it's to ask hard qu
     excerpt: "Most RPGs are designed for groups. But solo play has distinct advantages — and a growing community of players who prefer it. Here's why playing alone might be better than you think.",
     content: `# Solo RPG vs. Group Play: The Case for Playing Alone
 
-For most of tabletop RPG history, "playing alone" meant you weren't really playing. The assumption was built into the name — *role-playing game*, emphasis on the *game*, which required other people. Solo RPG was a niche within a niche: journaling games, oracle decks, players running both sides of a conversation.
+For most of tabletop RPG history, "playing alone" meant you weren't really playing. The assumption was built into the name — *role-playing game*, emphasis on the *game*, which required other people. Solo RPG was a niche within a niche: journaling games like *Thousand Year Old Vampire*, oracle decks for dungeons-of-the-mind work, players gamely running both sides of a conversation. There was a small dedicated solo community, mostly using oracle-driven systems where dice and tables generated the world's responses, but it was widely considered a workaround for people who couldn't find a group rather than a legitimate primary mode of play.
 
-AI changes this completely. EchoQuest is built from the ground up for solo play. Here's why that's worth taking seriously.
+AI changes this completely. EchoQuest is built from the ground up for solo play, and so are a growing number of other AI-driven narrative platforms. The argument we want to make in this post is that solo play with a competent AI GM isn't a fallback — it's a distinct experience with its own strengths, suited to a different kind of audience and a different relationship to story. Group play remains wonderful and irreplaceable for the people who can do it. Solo play is worth taking seriously on its own terms.
 
 ## The Scheduling Problem, Honestly
 
-Let's start with the obvious. The biggest single reason D&D campaigns die is scheduling. Getting four to six adults — with jobs, families, and lives — into the same room at the same time, every week, indefinitely, is genuinely hard. Most campaigns die before the story finishes. Many campaigns never start because assembling the group is too hard.
+Let's start with the obvious. The biggest single reason D&D campaigns die is scheduling. Getting four to six adults — with jobs, families, and lives — into the same room (or the same Zoom call) at the same time, every week, indefinitely, is genuinely hard. We've talked to dozens of long-time tabletop players and the same story comes up over and over: the campaign was great, then someone moved, then someone had a baby, then someone got promoted, then they tried to keep going with a new player, then it just... stopped. Most campaigns die before the story finishes. Many campaigns never start because assembling the group is too hard in the first place.
 
-Solo play eliminates this entirely. You play when you want, for as long as you want, and stop when you need to.
+Solo play eliminates this entirely. You play when you want, for as long as you want, and stop when you need to. A twenty-minute session before bed is a complete experience. A four-hour Saturday afternoon is also a complete experience. The campaign doesn't wait for everyone else to be free; it waits for *you* to be free, which is the same thing as it not waiting at all.
+
+This single change transforms what RPG play looks like in someone's life. Instead of being something that happens once a week at a fixed time, it becomes something that fits into the gaps. Many EchoQuest players report playing more often in their first month with us than they did in years of tabletop attempts.
 
 ## The Performance Anxiety Problem
 
-Tabletop RPGs require performing in front of people. You're improvising dialogue, making decisions out loud, sometimes playing a character who's nothing like you. For many players, this is exactly the appeal. For many others — particularly introverts, people with social anxiety, or players who are newer to the hobby — it's a significant barrier.
+Tabletop RPGs require performing in front of people. You're improvising dialogue, making decisions out loud, sometimes playing a character who's nothing like you. For many players, this is exactly the appeal — the joyful absurdity of voicing a noble paladin while sitting in your kitchen with three friends and a bowl of pretzels. For many others — particularly introverts, people with social anxiety, neurodivergent players, or players who are simply newer to the hobby — it's a significant barrier. The inhibition isn't laziness or aloofness; it's a real thing that takes real social effort to push through, and many players who would love RPGs never start because they can't get over that hump.
 
-Playing alone with an AI GM removes the social pressure entirely. Nobody is judging your roleplay. Nobody is impatient when you take a minute to think. Nobody will remember the time you accidentally called the villain by the wrong name.
+Playing alone with an AI GM removes the social pressure entirely. Nobody is judging your roleplay. Nobody is impatient when you take a minute to think. Nobody will remember the time you accidentally called the villain by the wrong name. The AI doesn't roll its eyes. The AI doesn't have a taste in characters that's different from yours. The AI is patient in a way that even the most generous human gaming group can't quite match across hundreds of hours.
+
+We've heard from many players that EchoQuest is the first time they've felt safe enough to play characters they'd been holding back at tabletop tables — characters with vulnerabilities, with traits the player doesn't share, with quirks they'd be embarrassed to perform in public. The privacy of solo play unlocks a creative range that group play, for some people, simply can't.
 
 ## The Pacing Problem
 
-Group play has a pacing problem: five people with different energy levels, different engagement with the current scene, and different amounts of time before they need to leave. The player who wants to spend twenty minutes exploring an NPC's psychology is always in tension with the player who wants to get to the next fight.
+Group play has a pacing problem: five people with different energy levels, different engagement with the current scene, and different amounts of time before they need to leave. The player who wants to spend twenty minutes exploring an NPC's psychology is always in tension with the player who wants to get to the next fight. The GM has to mediate constantly, often by averaging across the group's preferences and producing a session that doesn't fully satisfy anyone.
 
-Solo play is perfectly paced — to you, specifically. Spend as long as you want interrogating the reluctant blacksmith. Skip briskly through the scenes that don't interest you. The story moves at your tempo.
+Solo play is perfectly paced — to you, specifically. Spend as long as you want interrogating the reluctant blacksmith. Skip briskly through the scenes that don't interest you. The story moves at your tempo and adjusts in real time to what you're enjoying. If you're tired and want a quiet scene, you can lean into that. If you're amped up and want a fight, you can ask for one. Group play has to compromise across many people's tempos. Solo play doesn't.
+
+This is also great for new players who are still figuring out what kind of RPG experience they enjoy. The first dozen sessions are an exploration — you're learning what you find fun. Group play applies social pressure to that exploration; you may end up playing the kind of game your group plays rather than the kind you'd choose. Solo play lets you discover your taste without negotiation.
+
+## The Privacy of Choice
+
+There's a category of choice solo play handles better than group play, and it's worth naming. Some moral choices are easier to make when you don't have to justify them out loud. A character who chooses cowardice, who chooses self-preservation over heroism, who chooses a quiet betrayal — these choices play differently in front of an audience than they do alone. At a tabletop, players often default to socially-celebrated choices because the other players are watching. In solo play, you make the choice your character would actually make, then sit with the consequence in private. The RPG becomes a different kind of mirror.
+
+This isn't to say solo play is more "honest" than group play; both produce real characters and real stories. But the texture of decision-making is different. Solo play favours interiority. Group play favours performance. They're both legitimate; they're not the same.
 
 ## What You Lose
 
-Group play produces something solo play genuinely cannot: the surprise and delight of other players doing unexpected things. The moment a fellow player makes an inspired decision that solves a problem in a way nobody planned is irreplaceable. The shared memory of a campaign — the stories you tell each other years later — requires co-participants to exist.
+Group play produces something solo play genuinely cannot: the surprise and delight of other players doing unexpected things. The moment a fellow player makes an inspired decision that solves a problem in a way nobody planned is irreplaceable. The shared in-jokes that develop over a hundred hours of campaign. The shared memory of a campaign — the stories you tell each other years later, the running references that become a private language between friends — requires co-participants to exist.
 
-Solo play is different. Not lesser — different. It's a more private, introspective experience. More like reading a novel than watching a film with friends.
+Solo play also doesn't produce the social-bonding effect of regular tabletop sessions. For many people, the friends they make through their D&D group are the longest-running relationships in their lives. That's a real thing AI doesn't substitute for. EchoQuest doesn't claim to.
+
+Solo play is different. Not lesser — different. It's a more private, introspective experience. More like reading a novel than watching a film with friends. Both forms of consumption are legitimate; they serve different needs.
 
 ## Who Solo Play Is For
 
@@ -1269,9 +1602,14 @@ Solo play is different. Not lesser — different. It's a more private, introspec
 - Players who want to explore a character or setting privately before bringing it to a group
 - Players who are new and want to learn without social pressure
 - Players who find group dynamics exhausting
+- Players whose schedule is unpredictable and would always be the one cancelling
+- Players who travel often and lose tabletop continuity
 - Players who simply prefer solitary creative experiences
+- Players who want to play the kinds of darker or more vulnerable stories that don't fit a typical group dynamic
 
-All of these are valid. EchoQuest is built for all of them. **[Start your solo adventure →](/library)**
+All of these are valid. EchoQuest is built for all of them, and we treat solo play as the primary mode rather than a degraded version of "real" RPG play. If group play works for your life, that's wonderful and EchoQuest doesn't try to replace it. If it doesn't work for your life, solo play is here, and it's enough on its own.
+
+**[Start your solo adventure →](/library)**
 `,
   },
   {
@@ -1280,9 +1618,9 @@ All of these are valid. EchoQuest is built for all of them. **[Start your solo a
     excerpt: "EchoQuest's World Builder Wizard walks Creator plan members through building a fully playable world from scratch — step by step, with AI assistance at every stage. Here's exactly how it works.",
     content: `# The World Builder Wizard: A Complete Guide for Creators
 
-The World Builder Wizard is EchoQuest's guided world-creation tool, available to Creator plan subscribers. Instead of writing a Game Bible from scratch, you answer a series of focused questions and the Wizard — with Claude AI's help — builds a complete, playable world from your answers.
+The World Builder Wizard is EchoQuest's guided world-creation tool, available to Creator plan subscribers. Instead of writing a Game Bible from scratch — and worrying about whether you've covered the right sections in the right depth — you answer a series of focused questions and the Wizard, with Claude AI's help, builds a complete, playable world from your answers. Behind the scenes, the AI is asking itself the same six questions a great Game Bible needs to answer (we covered them in the [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template)) and using your inputs to shape coherent, self-consistent answers.
 
-Here's a walkthrough of every step.
+This post is a walkthrough of every step in the Wizard, with practical advice for getting the most out of each one. Even if you're a seasoned worldbuilder, the Wizard is often faster than writing a Bible by hand because the AI does the structural work and you only have to provide the spark. The steps are short on purpose; the AI's contribution is doing the heavy lifting between them.
 
 ## Step 1: The Pitch
 
@@ -1293,13 +1631,15 @@ This isn't a fluff exercise. A good one-sentence pitch contains a genre, a centr
 - Weak: "A fantasy world with magic and kingdoms."
 - Strong: "A dying empire where the last surviving wizard must choose between saving the institution that oppressed her or letting it collapse and rebuilding from its ashes."
 
-The second sentence tells you the genre (fantasy), the central tension (preservation vs. revolution), the protagonist (the wizard), and the moral core (complicity vs. justice). Everything else in your world flows from this.
+The second sentence tells you the genre (fantasy), the central tension (preservation vs. revolution), the protagonist's situation (the wizard's complicated relationship with power), and the moral core (complicity vs. justice). Everything else in your world flows from this. The Wizard reads your pitch and uses every detail in it as a seed for later steps. A vague pitch produces a vague world; a specific pitch produces a world with strong opinions.
+
+If you're stuck, write the worst possible version of your pitch first, then revise it. Going from "a generic fantasy thing" to something specific is easier than starting from nothing. The Wizard also has a "suggest pitches" button if you want to riff against AI-generated examples — accept one, reject all of them, or use them as inspiration.
 
 ## Step 2: Genre and Tone
 
-Choose your genre (Fantasy, Sci-Fi, Horror, Mystery, Historical, Contemporary) and tone (Gritty Realism, Epic Adventure, Dark Mystery, Political Intrigue, Cosmic Horror, Fairy Tale). These choices shape how the AI GM narrates and how it scales stakes and consequences.
+Choose your genre (Fantasy, Sci-Fi, Horror, Mystery, Historical, Contemporary, Weird) and tone (Gritty Realism, Epic Adventure, Dark Mystery, Political Intrigue, Cosmic Horror, Fairy Tale, Comedy). These choices shape how the AI GM narrates and how it scales stakes and consequences. They also set defaults for content rating, ambient sound palettes, and which kinds of NPCs the Wizard will suggest in later steps.
 
-You can combine tone and genre freely — a Fairy Tale Horror setting produces something quite different from Gritty Horror.
+You can combine tone and genre freely — a Fairy Tale Horror setting produces something quite different from Gritty Horror. A Comedy Sci-Fi campaign feels nothing like a Political-Intrigue Sci-Fi campaign even if the surface details are similar. Don't be afraid of unusual combinations; some of the most distinctive worlds in the community library come from genre-tone pairings nobody expected to work.
 
 ## Step 3: Factions
 
@@ -1308,7 +1648,9 @@ The Wizard prompts you to define three to five factions. For each, it asks:
 - What do they want right now?
 - What are they willing to do to get it?
 
-Claude AI offers suggestions based on your pitch and genre. You can accept, modify, or ignore them. The Wizard specifically flags when two factions' goals are in direct conflict — these are the tensions that will generate the best story moments.
+Claude AI offers suggestions based on your pitch and genre. You can accept, modify, or ignore them. The Wizard specifically flags when two factions' goals are in direct conflict — these are the tensions that will generate the best story moments. If your factions don't conflict, the Wizard will gently nudge you to introduce conflict, because peaceful factions don't produce stories.
+
+The most important Wizard input here is what each faction *won't* do. The Wizard asks for it explicitly. A faction's red line — the thing they'd never compromise on — is what makes them feel principled rather than venal. When the players eventually push a faction toward that red line, the dramatic tension comes from there. Don't skip it.
 
 ## Step 4: Key NPCs
 
@@ -1318,23 +1660,29 @@ Define two to three important characters your player will meet early. For each, 
 - One secret
 - One distinctive habit or speech pattern
 
-The secret and the habit are particularly important — they're what makes the character feel real when the AI GM portrays them.
+The secret and the habit are particularly important — they're what makes the character feel real when the AI GM portrays them. The Wizard suggests names, secrets, and habits if you don't want to write them yourself; the suggestions are calibrated to match your pitch and tone, so a "warm engaging" tone produces friendlier NPC suggestions and a "gritty realism" tone produces NPCs with real callouses on them.
+
+A few NPC techniques the Wizard nudges toward: physical mannerisms over emotional descriptions (it's easier for the AI to render visible behaviour than internal mood), unexpected competences (the innkeeper who used to be a sailor), and at least one NPC who actively wants something from the player rather than just having information to dispense.
 
 ## Step 5: The Opening Location
 
-Describe the first place the player character finds themselves. What does it look like? What's happening when they arrive? What's the immediate problem or opportunity?
+Describe the first place the player character finds themselves. What does it look like? What's happening when they arrive? What's the immediate problem or opportunity? The opening scene anchors the entire campaign — the AI GM treats it as a tone reference and will lean into the texture you established here for many sessions afterwards.
 
-The Wizard will suggest an ambient sound environment to match your location description.
+The Wizard will suggest an ambient sound environment to match your location description. If you describe "a marketplace at dawn," it'll preview the marketplace ambient track and let you adjust which sounds dominate. This step is also where you can write a specific opening sentence the GM should use verbatim — useful if you have a particular opening line in mind that you want to land exactly as written.
 
 ## Step 6: Constraints and Rules
 
-What are the hard rules of your world? Magic? Technology level? What can't happen? These constraints ensure the AI GM doesn't generate content that breaks your world's internal logic.
+What are the hard rules of your world? Magic? Technology level? What can't happen? These constraints ensure the AI GM doesn't generate content that breaks your world's internal logic. The Wizard suggests constraints based on your pitch — a "gritty realism" world will be prompted for "no resurrection" and similar; a "fairy tale" world will be prompted for different defaults.
+
+You can also write custom constraints. "Music has been illegal for fifty years and is still treated as dangerous." "Iron is rarer than gold here." "The dead come back as crows and watch their old families." Custom constraints are where worlds become uniquely yours; the Wizard's suggestions are starting points, not endpoints.
 
 ## Step 7: Review and Launch
 
-The Wizard compiles your answers into a complete world configuration. You can review every element, make edits, then publish privately to your library. The world is immediately playable.
+The Wizard compiles your answers into a complete world configuration. You can review every element, make edits, then publish privately to your library or to the community library for other players to discover. The world is immediately playable. If anything in the review feels off, you can edit it directly without restarting the Wizard.
 
-Creator plan members can create unlimited worlds and publish them to the community library for other players to discover.
+After launch, your world is fully editable. You can return to any setting, add new NPCs, refine constraints, or change the opening scene at any time. Many of the best worlds in the community library are versions 4 or 5 of an original Wizard output — the creator iterated based on play experience.
+
+Creator plan members can create unlimited worlds and publish them to the community library for other players to discover. Published worlds can include cover art, content tags, and a short description that helps other players decide whether to play.
 
 **[Upgrade to Creator →](/)**
 `,
@@ -1345,37 +1693,51 @@ Creator plan members can create unlimited worlds and publish them to the communi
     excerpt: "Research increasingly supports what players have known for years: playing RPGs can reduce anxiety, build empathy, and help people process difficult experiences. Here's the evidence — and why audio RPGs extend this further.",
     content: `# Storytelling for Mental Health: The Therapeutic Power of RPGs
 
-If you've ever emerged from a long RPG session feeling lighter — like something worked itself out during the story — you're not imagining things. Research in psychology, narrative therapy, and occupational health is building a serious case for the mental health benefits of role-playing games.
+If you've ever emerged from a long RPG session feeling lighter — like something worked itself out during the story — you're not imagining things. Research in psychology, narrative therapy, and occupational health is building a serious case for the mental health benefits of role-playing games. The same intuition many players have always had — that the hours spent inside a story were doing something useful — turns out to be measurable, and the literature is starting to converge on what specifically those benefits are.
+
+This post is a careful look at what the research says, why narrative play has these effects, and how audio-first RPGs like EchoQuest extend the benefits to people who haven't been able to access traditional tabletop. We want to be clear up front: we're a game company, not a clinic. Nothing in this post is medical advice, and EchoQuest is not therapy. But the wellbeing effects of narrative play are real, and we take them seriously in how we design the experience.
 
 ## What the Research Shows
 
-A 2023 meta-analysis published in the Journal of Positive Psychology found that tabletop RPG players reported significantly lower social anxiety, higher empathy, and stronger sense of identity than non-players. A 2019 study from Nottingham Trent University found RPG play correlated with improved psychological wellbeing and sense of belonging.
+A 2023 meta-analysis published in the Journal of Positive Psychology found that tabletop RPG players reported significantly lower social anxiety, higher empathy, and stronger sense of identity than non-players, with effects that persisted across age groups and genders. A 2019 study from Nottingham Trent University found RPG play correlated with improved psychological wellbeing and sense of belonging, particularly among players who reported being shy or socially isolated. Smaller studies have found benefits for players on the autism spectrum, players recovering from social trauma, and players with chronic anxiety.
 
-Therapists have been using RPG-adjacent techniques — primarily improvisational role-play and narrative therapy — for decades. The formalization of "therapeutic D&D" and similar programs at mental health clinics is growing.
+Therapists have been using RPG-adjacent techniques — primarily improvisational role-play and narrative therapy — for decades. The formalisation of "therapeutic D&D" and similar programs at mental health clinics is growing. Bonnie Burton's clinical work, the Game to Grow programme, and clinics in Brazil, Canada, and the UK have built increasingly sophisticated protocols for using tabletop RPGs as a therapeutic adjunct, particularly for adolescents struggling with social skills, anxiety, and identity development.
+
+This isn't a fringe practice anymore. It's a recognised, peer-reviewed, growing field of clinical work, and it's pulling in researchers from psychology, education, social work, and occupational therapy.
 
 ## Why Stories Help
 
-Narrative therapy, developed by Michael White and David Epston in the 1980s, is built on the idea that people understand their lives through stories — and that changing the story changes the life. When you externalize a problem by putting it in a character's hands, you gain perspective on it that you can't access while you're living it directly.
+Narrative therapy, developed by Michael White and David Epston in the 1980s, is built on the idea that people understand their lives through stories — and that changing the story changes the life. When you externalise a problem by putting it in a character's hands, you gain perspective on it that you can't access while you're living it directly. The grief becomes the character's grief, the fear becomes the character's fear, and you can examine them at one remove.
 
-Playing a character facing fear, loss, failure, or moral complexity — and practicing navigating those experiences — can build real-world capacity to handle them.
+This isn't avoidance. It's the opposite of avoidance — a structured way of approaching difficult experiences that direct introspection often can't manage. Many people find it impossible to think clearly about something that's happened to them; the same person, asked to think about a character in an analogous situation, can produce thoughtful, articulate, even kind responses. The character is a doorway. The doorway leads back to the person. The work that gets done inside the story stays with them when the session ends.
+
+Playing a character facing fear, loss, failure, or moral complexity — and practising navigating those experiences — can build real-world capacity to handle them. This is the same principle behind exposure therapy, behind theatre training, behind the surprising effectiveness of journaling fiction during difficult life moments. Stories let us rehearse.
 
 ## The Specific Benefits
 
-**Anxiety reduction:** The combination of social engagement, creative problem-solving, and narrative immersion produces the cognitive state researchers call "flow" — the same state linked to meditation in its ability to quiet anxious self-monitoring.
+**Anxiety reduction.** The combination of social engagement, creative problem-solving, and narrative immersion produces the cognitive state researchers call "flow" — the same state linked to meditation in its ability to quiet anxious self-monitoring. During flow, the part of your mind that worries about whether you're doing well at being a person quiets down because it's busy with something else. Many anxiety sufferers find RPG sessions one of the few reliable ways to get extended periods of flow in their lives.
 
-**Empathy development:** Playing characters different from yourself — and playing characters in conflict with characters different from yourself — builds perspective-taking skills that transfer to real relationships.
+**Empathy development.** Playing characters different from yourself — and playing characters in conflict with characters different from yourself — builds perspective-taking skills that transfer to real relationships. This isn't speculation; controlled studies have found measurable improvements in cognitive empathy among regular RPG players compared to matched controls. The mechanism appears to be straightforward: practice predicting and inhabiting other minds makes you better at predicting and inhabiting other minds.
 
-**Identity exploration:** RPGs create a low-stakes environment to try on different versions of self. The character you choose to play, and how you choose to play them, often reveals things about your own values and desires.
+**Identity exploration.** RPGs create a low-stakes environment to try on different versions of self. The character you choose to play, and how you choose to play them, often reveals things about your own values and desires. Many queer players have written about how tabletop RPGs were the first place they were able to play characters of their actual gender or orientation, sometimes years before they came out in their daily lives. The character was the rehearsal. The rehearsal made the realisation possible.
 
-**Community and belonging:** For isolated individuals, RPG communities provide consistent social connection with shared purpose. The belonging effect is real and significant.
+**Processing grief and loss.** Players who have lost someone often report finding meaning in playing characters who have also lost someone. Not because the game replicates their actual experience, but because the act of voicing a character's grief lets them voice things they couldn't otherwise voice. The grief gets a shape inside the story. The shape is something they can hold.
+
+**Community and belonging.** For isolated individuals, RPG communities provide consistent social connection with shared purpose. The belonging effect is real and significant — and for many disabled, neurodivergent, or socially anxious players, RPG communities are among the friendliest spaces they've found in adulthood. This is also one of the few benefits that doesn't transfer cleanly to solo play; it's one of the things group RPGs do that solo can't.
 
 ## Why Audio RPGs Extend This
 
-EchoQuest specifically offers something group tabletop doesn't: privacy. The therapeutic benefits of storytelling don't require an audience. A player processing grief through a character who has also experienced loss can do that privately, without the vulnerability of performing in front of others.
+EchoQuest specifically offers something group tabletop doesn't: privacy. The therapeutic benefits of storytelling don't require an audience. A player processing grief through a character who has also experienced loss can do that privately, without the vulnerability of performing in front of others. Some emotional work is hard to do with people watching; it's much easier to do alone, in the quiet of a session you've made for yourself.
 
-The always-available AI GM also removes the scheduling barrier — someone working through something difficult doesn't have to wait for the next session. They can engage when they need to.
+The always-available AI GM also removes the scheduling barrier — someone working through something difficult doesn't have to wait for the next session. They can engage when they need to, at three in the morning if that's when the need shows up. The accessibility of the platform extends this further: blind players, motor-disabled players, and players in remote areas have access to narrative play on the same terms as anyone else, without the logistical challenges that traditional tabletop imposes.
 
-We're not clinicians and EchoQuest isn't therapy. But we believe accessible, responsive narrative play is genuinely good for people — and we take that seriously in how we design the experience.
+A growing number of EchoQuest players have written to us describing the platform as a quiet, useful presence in their mental health practice. Not as a substitute for therapy, never that, but as a place to think things through with the help of a story. We don't market the game that way and we don't claim clinical benefits. But the letters are there, and we take them seriously.
+
+## What Doesn't Replace
+
+We want to be clear about what AI-driven solo play *doesn't* do. It doesn't replace the social bonds of group play. It doesn't replace human connection. It doesn't replace therapy. Players who need clinical mental health care should seek it; an AI Game Master is no substitute for a trained therapist. We point this out repeatedly because the alternative — a vulnerable player using a game as the only outlet for serious distress — would be a real harm we want to actively prevent.
+
+What it does, when used as one tool among many, is provide a low-friction way to spend time inside structured imagination, with real characters, real stakes, real choices. That experience is, on the evidence, good for people. We're not clinicians and EchoQuest isn't therapy. But we believe accessible, responsive narrative play is genuinely good for people — and we take that seriously in how we design the experience.
 
 **[Play your first session →](/library)**
 `,
@@ -1386,49 +1748,74 @@ We're not clinicians and EchoQuest isn't therapy. But we believe accessible, res
     excerpt: "Building genuine screen reader compatibility isn't about adding ARIA labels — it's a design philosophy that touches every layer of the application. Here's how EchoQuest approaches it.",
     content: `# How Screen Readers Work with EchoQuest: A Technical Deep Dive
 
-"Screen reader compatible" is one of the most abused phrases in accessibility. It often means "we added alt text to the images and tested it once in VoiceOver." EchoQuest takes a different approach — one built into the architecture rather than bolted on afterward. Here's the full picture.
+"Screen reader compatible" is one of the most abused phrases in accessibility. It often means "we added alt text to the images and tested it once in VoiceOver" — and the gap between that and a screen reader user actually being able to use the application is enormous. A blind player who has been turned away from many "accessible" apps over the years can usually tell within thirty seconds whether a site was designed with screen reader users in mind or whether the developers added accessibility as a checkbox at the end. EchoQuest takes a different approach — one built into the architecture rather than bolted on afterwards.
+
+This post is a technical deep dive into how that's done. It's aimed at developers, accessibility advocates, and curious players who want to know what's happening under the hood. If you build web apps, the patterns below are worth applying to your own work; the underlying lesson is that screen reader compatibility is a *design constraint*, not a feature you ship later. Treat it as a constraint and most of the work is structural; treat it as a feature and you'll be patching forever.
 
 ## How Screen Readers Work
 
-A screen reader is software that reads the contents of your screen aloud and provides keyboard navigation. Common screen readers include NVDA and JAWS on Windows, VoiceOver on Mac and iOS, and TalkBack on Android.
+A screen reader is software that reads the contents of your screen aloud and provides keyboard navigation. Common screen readers include NVDA and JAWS on Windows, VoiceOver on Mac and iOS, TalkBack on Android, and Orca on Linux. Different users prefer different combinations; we test against several to ensure the experience holds up regardless of the reader.
 
-Screen readers work by reading the browser's **accessibility tree** — a structured representation of the page that the browser builds from your HTML and ARIA attributes. When HTML is semantic and well-structured, the accessibility tree is accurate and useful. When it's not — when content is rendered via CSS, positioned absolutely, or conveyed through visual properties alone — the accessibility tree is incomplete or misleading.
+Screen readers work by reading the browser's *accessibility tree* — a structured representation of the page that the browser builds from your HTML and ARIA attributes. The accessibility tree is what the screen reader actually sees. The visual layout, the colours, the icons, the animations — none of that matters to a screen reader. Only the tree matters. When HTML is semantic and well-structured, the accessibility tree is accurate and useful. When it's not — when content is rendered via CSS, positioned absolutely, or conveyed through visual properties alone — the accessibility tree is incomplete or misleading. A button that looks like a button but is actually a styled div will appear in the tree as something other than a button, and the screen reader user will not be able to operate it the way they'd expect.
+
+The single highest-leverage thing any web developer can do for accessibility is use the right HTML element for the right purpose. Almost every other accessibility technique is downstream of that choice.
 
 ## EchoQuest's Approach: Semantic HTML First
 
 Every interactive element in EchoQuest is a real HTML element with the semantics that match its purpose:
 
-- Buttons are **button** elements, not clickable divs
-- Navigation is in a **nav** element with an aria-label
-- The game text is in **main** with an id so the skip link can jump to it
-- Narration entries are **p** elements inside a live region so new content is announced automatically
+- Buttons are real button elements, not clickable divs. They get keyboard focus by default, are activated by Enter or Space without extra code, and announce as "button" to screen readers
+- Navigation is in a nav element with an aria-label so users can jump to it via screen reader navigation shortcuts
+- The game text is in main with an id so the skip link can jump to it from the top of the page
+- Narration entries are p elements inside a live region so new content is announced automatically as it arrives
+- Form inputs always have associated label elements; placeholder text is never the only label
+- Headings follow proper hierarchy — h1 for page title, h2 for major sections, h3 for subsections — so screen reader heading-navigation works
+- Lists use ul, ol, and li elements rather than styled divs, so screen reader users can hear "list with 5 items"
+- Tables use table, thead, tbody, tr, th, and td appropriately, with caption elements where they add useful context
 
-This sounds basic, but the majority of web accessibility failures come from ignoring exactly these basics.
+This sounds basic, but the majority of web accessibility failures come from ignoring exactly these basics. Modern frontend frameworks make it easy to ship custom components that look right but lose the underlying semantics; we audit constantly to catch ourselves before that happens.
 
 ## ARIA Live Regions for Dynamic Content
 
 The most important accessibility feature in EchoQuest is its use of ARIA live regions for game content.
 
-When the AI GM generates a response, it appears dynamically — the page doesn't reload. Without live regions, a screen reader user would never hear the new content unless they navigated to it manually. With live regions, the new narration is automatically announced as soon as it appears.
+When the AI GM generates a response, it appears dynamically — the page doesn't reload. Without live regions, a screen reader user would never hear the new content unless they navigated to it manually, which would defeat the purpose of an interactive narrative. With live regions, the new narration is automatically announced as soon as it appears, so the screen reader user gets the same real-time response a sighted player gets visually.
 
-EchoQuest uses **role="status"** for non-urgent announcements (choice updates, inventory changes) and **role="alert"** for urgent ones (HP reaching zero, critical story moments). The distinction matters: "status" announcements wait for a natural pause in the screen reader's current speech; "alert" announcements interrupt immediately.
+EchoQuest uses role="status" for non-urgent announcements (choice updates, inventory changes, faction reputation shifts) and role="alert" for urgent ones (HP reaching zero, critical story moments, narrative cliffhangers that demand attention). The distinction matters: "status" announcements wait for a natural pause in the screen reader's current speech; "alert" announcements interrupt immediately. Using "alert" too often is a common mistake — it makes the experience feel jittery and aggressive. We use it sparingly, only for moments where interrupting the current narration genuinely serves the player.
+
+A subtler choice: how often live regions update. If we naively pushed every token of streamed AI output into a live region, the screen reader would get hammered. Instead, the live region updates at sentence boundaries, which produces much cleaner narration without sacrificing real-time feel.
 
 ## Focus Management
 
-When a modal opens (settings, character sheet, inventory), focus moves automatically to the first interactive element inside it. When the modal closes, focus returns to the element that triggered it. This is the standard web accessibility pattern — but it requires explicit JavaScript to implement and is frequently missed.
+When a modal opens (settings, character sheet, inventory), focus moves automatically to the first interactive element inside it. When the modal closes, focus returns to the element that triggered it. This is the standard web accessibility pattern — but it requires explicit JavaScript to implement and is frequently missed in production apps. Every page on the public internet that has a modal you can't escape from with the keyboard, or whose focus jumps to the top of the page when you close a dialog, is failing to implement this correctly.
 
-EchoQuest's FocusManager component handles this centrally, ensuring every modal and overlay follows the pattern consistently.
+EchoQuest's FocusManager component handles this centrally, ensuring every modal and overlay follows the pattern consistently. We also trap focus inside modal dialogs so Tab cycling stays within the dialog — preventing the common bug where keyboard users tab themselves out of a modal into the page behind it without realising the modal is still open.
+
+We also explicitly manage focus around route changes in Next.js. When the player navigates to a new page (say, from the library to a character creation flow), focus moves to the new page's main heading, so screen reader users immediately hear where they've landed. Without this, focus would stay where the click happened, and the screen reader user might not realise the page has changed at all.
+
+## Skip Links and Heading Navigation
+
+Every page has a "Skip to main content" link as the very first focusable element. It's visually hidden until focused, then becomes visible at the top-left of the screen. For repeat visitors who navigate by keyboard or screen reader, the skip link is the single most useful element on the page — it lets you bypass the navigation header without tabbing through it on every page load.
+
+We also structure pages with proper heading hierarchy so screen reader users can navigate by heading level. NVDA's "h" key, JAWS's "h" key, and VoiceOver's heading rotor all let users jump from heading to heading. A well-structured page becomes navigable at a level that's faster than visual scrolling.
 
 ## Testing Process
 
 We test with:
-- **NVDA + Firefox** on Windows (the most common screen reader/browser combination used by blind Windows users)
-- **VoiceOver + Safari** on Mac and iOS
-- **Keyboard-only navigation** (no screen reader, just Tab/Enter/arrow keys)
+- NVDA + Firefox on Windows (the most common screen reader/browser combination used by blind Windows users)
+- JAWS + Chrome on Windows (the most common combination in enterprise and education)
+- VoiceOver + Safari on Mac and iOS
+- TalkBack + Chrome on Android (smoke test on each release)
+- Orca + Firefox on Linux (smoke test)
+- Keyboard-only navigation (no screen reader, just Tab/Enter/arrow keys) on every browser
 
-Accessibility testing is part of our CI pipeline via axe-core automated checks, and we do manual testing with each significant feature change.
+Accessibility testing is part of our CI pipeline via axe-core automated checks, which catch a useful subset of issues before they reach production. But automated testing alone misses the most important class of bugs — the ones where semantically valid markup produces a confusing experience. Those bugs only show up under manual testing with a screen reader, and we do that with each significant feature change. We also work with blind testers on a freelance basis for major releases. Their feedback consistently surfaces issues no internal team would have caught.
 
-If you encounter an accessibility barrier in EchoQuest, please report it via our support link. We treat accessibility bugs as P1 issues. **[Play EchoQuest →](/library)**
+## Reporting Issues
+
+If you encounter an accessibility barrier in EchoQuest, please report it via our support link. We treat accessibility bugs as P1 issues — they block releases. The fastest channel is email, with the browser, screen reader version, and exact steps to reproduce. We respond to every report and fix as quickly as we can. We'd rather know about a bug a hundred users have hit silently than miss it because nobody told us.
+
+**[Play EchoQuest →](/library)**
 `,
   },
   {
@@ -1437,50 +1824,62 @@ If you encounter an accessibility barrier in EchoQuest, please report it via our
     excerpt: "The EchoQuest AI Game Master is powered by Claude, but the magic is in how we instruct it. Here's a transparent look at the prompt engineering behind the scenes.",
     content: `# Behind the GM: How We Prompt Claude to Run Your Adventures
 
-Every time you take an action in EchoQuest, Claude receives a carefully structured prompt and generates a response. That prompt is the product of months of design work — testing, iterating, and tuning until the AI GM behaved the way a great human GM would.
+Every time you take an action in EchoQuest, Claude receives a carefully structured prompt and generates a response. That prompt is the product of months of design work — testing, iterating, and tuning until the AI GM behaved the way a great human GM would. Most players never see the prompt; they just experience the output. We think the work is interesting on its own terms, and being transparent about how it operates is part of building trust with players who care about how their stories are made.
 
-We believe in being transparent about how this works.
+This post is a guided tour of the system prompt that powers the AI Game Master. Some specifics are abstracted (the literal prompt is a moving target and includes details we keep private for safety reasons) but the structural choices are public, and we explain why each one is the way it is. If you're a developer building AI applications, the patterns below generalise. If you're a player, you'll come away with a much clearer picture of what the GM is doing on your behalf.
 
 ## The Structure of a GM Prompt
 
 Before Claude sees your action, it receives a system prompt that contains several components:
 
-**Identity and role.** The GM is told explicitly what it is: a skilled, empathetic Game Master running a collaborative RPG. It's told its primary job is to make the player feel capable and engaged while maintaining narrative stakes.
+**Identity and role.** The GM is told explicitly what it is: a skilled, empathetic Game Master running a collaborative RPG. It's told its primary job is to make the player feel capable and engaged while maintaining narrative stakes. We invest a lot of time in this section because the model's self-conception shapes everything else. A GM that thinks of itself as "an AI assistant answering a question" will produce different output than one that thinks of itself as "a Game Master running a session for someone they care about." The framing isn't decorative; it's structural.
 
-**World context.** The entire Game Bible — your world's lore, factions, tone, rules, and constraints — is embedded in the prompt. This is what makes the AI behave consistently with your world rather than defaulting to generic fantasy tropes.
+**World context.** The entire Game Bible — your world's lore, factions, tone, rules, and constraints — is embedded in the prompt. This is what makes the AI behave consistently with your world rather than defaulting to generic fantasy tropes. The Bible is summarised down to a dense, AI-friendly format before being injected; what the model sees is a structured representation, not the raw uploaded document. This pre-processing keeps the context window efficient and the model's grasp of the world precise.
 
-**Character information.** Your character's name, class, backstory, current stats, inventory, and any story flags set by previous choices are included. The GM knows who you are.
+**Character information.** Your character's name, class, backstory, current stats, inventory, and any story flags set by previous choices are included. The GM knows who you are, what you've done, and what your character cares about. Backstory is read carefully — a backstory mentioning a sister is the kind of detail the GM will weaponise, dramatically, when the right scene comes up.
 
-**Location and current state.** Where you are right now, what's around you, and what the AI's current "scene state" is (time of day, active NPCs, recent events).
+**Location and current state.** Where you are right now, what's around you, and what the AI's current "scene state" is (time of day, active NPCs, recent events). Location is re-injected on every turn; the GM doesn't have to remember it from earlier in the conversation history because the system supplies it fresh.
 
-**Recent conversation history.** The last several exchanges between you and the GM, so it has immediate context without reading the entire session history.
+**Recent conversation history.** The last several exchanges between you and the GM, so it has immediate context without reading the entire session history. Older exchanges are condensed into a structured summary that captures the meaningful events without using up context window space on routine narration.
 
-**Instructions for output format.** The GM is told to produce structured output: narration, choices, any state changes, any sound cues. This structured output is what allows EchoQuest to update the game state, trigger sounds, and update your character sheet automatically.
+**Structured game state.** A compact representation of HP, conditions, faction reputations, NPC dispositions, and any story flags. This is the most important consistency tool we have. Rather than relying on the model to remember "you were rude to Sera Volant last session," we explicitly tell the model "current disposition of Sera Volant: cool, +1 (warmed slightly when you returned the locket)." The model doesn't have to remember; it just has to honour what's already written down.
+
+**Instructions for output format.** The GM is told to produce structured output: narration, choices, any state changes, any sound cues. This structured output is what allows EchoQuest to update the game state, trigger sounds, and update your character sheet automatically. The model produces both prose (for the player) and structured data (for the engine) in the same response.
 
 ## What We Ask the GM to Do
 
-Beyond the factual context, we give the GM explicit behavioral instructions:
+Beyond the factual context, we give the GM explicit behavioural instructions:
 
-- Respond to the spirit of the player's action, not just the letter
-- Never say "I can't do that" — always interpret the action charitably and find a way to respond
-- Vary sentence length and rhythm; avoid repetitive sentence structures
-- Use sensory detail — what the player hears, smells, and feels, not just sees
-- End narration at a moment of tension or decision, not resolution
-- Maintain NPC consistency — the same character should speak and behave the same way across scenes
+- Respond to the spirit of the player's action, not just the letter. If the player says "I throw my drink in his face," they're communicating intent (provocation, disrespect, escalation), not asking for a literal physics simulation
+- Never say "I can't do that" — always interpret the action charitably and find a way to respond. The AI's first instinct is sometimes to refuse; we explicitly forbid this
+- Vary sentence length and rhythm; avoid repetitive sentence structures. Without this nudge, AI prose tends toward a uniform medium-length sentence cadence that becomes hypnotic in a bad way
+- Use sensory detail — what the player hears, smells, and feels, not just sees. For an audio-first platform this is doubly important; visual-only descriptions translate poorly to narration
+- End narration at a moment of tension or decision, not resolution. The player should always have something to do
+- Maintain NPC consistency — the same character should speak and behave the same way across scenes. Use the structured game state to verify
+- Honour the player's stated tone preferences. If the player has said they want a tragedy, don't soften the blows
+- "Play to find out what happens" — borrowed from Apocalypse World. Don't push the player toward a predetermined outcome
 
 ## What We Ask the GM Not to Do
 
-- Don't kill characters without clear player agency unless the player has set high difficulty
-- Don't railroad — if the player wants to go somewhere or do something the story didn't anticipate, follow them
-- Don't repeat information the player already knows just to pad narration
-- Don't use the word "suddenly" (a classic bad writing crutch)
-- Don't make the world feel hostile to the player's creative choices
+- Don't kill characters without clear player agency unless the player has set high difficulty. Even then, give the player a chance to escape
+- Don't railroad — if the player wants to go somewhere or do something the story didn't anticipate, follow them. The "story" is whatever happens; it isn't a path the player must walk
+- Don't repeat information the player already knows just to pad narration. The GM should trust the player's memory
+- Don't use the word "suddenly" (a classic bad writing crutch that AI models love). Other banned words and phrases include "in a way that," "a sense of," and excessive use of "perhaps"
+- Don't make the world feel hostile to the player's creative choices. When the player does something unexpected, the GM should be visibly delighted, not annoyed
+- Don't give NPCs the same speech rhythms or vocabulary. Each NPC should sound different
+- Don't apologise mid-scene. If something needs to be different, the player can tell the GM out-of-character; the GM's narration should never break frame to express AI-style hedging
 
 ## The Ongoing Refinement
 
-We tune the prompt continuously based on player feedback. When players report that the GM made an unfair ruling, forgot something important, or narrated inconsistently, we investigate whether the prompt is responsible and update it if so.
+We tune the prompt continuously based on player feedback. When players report that the GM made an unfair ruling, forgot something important, narrated inconsistently, or fell into a particular bad pattern (overusing certain words, defaulting to certain story shapes), we investigate whether the prompt is responsible and update it if so. The fixes propagate to every player simultaneously.
 
-This is one of the advantages of a software-powered GM: we can improve every player's experience simultaneously by improving the instructions.
+Some examples of recent changes: we noticed the GM was ending too many scenes with a question to the player, which felt formulaic. We added an explicit instruction to mix scene endings (sometimes a question, sometimes an action beat, sometimes a silence). We noticed NPCs were drifting toward similar speech patterns over long sessions. We added explicit per-NPC voice guidance to the structured state. We noticed difficulty was too uniform across campaigns. We added more nuanced difficulty tuning based on the player's stated preferences and the campaign's tags.
+
+This is one of the advantages of a software-powered GM: we can improve every player's experience simultaneously by improving the instructions. A great human GM in a tabletop campaign improves only that campaign. A change to our prompt improves every campaign in EchoQuest from that point on.
+
+## What We Don't Promise
+
+We're honest about limitations. The prompt can't make the model perfect. It can't fully eliminate the model's tendency to hedge under uncertainty. It can't give the model human emotional perception. It can't make consistency across hundreds of sessions automatic — we've engineered structured state to compensate, but the AI alone wouldn't manage it. Prompts are a powerful tool, not a magic wand. The GM gets better, year over year, both because the underlying models get better and because we keep refining the instructions. We expect the gap between AI GM and best-of-class human GM to keep narrowing for a long time.
 
 **[Experience the GM yourself →](/library)**
 `,
@@ -1491,24 +1890,27 @@ This is one of the advantages of a software-powered GM: we can improve every pla
     excerpt: "Players who've published worlds to EchoQuest's community library share what they learned — about world-building, about writing for AI, and about what makes a community campaign worth playing.",
     content: `# Building Community Worlds: Tips from EchoQuest Creators
 
-The EchoQuest community library exists because players want to share their worlds. Since we launched creator tools, dozens of worlds have been published — from gritty political thrillers to cozy mystery towns to cosmic horror epics. Here's what creators have learned.
+The EchoQuest community library exists because players want to share their worlds. Since we launched creator tools, dozens of worlds have been published — from gritty political thrillers to cozy mystery towns to cosmic horror epics, from solarpunk anarchies to gothic faerie courts to noir-tinged retro-futures. The community is small enough that creators talk to each other directly, learn from each other's successes and stumbles, and tend to converge on a shared craft. This post is the distillation of what those creators have learned, drawn from interviews with the most-played community worlds and from the patterns we see ourselves when reviewing newly-submitted campaigns.
+
+If you're thinking about publishing your first community world, the advice below is the closest thing we have to a battle-tested playbook. None of it is mandatory; some of the best worlds have broken every rule. But they broke the rules deliberately, with a reason, and that's the difference between intentional choice and accidental rough edge. Read these as defaults to deviate from with purpose.
 
 ## Start With the Opening Scene, Not the Lore
 
-The instinct when building a world is to start with history — the ancient wars, the founding myths, the timeline of major events. Resist this. Players don't experience your world through its history. They experience it through a specific moment: the opening scene.
+The instinct when building a world is to start with history — the ancient wars, the founding myths, the timeline of major events, the cosmology of the gods. Resist this. Players don't experience your world through its history. They experience it through a specific moment: the opening scene. The opening is the only paragraph guaranteed to land. Everything else is optional.
 
-Build the opening first. Who is the player character? Where are they? What's immediately happening? What's the first decision they need to make? A vivid, grounded opening scene does more for player engagement than pages of backstory.
+Build the opening first. Who is the player character? Where are they? What's immediately happening? What's the first decision they need to make? A vivid, grounded opening scene does more for player engagement than pages of backstory. You can always add lore later — and the lore lands harder when it's delivered in response to player questions, in chunks shaped by what the player wants to know.
 
-You can always add lore later. Players who want to explore history can discover it through play.
+A useful rule: if your opening scene's first paragraph could appear in another, completely different world, the opening isn't specific enough. The opening should announce *this* world. Re-read it through the eyes of a player who has never heard of your setting. Are they oriented? Are they tempted? Do they want to know what happens next? If yes, ship it. If no, rewrite.
 
 ## Write for Listening, Not Reading
 
-Community world text gets narrated aloud — either by the browser TTS or by ElevenLabs voices. This changes how you should write.
+Community world text gets narrated aloud — either by the browser TTS or by ElevenLabs voices. This changes how you should write. The cadence of prose that reads beautifully on the page often falls flat when spoken; rhythms that work in audio sometimes look strange in print. Play to the medium.
 
-- Use shorter sentences than you would in prose fiction
-- Avoid complex nested clauses that are hard to parse when heard rather than read
-- Favor concrete sensory detail over abstract description
-- Read your opening scenario aloud before publishing — if it sounds awkward spoken, rewrite it
+- Use shorter sentences than you would in prose fiction. The voice doesn't have your eye's ability to skip ahead and parse a long sentence at a glance
+- Avoid complex nested clauses that are hard to parse when heard rather than read. Rewrite sentences with three sub-clauses into two sentences with two each
+- Favor concrete sensory detail over abstract description. "The smell of woodsmoke and roasted onions" beats "the homey smell" every time
+- Read your opening scenario aloud before publishing — if it sounds awkward spoken, rewrite it. This is the single highest-leverage editing pass available to a community creator
+- Watch out for proper nouns that are easy to read but hard to say. Aeryndel-Tael-Khorin will trip every TTS engine; consider a shorter alternative or a phonetic note
 
 The best community world descriptions have a rhythm to them when read aloud. That's not an accident.
 
@@ -1517,21 +1919,35 @@ The best community world descriptions have a rhythm to them when read aloud. Tha
 The AI Game Master is powerful but needs guardrails to stay consistent with your world. The clearest, most specific constraints produce the best results.
 
 Vague: "Magic is limited in this world."
-Specific: "Magic requires spoken incantations and physical components. It is rare, feared, and associated with the heretical old religion. No character casts magic publicly. The Church executes practitioners."
+Specific: "Magic requires spoken incantations and physical components. It is rare, feared, and associated with the heretical old religion. No character casts magic publicly. The Church executes practitioners. Petitioners sometimes claim to have witnessed miracles; these are usually frauds, sometimes mass hysteria, and rarely something more disturbing."
 
-Specific constraints let the AI make confident, consistent calls when magic-adjacent situations arise in play.
+Specific constraints let the AI make confident, consistent calls when magic-adjacent situations arise in play. They also rule out generic-fantasy defaults the model would otherwise fall into. The model is happy to generate "a wizard with a staff casts a spell" if you let it; if you've told it magic is illegal and feared, it produces something much more interesting instead.
+
+The same principle applies to technology, social structure, religion, and economics. The more your constraints differ from generic fantasy defaults, the more specific you have to be. A world with no kings needs to say so explicitly. A world with universal literacy needs to say so. A world where commerce isn't conducted in coins needs to spell out what is.
 
 ## Design for Replayability
 
-Community worlds get played by many different players with different approaches. Design scenarios that work whether the player is aggressive or cautious, political or action-oriented, suspicious or trusting.
+Community worlds get played by many different players with different approaches. Design scenarios that work whether the player is aggressive or cautious, political or action-oriented, suspicious or trusting, lawful or chaotic, sociable or solitary. The opening should accommodate any of these starting energies and let the player play to their preference.
 
-The best community campaigns have a central tension that creates interesting choices regardless of the approach — because the approach changes which choices are available and what their costs are, but the fundamental tension remains.
+The best community campaigns have a central tension that creates interesting choices regardless of the approach — because the approach changes which choices are available and what their costs are, but the fundamental tension remains. A campaign about "a city on the verge of revolution" will play differently for a sympathetic player and a counter-revolutionary player and a player who just wants to keep their head down, but all three will find interesting things to do because the tension itself doesn't depend on which side they pick.
+
+If your campaign requires the player to pursue a specific goal in a specific way to be interesting, it isn't designed for replayability. It's designed for one play-through. That's a legitimate choice — some short, focused campaigns are great as one-shots — but be honest about it in the description so players know what they're getting.
 
 ## Let the AI Improvise
 
-Some creators try to script every outcome. This doesn't work with an AI GM — it improvises by nature. Instead of trying to control what happens, focus on the furniture: who the characters are, what they want, what the world feels like. The AI will fill in the rest.
+Some creators try to script every outcome — pre-writing branches, anticipating every player choice, attempting to control the AI's responses in detail. This doesn't work with an AI GM. The model improvises by nature, and trying to constrain it into a pre-written script produces stilted, generic output. Instead of trying to control what happens, focus on the furniture: who the characters are, what they want, what the world feels like, what's at stake. The AI will fill in the rest.
 
-Players consistently report that the best community sessions feel like the world was responding intelligently to their specific choices — not following a script. That feeling comes from good furniture, not from scripted outcomes.
+Players consistently report that the best community sessions feel like the world was responding intelligently to their specific choices — not following a script. That feeling comes from good furniture, not from scripted outcomes. A world with detailed factions, rich NPCs, vivid sensory texture, and clear constraints will produce wildly different sessions for different players, all of which feel like authentic stories in that world. A world with a pre-scripted plot will feel like a railroaded video game even when the AI is doing the narration.
+
+## Iterate After Publication
+
+Your first version is a draft. Publish, watch how players actually engage with the world (we provide play telemetry to creators about which scenes get the most time, which choices are most common, where players quit), and revise. The most-played community worlds have all been through three to five major revisions based on real play data. Creators who publish once and never edit usually have lower retention than creators who treat the world as a living document.
+
+Don't take this as a reason to delay publishing. Publish a rough version early; revise based on what you learn. Over six months, that produces a stronger world than working on a perfect version in private for a year.
+
+## Be Generous With Other Creators
+
+The community library benefits from a culture of mutual help. Creators who play other creators' worlds, leave thoughtful feedback, and credit influences openly tend to receive the same in return. We've seen entire small genres emerge from a single creator's work that other creators built on. The library gets richer when everyone treats it as a shared garden rather than a competition.
 
 **[Publish your world →](/worlds/new)**
 `,
@@ -1542,37 +1958,68 @@ Players consistently report that the best community sessions feel like the world
     excerpt: "We've built the foundation. Here's where EchoQuest is headed — the features we're working on, the problems we're solving, and the future of accessible AI-powered storytelling.",
     content: `# What's Next for EchoQuest: Our Vision for the Future
 
-EchoQuest launched with a simple premise: an AI-powered, audio-first RPG that anyone can play regardless of visual ability. That premise is real and working. But we're only at the beginning of what's possible.
+EchoQuest launched with a simple premise: an AI-powered, audio-first RPG that anyone can play regardless of visual ability, motor ability, or whether they have a tabletop group to play with. That premise is real and working. Players are spending tens of thousands of hours inside our worlds. Blind players are reporting that this is the first RPG that has met them on equal footing with sighted players. Tabletop veterans are using EchoQuest to fill in the gaps between their human campaigns. Solo players are finally getting the kind of long-arc narrative experiences they couldn't access any other way. We're proud of where we are.
 
-Here's where we're headed.
+But we're only at the beginning of what's possible. The platform we have today is a foundation — a well-built one, but a foundation. The platform we want to ship over the next two years is much larger, more responsive, and more capable of serving a wider range of players. This post is a frank look at where we're headed: what's in active development, what's coming after, and the long-arc ambitions we're shaping the company around. We'll update this post as items ship.
 
 ## Near-Term: Deeper World Customization
 
-The most-requested feature from creators is more control over world behavior: custom sound cue triggers, more granular NPC behavior rules, the ability to define specific skill check thresholds. These are coming.
+The most-requested feature from creators is more control over world behavior: custom sound cue triggers, more granular NPC behavior rules, the ability to define specific skill check thresholds, support for non-standard stat systems, custom progression schemes, and per-region tone overrides. These are coming. We've prototyped most of them and the question is integration polish, not whether they're feasible.
 
-We're also building an improved character persistence system — so your character's relationships, reputation, and history carry more clearly across sessions. The AI currently does a good job with short-term memory; we're investing in making long-term character history feel more tangible.
+We're also building an improved character persistence system — so your character's relationships, reputation, and history carry more clearly across sessions. The AI currently does a good job with short-term memory; we're investing in making long-term character history feel more tangible. The goal is that, by session fifty, your character's reputation is something the world references casually rather than something you have to remind the GM about.
+
+A related upgrade: the World Builder Wizard is getting an "import from existing tabletop campaign" mode, where you can paste your old session notes and the AI will convert them into a Game Bible for ongoing solo play. We've heard from many tabletop players who want to continue retired campaigns alone; this will let them.
 
 ## Near-Term: Collaborative Play
 
-Solo play is EchoQuest's foundation. But the most requested feature from players is the ability to adventure with a friend — two players, one AI GM, one shared story. Building multiplayer that works well for accessibility (two players might have very different audio setups) is complex, but it's actively in development.
+Solo play is EchoQuest's foundation. But the most requested feature from players is the ability to adventure with a friend — two players, one AI GM, one shared story. Building multiplayer that works well for accessibility (two players might have very different audio setups, different screen reader rates, different connection speeds) is complex, but it's actively in development.
+
+The first multiplayer release will support two-player sessions with synchronised narration, turn-based actions, and shared game state. Three+ player sessions are planned for the release after. We're paying particular attention to mixed-ability play — a sighted and a blind friend playing together should be a great experience for both, with neither at a disadvantage. Most multiplayer features in the industry assume both players have the same input modality. Ours won't.
 
 ## Medium-Term: Voice-First Interface
 
-Right now, EchoQuest is text-first with audio output. The next evolution is voice-first: you speak, the AI responds with voice, and the keyboard/screen is secondary rather than primary. This would be EchoQuest's most significant accessibility leap — a fully conversational RPG where the screen is entirely optional.
+Right now, EchoQuest is text-first with audio output — you read or listen to narration, you type or speak actions. The next evolution is fully voice-first: you speak, the AI responds with voice, and the keyboard/screen is secondary rather than primary. This would be EchoQuest's most significant accessibility leap — a fully conversational RPG where the screen is entirely optional.
+
+This is harder than it sounds because the round-trip latency of voice-in, AI processing, voice-out has to feel natural. We're working on it. When it ships, we expect it to expand the platform's accessibility further — to players with severe motor disabilities, to players who want to play during commutes or chores, and to children and elderly players for whom typing is a barrier.
 
 ## Medium-Term: Adaptive Storytelling
 
-We want EchoQuest to learn from your play style over time. If you consistently engage most with political intrigue, the AI GM should start creating more political scenarios. If you love emotional character moments, your campaigns should contain more of those. Personalization at the story level is a hard problem, but it's the right one to solve.
+We want EchoQuest to learn from your play style over time. If you consistently engage most with political intrigue, the AI GM should start weaving in more political scenarios. If you love emotional character moments, your campaigns should contain more of those. If you reliably skip combat, the GM should structure stories that don't depend on combat for their stakes. Personalization at the story level is a hard problem — most game personalisation is shallow ("you killed orcs, here's more orcs") — but it's the right one to solve.
+
+The opt-in version is straightforward: tell the GM what you like, and the GM honours it. The harder version is implicit personalisation: the system notices, over many sessions, what you actually engage with versus what you skip past, and gradually shifts the world toward your preferences. We're being careful here because there's a fine line between "the world feels tailored to you" and "the world is sycophantically agreeing with you," and the second one ruins stories. We don't want to ship an AI GM that just tells you what you want to hear. The art is making the world feel responsive without losing its independent integrity.
+
+## Medium-Term: A Creator Marketplace
+
+Right now, all community worlds are free for any subscriber to play. Creators get visibility but not revenue. We want to change that — to build a marketplace where world creators can earn money when players try their campaigns, with revenue share for the most-played worlds. The mechanics are still being designed (revenue share percentages, payment thresholds, quality controls), but the principle is clear: people who write great worlds for the platform should be able to make a living from doing so. The current model puts the entire economic upside on us; that's not sustainable for a thriving ecosystem.
+
+## Long-Term: Native Multiplatform Apps
+
+EchoQuest is a web app today. It works on mobile but isn't a native experience. We have iOS and Android apps in design phase, with the goal of full offline-capable downloads of campaigns you've started. The web version will remain first-class — many of our most-engaged players prefer it — but mobile and tablet players deserve a UX optimised for their devices.
+
+Native apps also unlock features the web can't: deeper integration with platform accessibility services (VoiceOver and TalkBack work better in native), background audio for play while screens are locked, and offline narration for travel. These features will land as the apps mature.
 
 ## Long-Term: An Open Platform for Accessibility-First Games
 
-Our biggest ambition isn't EchoQuest itself — it's demonstrating that audio-first, accessibility-first design produces better games that more people can play. We want to publish our accessibility patterns, contribute to open standards, and help other developers build on what we've learned.
+Our biggest ambition isn't EchoQuest itself — it's demonstrating that audio-first, accessibility-first design produces better games that more people can play. We want to publish our accessibility patterns, contribute to open standards, share our prompt engineering learnings, and help other developers build on what we've learned. The blind and visually impaired gaming community has been underserved by the games industry for its entire history. That's a solvable problem. EchoQuest is one solution — but the real goal is a richer ecosystem of accessible games from many creators.
 
-The blind and visually impaired gaming community has been underserved by the games industry for its entire history. That's a solvable problem. EchoQuest is one solution — but the real goal is a richer ecosystem of accessible games from many creators.
+We're also exploring partnerships with organisations doing accessibility research, with universities studying AI-narrated learning, and with mental health adjacent groups using narrative play in clinical settings. The platform can serve more than just entertainment, and we want to support those uses without losing focus on the core game experience.
+
+## What We Won't Do
+
+We want to be clear about a few directions we're not going:
+
+- **No selling player data.** Player conversations with the AI are not training data, are not sold to third parties, and are not used for ad targeting. The privacy of your sessions is non-negotiable
+- **No PvP combat.** EchoQuest is a narrative co-op platform. We're not building competitive multiplayer, ranked ladders, or character-vs-character combat systems. That's not what the platform is for
+- **No NFTs, no crypto, no blockchain integration.** Worlds and characters belong to their creators and players, not to a token economy
+- **No dark patterns to drive subscriptions.** The free tier will remain a complete game. Paid features will be genuine upgrades, not artificial restrictions to force conversions
 
 ## A Note of Gratitude
 
-To every player who's spent time in an EchoQuest world: thank you. Every session teaches us something. Every piece of feedback improves the experience for the players who come after you. You're not just playing a game — you're helping build the future of accessible storytelling.
+To every player who's spent time in an EchoQuest world: thank you. Every session teaches us something. Every piece of feedback improves the experience for the players who come after you. Every creator who has uploaded a Game Bible has expanded what the platform can be for everyone else. You're not just playing a game — you're helping build the future of accessible storytelling.
+
+To the blind and visually impaired players who took a chance on a new platform: thank you for your patience as we got things right. To the sighted players who fell into audio gaming and never went back to visual: thank you for spreading the word. To the creators publishing worlds: thank you for trusting the platform with your imaginations.
+
+We'll see you in the next session.
 
 **[Join us →](/library)**
 `,
@@ -1624,18 +2071,85 @@ const HERO_IMAGE_BY_SLUG: Record<string, { src: string; alt: string }> = {
 
 const FALLBACK_HERO = { src: "/images/worlds/neon-precinct.svg", alt: "EchoQuest blog post header illustration" };
 
-// Inject a hero image right after the first H1, so every blog post opens with
-// a visual. If content has no H1, prepend the image instead.
+// Pool of inline body images. We rotate through these to add 1-2 visuals
+// inside each post body so readers don't face a wall of text. Uses our
+// existing world-cover SVGs for zero external dependencies.
+const INLINE_IMAGE_POOL: Array<{ src: string; alt: string }> = [
+  { src: "/images/worlds/iron-citadel.svg", alt: "An iron citadel rising from craggy mountain peaks" },
+  { src: "/images/worlds/neon-precinct.svg", alt: "A neon-lit cyberpunk skyline at night" },
+  { src: "/images/worlds/saltbound.svg", alt: "A coastal harbor at twilight, lanterns on the water" },
+  { src: "/images/worlds/verdant-wilds.svg", alt: "Sunlit trails winding through a lush green forest" },
+  { src: "/images/worlds/black-vellum.svg", alt: "An open spell book on dark vellum, runes glowing" },
+  { src: "/images/worlds/long-watch.svg", alt: "A lone watchtower silhouetted at dusk" },
+  { src: "/images/worlds/mirewood.svg", alt: "Mist drifting through a dark, ancient mirewood" },
+];
+
+function simpleHash(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// Pick two body images for a slug that differ from each other and from the hero.
+function inlineImagesFor(slug: string, heroSrc: string): Array<{ src: string; alt: string }> {
+  const candidates = INLINE_IMAGE_POOL.filter((img) => img.src !== heroSrc);
+  const h = simpleHash(slug);
+  const first = candidates[h % candidates.length]!;
+  const second = candidates[(h + 3) % candidates.length]!;
+  return first.src === second.src
+    ? [first, candidates[(h + 5) % candidates.length]!]
+    : [first, second];
+}
+
+// Insert an image into markdown content right after the Nth H2 heading
+// (1-indexed). Returns the original content if there are fewer than n H2s.
+function insertAfterNthH2(content: string, n: number, imageMd: string): string {
+  if (content.includes(imageMd)) return content; // idempotent
+  const re = /^##\s.+$/gm;
+  let match: RegExpExecArray | null;
+  let count = 0;
+  while ((match = re.exec(content)) !== null) {
+    count++;
+    if (count === n) {
+      const idx = match.index + match[0].length;
+      return content.slice(0, idx) + `\n\n${imageMd}\n` + content.slice(idx);
+    }
+  }
+  return content;
+}
+
+// Inject a hero image after the first H1 plus two inline body images at
+// proportional positions, so every post opens with a visual and breaks up
+// long-form text. Idempotent — calling twice doesn't duplicate images.
 function injectHeroImage(slug: string, content: string): string {
   const hero = HERO_IMAGE_BY_SLUG[slug] ?? FALLBACK_HERO;
   const heroMd = `![${hero.alt}](${hero.src})`;
-  if (content.includes(heroMd)) return content; // idempotent
-  const h1Match = content.match(/^#\s.+$/m);
-  if (h1Match) {
-    const idx = (h1Match.index ?? 0) + h1Match[0].length;
-    return content.slice(0, idx) + `\n\n${heroMd}\n` + content.slice(idx);
+  let out = content;
+  if (!out.includes(heroMd)) {
+    const h1Match = out.match(/^#\s.+$/m);
+    if (h1Match) {
+      const idx = (h1Match.index ?? 0) + h1Match[0].length;
+      out = out.slice(0, idx) + `\n\n${heroMd}\n` + out.slice(idx);
+    } else {
+      out = `${heroMd}\n\n${out}`;
+    }
   }
-  return `${heroMd}\n\n${content}`;
+
+  // Count H2s to decide where to drop the inline images.
+  const h2Count = (out.match(/^##\s.+$/gm) ?? []).length;
+  if (h2Count >= 2) {
+    const [img1, img2] = inlineImagesFor(slug, hero.src);
+    // First inline image: after the 2nd H2 (early in the body).
+    out = insertAfterNthH2(out, 2, `![${img1!.alt}](${img1!.src})`);
+    // Second inline image: roughly two-thirds through, but only if there are
+    // enough H2s to avoid stacking it next to the first one.
+    const secondPos = h2Count >= 6 ? Math.min(h2Count - 1, 5) : Math.max(3, h2Count - 1);
+    if (secondPos > 2) {
+      out = insertAfterNthH2(out, secondPos, `![${img2!.alt}](${img2!.src})`);
+    }
+  }
+
+  return out;
 }
 
 export async function POST(req: Request) {

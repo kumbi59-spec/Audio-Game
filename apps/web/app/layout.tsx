@@ -8,6 +8,7 @@ import { FocusManager } from "@/components/accessibility/FocusManager";
 import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
 import { VerificationBanner } from "@/components/VerificationBanner";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { auth } from "@/auth";
 
 const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"] ?? "ca-pub-9267788778991046";
@@ -80,6 +81,9 @@ export default async function RootLayout({
             strategy="lazyOnload"
           />
         )}
+        <Suspense>
+          <GoogleAnalytics />
+        </Suspense>
         <AuthProvider session={session}>
           <AudioAnnouncer>
             <ServiceWorkerRegistrar />

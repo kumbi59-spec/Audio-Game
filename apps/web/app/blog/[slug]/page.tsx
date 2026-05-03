@@ -1,12 +1,32 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Fragment } from "react";
 import { marked } from "marked";
 import { prisma } from "@/lib/db";
+import { AdBanner } from "@/components/ads/AdBanner";
 
 export const revalidate = 60;
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+
+// Split rendered HTML into chunks at each <h2> boundary so AdSense units can
+// be interleaved between body sections. The first chunk is everything up to
+// (but not including) the first H2; subsequent chunks each start with their H2.
+function splitHtmlOnH2(html: string): string[] {
+  const parts: string[] = [];
+  const re = /<h2\b[^>]*>/gi;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(html.slice(lastIndex, match.index));
+    }
+    lastIndex = match.index;
+  }
+  if (lastIndex < html.length) parts.push(html.slice(lastIndex));
+  return parts.filter((p) => p.trim().length > 0);
+}
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -103,10 +123,28 @@ export default async function BlogPostPage({ params }: Props) {
         </header>
 
         <main className="mx-auto max-w-3xl px-6 py-12">
-          <article
-            className="blog-content"
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
-          />
+          <article className="blog-content">
+            {(() => {
+              const sections = splitHtmlOnH2(htmlContent);
+              // Drop an ad after the 2nd and 5th H2-bounded section. Falls
+              // through gracefully on shorter posts: the AdBanner just won't
+              // be inserted past the last section.
+              const adAfter = new Set([1, 4]);
+              return sections.map((s, i) => (
+                <Fragment key={i}>
+                  <div dangerouslySetInnerHTML={{ __html: s }} />
+                  {adAfter.has(i) && i < sections.length - 1 && (
+                    <div className="my-8">
+                      <AdBanner />
+                    </div>
+                  )}
+                </Fragment>
+              ));
+            })()}
+            <div className="mt-8">
+              <AdBanner />
+            </div>
+          </article>
           <div className="mt-12 border-t pt-8" style={{ borderColor: "var(--border)" }}>
             <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: "var(--accent)" }}>← Back to all posts</Link>
           </div>
