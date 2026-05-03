@@ -367,6 +367,64 @@ describe("session end-to-end", () => {
     }
     ws.close();
   });
+
+  it("only emits narration chunks from the successful retry attempt", async () => {
+    let attempt = 0;
+    const retryApp = await buildServer({
+      logLevel: "warn",
+      turnGenerator: async ({ onText }) => {
+        attempt += 1;
+        if (attempt === 1) {
+          onText?.("failed-attempt-chunk");
+          throw new Error("first attempt failed");
+        }
+        onText?.("successful-attempt-chunk");
+        return fakeTurn;
+      },
+    });
+    await retryApp.listen({ port: 0, host: "127.0.0.1" });
+    const addr = retryApp.server.address() as AddressInfo;
+    const retryBaseUrl = `127.0.0.1:${addr.port}`;
+    const res = await fetch(`http://${retryBaseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Nim" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const retryWs = new WebSocket(`ws://${retryBaseUrl}/session`);
+    const events: ServerEvent[] = [];
+    retryWs.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      retryWs.once("open", () => resolve());
+      retryWs.once("error", reject);
+    });
+
+    retryWs.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    retryWs.send(
+      JSON.stringify({
+        type: "player_input",
+        input: { kind: "utility", command: "begin" },
+      }),
+    );
+    await waitForEvent(events, "turn_complete");
+
+    const narrationEvents = events.filter((e) => e.type === "narration_chunk");
+    const chunkTexts = narrationEvents.map((e) => (e.type === "narration_chunk" ? e.text : ""));
+    expect(chunkTexts).toContain("successful-attempt-chunk");
+    expect(chunkTexts).not.toContain("failed-attempt-chunk");
+    expect(narrationEvents.filter((e) => e.type === "narration_chunk" && e.done)).toHaveLength(1);
+
+    retryWs.close();
+    await retryApp.close();
+  });
 });
 
 function chunk(text: string, size: number): string[] {

@@ -100,20 +100,43 @@ export async function runTurn(
   });
 
   const generate = deps.generateTurn ?? generateGmTurn;
-  const turnPromise = generate({
-    bible: session.bible,
-    userPrompt,
-    onText: (chunk) => {
-      emit({ type: "narration_chunk", turnId, text: chunk, done: false });
-    },
-  });
+  let turn: GmTurn | null = null;
+  let lastError: Error | null = null;
+  const maxAttempts = Math.max(1, config.GM_TURN_MAX_RETRIES + 1);
 
-  const turn = await Promise.race([
-    turnPromise,
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("gm_turn_timeout")), config.GM_TURN_TIMEOUT_MS),
-    ),
-  ]);
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const attemptChunks: string[] = [];
+    try {
+      const turnPromise = generate({
+        bible: session.bible,
+        userPrompt,
+        onText: (chunk) => {
+          attemptChunks.push(chunk);
+        },
+      });
+
+      turn = await Promise.race([
+        turnPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("gm_turn_timeout")),
+            config.GM_TURN_TIMEOUT_MS,
+          ),
+        ),
+      ]);
+
+      for (const chunk of attemptChunks) {
+        emit({ type: "narration_chunk", turnId, text: chunk, done: false });
+      }
+      break;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("gm_turn_failed");
+    }
+  }
+
+  if (!turn) {
+    throw lastError ?? new Error("gm_turn_failed");
+  }
 
   emit({ type: "narration_chunk", turnId, text: "", done: true });
   emit({
