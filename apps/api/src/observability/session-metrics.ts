@@ -33,6 +33,7 @@ const metrics: SessionMetricsSnapshot = {
 };
 
 const transitionEvents: SessionTransitionTelemetry[] = [];
+const MAX_TRANSITION_EVENTS = 1_000;
 
 export function incrementSessionMetric(
   key: keyof SessionMetricsSnapshot,
@@ -44,6 +45,9 @@ export function recordSessionTransition(
   event: SessionTransitionTelemetry,
 ): void {
   transitionEvents.push(event);
+  if (transitionEvents.length > MAX_TRANSITION_EVENTS) {
+    transitionEvents.splice(0, transitionEvents.length - MAX_TRANSITION_EVENTS);
+  }
 }
 
 export function getSessionTransitionTelemetry(): SessionTransitionTelemetry[] {

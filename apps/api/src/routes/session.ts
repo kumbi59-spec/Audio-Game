@@ -275,13 +275,7 @@ export async function registerSessionRoutes(
         }
 
         if (recapReturnState === "turn_complete") {
-          sessionState = "turn_complete";
-          recordSessionTransition({
-            from_state: "awaiting_recap",
-            to_state: "turn_complete",
-            trigger: "recap_completed",
-            accepted: true,
-          });
+          transitionState("recap_completed_to_turn_complete");
         } else {
           transitionState("recap_completed");
         }
