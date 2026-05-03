@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { ServerEvent } from "@audio-rpg/shared";
+import { ServerEvent, type SessionState, canTransition } from "@audio-rpg/shared";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
@@ -33,6 +33,7 @@ export async function registerSessionRoutes(
   app.get("/session", { websocket: true }, async (socket, req) => {
     app.log.info({ ip: req.ip }, "session connected");
     incrementSessionMetric("connectionsOpened");
+    let sessionState: SessionState = "connected";
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
     let turnLimit: number | null = null;
     const handledEventIds = new Set<string>();
@@ -44,6 +45,32 @@ export async function registerSessionRoutes(
         return;
       }
       socket.send(serializeServerEvent(parsed.data));
+    };
+
+    const emitInvalidTransition = (
+      from: SessionState,
+      to: SessionState,
+      trigger: string,
+    ): void => {
+      app.log.warn(
+        { currentState: from, targetState: to, trigger },
+        "session state transition rejected",
+      );
+      emit({
+        type: "error",
+        code: "invalid_state_transition",
+        message: `Invalid session state transition from '${from}' to '${to}' via '${trigger}'.`,
+        recoverable: true,
+      });
+    };
+
+    const transitionState = (to: SessionState, trigger: string): boolean => {
+      if (!canTransition(sessionState, to)) {
+        emitInvalidTransition(sessionState, to, trigger);
+        return false;
+      }
+      sessionState = to;
+      return true;
     };
 
     socket.on("message", async (raw: Buffer) => {
@@ -85,6 +112,9 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "join") {
+        if (!transitionState("joined", "join")) {
+          return;
+        }
         try {
           session = await loadSession(event.campaignId, event.authToken);
           const tier = event.tierToken
@@ -97,6 +127,7 @@ export async function registerSessionRoutes(
             turnNumber: session.state.turn_number,
           });
         } catch (err) {
+          sessionState = "closed";
           emit({
             type: "error",
             code: "join_failed",
@@ -110,6 +141,7 @@ export async function registerSessionRoutes(
       }
 
       if (!session) {
+        emitInvalidTransition(sessionState, "awaiting_gm", event.type);
         emit({
           type: "error",
           code: "not_joined",
@@ -120,7 +152,12 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "player_input") {
+        const stateBeforeTurn = sessionState;
+        if (!transitionState("awaiting_gm", "player_input")) {
+          return;
+        }
         if (event.eventId && handledEventIds.has(event.eventId)) {
+          sessionState = stateBeforeTurn;
           incrementSessionMetric("duplicateInputs");
           emit({
             type: "error",
@@ -132,6 +169,7 @@ export async function registerSessionRoutes(
           return;
         }
         if (turnLimit !== null && session.state.turn_number >= turnLimit) {
+          sessionState = stateBeforeTurn;
           incrementSessionMetric("turnLimitRejected");
           emit({
             type: "error",
@@ -160,7 +198,11 @@ export async function registerSessionRoutes(
             },
             emit,
           );
+          if (!transitionState("turn_complete", "turn_completed")) {
+            return;
+          }
         } catch (err) {
+          sessionState = stateBeforeTurn;
           app.log.error({ err }, "turn failed");
           incrementSessionMetric("turnFailures");
           emit({
@@ -175,6 +217,9 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "request_recap") {
+        if (!transitionState(sessionState, "request_recap")) {
+          return;
+        }
         const memory = getMemoryStore();
         incrementSessionMetric("recapRequests");
         try {
@@ -192,16 +237,25 @@ export async function registerSessionRoutes(
             summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
           });
         }
+        if (!transitionState(sessionState, "recap_completed")) {
+          return;
+        }
         return;
       }
 
       if (event.type === "pause") {
+        if (!transitionState("closed", "pause")) {
+          return;
+        }
         // State is persisted after every turn — nothing extra to do.
         socket.close();
         return;
       }
 
       if (event.type === "leave") {
+        if (!transitionState("closed", "leave")) {
+          return;
+        }
         socket.close();
       }
     });

@@ -167,29 +167,40 @@ describe("session end-to-end", () => {
     );
   });
 
-  it("rejects a player_input before join with a recoverable error", async () => {
+  it("rejects invalid pre-join event sequences with typed errors", async () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
       ws.once("error", reject);
     });
-    const errored = new Promise<ServerEvent>((resolve) => {
-      ws.once("message", (raw: Buffer) => {
-        resolve(JSON.parse(raw.toString("utf8")) as ServerEvent);
-      });
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
     });
+
     ws.send(
       JSON.stringify({
         type: "player_input",
         input: { kind: "freeform", text: "hello?" },
       }),
     );
-    const evt = await errored;
-    expect(evt.type).toBe("error");
-    if (evt.type === "error") {
-      expect(evt.code).toBe("not_joined");
-      expect(evt.recoverable).toBe(true);
-    }
+    await waitForErrorCode(events, "not_joined");
+    const invalidTransition = events.find(
+      (evt) => evt.type === "error" && evt.code === "invalid_state_transition",
+    );
+    expect(invalidTransition).toMatchObject({
+      type: "error",
+      code: "invalid_state_transition",
+      recoverable: true,
+    });
+    const notJoined = events.find(
+      (evt) => evt.type === "error" && evt.code === "not_joined",
+    );
+    expect(notJoined).toMatchObject({
+      type: "error",
+      code: "not_joined",
+      recoverable: true,
+    });
     ws.close();
   });
 
