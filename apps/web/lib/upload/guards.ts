@@ -6,6 +6,13 @@ export enum UploadParseErrorCode {
   InvalidPdfSignature = "invalid_pdf_signature",
   InvalidDocxSignature = "invalid_docx_signature",
   FileTooLarge = "file_too_large",
+  UnsupportedMimeType = "unsupported_mime_type",
+  ContentSniffMismatch = "content_sniff_mismatch",
+  TextTooLarge = "text_too_large",
+  TokenEstimateTooLarge = "token_estimate_too_large",
+  ParserTimeout = "parser_timeout",
+  ParserMemoryLimit = "parser_memory_limit",
+  ParserFailed = "parser_failed",
 }
 
 export class UploadParseError extends Error {
@@ -41,4 +48,9 @@ export function hasPdfSignature(buffer: Buffer): boolean {
 
 export function hasDocxSignature(buffer: Buffer): boolean {
   return buffer.length >= ZIP_SIGNATURE.length && buffer.subarray(0, ZIP_SIGNATURE.length).equals(ZIP_SIGNATURE);
+}
+
+export function looksLikeJson(buffer: Buffer): boolean {
+  const sample = buffer.subarray(0, Math.min(buffer.length, 2048)).toString("utf-8").trimStart();
+  return sample.startsWith("{") || sample.startsWith("[") || sample.startsWith("\"");
 }
