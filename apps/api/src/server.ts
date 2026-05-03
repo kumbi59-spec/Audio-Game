@@ -11,6 +11,7 @@ import { registerTtsRoutes } from "./routes/tts.js";
 import { registerWorldRoutes } from "./routes/worlds.js";
 import { registerWizardRoutes } from "./routes/wizard.js";
 import { registerAuthRoutes } from "./routes/auth.js";
+import { getSessionMetricsSnapshot } from "./observability/session-metrics.js";
 
 export interface BuildServerOptions {
   /** Override the GM turn generator (tests inject a deterministic fake). */
@@ -36,6 +37,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
   await app.register(websocket);
 
   app.get("/health", async () => ({ ok: true }));
+  app.get("/metrics", async () => ({ session: getSessionMetricsSnapshot() }));
 
   await registerAuthRoutes(app);
   await registerWorldRoutes(app);

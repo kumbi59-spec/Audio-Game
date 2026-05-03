@@ -5,6 +5,7 @@ import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
 import { tierFromToken } from "../auth/entitlements.js";
+import { incrementSessionMetric } from "../observability/session-metrics.js";
 
 export interface SessionRouteOptions {
   /** Injected GM turn generator; defaults to the real Claude path. */
@@ -23,6 +24,7 @@ export async function registerSessionRoutes(
 ): Promise<void> {
   app.get("/session", { websocket: true }, async (socket, req) => {
     app.log.info({ ip: req.ip }, "session connected");
+    incrementSessionMetric("connectionsOpened");
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
     let turnLimit: number | null = null;
     const handledEventIds = new Set<string>();
@@ -66,7 +68,9 @@ export async function registerSessionRoutes(
       if (event.type === "join") {
         try {
           session = await loadSession(event.campaignId, event.authToken);
-          const tier = event.tierToken ? tierFromToken(event.tierToken) : "free";
+          const tier = event.tierToken
+            ? tierFromToken(event.tierToken)
+            : "free";
           turnLimit = TIER_ENTITLEMENTS[tier].sessionTurnLimit;
           emit({
             type: "session_ready",
@@ -77,7 +81,8 @@ export async function registerSessionRoutes(
           emit({
             type: "error",
             code: "join_failed",
-            message: err instanceof Error ? err.message : "Could not join session.",
+            message:
+              err instanceof Error ? err.message : "Could not join session.",
             recoverable: false,
           });
           socket.close();
@@ -97,6 +102,7 @@ export async function registerSessionRoutes(
 
       if (event.type === "player_input") {
         if (event.eventId && handledEventIds.has(event.eventId)) {
+          incrementSessionMetric("duplicateInputs");
           emit({
             type: "error",
             code: "duplicate_event",
@@ -107,6 +113,7 @@ export async function registerSessionRoutes(
           return;
         }
         if (turnLimit !== null && session.state.turn_number >= turnLimit) {
+          incrementSessionMetric("turnLimitRejected");
           emit({
             type: "error",
             code: "turn_limit_reached",
@@ -117,6 +124,7 @@ export async function registerSessionRoutes(
           return;
         }
         try {
+          incrementSessionMetric("turnRequests");
           if (event.eventId) handledEventIds.add(event.eventId);
           session = await runTurn(
             session,
@@ -124,12 +132,15 @@ export async function registerSessionRoutes(
             {
               memory: getMemoryStore(),
               ...getPersistence(),
-              ...(options.turnGenerator ? { generateTurn: options.turnGenerator } : {}),
+              ...(options.turnGenerator
+                ? { generateTurn: options.turnGenerator }
+                : {}),
             },
             emit,
           );
         } catch (err) {
           app.log.error({ err }, "turn failed");
+          incrementSessionMetric("turnFailures");
           emit({
             type: "error",
             code: "turn_failed",
@@ -143,12 +154,17 @@ export async function registerSessionRoutes(
 
       if (event.type === "request_recap") {
         const memory = getMemoryStore();
+        incrementSessionMetric("recapRequests");
         try {
           const recentTurns = await memory.recentTurns(session.campaignId, 6);
-          const summary = await generateRecap({ state: session.state, recentTurns });
+          const summary = await generateRecap({
+            state: session.state,
+            recentTurns,
+          });
           emit({ type: "recap_ready", summary });
         } catch (err) {
           app.log.error({ err }, "recap generation failed");
+          incrementSessionMetric("recapFailures");
           emit({
             type: "recap_ready",
             summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
@@ -169,6 +185,7 @@ export async function registerSessionRoutes(
     });
 
     socket.on("close", () => {
+      incrementSessionMetric("connectionsClosed");
       app.log.info("session closed");
     });
   });
