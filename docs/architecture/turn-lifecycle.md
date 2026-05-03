@@ -39,3 +39,12 @@ This document describes the canonical flow for one gameplay turn initiated from 
 - `join` must occur before gameplay events.
 - `pause` and `leave` close socket; state persistence is expected per turn.
 - Event payload shapes are governed by `@audio-rpg/shared` schemas.
+
+## Compatibility Policy
+- The WebSocket transport currently supports canonical event schema version `v1`.
+- Incoming client events are normalized through a `v1` adapter:
+  - Missing `v` is treated as legacy-compatible `v1`.
+  - Explicit `v1` is accepted unchanged.
+- Unknown/future versions (for example `v2`) are explicitly rejected with a recoverable typed error (`unsupported_event_version`) so clients can reconnect after upgrade/downgrade.
+- Outbound server events are serialized by a single transport serializer that always stamps `v1`, even if route handlers omit `v` in local event objects.
+- Backward compatibility target: non-versioned clients remain functional during the `v1` window; forward compatibility is opt-in via explicit version rollout.
