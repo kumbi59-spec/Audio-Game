@@ -43,6 +43,7 @@ model User {
   gameBibles   GameBible[]
   pushTokens   PushToken[]
   blogPosts    BlogPost[]
+  uploadAuditEvents UploadAuditEvent[]
 }
 
 model World {
@@ -85,6 +86,22 @@ model GameBible {
   uploaderId String
   uploader   User    @relation(fields: [uploaderId], references: [id])
   worlds     World[]
+  auditEvents UploadAuditEvent[]
+}
+
+model UploadAuditEvent {
+  id          String   @id @default(cuid())
+  uploaderId  String
+  uploader    User     @relation(fields: [uploaderId], references: [id])
+  gameBibleId String?
+  gameBible   GameBible? @relation(fields: [gameBibleId], references: [id])
+  action      String
+  reasonCode  String?
+  metadata    String
+  createdAt   DateTime @default(now())
+
+  @@index([uploaderId, createdAt])
+  @@index([action, createdAt])
 }
 
 model LibraryItem {

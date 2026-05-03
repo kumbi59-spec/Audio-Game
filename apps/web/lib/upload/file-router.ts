@@ -2,10 +2,11 @@ import {
   hasDocxSignature,
   hasPdfSignature,
   isMimeExtensionCoherent,
+  looksLikeJson,
   UploadParseError,
   UploadParseErrorCode,
 } from "./guards";
-import { MAX_FILE_BYTES } from "./constants";
+import { ACCEPTED_MIME_TYPES, MAX_FILE_BYTES, MAX_TEXT_CHARS, MAX_TEXT_TOKENS_ESTIMATE } from "./constants";
 export { ACCEPTED_MIME_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "./constants";
 
 const PDF_MIME = "application/pdf";
@@ -30,6 +31,13 @@ export async function extractText(
   filename: string
 ): Promise<string> {
   const fileExt = ext(filename);
+  if (!ACCEPTED_MIME_TYPES.includes(mimeType)) {
+    throw new UploadParseError(
+      UploadParseErrorCode.UnsupportedMimeType,
+      `Unsupported MIME type: ${mimeType}`,
+      "Unsupported file type. Please upload PDF, DOCX, TXT, Markdown, or JSON."
+    );
+  }
 
   if (buffer.length > MAX_FILE_BYTES) {
     throw new UploadParseError(
@@ -58,7 +66,7 @@ export async function extractText(
     }
 
     const { parsePdf } = await import("./parsers/pdf");
-    return parsePdf(buffer);
+    return enforceTextBudget(await parsePdf(buffer));
   }
 
   if (mimeType === DOCX_MIME || mimeType === DOC_MIME || DOCX_EXTS.has(fileExt)) {
@@ -71,18 +79,44 @@ export async function extractText(
     }
 
     const { parseDocx } = await import("./parsers/docx");
-    return parseDocx(buffer);
+    return enforceTextBudget(await parseDocx(buffer));
   }
 
   const text = buffer.toString("utf-8");
 
   if (mimeType === JSON_MIME || JSON_EXTS.has(fileExt)) {
+    if (!looksLikeJson(buffer)) {
+      throw new UploadParseError(
+        UploadParseErrorCode.ContentSniffMismatch,
+        "JSON upload content does not look like JSON",
+        "The file extension says JSON, but the content does not appear to be valid JSON."
+      );
+    }
     const { parseJsonBible } = await import("./parsers/json");
-    return parseJsonBible(text);
+    return enforceTextBudget(await parseJsonBible(text));
   }
 
   const isMarkdown =
     mimeType === "text/markdown" || MARKDOWN_EXTS.has(fileExt);
   const { parseText } = await import("./parsers/text");
-  return parseText(text, isMarkdown);
+  return enforceTextBudget(await parseText(text, isMarkdown));
+}
+
+function enforceTextBudget(text: string): string {
+  if (text.length > MAX_TEXT_CHARS) {
+    throw new UploadParseError(
+      UploadParseErrorCode.TextTooLarge,
+      `Extracted text too large: ${text.length} chars`,
+      "Uploaded content is too large after extraction. Please upload a smaller document."
+    );
+  }
+  const estimatedTokens = Math.ceil(text.length / 4);
+  if (estimatedTokens > MAX_TEXT_TOKENS_ESTIMATE) {
+    throw new UploadParseError(
+      UploadParseErrorCode.TokenEstimateTooLarge,
+      `Extracted token estimate too large: ${estimatedTokens}`,
+      "Uploaded content is too large for processing. Please split the document and try again."
+    );
+  }
+  return text;
 }

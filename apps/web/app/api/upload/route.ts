@@ -5,8 +5,10 @@ import { UploadParseError } from "@/lib/upload/guards";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
 import { ensureGuestUser, getUserTier } from "@/lib/db/queries/users";
 import { prisma } from "@/lib/db";
+import { recordUploadAuditEvent } from "@/lib/db/queries/upload-audit";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import type { UploadProgressEvent } from "@/lib/upload/types";
+import { UploadParseErrorCode } from "@/lib/upload/guards";
 
 function sse(event: UploadProgressEvent): string {
   return `event: progress\ndata: ${JSON.stringify(event)}\n\n`;
@@ -72,6 +74,42 @@ export async function POST(req: NextRequest) {
         try {
           rawText = await extractText(buffer, file.type, file.name);
         } catch (err) {
+          const parseCode = err instanceof UploadParseError ? err.code : "unknown";
+          const shouldQuarantine = [
+            UploadParseErrorCode.ContentSniffMismatch,
+            UploadParseErrorCode.ParserFailed,
+            UploadParseErrorCode.ParserMemoryLimit,
+            UploadParseErrorCode.ParserTimeout,
+          ].includes(parseCode as UploadParseErrorCode);
+
+          if (shouldQuarantine) {
+            const q = await prisma.gameBible.create({
+              data: {
+                originalName: file.name,
+                mimeType: file.type || "application/octet-stream",
+                rawText: "",
+                parsedData: "",
+                processingStatus: "quarantine",
+                errorMessage: err instanceof Error ? err.message : String(err),
+                uploaderId: ownerId,
+              },
+            });
+            await recordUploadAuditEvent({
+              uploaderId: ownerId,
+              gameBibleId: q.id,
+              action: "quarantined",
+              reasonCode: String(parseCode),
+              metadata: { filename: file.name, mimeType: file.type, size: file.size },
+            });
+            console.warn("[upload] quarantined", { gameBibleId: q.id, reasonCode: parseCode, filename: file.name });
+          } else {
+            await recordUploadAuditEvent({
+              uploaderId: ownerId,
+              action: "rejected",
+              reasonCode: String(parseCode),
+              metadata: { filename: file.name, mimeType: file.type, size: file.size },
+            });
+          }
           const safeMessage =
             err instanceof UploadParseError
               ? err.userMessage
@@ -136,6 +174,13 @@ export async function POST(req: NextRequest) {
           });
           return;
         }
+        await recordUploadAuditEvent({
+          uploaderId: ownerId,
+          action: "accepted",
+          reasonCode: "world_created",
+          metadata: { worldId, filename: file.name, mimeType: file.type, size: file.size },
+        });
+        console.info("[upload] accepted", { ownerId, worldId, filename: file.name });
 
         send({
           stage: "done",
@@ -162,4 +207,3 @@ export async function POST(req: NextRequest) {
     },
   });
 }
-
