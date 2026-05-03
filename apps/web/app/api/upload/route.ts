@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { extractText, MAX_FILE_BYTES } from "@/lib/upload/file-router";
+import { UploadParseError } from "@/lib/upload/guards";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
 import { ensureGuestUser, getUserTier } from "@/lib/db/queries/users";
 import { prisma } from "@/lib/db";
@@ -71,9 +72,14 @@ export async function POST(req: NextRequest) {
         try {
           rawText = await extractText(buffer, file.type, file.name);
         } catch (err) {
+          const safeMessage =
+            err instanceof UploadParseError
+              ? err.userMessage
+              : "Could not read this file. Try saving as plain text, PDF, or DOCX and upload again.";
+
           send({
             stage: "error",
-            message: `Could not read file: ${err instanceof Error ? err.message : "unknown error"}. Try saving as plain text or PDF.`,
+            message: safeMessage,
           });
           return;
         }
