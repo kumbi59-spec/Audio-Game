@@ -12,15 +12,27 @@ const Schema = z.object({
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
+const STORYTELLER_PRICE_USD = 15;
+const CREATOR_PRICE_USD = 29;
+
 // Approximate chars spoken per minute for cap accounting.
 const CHARS_PER_MINUTE = 900;
 
-// Monthly ElevenLabs narration minute caps by tier. null = unlimited.
-// These defaults are set to keep premium narration useful while limiting cost.
+const TARGET_PROFIT_MARGIN = Number(process.env["MONETIZATION_TARGET_MARGIN"] ?? 0.5);
+const ELEVENLABS_COST_PER_MINUTE_USD = Number(process.env["ELEVENLABS_COST_PER_MINUTE_USD"] ?? 0.03);
+
+function profitableMinuteCap(priceUsd: number, fallbackMinutes: number): number {
+  if (ELEVENLABS_COST_PER_MINUTE_USD <= 0) return fallbackMinutes;
+  const maxCost = priceUsd * Math.max(0, 1 - TARGET_PROFIT_MARGIN);
+  const cap = Math.floor(maxCost / ELEVENLABS_COST_PER_MINUTE_USD);
+  return Math.max(1, cap || fallbackMinutes);
+}
+
+// Monthly narration minute caps by tier. Explicit env override wins.
 const TTS_MINUTE_CAPS: Record<string, number | null> = {
   free: 0,
-  storyteller: Number(process.env["STORYTELLER_TTS_MINUTES_MONTHLY"] ?? 120),
-  creator: Number(process.env["CREATOR_TTS_MINUTES_MONTHLY"] ?? 300),
+  storyteller: Number(process.env["STORYTELLER_TTS_MINUTES_MONTHLY"] ?? profitableMinuteCap(STORYTELLER_PRICE_USD, 120)),
+  creator: Number(process.env["CREATOR_TTS_MINUTES_MONTHLY"] ?? profitableMinuteCap(CREATOR_PRICE_USD, 300)),
   enterprise: null,
 };
 
