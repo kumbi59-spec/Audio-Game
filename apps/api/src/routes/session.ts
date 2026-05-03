@@ -1,11 +1,16 @@
 import type { FastifyInstance } from "fastify";
-import { ClientEvent, ServerEvent } from "@audio-rpg/shared";
+import { ServerEvent } from "@audio-rpg/shared";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
 import { tierFromToken } from "../auth/entitlements.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
+import {
+  normalizeClientEventV1,
+  serializeServerEvent,
+  UnsupportedClientEventVersionError,
+} from "./session-compat.js";
 
 export interface SessionRouteOptions {
   /** Injected GM turn generator; defaults to the real Claude path. */
@@ -35,7 +40,7 @@ export async function registerSessionRoutes(
         app.log.error({ evt, error: parsed.error }, "invalid server event");
         return;
       }
-      socket.send(JSON.stringify(parsed.data));
+      socket.send(serializeServerEvent(parsed.data));
     };
 
     socket.on("message", async (raw: Buffer) => {
@@ -52,18 +57,29 @@ export async function registerSessionRoutes(
         return;
       }
 
-      const parsed = ClientEvent.safeParse(msg);
-      if (!parsed.success) {
+      let event;
+      try {
+        event = normalizeClientEventV1(msg);
+      } catch (err) {
+        if (err instanceof UnsupportedClientEventVersionError) {
+          emit({
+            type: "error",
+            code: err.code,
+            message: err.message,
+            recoverable: err.recoverable,
+          });
+          return;
+        }
+
         emit({
           type: "error",
           code: "bad_event",
-          message: parsed.error.issues[0]?.message ?? "Invalid event.",
+          message:
+            err instanceof Error ? err.message : "Invalid event.",
           recoverable: true,
         });
         return;
       }
-
-      const event = parsed.data;
 
       if (event.type === "join") {
         try {
