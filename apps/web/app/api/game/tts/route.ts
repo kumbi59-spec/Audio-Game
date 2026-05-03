@@ -12,11 +12,15 @@ const Schema = z.object({
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
-// Monthly ElevenLabs character caps by tier. null = unlimited.
-const TTS_CHAR_CAPS: Record<string, number | null> = {
+// Approximate chars spoken per minute for cap accounting.
+const CHARS_PER_MINUTE = 900;
+
+// Monthly ElevenLabs narration minute caps by tier. null = unlimited.
+// These defaults are set to keep premium narration useful while limiting cost.
+const TTS_MINUTE_CAPS: Record<string, number | null> = {
   free: 0,
-  storyteller: 50_000,
-  creator: 100_000,
+  storyteller: Number(process.env["STORYTELLER_TTS_MINUTES_MONTHLY"] ?? 120),
+  creator: Number(process.env["CREATOR_TTS_MINUTES_MONTHLY"] ?? 300),
   enterprise: null,
 };
 
@@ -37,9 +41,10 @@ export async function POST(req: NextRequest) {
   });
 
   const tier = user?.tier ?? "free";
-  const cap = TTS_CHAR_CAPS[tier] ?? 0;
+  const minuteCap = TTS_MINUTE_CAPS[tier] ?? 0;
+  const capChars = minuteCap === null ? null : minuteCap * CHARS_PER_MINUTE;
 
-  if (cap === 0) {
+  if (minuteCap === 0) {
     return NextResponse.json({ error: "ElevenLabs requires a paid plan" }, { status: 403 });
   }
 
@@ -50,8 +55,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Monthly cap check (cap === null means unlimited)
-  if (cap !== null) {
+  // Monthly cap check (null means unlimited)
+  if (capChars !== null) {
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -59,13 +64,15 @@ export async function POST(req: NextRequest) {
     const charsUsed =
       user!.ttsCharsResetAt >= startOfMonth ? user!.ttsCharsUsedThisMonth : 0;
 
-    if (charsUsed + body.text.length > cap) {
+    if (charsUsed + body.text.length > capChars) {
       return NextResponse.json(
         {
           error: "tts_cap_reached",
-          message: `Monthly ElevenLabs limit reached (${cap.toLocaleString()} characters). Switching to browser narrator for the rest of the month.`,
+          message: `Monthly ElevenLabs narration limit reached (${minuteCap} minutes). Switching to browser narrator for the rest of the month.`,
           charsUsed,
-          cap,
+          capChars,
+          minutesUsed: Math.floor(charsUsed / CHARS_PER_MINUTE),
+          minuteCap,
         },
         { status: 429 },
       );
