@@ -17,7 +17,8 @@
     "dev:web": "pnpm --filter @audio-rpg/web dev",
     "security:audit:prod": "pnpm audit --prod --json",
     "security:release-gate": "node scripts/security-release-gate.mjs",
-    "check:anthropic-sdk-version": "node scripts/check-anthropic-sdk-version.mjs"
+    "check:anthropic-sdk-version": "node scripts/check-anthropic-sdk-version.mjs",
+    "check:parity-gate": "node scripts/check-platform-parity-gate.mjs"
   },
   "devDependencies": {
     "typescript": "5.5.4"

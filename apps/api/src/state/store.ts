@@ -6,6 +6,12 @@ import { PostgresCampaignStore } from "./postgres.js";
 import type { CampaignStore } from "./types.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
 
+export type StorageBackend = "memory" | "postgres";
+
+export function getStorageBackend(): StorageBackend {
+  return process.env["DATABASE_URL"] ? "postgres" : "memory";
+}
+
 /**
  * Store dispatcher. When DATABASE_URL is set we use Postgres + pgvector;
  * otherwise we fall back to the in-memory store so local dev works
