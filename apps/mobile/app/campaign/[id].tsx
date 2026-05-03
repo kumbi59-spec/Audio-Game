@@ -34,6 +34,7 @@ export default function ActiveCampaign(): JSX.Element {
   const { hapticsEnabled } = usePrefs();
   const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const [showFirstTurnTips, setShowFirstTurnTips] = useState(false);
   const canAcceptInput = !session.awaitingGm;
 
   useLandmarkAnnounce(
@@ -62,6 +63,12 @@ export default function ActiveCampaign(): JSX.Element {
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [session.transcript.length]);
+
+  useEffect(() => {
+    const hasPlayerActed = session.transcript.some((t) => t.role === "player");
+    const isEarlyTurn = (session.state?.turn_number ?? 0) <= 1;
+    setShowFirstTurnTips(isEarlyTurn && !hasPlayerActed);
+  }, [session.state?.turn_number, session.transcript]);
 
   useEffect(() => {
     return () => {
@@ -205,6 +212,23 @@ export default function ActiveCampaign(): JSX.Element {
       </ScrollView>
 
       {/* Choices */}
+      {showFirstTurnTips && (
+        <View style={styles.tipsCard} accessibilityRole="summary">
+          <Text style={styles.tipsTitle}>Quick start</Text>
+          <Text style={styles.tipsBody}>1) Choose a numbered action below.</Text>
+          <Text style={styles.tipsBody}>2) Tap Mic to speak a custom action.</Text>
+          <Text style={styles.tipsBody}>3) Tap Exit to save and return home.</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss quick start tips"
+            onPress={() => setShowFirstTurnTips(false)}
+            style={({ pressed }) => [styles.tipsDismissBtn, pressed && styles.dockBtnPressed]}
+          >
+            <Text style={styles.tipsDismissText}>Got it</Text>
+          </Pressable>
+        </View>
+      )}
+
       {session.choices.length > 0 && (
         <View style={styles.choicesSection}>
           <Text style={styles.choicesLabel}>CHOOSE YOUR ACTION</Text>
@@ -320,6 +344,28 @@ const styles = StyleSheet.create({
   },
   bubbleTextPlayer: { fontSize: FS.base, color: EQ.accent2, lineHeight: 22 },
   thinking: { padding: SPACE[3], fontStyle: "italic", color: EQ.textFaint, fontSize: FS.sm },
+  tipsCard: {
+    marginHorizontal: SPACE[3],
+    marginBottom: SPACE[2],
+    padding: SPACE[3],
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface,
+    gap: SPACE[1],
+  },
+  tipsTitle: { color: EQ.text, fontSize: FS.base, fontWeight: "700" },
+  tipsBody: { color: EQ.textMuted, fontSize: FS.sm, lineHeight: 20 },
+  tipsDismissBtn: {
+    marginTop: SPACE[2],
+    alignSelf: "flex-start",
+    minHeight: TOUCH_MIN,
+    borderRadius: R.sm,
+    backgroundColor: EQ.accent,
+    paddingHorizontal: SPACE[3],
+    justifyContent: "center",
+  },
+  tipsDismissText: { color: "#fff", fontSize: FS.sm, fontWeight: "700" },
 
   choicesSection: { borderTopWidth: 1, borderTopColor: EQ.border2, paddingTop: SPACE[2] },
   choicesLabel: {
