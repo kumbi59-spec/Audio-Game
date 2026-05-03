@@ -10,6 +10,8 @@ const Env = z.object({
     .string()
     .default("http://localhost:8081,http://localhost:19006"),
   NODE_ENV: z.string().default("development"),
+  GM_TURN_TIMEOUT_MS: z.coerce.number().int().default(15000),
+  GM_TURN_MAX_RETRIES: z.coerce.number().int().default(1),
 });
 
 export const config = (() => {

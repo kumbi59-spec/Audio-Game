@@ -7,3 +7,5 @@ export * from "./seed/verdant-wilds.js";
 export * from "./seed/iron-citadel.js";
 export * from "./seed/crimson-sands.js";
 export * from "./entitlements.js";
+
+export * from "./session-machine.js";
