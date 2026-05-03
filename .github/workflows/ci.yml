@@ -21,6 +21,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile=false
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
+      - run: pnpm check:anthropic-sdk-version
       - run: pnpm -r typecheck
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api test
 
