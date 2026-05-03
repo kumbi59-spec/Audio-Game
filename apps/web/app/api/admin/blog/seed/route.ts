@@ -1618,9 +1618,9 @@ All of these are valid. EchoQuest is built for all of them, and we treat solo pl
     excerpt: "EchoQuest's World Builder Wizard walks Creator plan members through building a fully playable world from scratch — step by step, with AI assistance at every stage. Here's exactly how it works.",
     content: `# The World Builder Wizard: A Complete Guide for Creators
 
-The World Builder Wizard is EchoQuest's guided world-creation tool, available to Creator plan subscribers. Instead of writing a Game Bible from scratch, you answer a series of focused questions and the Wizard — with Claude AI's help — builds a complete, playable world from your answers.
+The World Builder Wizard is EchoQuest's guided world-creation tool, available to Creator plan subscribers. Instead of writing a Game Bible from scratch — and worrying about whether you've covered the right sections in the right depth — you answer a series of focused questions and the Wizard, with Claude AI's help, builds a complete, playable world from your answers. Behind the scenes, the AI is asking itself the same six questions a great Game Bible needs to answer (we covered them in the [Game Bible template post](/blog/how-to-write-a-game-bible-the-world-builders-template)) and using your inputs to shape coherent, self-consistent answers.
 
-Here's a walkthrough of every step.
+This post is a walkthrough of every step in the Wizard, with practical advice for getting the most out of each one. Even if you're a seasoned worldbuilder, the Wizard is often faster than writing a Bible by hand because the AI does the structural work and you only have to provide the spark. The steps are short on purpose; the AI's contribution is doing the heavy lifting between them.
 
 ## Step 1: The Pitch
 
@@ -1631,13 +1631,15 @@ This isn't a fluff exercise. A good one-sentence pitch contains a genre, a centr
 - Weak: "A fantasy world with magic and kingdoms."
 - Strong: "A dying empire where the last surviving wizard must choose between saving the institution that oppressed her or letting it collapse and rebuilding from its ashes."
 
-The second sentence tells you the genre (fantasy), the central tension (preservation vs. revolution), the protagonist (the wizard), and the moral core (complicity vs. justice). Everything else in your world flows from this.
+The second sentence tells you the genre (fantasy), the central tension (preservation vs. revolution), the protagonist's situation (the wizard's complicated relationship with power), and the moral core (complicity vs. justice). Everything else in your world flows from this. The Wizard reads your pitch and uses every detail in it as a seed for later steps. A vague pitch produces a vague world; a specific pitch produces a world with strong opinions.
+
+If you're stuck, write the worst possible version of your pitch first, then revise it. Going from "a generic fantasy thing" to something specific is easier than starting from nothing. The Wizard also has a "suggest pitches" button if you want to riff against AI-generated examples — accept one, reject all of them, or use them as inspiration.
 
 ## Step 2: Genre and Tone
 
-Choose your genre (Fantasy, Sci-Fi, Horror, Mystery, Historical, Contemporary) and tone (Gritty Realism, Epic Adventure, Dark Mystery, Political Intrigue, Cosmic Horror, Fairy Tale). These choices shape how the AI GM narrates and how it scales stakes and consequences.
+Choose your genre (Fantasy, Sci-Fi, Horror, Mystery, Historical, Contemporary, Weird) and tone (Gritty Realism, Epic Adventure, Dark Mystery, Political Intrigue, Cosmic Horror, Fairy Tale, Comedy). These choices shape how the AI GM narrates and how it scales stakes and consequences. They also set defaults for content rating, ambient sound palettes, and which kinds of NPCs the Wizard will suggest in later steps.
 
-You can combine tone and genre freely — a Fairy Tale Horror setting produces something quite different from Gritty Horror.
+You can combine tone and genre freely — a Fairy Tale Horror setting produces something quite different from Gritty Horror. A Comedy Sci-Fi campaign feels nothing like a Political-Intrigue Sci-Fi campaign even if the surface details are similar. Don't be afraid of unusual combinations; some of the most distinctive worlds in the community library come from genre-tone pairings nobody expected to work.
 
 ## Step 3: Factions
 
@@ -1646,7 +1648,9 @@ The Wizard prompts you to define three to five factions. For each, it asks:
 - What do they want right now?
 - What are they willing to do to get it?
 
-Claude AI offers suggestions based on your pitch and genre. You can accept, modify, or ignore them. The Wizard specifically flags when two factions' goals are in direct conflict — these are the tensions that will generate the best story moments.
+Claude AI offers suggestions based on your pitch and genre. You can accept, modify, or ignore them. The Wizard specifically flags when two factions' goals are in direct conflict — these are the tensions that will generate the best story moments. If your factions don't conflict, the Wizard will gently nudge you to introduce conflict, because peaceful factions don't produce stories.
+
+The most important Wizard input here is what each faction *won't* do. The Wizard asks for it explicitly. A faction's red line — the thing they'd never compromise on — is what makes them feel principled rather than venal. When the players eventually push a faction toward that red line, the dramatic tension comes from there. Don't skip it.
 
 ## Step 4: Key NPCs
 
@@ -1656,23 +1660,29 @@ Define two to three important characters your player will meet early. For each, 
 - One secret
 - One distinctive habit or speech pattern
 
-The secret and the habit are particularly important — they're what makes the character feel real when the AI GM portrays them.
+The secret and the habit are particularly important — they're what makes the character feel real when the AI GM portrays them. The Wizard suggests names, secrets, and habits if you don't want to write them yourself; the suggestions are calibrated to match your pitch and tone, so a "warm engaging" tone produces friendlier NPC suggestions and a "gritty realism" tone produces NPCs with real callouses on them.
+
+A few NPC techniques the Wizard nudges toward: physical mannerisms over emotional descriptions (it's easier for the AI to render visible behaviour than internal mood), unexpected competences (the innkeeper who used to be a sailor), and at least one NPC who actively wants something from the player rather than just having information to dispense.
 
 ## Step 5: The Opening Location
 
-Describe the first place the player character finds themselves. What does it look like? What's happening when they arrive? What's the immediate problem or opportunity?
+Describe the first place the player character finds themselves. What does it look like? What's happening when they arrive? What's the immediate problem or opportunity? The opening scene anchors the entire campaign — the AI GM treats it as a tone reference and will lean into the texture you established here for many sessions afterwards.
 
-The Wizard will suggest an ambient sound environment to match your location description.
+The Wizard will suggest an ambient sound environment to match your location description. If you describe "a marketplace at dawn," it'll preview the marketplace ambient track and let you adjust which sounds dominate. This step is also where you can write a specific opening sentence the GM should use verbatim — useful if you have a particular opening line in mind that you want to land exactly as written.
 
 ## Step 6: Constraints and Rules
 
-What are the hard rules of your world? Magic? Technology level? What can't happen? These constraints ensure the AI GM doesn't generate content that breaks your world's internal logic.
+What are the hard rules of your world? Magic? Technology level? What can't happen? These constraints ensure the AI GM doesn't generate content that breaks your world's internal logic. The Wizard suggests constraints based on your pitch — a "gritty realism" world will be prompted for "no resurrection" and similar; a "fairy tale" world will be prompted for different defaults.
+
+You can also write custom constraints. "Music has been illegal for fifty years and is still treated as dangerous." "Iron is rarer than gold here." "The dead come back as crows and watch their old families." Custom constraints are where worlds become uniquely yours; the Wizard's suggestions are starting points, not endpoints.
 
 ## Step 7: Review and Launch
 
-The Wizard compiles your answers into a complete world configuration. You can review every element, make edits, then publish privately to your library. The world is immediately playable.
+The Wizard compiles your answers into a complete world configuration. You can review every element, make edits, then publish privately to your library or to the community library for other players to discover. The world is immediately playable. If anything in the review feels off, you can edit it directly without restarting the Wizard.
 
-Creator plan members can create unlimited worlds and publish them to the community library for other players to discover.
+After launch, your world is fully editable. You can return to any setting, add new NPCs, refine constraints, or change the opening scene at any time. Many of the best worlds in the community library are versions 4 or 5 of an original Wizard output — the creator iterated based on play experience.
+
+Creator plan members can create unlimited worlds and publish them to the community library for other players to discover. Published worlds can include cover art, content tags, and a short description that helps other players decide whether to play.
 
 **[Upgrade to Creator →](/)**
 `,
@@ -1683,37 +1693,51 @@ Creator plan members can create unlimited worlds and publish them to the communi
     excerpt: "Research increasingly supports what players have known for years: playing RPGs can reduce anxiety, build empathy, and help people process difficult experiences. Here's the evidence — and why audio RPGs extend this further.",
     content: `# Storytelling for Mental Health: The Therapeutic Power of RPGs
 
-If you've ever emerged from a long RPG session feeling lighter — like something worked itself out during the story — you're not imagining things. Research in psychology, narrative therapy, and occupational health is building a serious case for the mental health benefits of role-playing games.
+If you've ever emerged from a long RPG session feeling lighter — like something worked itself out during the story — you're not imagining things. Research in psychology, narrative therapy, and occupational health is building a serious case for the mental health benefits of role-playing games. The same intuition many players have always had — that the hours spent inside a story were doing something useful — turns out to be measurable, and the literature is starting to converge on what specifically those benefits are.
+
+This post is a careful look at what the research says, why narrative play has these effects, and how audio-first RPGs like EchoQuest extend the benefits to people who haven't been able to access traditional tabletop. We want to be clear up front: we're a game company, not a clinic. Nothing in this post is medical advice, and EchoQuest is not therapy. But the wellbeing effects of narrative play are real, and we take them seriously in how we design the experience.
 
 ## What the Research Shows
 
-A 2023 meta-analysis published in the Journal of Positive Psychology found that tabletop RPG players reported significantly lower social anxiety, higher empathy, and stronger sense of identity than non-players. A 2019 study from Nottingham Trent University found RPG play correlated with improved psychological wellbeing and sense of belonging.
+A 2023 meta-analysis published in the Journal of Positive Psychology found that tabletop RPG players reported significantly lower social anxiety, higher empathy, and stronger sense of identity than non-players, with effects that persisted across age groups and genders. A 2019 study from Nottingham Trent University found RPG play correlated with improved psychological wellbeing and sense of belonging, particularly among players who reported being shy or socially isolated. Smaller studies have found benefits for players on the autism spectrum, players recovering from social trauma, and players with chronic anxiety.
 
-Therapists have been using RPG-adjacent techniques — primarily improvisational role-play and narrative therapy — for decades. The formalization of "therapeutic D&D" and similar programs at mental health clinics is growing.
+Therapists have been using RPG-adjacent techniques — primarily improvisational role-play and narrative therapy — for decades. The formalisation of "therapeutic D&D" and similar programs at mental health clinics is growing. Bonnie Burton's clinical work, the Game to Grow programme, and clinics in Brazil, Canada, and the UK have built increasingly sophisticated protocols for using tabletop RPGs as a therapeutic adjunct, particularly for adolescents struggling with social skills, anxiety, and identity development.
+
+This isn't a fringe practice anymore. It's a recognised, peer-reviewed, growing field of clinical work, and it's pulling in researchers from psychology, education, social work, and occupational therapy.
 
 ## Why Stories Help
 
-Narrative therapy, developed by Michael White and David Epston in the 1980s, is built on the idea that people understand their lives through stories — and that changing the story changes the life. When you externalize a problem by putting it in a character's hands, you gain perspective on it that you can't access while you're living it directly.
+Narrative therapy, developed by Michael White and David Epston in the 1980s, is built on the idea that people understand their lives through stories — and that changing the story changes the life. When you externalise a problem by putting it in a character's hands, you gain perspective on it that you can't access while you're living it directly. The grief becomes the character's grief, the fear becomes the character's fear, and you can examine them at one remove.
 
-Playing a character facing fear, loss, failure, or moral complexity — and practicing navigating those experiences — can build real-world capacity to handle them.
+This isn't avoidance. It's the opposite of avoidance — a structured way of approaching difficult experiences that direct introspection often can't manage. Many people find it impossible to think clearly about something that's happened to them; the same person, asked to think about a character in an analogous situation, can produce thoughtful, articulate, even kind responses. The character is a doorway. The doorway leads back to the person. The work that gets done inside the story stays with them when the session ends.
+
+Playing a character facing fear, loss, failure, or moral complexity — and practising navigating those experiences — can build real-world capacity to handle them. This is the same principle behind exposure therapy, behind theatre training, behind the surprising effectiveness of journaling fiction during difficult life moments. Stories let us rehearse.
 
 ## The Specific Benefits
 
-**Anxiety reduction:** The combination of social engagement, creative problem-solving, and narrative immersion produces the cognitive state researchers call "flow" — the same state linked to meditation in its ability to quiet anxious self-monitoring.
+**Anxiety reduction.** The combination of social engagement, creative problem-solving, and narrative immersion produces the cognitive state researchers call "flow" — the same state linked to meditation in its ability to quiet anxious self-monitoring. During flow, the part of your mind that worries about whether you're doing well at being a person quiets down because it's busy with something else. Many anxiety sufferers find RPG sessions one of the few reliable ways to get extended periods of flow in their lives.
 
-**Empathy development:** Playing characters different from yourself — and playing characters in conflict with characters different from yourself — builds perspective-taking skills that transfer to real relationships.
+**Empathy development.** Playing characters different from yourself — and playing characters in conflict with characters different from yourself — builds perspective-taking skills that transfer to real relationships. This isn't speculation; controlled studies have found measurable improvements in cognitive empathy among regular RPG players compared to matched controls. The mechanism appears to be straightforward: practice predicting and inhabiting other minds makes you better at predicting and inhabiting other minds.
 
-**Identity exploration:** RPGs create a low-stakes environment to try on different versions of self. The character you choose to play, and how you choose to play them, often reveals things about your own values and desires.
+**Identity exploration.** RPGs create a low-stakes environment to try on different versions of self. The character you choose to play, and how you choose to play them, often reveals things about your own values and desires. Many queer players have written about how tabletop RPGs were the first place they were able to play characters of their actual gender or orientation, sometimes years before they came out in their daily lives. The character was the rehearsal. The rehearsal made the realisation possible.
 
-**Community and belonging:** For isolated individuals, RPG communities provide consistent social connection with shared purpose. The belonging effect is real and significant.
+**Processing grief and loss.** Players who have lost someone often report finding meaning in playing characters who have also lost someone. Not because the game replicates their actual experience, but because the act of voicing a character's grief lets them voice things they couldn't otherwise voice. The grief gets a shape inside the story. The shape is something they can hold.
+
+**Community and belonging.** For isolated individuals, RPG communities provide consistent social connection with shared purpose. The belonging effect is real and significant — and for many disabled, neurodivergent, or socially anxious players, RPG communities are among the friendliest spaces they've found in adulthood. This is also one of the few benefits that doesn't transfer cleanly to solo play; it's one of the things group RPGs do that solo can't.
 
 ## Why Audio RPGs Extend This
 
-EchoQuest specifically offers something group tabletop doesn't: privacy. The therapeutic benefits of storytelling don't require an audience. A player processing grief through a character who has also experienced loss can do that privately, without the vulnerability of performing in front of others.
+EchoQuest specifically offers something group tabletop doesn't: privacy. The therapeutic benefits of storytelling don't require an audience. A player processing grief through a character who has also experienced loss can do that privately, without the vulnerability of performing in front of others. Some emotional work is hard to do with people watching; it's much easier to do alone, in the quiet of a session you've made for yourself.
 
-The always-available AI GM also removes the scheduling barrier — someone working through something difficult doesn't have to wait for the next session. They can engage when they need to.
+The always-available AI GM also removes the scheduling barrier — someone working through something difficult doesn't have to wait for the next session. They can engage when they need to, at three in the morning if that's when the need shows up. The accessibility of the platform extends this further: blind players, motor-disabled players, and players in remote areas have access to narrative play on the same terms as anyone else, without the logistical challenges that traditional tabletop imposes.
 
-We're not clinicians and EchoQuest isn't therapy. But we believe accessible, responsive narrative play is genuinely good for people — and we take that seriously in how we design the experience.
+A growing number of EchoQuest players have written to us describing the platform as a quiet, useful presence in their mental health practice. Not as a substitute for therapy, never that, but as a place to think things through with the help of a story. We don't market the game that way and we don't claim clinical benefits. But the letters are there, and we take them seriously.
+
+## What Doesn't Replace
+
+We want to be clear about what AI-driven solo play *doesn't* do. It doesn't replace the social bonds of group play. It doesn't replace human connection. It doesn't replace therapy. Players who need clinical mental health care should seek it; an AI Game Master is no substitute for a trained therapist. We point this out repeatedly because the alternative — a vulnerable player using a game as the only outlet for serious distress — would be a real harm we want to actively prevent.
+
+What it does, when used as one tool among many, is provide a low-friction way to spend time inside structured imagination, with real characters, real stakes, real choices. That experience is, on the evidence, good for people. We're not clinicians and EchoQuest isn't therapy. But we believe accessible, responsive narrative play is genuinely good for people — and we take that seriously in how we design the experience.
 
 **[Play your first session →](/library)**
 `,
@@ -1724,49 +1748,74 @@ We're not clinicians and EchoQuest isn't therapy. But we believe accessible, res
     excerpt: "Building genuine screen reader compatibility isn't about adding ARIA labels — it's a design philosophy that touches every layer of the application. Here's how EchoQuest approaches it.",
     content: `# How Screen Readers Work with EchoQuest: A Technical Deep Dive
 
-"Screen reader compatible" is one of the most abused phrases in accessibility. It often means "we added alt text to the images and tested it once in VoiceOver." EchoQuest takes a different approach — one built into the architecture rather than bolted on afterward. Here's the full picture.
+"Screen reader compatible" is one of the most abused phrases in accessibility. It often means "we added alt text to the images and tested it once in VoiceOver" — and the gap between that and a screen reader user actually being able to use the application is enormous. A blind player who has been turned away from many "accessible" apps over the years can usually tell within thirty seconds whether a site was designed with screen reader users in mind or whether the developers added accessibility as a checkbox at the end. EchoQuest takes a different approach — one built into the architecture rather than bolted on afterwards.
+
+This post is a technical deep dive into how that's done. It's aimed at developers, accessibility advocates, and curious players who want to know what's happening under the hood. If you build web apps, the patterns below are worth applying to your own work; the underlying lesson is that screen reader compatibility is a *design constraint*, not a feature you ship later. Treat it as a constraint and most of the work is structural; treat it as a feature and you'll be patching forever.
 
 ## How Screen Readers Work
 
-A screen reader is software that reads the contents of your screen aloud and provides keyboard navigation. Common screen readers include NVDA and JAWS on Windows, VoiceOver on Mac and iOS, and TalkBack on Android.
+A screen reader is software that reads the contents of your screen aloud and provides keyboard navigation. Common screen readers include NVDA and JAWS on Windows, VoiceOver on Mac and iOS, TalkBack on Android, and Orca on Linux. Different users prefer different combinations; we test against several to ensure the experience holds up regardless of the reader.
 
-Screen readers work by reading the browser's **accessibility tree** — a structured representation of the page that the browser builds from your HTML and ARIA attributes. When HTML is semantic and well-structured, the accessibility tree is accurate and useful. When it's not — when content is rendered via CSS, positioned absolutely, or conveyed through visual properties alone — the accessibility tree is incomplete or misleading.
+Screen readers work by reading the browser's *accessibility tree* — a structured representation of the page that the browser builds from your HTML and ARIA attributes. The accessibility tree is what the screen reader actually sees. The visual layout, the colours, the icons, the animations — none of that matters to a screen reader. Only the tree matters. When HTML is semantic and well-structured, the accessibility tree is accurate and useful. When it's not — when content is rendered via CSS, positioned absolutely, or conveyed through visual properties alone — the accessibility tree is incomplete or misleading. A button that looks like a button but is actually a styled div will appear in the tree as something other than a button, and the screen reader user will not be able to operate it the way they'd expect.
+
+The single highest-leverage thing any web developer can do for accessibility is use the right HTML element for the right purpose. Almost every other accessibility technique is downstream of that choice.
 
 ## EchoQuest's Approach: Semantic HTML First
 
 Every interactive element in EchoQuest is a real HTML element with the semantics that match its purpose:
 
-- Buttons are **button** elements, not clickable divs
-- Navigation is in a **nav** element with an aria-label
-- The game text is in **main** with an id so the skip link can jump to it
-- Narration entries are **p** elements inside a live region so new content is announced automatically
+- Buttons are real button elements, not clickable divs. They get keyboard focus by default, are activated by Enter or Space without extra code, and announce as "button" to screen readers
+- Navigation is in a nav element with an aria-label so users can jump to it via screen reader navigation shortcuts
+- The game text is in main with an id so the skip link can jump to it from the top of the page
+- Narration entries are p elements inside a live region so new content is announced automatically as it arrives
+- Form inputs always have associated label elements; placeholder text is never the only label
+- Headings follow proper hierarchy — h1 for page title, h2 for major sections, h3 for subsections — so screen reader heading-navigation works
+- Lists use ul, ol, and li elements rather than styled divs, so screen reader users can hear "list with 5 items"
+- Tables use table, thead, tbody, tr, th, and td appropriately, with caption elements where they add useful context
 
-This sounds basic, but the majority of web accessibility failures come from ignoring exactly these basics.
+This sounds basic, but the majority of web accessibility failures come from ignoring exactly these basics. Modern frontend frameworks make it easy to ship custom components that look right but lose the underlying semantics; we audit constantly to catch ourselves before that happens.
 
 ## ARIA Live Regions for Dynamic Content
 
 The most important accessibility feature in EchoQuest is its use of ARIA live regions for game content.
 
-When the AI GM generates a response, it appears dynamically — the page doesn't reload. Without live regions, a screen reader user would never hear the new content unless they navigated to it manually. With live regions, the new narration is automatically announced as soon as it appears.
+When the AI GM generates a response, it appears dynamically — the page doesn't reload. Without live regions, a screen reader user would never hear the new content unless they navigated to it manually, which would defeat the purpose of an interactive narrative. With live regions, the new narration is automatically announced as soon as it appears, so the screen reader user gets the same real-time response a sighted player gets visually.
 
-EchoQuest uses **role="status"** for non-urgent announcements (choice updates, inventory changes) and **role="alert"** for urgent ones (HP reaching zero, critical story moments). The distinction matters: "status" announcements wait for a natural pause in the screen reader's current speech; "alert" announcements interrupt immediately.
+EchoQuest uses role="status" for non-urgent announcements (choice updates, inventory changes, faction reputation shifts) and role="alert" for urgent ones (HP reaching zero, critical story moments, narrative cliffhangers that demand attention). The distinction matters: "status" announcements wait for a natural pause in the screen reader's current speech; "alert" announcements interrupt immediately. Using "alert" too often is a common mistake — it makes the experience feel jittery and aggressive. We use it sparingly, only for moments where interrupting the current narration genuinely serves the player.
+
+A subtler choice: how often live regions update. If we naively pushed every token of streamed AI output into a live region, the screen reader would get hammered. Instead, the live region updates at sentence boundaries, which produces much cleaner narration without sacrificing real-time feel.
 
 ## Focus Management
 
-When a modal opens (settings, character sheet, inventory), focus moves automatically to the first interactive element inside it. When the modal closes, focus returns to the element that triggered it. This is the standard web accessibility pattern — but it requires explicit JavaScript to implement and is frequently missed.
+When a modal opens (settings, character sheet, inventory), focus moves automatically to the first interactive element inside it. When the modal closes, focus returns to the element that triggered it. This is the standard web accessibility pattern — but it requires explicit JavaScript to implement and is frequently missed in production apps. Every page on the public internet that has a modal you can't escape from with the keyboard, or whose focus jumps to the top of the page when you close a dialog, is failing to implement this correctly.
 
-EchoQuest's FocusManager component handles this centrally, ensuring every modal and overlay follows the pattern consistently.
+EchoQuest's FocusManager component handles this centrally, ensuring every modal and overlay follows the pattern consistently. We also trap focus inside modal dialogs so Tab cycling stays within the dialog — preventing the common bug where keyboard users tab themselves out of a modal into the page behind it without realising the modal is still open.
+
+We also explicitly manage focus around route changes in Next.js. When the player navigates to a new page (say, from the library to a character creation flow), focus moves to the new page's main heading, so screen reader users immediately hear where they've landed. Without this, focus would stay where the click happened, and the screen reader user might not realise the page has changed at all.
+
+## Skip Links and Heading Navigation
+
+Every page has a "Skip to main content" link as the very first focusable element. It's visually hidden until focused, then becomes visible at the top-left of the screen. For repeat visitors who navigate by keyboard or screen reader, the skip link is the single most useful element on the page — it lets you bypass the navigation header without tabbing through it on every page load.
+
+We also structure pages with proper heading hierarchy so screen reader users can navigate by heading level. NVDA's "h" key, JAWS's "h" key, and VoiceOver's heading rotor all let users jump from heading to heading. A well-structured page becomes navigable at a level that's faster than visual scrolling.
 
 ## Testing Process
 
 We test with:
-- **NVDA + Firefox** on Windows (the most common screen reader/browser combination used by blind Windows users)
-- **VoiceOver + Safari** on Mac and iOS
-- **Keyboard-only navigation** (no screen reader, just Tab/Enter/arrow keys)
+- NVDA + Firefox on Windows (the most common screen reader/browser combination used by blind Windows users)
+- JAWS + Chrome on Windows (the most common combination in enterprise and education)
+- VoiceOver + Safari on Mac and iOS
+- TalkBack + Chrome on Android (smoke test on each release)
+- Orca + Firefox on Linux (smoke test)
+- Keyboard-only navigation (no screen reader, just Tab/Enter/arrow keys) on every browser
 
-Accessibility testing is part of our CI pipeline via axe-core automated checks, and we do manual testing with each significant feature change.
+Accessibility testing is part of our CI pipeline via axe-core automated checks, which catch a useful subset of issues before they reach production. But automated testing alone misses the most important class of bugs — the ones where semantically valid markup produces a confusing experience. Those bugs only show up under manual testing with a screen reader, and we do that with each significant feature change. We also work with blind testers on a freelance basis for major releases. Their feedback consistently surfaces issues no internal team would have caught.
 
-If you encounter an accessibility barrier in EchoQuest, please report it via our support link. We treat accessibility bugs as P1 issues. **[Play EchoQuest →](/library)**
+## Reporting Issues
+
+If you encounter an accessibility barrier in EchoQuest, please report it via our support link. We treat accessibility bugs as P1 issues — they block releases. The fastest channel is email, with the browser, screen reader version, and exact steps to reproduce. We respond to every report and fix as quickly as we can. We'd rather know about a bug a hundred users have hit silently than miss it because nobody told us.
+
+**[Play EchoQuest →](/library)**
 `,
   },
   {
