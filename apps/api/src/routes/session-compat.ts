@@ -8,6 +8,11 @@ import {
 
 export const SESSION_EVENT_VERSION = "v1" as const;
 
+export interface SessionClientCapabilities {
+  transportVersion?: string;
+  eventVersion?: string;
+}
+
 export class UnsupportedClientEventVersionError extends Error {
   readonly code = "unsupported_event_version" as const;
   readonly recoverable = true as const;
@@ -31,11 +36,24 @@ export function normalizeClientEventV1(raw: unknown) {
 }
 
 export function serializeServerEvent(event: ServerEvent): string {
+  return serializeServerEventForClient(event, {
+    eventVersion: SESSION_EVENT_VERSION,
+    transportVersion: "1",
+  });
+}
+
+export function serializeServerEventForClient(
+  event: ServerEvent,
+  capabilities: SessionClientCapabilities = {},
+): string {
+  const negotiatedTransportVersion = negotiateTransportVersion(capabilities.transportVersion);
+  const eventPayload =
+    capabilities.eventVersion === SESSION_EVENT_VERSION
+      ? { ...event, v: SESSION_EVENT_VERSION }
+      : event;
+
   return JSON.stringify(
-    createTransportEnvelope("session.server_event", {
-      ...event,
-      v: SESSION_EVENT_VERSION,
-    }),
+    createTransportEnvelope("session.server_event", eventPayload, negotiatedTransportVersion),
   );
 }
 
@@ -52,6 +70,11 @@ function unwrapLegacyOrEnvelope(raw: unknown): unknown {
     throw new UnsupportedClientEventVersionError(parsed.data.version);
   }
   return parsed.data.payload;
+}
+
+function negotiateTransportVersion(requestedVersion?: string): string {
+  if (!requestedVersion) return "1";
+  return isSupportedTransportVersion(requestedVersion) ? requestedVersion : "1";
 }
 
 function getRawVersion(raw: unknown): unknown {

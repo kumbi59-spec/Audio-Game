@@ -68,6 +68,10 @@ jobs:
           echo "postgres did not become ready"
           exit 1
       - run: pnpm --filter @audio-rpg/api test
+      - name: transport compatibility replay fixtures
+        run: pnpm --filter @audio-rpg/api test -- session-compat.replay.test.ts
+      - name: transport compatibility contracts
+        run: pnpm --filter @audio-rpg/api test -- session-compat.contract.test.ts
 
   web-e2e:
     name: "web e2e (Playwright + axe-core)"
