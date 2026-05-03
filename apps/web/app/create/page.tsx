@@ -223,7 +223,7 @@ function CreateCharacterPage() {
             <button
               type="button"
               onClick={() => router.replace("/library")}
-              className="surface-gradient inner-highlight rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="surface-gradient inner-highlight rounded-lg border border-border px-3 py-2 text-sm motion-cta hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Back to Library
             </button>
@@ -233,7 +233,7 @@ function CreateCharacterPage() {
           <>
         <Link
           href="/library"
-          className="mb-6 inline-block text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mb-6 inline-block text-sm text-muted-foreground motion-cta hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← Back to Library
         </Link>
@@ -257,12 +257,12 @@ function CreateCharacterPage() {
           {["name", "class", "backstory"].map((s, i) => (
             <div
               key={s}
-              className={`h-1.5 flex-1 rounded-full ${
+              className={`h-1.5 flex-1 rounded-full motion-step ${
                 i < (step === "name" ? 0 : step === "class" ? 1 : 2)
                   ? "bg-primary"
                   : i === (step === "name" ? 0 : step === "class" ? 1 : 2)
-                  ? "bg-primary/60"
-                  : "bg-muted"
+                  ? "bg-primary/60 motion-step-active"
+                  : "bg-muted motion-step-idle"
               }`}
             />
           ))}
@@ -291,7 +291,7 @@ function CreateCharacterPage() {
               <button
                 type="submit"
                 disabled={!name.trim()}
-                className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground motion-cta hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 Continue →
               </button>
@@ -315,7 +315,7 @@ function CreateCharacterPage() {
                       aria-checked={selectedWorldClass === cls.name}
                       onClick={() => handleWorldClassSelect(cls)}
                       aria-label={`${cls.name}: ${cls.description}`}
-                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 motion-cta transition-colors ${
                         selectedWorldClass === cls.name
                           ? "border-primary bg-accent"
                           : "border-border bg-secondary hover:border-primary/50"
@@ -341,7 +341,7 @@ function CreateCharacterPage() {
                       aria-checked={selectedClass === cls}
                       onClick={() => handleClassSelect(cls as CharacterClass)}
                       aria-label={`${info.name}: ${info.description}`}
-                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 transition-colors ${
+                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 motion-cta transition-colors ${
                         selectedClass === cls
                           ? "border-primary bg-accent"
                           : "border-border bg-secondary hover:border-primary/50"
@@ -368,7 +368,7 @@ function CreateCharacterPage() {
             <button
               onClick={handleClassSubmit}
               disabled={world.classes && world.classes.length > 0 ? !selectedWorldClass : false}
-              className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+              className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground motion-cta hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
               Continue with {selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name} →
             </button>
@@ -467,7 +467,7 @@ function CreateCharacterPage() {
                 onClick={() => handleStart({ skipBackstory: true })}
                 disabled={isStarting}
                 aria-label="Begin adventure without writing a backstory"
-                className="surface-gradient inner-highlight flex-1 rounded-lg border border-border py-3 text-sm hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-gradient inner-highlight flex-1 rounded-lg border border-border py-3 text-sm motion-cta hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
                 Skip backstory & begin
               </button>
@@ -479,9 +479,9 @@ function CreateCharacterPage() {
                     ? "Begin adventure with the backstory you wrote"
                     : "Begin adventure"
                 }
-                className="surface-active-glow flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+                className="surface-active-glow flex-1 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground motion-cta hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
-                {isStarting ? "Starting…" : "Begin Adventure →"}
+                {isStarting ? <span className="motion-loading">Starting…</span> : "Begin Adventure →"}
               </button>
             </div>
           </section>
