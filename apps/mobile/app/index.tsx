@@ -13,7 +13,7 @@ import { useVoiceCommands } from "@/voice/commandBus";
 import { createCampaign } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
-import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
+import { EQ, R, SPACE, FS, TOUCH_MIN, TYPE } from "@/design/tokens";
 
 export default function Home(): JSX.Element {
   const router = useRouter();
@@ -191,30 +191,22 @@ const styles = StyleSheet.create({
 
   header: { gap: SPACE[2], marginBottom: SPACE[2] },
   brandLabel: {
-    fontSize: FS.xs,
-    fontWeight: "600",
+    ...TYPE.label,
     color: EQ.accent,
-    letterSpacing: 2,
   },
   h1: {
-    fontSize: FS.hero,
-    fontWeight: "700",
+    ...TYPE.display,
     color: EQ.text,
-    letterSpacing: -0.5,
-    lineHeight: 40,
   },
   tagline: {
-    fontSize: FS.sm,
+    ...TYPE.caption,
     color: EQ.textMuted,
-    lineHeight: 20,
   },
 
   sectionLabel: { marginTop: SPACE[2] },
   sectionLabelText: {
-    fontSize: 11,
-    fontWeight: "600",
+    ...TYPE.label,
     color: EQ.textFaint,
-    letterSpacing: 1.2,
   },
 
   primaryBtn: {
