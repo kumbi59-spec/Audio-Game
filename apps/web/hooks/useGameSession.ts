@@ -208,6 +208,12 @@ export function useGameSession() {
                 }
               } else if (eventType === "error") {
                 console.error("GM error:", data.message);
+                addNarrationEntry({
+                  id: (Date.now() + 2).toString(),
+                  text: data?.message ?? "Narrator degraded mode is active.",
+                  type: "system",
+                  timestamp: new Date(),
+                });
               }
 
               eventType = "";

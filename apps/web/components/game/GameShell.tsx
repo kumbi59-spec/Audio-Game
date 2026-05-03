@@ -103,6 +103,9 @@ export function GameShell() {
   }
 
   const hasChoices = session.choices.length > 0;
+  const degradedMessage = [...session.narrationLog]
+    .reverse()
+    .find((e) => e.type === "system" && /fallback|unstable|degraded/i.test(e.text))?.text;
 
   return (
     <>
@@ -141,6 +144,11 @@ export function GameShell() {
 
         {/* Narration — fills available space */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+          {degradedMessage && (
+            <div className="mb-2 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+              {degradedMessage}
+            </div>
+          )}
           <NarrationPanel
             entries={session.narrationLog}
             isGenerating={session.isGenerating}

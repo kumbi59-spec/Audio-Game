@@ -13,9 +13,11 @@ import {
   type MemoryStore,
 } from "@audio-rpg/gm-engine";
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
+import { classifyProviderError, type ProviderErrorClass } from "./claude.js";
 import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
 import type { DomainEventBus } from "../events/domain-events.js";
+import { incrementSessionMetric } from "../observability/session-metrics.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -30,17 +32,28 @@ const gmTurnMetrics = {
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-function classifyAttemptError(error: Error): {
-  error_code: string;
-  category: "timeout" | "provider_error";
-} {
-  if (error.message === "gm_turn_timeout") {
-    return { error_code: "gm_turn_timeout", category: "timeout" };
-  }
-  return {
-    error_code: error.message || "gm_turn_failed",
-    category: "provider_error",
+const TURN_RELIABILITY_POLICY = {
+  timeoutMs: config.GM_TURN_TIMEOUT_MS,
+  maxRetries: config.GM_TURN_MAX_RETRIES,
+  fallbackMode: "safe_continue_choices",
+} as const;
+
+function degradedMessage(errorClass: ProviderErrorClass): string {
+  if (errorClass === "rate_limit") return "The game master is busy right now. We used a safe fallback turn.";
+  if (errorClass === "timeout") return "The game master took too long to answer. We used a safe fallback turn.";
+  return "The game master connection is unstable. We used a safe fallback turn.";
+}
+
+function recordFailureClass(errorClass: ProviderErrorClass): void {
+  const map: Record<ProviderErrorClass, keyof import("../observability/session-metrics.js").SessionMetricsSnapshot> = {
+    timeout: "turnFailureTimeout",
+    rate_limit: "turnFailureRateLimit",
+    safety_refusal: "turnFailureSafetyRefusal",
+    malformed_output: "turnFailureMalformedOutput",
+    network_failure: "turnFailureNetworkFailure",
+    provider_error: "turnFailureProviderError",
   };
+  incrementSessionMetric(map[errorClass]);
 }
 
 function recordOutcome(outcome: GmTurnOutcome): void {
@@ -140,7 +153,7 @@ export async function runTurn(
   const generate = deps.generateTurn ?? generateGmTurn;
   let turn: GmTurn | null = null;
   let lastError: Error | null = null;
-  const maxAttempts = Math.max(1, config.GM_TURN_MAX_RETRIES + 1);
+  const maxAttempts = Math.max(1, TURN_RELIABILITY_POLICY.maxRetries + 1);
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const attemptNumber = attempt + 1;
@@ -159,7 +172,7 @@ export async function runTurn(
         new Promise<never>((_, reject) =>
           setTimeout(
             () => reject(new Error("gm_turn_timeout")),
-            config.GM_TURN_TIMEOUT_MS,
+            TURN_RELIABILITY_POLICY.timeoutMs,
           ),
         ),
       ]);
@@ -180,16 +193,18 @@ export async function runTurn(
       break;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error("gm_turn_failed");
-      const { error_code, category } = classifyAttemptError(lastError);
+      const errorClass = classifyProviderError(lastError);
+      recordFailureClass(errorClass);
       console.warn(
         JSON.stringify({
           event: "gm_turn_attempt",
           attempt: attemptNumber,
           max_attempts: maxAttempts,
           status: "failure",
-          error_code,
-          timeout: category === "timeout",
-          provider_error: category === "provider_error",
+          error_code: lastError.message || "gm_turn_failed",
+          error_class: errorClass,
+          timeout: errorClass === "timeout",
+          provider_error: errorClass === "provider_error",
         }),
       );
 
@@ -204,6 +219,15 @@ export async function runTurn(
   }
 
   if (!turn) {
+    const failureClass = classifyProviderError(lastError ?? new Error("gm_turn_failed"));
+    const degraded = degradedMessage(failureClass);
+    emit({
+      type: "error",
+      code: "gm_degraded_mode",
+      recoverable: true,
+      message: degraded,
+    });
+    incrementSessionMetric("turnFallbackSafeContinueChoices");
     recordOutcome("exhausted_retries");
     throw lastError ?? new Error("gm_turn_failed");
   }
