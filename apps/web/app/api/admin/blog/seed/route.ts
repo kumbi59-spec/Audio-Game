@@ -1257,17 +1257,21 @@ This isn't an argument that audio is "better than" visual. They're different. Bo
     excerpt: "How hard should your game be? EchoQuest gives you control over pacing, consequences, and challenge — here's how to dial in the experience that fits you.",
     content: `# Setting Difficulty in AI RPGs: From Beginner to Power Player
 
-One of the most personal things about an RPG is its difficulty. Some players want to feel like heroes — empowered, effective, moving through a story that rewards them. Others want to be challenged, humbled, forced to think carefully about every decision. Both are valid. EchoQuest is designed to serve both.
+One of the most personal things about an RPG is its difficulty. Some players want to feel like heroes — empowered, effective, moving through a story that rewards them. Others want to be challenged, humbled, forced to think carefully about every decision. Some want lethal combat but forgiving narrative; some want forgiving combat but devastating narrative; some want both lethal. Some want to take their time with puzzles; some want to be told the answer when they're stuck. All of these are valid play styles, and trying to map them to a single Easy/Normal/Hard slider does a disservice to the depth of what RPG difficulty actually is.
+
+EchoQuest is designed to serve every one of those preferences. The AI GM is responsive to how you tell it you want to play, and it can shift mid-campaign when your taste shifts. This post is a guide to thinking about difficulty as multiple dials rather than a single slider, the language to use when telling the GM what you want, and how to find the configuration that fits your particular sense of fun.
 
 ## The Three Dials of Difficulty
 
-In a traditional video game, difficulty is one setting: Easy, Normal, Hard. In an AI RPG, difficulty is more nuanced. There are three separate dimensions:
+In a traditional video game, difficulty is one setting: Easy, Normal, Hard. In an AI RPG, difficulty is more nuanced. There are three separate dimensions, and they're independent of each other:
 
-**1. Combat lethality.** How quickly does your HP drop? How often do consequences leave permanent marks? High lethality means every fight matters and retreat is a real option. Low lethality means you can be aggressive and recover quickly.
+**1. Combat lethality.** How quickly does your HP drop? How often do consequences leave permanent marks? Does a missed parry mean a sprained wrist or a severed hand? High lethality means every fight matters and retreat is a real option; you'll think hard about whether to engage at all, and tactical decisions like positioning and timing become genuinely important. Low lethality means you can be aggressive and recover quickly; combat is fast, exciting, and rarely a campaign-ending threat.
 
-**2. Puzzle and mystery difficulty.** Does the AI GM give hints? Does it confirm when you're on the right track? Lower difficulty means more guidance; higher difficulty means the world doesn't hold your hand.
+**2. Puzzle and mystery difficulty.** Does the AI GM give hints? Does it confirm when you're on the right track? Does it call out details the player would notice but the character might miss? Lower difficulty means more guidance; the GM gently steers you toward the next clue when you've been stuck for a while. Higher difficulty means the world doesn't hold your hand; you might miss a critical detail entirely and have to live with the consequences of solving things imperfectly.
 
-**3. Narrative consequence weight.** Do your choices have lasting effects that the GM tracks carefully? Or is the story more forgiving, letting you shift direction without permanent consequences?
+**3. Narrative consequence weight.** Do your choices have lasting effects that the GM tracks carefully? Or is the story more forgiving, letting you shift direction without permanent consequences? High consequence weight means a betrayal in chapter two will still shape every social scene in chapter ten; low consequence weight means the world is friendly to course corrections, and the GM is willing to gloss over inconsistencies if it produces better story.
+
+These three dials can be set independently. A player might want high narrative consequence weight (their decisions matter forever) with low combat lethality (fights are fun but not deadly). Another might want high lethality (every wound is a real threat) but low puzzle difficulty (they want help when stuck). EchoQuest's GM honours all combinations.
 
 ## How to Communicate Difficulty to Your AI GM
 
@@ -1277,30 +1281,44 @@ The clearest way to set expectations is in your opening prompt or character back
 - *"I want a gritty, realistic experience. Injuries should matter and bad decisions should cost me."*
 - *"I prefer narrative immersion over mechanical challenge — focus on story quality over difficulty."*
 - *"Play this like a hard-mode dungeon crawl. No hints, no safety net, permanent consequences."*
+- *"I want low-lethality combat but high social stakes — fights should be exciting but not deadly; lying to NPCs should have lasting consequences."*
+- *"This is a tragedy. Make hard things hard. Don't soften the blows. I want to feel my character's losses."*
 
-The AI GM reads these instructions and calibrates accordingly. You can also adjust mid-session by stating your preferences directly: "Let's make things more dangerous from here on" is a perfectly valid player action.
+The AI GM reads these instructions and calibrates accordingly. The more specific you are, the better it can tune. You can also adjust mid-session by stating your preferences directly: "Let's make things more dangerous from here on" is a perfectly valid player action, and the GM will start raising the stakes from the next scene onward.
+
+A pattern that works well: state your preferences early and once. The GM remembers them through the campaign and won't ask again unless the campaign's needs change. If you find yourself dying too often, say so. If you're winning every fight too easily, say so. The GM treats these as legitimate calibrations, not as the player asking for an easier game.
 
 ## The Beginner Experience
 
 If you're new to RPGs, EchoQuest's official beginner campaigns are designed to onboard you gently:
 
-- The opening scenarios are clear and directed — you always have an obvious first action
-- The AI GM will offer suggestions if you're stuck for more than one turn
-- Combat encounters are scaled to be survivable even with poor decisions
-- The story rewards exploration and curiosity without punishing wrong turns
+- The opening scenarios are clear and directed — you always have an obvious first action, so you're never staring at a blank prompt wondering where to start
+- The AI GM will offer suggestions if you're stuck for more than one turn — gently, in-narrative, without breaking the fiction
+- Combat encounters are scaled to be survivable even with poor decisions; "wipe" outcomes are rare in beginner campaigns
+- The story rewards exploration and curiosity without punishing wrong turns; investigating a dead-end side path is treated as a story moment, not as a wasted turn
+- NPCs are forgiving of social fumbles; if you say something awkward, the world doesn't end
+
+If at any point the beginner experience starts feeling too easy, you can simply tell the GM you'd like more challenge. The dial moves immediately.
 
 ## The Power Player Experience
 
 For veterans who want a real challenge:
 
-- Choose "Intermediate" or "Advanced" campaigns in the library
-- Tell the GM explicitly that you want high difficulty and meaningful consequences
-- Engage with the world's politics and factions rather than just combat — the deepest challenges in EchoQuest are social and moral, not just mechanical
-- Try running without choosing from suggested options at all — type your own actions every turn
+- Choose "Intermediate" or "Advanced" campaigns in the library, which have high-lethality enemies and consequence-heavy plotlines built in
+- Tell the GM explicitly that you want high difficulty and meaningful consequences, including death as a real outcome
+- Engage with the world's politics and factions rather than just combat — the deepest challenges in EchoQuest are social and moral, not just mechanical. A fight you can plan; a faction war where every move makes someone hate you is much harder to optimise
+- Try running without choosing from suggested options at all — type your own actions every turn. Suggested options are training wheels; ignoring them turns the game into a writing exercise where the world reacts to whatever you actually invent
+- Run a campaign with permadeath enabled. There's no UI flag for this; you simply tell the GM at the start that if your character dies, the campaign ends. The threat changes everything. Sessions hit harder when you know the run is mortal
+
+## The Middle Path
+
+Most experienced EchoQuest players settle into a middle setting: medium-high lethality (real risk, real recovery), medium puzzle difficulty (the GM doesn't volunteer answers but will respond honestly when asked), high narrative consequence weight (the world remembers everything). This combination produces the kind of long-running campaign that earns its dramatic moments. Easy losses don't sting. Hard losses on a path you chose with full awareness of the stakes are unforgettable.
 
 ## A Note on Content Rating
 
-EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the darkness of themes and the intensity of violence. This is separate from mechanical difficulty — a Family-rated campaign can still be strategically challenging; a Mature-rated one can be narratively intense without being mechanically hard.
+EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the darkness of themes and the intensity of violence. This is separate from mechanical difficulty — a Family-rated campaign can still be strategically challenging; a Mature-rated one can be narratively intense without being mechanically hard. Choose the content rating based on the kind of fiction you want to read, not based on how hard you want the game to be.
+
+The two settings interact in interesting ways. A Mature-rated, high-lethality campaign can be punishing. A Family-rated, low-lethality, high-consequence campaign can still be deeply moving — the consequences are interpersonal and emotional, not violent. There's no single "best" combination. There's only what's right for the story you want to tell.
 
 **[Browse campaigns by difficulty →](/library)**
 `,
@@ -1311,43 +1329,54 @@ EchoQuest campaigns have content ratings (Family, Teen, Mature) that control the
     excerpt: "From Colossal Cave Adventure in 1976 to AI-driven RPGs in 2026, interactive fiction has always been about one thing: giving readers agency. Here's the full arc.",
     content: `# The History of Interactive Fiction — And Where AI Takes It Next
 
-Every medium has a moment where it discovers what it can uniquely do. For film it was editing. For television it was serialization. For interactive fiction, the discovery is still unfolding — and AI might be the moment it finally arrives.
+Every medium has a moment where it discovers what it can uniquely do. For film it was editing — the realisation that you could cut between two shots and create meaning that was in neither. For television it was serialization — the discovery that telling a story over a hundred hours could produce emotional depths that a two-hour film couldn't reach. For interactive fiction, the discovery is still unfolding. The medium has spent fifty years experimenting with what makes a *reader-as-protagonist* story work, and AI might be the moment it finally arrives at its native form.
+
+This post is a brief history of how we got here, why each successive era of interactive fiction made certain things possible and others impossible, and what AI specifically unlocks that nothing before it could. If you've ever wondered why text adventures lived and died, why Twine took off, or why AI Dungeon was a glimpse of something even though it couldn't quite hold together, the arc below explains the through-line.
 
 ## 1976: The Colossal Cave
 
-Interactive fiction begins, depending on who you ask, in 1976 with Colossal Cave Adventure — a text game written by Will Crowther, a caver and programmer, to share his love of Kentucky's Mammoth Cave with his daughters. You typed directions and actions. The game responded with descriptions. A world built from words.
+Interactive fiction begins, depending on who you ask, in 1976 with Colossal Cave Adventure — a text game written by Will Crowther, a caver and programmer at BBN Technologies, to share his love of Kentucky's Mammoth Cave with his daughters. You typed directions and actions. The game responded with descriptions. A world built entirely from words. Don Woods later expanded the game with fantasy elements (puzzles, treasures, magic words) and it spread through the early ARPANET like wildfire.
 
-It was primitive by any measure. But it introduced the core idea: you could exist inside a story and make it move.
+It was primitive by any measure — a simple parser, a static map, a fixed inventory of commands. But it introduced the core idea that everything afterwards would build on: you could exist inside a story and make it move. The story was somewhere. You were inside it. Your typed words changed what happened next. Every subsequent decade of interactive fiction is, in some sense, a refinement of that single insight.
 
 ## The Parser Era (1977–1993)
 
-Infocom turned the cave into an industry. Zork, Hitchhiker's Guide to the Galaxy, Planescape — text adventures became a genre. Parsers grew more sophisticated. You could type "put the blue bottle on the second shelf" and the game would (sometimes) understand.
+Infocom turned the cave into an industry. Zork, Hitchhiker's Guide to the Galaxy, Planetfall, A Mind Forever Voyaging, Trinity — text adventures became a serious commercial genre. Infocom's parsers were the most sophisticated of the era; you could type "put the blue bottle on the second shelf" and the game would parse the sentence structure, identify the verb and the objects, check that you had the bottle and the shelf was reachable, and (sometimes) understand. The puzzle design that emerged from that capability was extraordinary. Trinity ends with a meditation on nuclear weapons that still hits as hard as anything in fiction.
 
-The limitation was always the parser. It understood a finite vocabulary. Step outside it and you got "I don't know the word X." The illusion of infinite possibility constantly collided with finite implementation.
+The limitation was always the parser. It understood a finite vocabulary. Step outside it and you got "I don't know the word X." The illusion of infinite possibility constantly collided with finite implementation. Players developed a kind of metaphorical psychic communion with the parser, learning to phrase their actions in the way the designer expected. "Examine the chest" worked; "look in the chest" didn't. The genre became a vocabulary game wrapped around a story, and that ceiling, though high, was real. The commercial collapse of the early 90s was as much about the limits of the form as about the rise of graphical games.
 
 ## The Hyperlink Era (1993–2010)
 
-The web killed commercial text adventures but birthed hypertext fiction. Twine, Inform, Choice of Games — authors created branching narratives where clicking a link was the gesture of choice instead of typing a command. The player became a reader making decisions at key moments.
+The web killed commercial text adventures but birthed hypertext fiction. Twine, Inform 7, Choice of Games, the entire interactive-fiction-festival ecosystem — authors created branching narratives where clicking a link was the gesture of choice instead of typing a command. The player became a reader making decisions at key moments. Production cost dropped to near zero; a single author with no programming background could ship a full interactive story.
 
-Branching solved the parser problem by constraining choice entirely. But it introduced a new one: every branch had to be pre-written. Stories became finite decision trees with the illusion of freedom.
+Branching solved the parser problem by constraining choice entirely. There was nothing to misunderstand because the player could only pick from offered options. But it introduced a new one: every branch had to be pre-written. Stories became finite decision trees with the illusion of freedom. The ambitious works of this era — Photopia, Galatea, Howling Dogs — used the branching constraint as an aesthetic choice rather than a limitation, but the constraint was always there. You were never doing anything the author hadn't anticipated.
+
+## The Hybrid Era (2010–2019)
+
+Episodic adventure games (Telltale, Quantic Dream) and visual novels brought hyperlinked branching to a mass audience and dressed it up in 3D characters, voice acting, and cinematic camera work. The promise — *your choices matter* — was sincere and partially fulfilled, but the underlying structure remained the branching tree. Many players who loved the *experience* of these games could feel the constraints of the form: most choices made minor cosmetic differences, a handful made big ones, and all eventually funneled back to the same trunk.
+
+In the parallel tabletop world, online tools like Roll20 and Foundry made remote D&D viable. Live-streamed actual-play shows like Critical Role demonstrated to an enormous audience what *real* interactive narrative looked like — a human GM improvising in response to player choices, with no pre-written branches, no false constraints, and emergent stories that nobody could have planned. This raised the ceiling on what interactive fiction's audience expected. Branching trees started to feel anachronistic when actual-play sessions could be watched on YouTube.
 
 ## The AI Era (2020–present)
 
-Large language models changed what's possible. For the first time, a system could understand natural language input and generate contextually appropriate narrative responses — not from a lookup table, but from learned patterns across enormous amounts of human writing.
+Large language models changed what's possible. For the first time, a system could understand natural language input and generate contextually appropriate narrative responses — not from a lookup table, but from learned patterns across enormous amounts of human writing. AI Dungeon, in late 2019, was the first widely-played AI-driven interactive fiction. It was rough — state drifted, characters forgot their names, plots dissolved into nonsense — but it demonstrated something that hadn't been demonstrated before: a story engine with no pre-written branches and no fixed vocabulary, that could still produce coherent fiction in response to anything you typed.
 
-The implications are enormous. The parser problem disappears: you can say anything. The branching problem disappears: the story isn't pre-written. The GM burden problem disappears: an AI can run a session without human prep.
+The implications are enormous. The parser problem disappears: you can say anything. The branching problem disappears: the story isn't pre-written. The GM burden problem disappears: an AI can run a session without human prep. Each of those was an obstacle that defined an entire era of interactive fiction. Removing all three simultaneously isn't an iteration — it's a category shift.
 
-EchoQuest is built on this foundation. But we're early. Current AI narrative has real limitations: long-term memory is imperfect, consistency across many sessions requires engineering work, and the emotional depth of a skilled human author remains unmatched.
+EchoQuest is built on this foundation. We're using a model far more capable than what AI Dungeon had access to in 2019, wrapped in a structured game engine that holds the world together where the AI alone would drift. But we're early. Current AI narrative has real limitations: long-term memory is imperfect, consistency across many sessions requires engineering work, and the emotional depth of a skilled human author at their best remains unmatched. We talk about these limits openly because pretending they don't exist would be insulting to the form's future.
 
 ## What Comes Next
 
 The trajectory points toward AI narrative that:
-- Maintains perfect consistency across hundreds of sessions
-- Adapts its style and pacing to individual players over time
-- Generates original music, voice, and eventually images that match the story
-- Supports genuinely multiplayer experiences where multiple players' choices interact
+- Maintains perfect consistency across hundreds of sessions, with structured memory that doesn't fade
+- Adapts its style and pacing to individual players over time, learning what beats land for *you* specifically
+- Generates original music, voice, and eventually images that match the story in real time
+- Supports genuinely multiplayer experiences where multiple players' choices interact through shared AI improvisation
+- Reaches the emotional ceiling of human-authored fiction — not by mimicking it, but by being honest about what AI can do well and refining those capacities
 
-We're at the beginning of this arc. The best interactive fiction in history hasn't been written yet.
+We're at the beginning of this arc, somewhere in the equivalent of 1978 for the parser era — a few interesting experiments shipped, the best work of the medium still ahead. The history of interactive fiction is full of moments where something previously unthinkable became commonplace within five years. We expect the next five to produce things that make our 2026 experiences feel as quaint as Zork feels now.
+
+The best interactive fiction in history hasn't been written yet. It will probably be written by an AI, in collaboration with human creators, in response to the choices of a human player who didn't know any of it was possible the day they started.
 
 **[Play the current state of the art →](/library)**
 `,
@@ -1358,42 +1387,49 @@ We're at the beginning of this arc. The best interactive fiction in history hasn
     excerpt: "Horror is one of the most powerful genres in RPGs — and one that translates remarkably well to audio. Here's how to build and run a campaign that genuinely unsettles players through sound and story alone.",
     content: `# How to Run a Horror RPG Campaign Without Any Visuals
 
-Horror might seem like the hardest genre to pull off without visuals — no flickering lights, no monster designs, no sudden cuts to a terrifying face. But in practice, audio horror is some of the most effective horror that exists. Radio dramas, podcasts, and horror audiobooks regularly produce responses that visual horror struggles to match.
+Horror might seem like the hardest genre to pull off without visuals — no flickering lights, no monster designs, no sudden cuts to a terrifying face. But in practice, audio horror is some of the most effective horror that exists. Radio dramas in the 1940s, podcasts in the 2010s, horror audiobooks across decades, and now AI-narrated audio RPGs have all produced fear responses that visual horror struggles to match. The classic radio adaptation of "The War of the Worlds" caused mass panic in 1938 not despite the lack of visuals but *because* of it. Listeners' imaginations filled in details no special effects budget could ever afford.
 
-Here's why — and how to use it.
+This post is a craft guide for building and running horror campaigns in EchoQuest. Some of the techniques apply to any audio storytelling; others are specific to running interactive horror, where the player's own choices determine how deep the dread goes. If horror isn't your genre, the underlying principles — about pacing, withheld information, and the power of suggestion — generalise to any tense scene in any campaign.
 
 ## Why Audio Horror Works
 
-Fear lives in the imagination. The monster you can't see is almost always scarier than the one on screen. When a horror film shows you the creature, your brain categorizes it: "CGI wolf, cost $3 million, actors were on a set." The fear deflates.
+Fear lives in the imagination. The monster you can't see is almost always scarier than the one on screen. When a horror film shows you the creature, your brain categorizes it: "CGI wolf, cost $3 million, actors were on a set." The fear deflates. The thing has been resolved, given dimensions, made into a known entity. Once it's known, it's manageable. Once it's manageable, it isn't terrifying anymore.
 
-When the narration says "you hear something large moving in the dark beyond the reach of your lantern," your brain generates the monster. And it generates exactly the version you personally find most terrifying, drawing from your own fears and imagery. No budget could match that.
+When the narration says "you hear something large moving in the dark beyond the reach of your lantern," your brain generates the monster. And it generates exactly the version *you personally* find most terrifying, drawing from your own fears and imagery. No film budget could match that. A million-dollar prosthetic monster looks the same to every viewer; an unseen audio monster looks different to every listener and is custom-tailored, by your own subconscious, to scare *you* specifically.
+
+This is why blind horror enthusiasts often have a nuanced vocabulary about audio horror that sighted critics lack. They've been listening to fear that the imagination assembles for them their whole lives. The sighted players who eventually fall in love with audio horror often describe the experience as "discovering they were missing something." They were. The thing they were missing was their own imagination's contribution to the fear.
 
 ## The Craft of Audio Horror
 
-**Sound design is your biggest tool.** A cave drip. A long silence. The sound of something wet. These ambient details create dread before anything narratively threatening happens. Set the sound environment early and let it do work before the story catches up.
+**Sound design is your biggest tool.** A cave drip. A long silence. The sound of something wet. These ambient details create dread before anything narratively threatening happens. Set the sound environment early and let it do work before the story catches up. EchoQuest's automatic ambient layer handles much of this — when the location switches to a horror-tagged scene, the soundscape changes accordingly. But you can also explicitly call for sound cues in your Game Bible: "this scene begins with two seconds of silence, then a single dripping sound."
 
-**Withhold information deliberately.** Horror is the gap between what your player knows and what they suspect. Don't reveal too much. Let them hear something without explaining it. Let them find evidence of something terrible without showing the event itself.
+**Withhold information deliberately.** Horror is the gap between what your player knows and what they suspect. Don't reveal too much. Let them hear something without explaining it. Let them find evidence of something terrible without showing the event itself. The blood on the wall is scarier than the killing it implies. The empty room with three plates set for dinner is scarier than the people who used to live there. The AI GM is naturally inclined to over-explain — a tendency you can correct by telling it explicitly, in the world's tone notes, that horror in this world reveals itself through implication, not exposition.
 
-**Make the mundane wrong.** The most effective horror isn't about monsters — it's about familiar things behaving incorrectly. An NPC who knew the player's name without being told. A room that's slightly larger on the inside than the outside. A child's laughter from a place where no child could be.
+**Make the mundane wrong.** The most effective horror isn't about monsters — it's about familiar things behaving incorrectly. An NPC who knew the player's name without being told. A room that's slightly larger on the inside than the outside. A child's laughter from a place where no child could be. A clock that ticks at the wrong rhythm. A road that turns differently each time you walk it. The wrongness should be small enough that the player isn't sure they're imagining it. Doubt is the texture of horror.
 
-**Use silence.** Narrate a scene ending with something alarming, then go quiet. Let the player decide what to do. The silence after "you hear it stop moving" is more frightening than any follow-up description.
+**Use silence.** Narrate a scene ending with something alarming, then go quiet. Let the player decide what to do. The silence after "you hear it stop moving" is more frightening than any follow-up description. EchoQuest's GM can be told to sit on a silent beat — "after this line, leave the player in silence until they take their next action." Many of the most memorable horror moments in our test campaigns came from a deliberately held silence right after a partial reveal.
 
-**Escalate slowly.** The player should feel a slow creep of wrongness for several scenes before anything overtly threatens them. By the time the danger is explicit, the dread is already deep.
+**Escalate slowly.** The player should feel a slow creep of wrongness for several scenes before anything overtly threatens them. By the time the danger is explicit, the dread is already deep. The classic structure is: scene 1 establishes the world as normal; scene 2 introduces a single small wrong thing; scenes 3-5 layer more wrongness while the player tries to rationalise; scene 6 is when something undeniable happens. The audience should be ahead of the player by scene 4 — they know something is terribly wrong, but the player character is still trying to convince themselves there's a normal explanation.
+
+**Use the player's name.** Once your character has been named, the GM saying that name in a scene where it shouldn't be said — by an NPC who shouldn't know it, in a place where it shouldn't be heard, in a tone that doesn't feel right — is one of the most effective horror moves available. The name is the player's hook. Twist that hook and you twist the player.
+
+**Don't be afraid of dark endings.** Horror that always resolves cleanly isn't really horror. The best horror campaigns are willing to end in something other than triumph. A pyrrhic victory, a cost the character carries forever, a survival that feels worse than the alternative. Tell the GM up front that this campaign has darker possible endings; the world will lean into them when the choices warrant it.
 
 ## Building a Horror World in EchoQuest
 
 When writing your Game Bible for a horror campaign:
 
-- Define the central horror clearly for yourself, but reveal it to players gradually
-- Write specific sensory details for each location — horror lives in specifics
-- Give your primary antagonist or threat a distinctive sound (before the player ever "sees" it)
-- Establish what's normal in this world so deviations register as wrong
-- Set content rating to Teen or Mature to allow genuine darkness
+- Define the central horror clearly for yourself, but reveal it to players gradually. Write down what the threat actually is, what it wants, what its rules are. The AI GM needs to know to be consistent. The player does not, and shouldn't, until the moment is earned
+- Write specific sensory details for each location — horror lives in specifics. "The hospital corridor" is generic; "The hospital corridor where the linoleum has buckled in places that make you walk slightly off-rhythm, the fluorescents flicker every 14 seconds, and there's a faint smell of formaldehyde that gets stronger near the locked door at the end" is a place
+- Give your primary antagonist or threat a distinctive sound (before the player ever "sees" it). The player should learn to dread that sound across multiple scenes. The first time they hear it, they shouldn't recognise it. The third time, they should know they're in trouble before anything else has happened
+- Establish what's normal in this world so deviations register as wrong. Horror requires a baseline. If everything is creepy from scene one, the player calibrates to that and nothing escalates
+- Set content rating to Teen or Mature to allow genuine darkness. Family-rated horror exists, but it sits at a lower ceiling
 
 **Example opening:**
-*"You've been assigned to document the decommissioned hospital on the edge of town. The front door is already open, which the records say it shouldn't be. Inside, the smell of antiseptic has been replaced by something older and wetter. Your torch throws shadows that seem to resolve into shapes a half-second after you look away."*
 
-That's a complete horror opening with no monsters and no jump scares — just wrongness.
+*"You've been assigned to document the decommissioned hospital on the edge of town. The front door is already open, which the records say it shouldn't be. Inside, the smell of antiseptic has been replaced by something older and wetter. Your torch throws shadows that seem to resolve into shapes a half-second after you look away. Your radio is playing static, and you don't remember turning it on."*
+
+That's a complete horror opening with no monsters and no jump scares — just wrongness, accumulating. Notice the specific sensory details: the door, the smell, the shadow timing, the radio. Each one is a small wrong thing. By the time the player decides what to do, they're already deep inside the dread.
 
 **[Start your horror campaign →](/library)**
 `,
