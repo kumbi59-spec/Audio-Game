@@ -13,10 +13,11 @@ const Schema = z.object({
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
 // Monthly ElevenLabs character caps by tier. null = unlimited.
+// Defaults are tuned to keep healthy margins; override per deployment with env vars.
 const TTS_CHAR_CAPS: Record<string, number | null> = {
   free: 0,
-  storyteller: 50_000,
-  creator: 100_000,
+  storyteller: Number(process.env["ELEVENLABS_STORYTELLER_MONTHLY_CHAR_CAP"] ?? 40_000),
+  creator: Number(process.env["ELEVENLABS_CREATOR_MONTHLY_CHAR_CAP"] ?? 90_000),
   enterprise: null,
 };
 

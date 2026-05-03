@@ -5,6 +5,9 @@ import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/sa
 import type { InMemorySession, PlayerAction } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
+import { consumeFreeAiMinute, resetDailyMinutesIfNeeded } from "@/lib/db/queries/users";
 
 const ActionSchema = z.object({
   action: z.object({
@@ -50,6 +53,28 @@ export async function POST(req: NextRequest) {
   const character = body.character as CharacterData;
   const world = body.world as WorldData;
   const dbSessionId = body.dbSessionId;
+
+  const authSession = await auth();
+  if (authSession?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: authSession.user.id },
+      select: { tier: true },
+    });
+
+    if (user?.tier === "free") {
+      await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
+      const consumed = await consumeFreeAiMinute(authSession.user.id);
+      if (!consumed) {
+        return NextResponse.json(
+          {
+            error: "ai_minutes_exhausted",
+            message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
+          },
+          { status: 402 },
+        );
+      }
+    }
+  }
 
   const inputCheck = moderatePlayerInput(action.content);
   if (!inputCheck.safe) {
