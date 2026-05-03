@@ -29,3 +29,20 @@ EchoQuest is an accessibility-first audio RPG platform spanning web, mobile, and
 - Product/UI behavior lives in app-specific directories.
 - Gameplay domain contracts and mutation semantics live in shared packages.
 - API owns transport, orchestration, validation, and persistence boundaries.
+
+## Transport Versioning Policy
+- All API HTTP responses and realtime websocket messages must use a transport envelope with `version`, `kind`, `payload`, and `sentAt` fields.
+- Current supported envelope versions: `1`.
+- Realtime session payloads keep their inner event `v` marker (`v1`) for legacy compatibility while clients migrate.
+
+### Deprecation Window
+- New envelope versions must remain backward-compatible for at least **two minor releases** after introduction.
+- Legacy (non-enveloped) realtime payload acceptance is temporary and should be removed after the same two-release window once client telemetry confirms migration.
+
+### Breaking-Change Migration Checklist
+1. Introduce a new envelope `version` and add it to shared supported-version constants.
+2. Keep validators dual-path (new + previous version) during the deprecation window.
+3. Add fixture replay tests for at least one payload from each supported/legacy version.
+4. Add server emitters for the new version and keep old emit path only when explicitly required.
+5. Update client parsers before removing old-version support.
+6. Announce removal date and delete deprecated validators/fixtures after window expiry.
