@@ -14,6 +14,7 @@ import {
 } from "@audio-rpg/gm-engine";
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
 import { randomUUID } from "node:crypto";
+import { config } from "../config.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -99,25 +100,42 @@ export async function runTurn(
   });
 
   const generate = deps.generateTurn ?? generateGmTurn;
-  const turn = await generate({
-    bible: session.bible,
-    userPrompt,
-    onText: (chunk) => {
-      emit({ type: "narration_chunk", turnId, text: chunk, done: false });
-    },
-  });
+  let turn: GmTurn | null = null;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= config.GM_TURN_MAX_RETRIES; attempt += 1) {
+    try {
+      const turnPromise = generate({
+        bible: session.bible,
+        userPrompt,
+        onText: (chunk) => {
+          if (attempt === 0) emit({ type: "narration_chunk", v: "v1", turnId, text: chunk, done: false });
+        },
+      });
+      turn = await Promise.race([
+        turnPromise,
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("gm_turn_timeout")), config.GM_TURN_TIMEOUT_MS),
+        ),
+      ]);
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!turn) throw lastError ?? new Error("gm_turn_failed");
 
-  emit({ type: "narration_chunk", turnId, text: "", done: true });
+  emit({ type: "narration_chunk", v: "v1", turnId, text: "", done: true });
   emit({
     type: "choice_list",
+    v: "v1",
     turnId,
     choices: turn.presented_choices,
     acceptsFreeform: turn.accepts_freeform,
   });
   if (turn.state_mutations.length) {
-    emit({ type: "state_delta", turnId, mutations: turn.state_mutations });
+    emit({ type: "state_delta", v: "v1", turnId, mutations: turn.state_mutations });
   }
-  for (const cue of turn.sound_cues) emit({ type: "sound_cue", cue });
+  for (const cue of turn.sound_cues) emit({ type: "sound_cue", v: "v1", cue });
 
   const nextState = applyMutations(
     { ...session.state, turn_number: session.state.turn_number + 1 },
@@ -171,6 +189,7 @@ export async function runTurn(
 
   emit({
     type: "turn_complete",
+    v: "v1",
     turnId,
     turnNumber: nextState.turn_number,
   });
@@ -186,6 +205,7 @@ export async function runTurn(
     if (npcRoles.size > 0) {
       emit({
         type: "voice_plan",
+        v: "v1",
         turnId,
         assignments: Array.from(npcRoles.entries()).map(([npcName, voiceRole]) => ({
           npcName,

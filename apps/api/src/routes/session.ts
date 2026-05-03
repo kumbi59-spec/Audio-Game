@@ -45,6 +45,7 @@ export async function registerSessionRoutes(
       } catch {
         emit({
           type: "error",
+          v: "v1",
           code: "bad_json",
           message: "Message was not JSON.",
           recoverable: true,
@@ -56,6 +57,7 @@ export async function registerSessionRoutes(
       if (!parsed.success) {
         emit({
           type: "error",
+          v: "v1",
           code: "bad_event",
           message: parsed.error.issues[0]?.message ?? "Invalid event.",
           recoverable: true,
@@ -74,12 +76,14 @@ export async function registerSessionRoutes(
           turnLimit = TIER_ENTITLEMENTS[tier].sessionTurnLimit;
           emit({
             type: "session_ready",
+            v: "v1",
             campaignId: event.campaignId,
             turnNumber: session.state.turn_number,
           });
         } catch (err) {
           emit({
             type: "error",
+          v: "v1",
             code: "join_failed",
             message:
               err instanceof Error ? err.message : "Could not join session.",
@@ -93,6 +97,7 @@ export async function registerSessionRoutes(
       if (!session) {
         emit({
           type: "error",
+          v: "v1",
           code: "not_joined",
           message: "Send a 'join' event first.",
           recoverable: true,
@@ -105,6 +110,7 @@ export async function registerSessionRoutes(
           incrementSessionMetric("duplicateInputs");
           emit({
             type: "error",
+          v: "v1",
             code: "duplicate_event",
             message: "Duplicate player input ignored.",
             recoverable: true,
@@ -116,6 +122,7 @@ export async function registerSessionRoutes(
           incrementSessionMetric("turnLimitRejected");
           emit({
             type: "error",
+          v: "v1",
             code: "turn_limit_reached",
             message: `You've reached the ${turnLimit}-turn limit for the free plan. Upgrade to Storyteller for unlimited play.`,
             recoverable: false,
@@ -143,6 +150,7 @@ export async function registerSessionRoutes(
           incrementSessionMetric("turnFailures");
           emit({
             type: "error",
+          v: "v1",
             code: "turn_failed",
             message: "The GM couldn't respond. Your input was saved.",
             recoverable: true,
@@ -161,12 +169,13 @@ export async function registerSessionRoutes(
             state: session.state,
             recentTurns,
           });
-          emit({ type: "recap_ready", summary });
+          emit({ type: "recap_ready", v: "v1", summary });
         } catch (err) {
           app.log.error({ err }, "recap generation failed");
           incrementSessionMetric("recapFailures");
           emit({
             type: "recap_ready",
+            v: "v1",
             summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
           });
         }
