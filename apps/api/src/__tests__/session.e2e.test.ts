@@ -327,9 +327,12 @@ describe("session end-to-end", () => {
     const health = (await healthRes.json()) as {
       ok: boolean;
       storageBackend: "memory" | "postgres";
+      models: { gmTurnModel: string; summaryModel: string };
     };
     expect(health.ok).toBe(true);
     expect(health.storageBackend).toBe(expectedBackend);
+    expect(health.models.gmTurnModel).toBeTruthy();
+    expect(health.models.summaryModel).toBeTruthy();
 
     const metricsRes = await fetch(`http://${baseUrl}/metrics`);
     expect(metricsRes.status).toBe(200);
