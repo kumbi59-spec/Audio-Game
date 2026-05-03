@@ -516,9 +516,9 @@ describe("session end-to-end", () => {
   });
 
   it("rejects recap requests while a turn is generating", async () => {
-    let releaseTurn: (() => void) | null = null;
+    let releaseTurn: () => void = () => {};
     const blockedTurn = new Promise<void>((resolve) => {
-      releaseTurn = resolve;
+      releaseTurn = () => resolve();
     });
 
     const slowApp = await buildServer({
@@ -575,7 +575,7 @@ describe("session end-to-end", () => {
       recoverable: true,
     });
 
-    releaseTurn?.();
+    releaseTurn();
     await waitForEvent(events, "turn_complete");
 
     ws.close();
