@@ -7,33 +7,43 @@ import {
 } from "./session-compat.js";
 
 describe("session transport compatibility", () => {
-  it("accepts client events without a version and normalizes to v1 shape", () => {
+  const legacyFixtures: Array<{ name: string; payload: unknown }> = [
+    { name: "legacy request recap without version", payload: { type: "request_recap" } },
+    { name: "legacy explicit v1 event", payload: { type: "pause", v: "v1" } },
+  ];
+
+  it("replays older fixture payloads against current validators", () => {
+    for (const fixture of legacyFixtures) {
+      expect(normalizeClientEventV1(fixture.payload)).toMatchObject(fixture.payload as object);
+    }
+  });
+
+  it("accepts transport envelope payloads for supported versions", () => {
     const event = normalizeClientEventV1({
-      type: "request_recap",
+      version: "1",
+      kind: "session.client_event",
+      sentAt: new Date().toISOString(),
+      payload: { type: "request_recap" },
     });
 
     expect(event).toEqual({ type: "request_recap" });
   });
 
-  it("accepts explicit v1 client events", () => {
-    const event = normalizeClientEventV1({
-      type: "pause",
-      v: "v1",
-    });
-
-    expect(event).toEqual({ type: "pause", v: "v1" });
-  });
-
   it("rejects unsupported future versions with recoverable typed error", () => {
     expect(() =>
       normalizeClientEventV1({
-        type: "leave",
-        v: "v2",
+        version: "999",
+        kind: "session.client_event",
+        sentAt: new Date().toISOString(),
+        payload: { type: "leave", v: "v1" },
       }),
     ).toThrowError(UnsupportedClientEventVersionError);
 
     try {
-      normalizeClientEventV1({ type: "leave", v: "v2" });
+      normalizeClientEventV1({
+        type: "leave",
+        v: "v2",
+      });
     } catch (err) {
       expect(err).toBeInstanceOf(UnsupportedClientEventVersionError);
       const typed = err as UnsupportedClientEventVersionError;
@@ -43,7 +53,7 @@ describe("session transport compatibility", () => {
     }
   });
 
-  it("serializes all outbound events with current version stamp", () => {
+  it("serializes outbound events in a versioned transport envelope", () => {
     const payload = serializeServerEvent({
       type: "error",
       code: "bad_event",
@@ -52,9 +62,13 @@ describe("session transport compatibility", () => {
     });
 
     expect(JSON.parse(payload)).toMatchObject({
-      type: "error",
-      code: "bad_event",
-      v: SESSION_EVENT_VERSION,
+      version: "1",
+      kind: "session.server_event",
+      payload: {
+        type: "error",
+        code: "bad_event",
+        v: SESSION_EVENT_VERSION,
+      },
     });
   });
 });

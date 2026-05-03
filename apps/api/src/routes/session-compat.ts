@@ -1,4 +1,10 @@
-import { ClientEvent, type ServerEvent } from "@audio-rpg/shared";
+import {
+  ClientEvent,
+  type ServerEvent,
+  TransportEnvelope,
+  createTransportEnvelope,
+  isSupportedTransportVersion,
+} from "@audio-rpg/shared";
 
 export const SESSION_EVENT_VERSION = "v1" as const;
 
@@ -15,16 +21,31 @@ export class UnsupportedClientEventVersionError extends Error {
 }
 
 export function normalizeClientEventV1(raw: unknown) {
-  const version = getRawVersion(raw);
+  const normalizedRaw = unwrapLegacyOrEnvelope(raw);
+  const version = getRawVersion(normalizedRaw);
   if (typeof version === "string" && version !== SESSION_EVENT_VERSION) {
     throw new UnsupportedClientEventVersionError(version);
   }
 
-  return ClientEvent.parse(raw);
+  return ClientEvent.parse(normalizedRaw);
 }
 
 export function serializeServerEvent(event: ServerEvent): string {
-  return JSON.stringify({ ...event, v: SESSION_EVENT_VERSION });
+  return JSON.stringify(
+    createTransportEnvelope("session.server_event", {
+      ...event,
+      v: SESSION_EVENT_VERSION,
+    }),
+  );
+}
+
+function unwrapLegacyOrEnvelope(raw: unknown): unknown {
+  const parsed = TransportEnvelope.safeParse(raw);
+  if (!parsed.success) return raw;
+  if (!isSupportedTransportVersion(parsed.data.version)) {
+    throw new UnsupportedClientEventVersionError(parsed.data.version);
+  }
+  return parsed.data.payload;
 }
 
 function getRawVersion(raw: unknown): unknown {
