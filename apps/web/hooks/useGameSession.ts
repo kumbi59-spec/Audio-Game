@@ -10,6 +10,7 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue } from "@/types/game";
+import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
@@ -68,17 +69,22 @@ export function useGameSession() {
     async (action: PlayerAction) => {
       if (!session || !character || !world || session.isGenerating) return;
 
+      const normalizedAction = sanitizeAction(action);
+      if (!normalizedAction) return;
+
       // Stop any current TTS
       stopSpeech();
 
-      // Record the player's action in the narration log
-      const playerEntry: NarrationEntry = {
-        id: Date.now().toString(),
-        text: action.content,
-        type: "player_action",
-        timestamp: new Date(),
-      };
-      addNarrationEntry(playerEntry);
+      const optimistic = createOptimisticTurn(
+        {
+          isGenerating: session.isGenerating,
+          narrationLog: session.narrationLog,
+          history: session.history,
+          choices: session.choices,
+        },
+        normalizedAction,
+      );
+      addNarrationEntry(optimistic.playerEntry);
       setIsGenerating(true);
 
       // Abort any in-flight request
@@ -90,12 +96,12 @@ export function useGameSession() {
       let narrationBuffer = "";
 
       try {
-        const res = await fetch("/api/game/action", {
+        const res = await retryWithBackoff(() => fetch("/api/game/action", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: abort.signal,
-          body: JSON.stringify({ action, session, character, world, dbSessionId: dbSessionId ?? undefined }),
-        });
+          body: JSON.stringify({ action: normalizedAction, session, character, world, dbSessionId: dbSessionId ?? undefined }),
+        }), 2, 150);
 
         if (!res.ok) {
           let message = `GM request failed: ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`;
@@ -211,15 +217,21 @@ export function useGameSession() {
         }
 
         // Update session history for context continuity
-        const updatedHistory = [
-          ...session.history,
-          { role: "user" as const, content: action.content },
-          { role: "assistant" as const, content: accumulatedNarration },
-        ];
+        const finalized = finalizeTurn(
+          {
+            isGenerating: true,
+            narrationLog: session.narrationLog,
+            history: session.history,
+            choices: session.choices,
+          },
+          normalizedAction,
+          accumulatedNarration,
+          session.choices,
+        );
 
         useGameStore.setState((s) => ({
           session: s.session
-            ? { ...s.session, history: updatedHistory }
+            ? { ...s.session, history: finalized.history }
             : null,
         }));
 
@@ -227,6 +239,12 @@ export function useGameSession() {
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           console.error("Game session error:", err);
+          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
+          useGameStore.setState((s) => ({
+            session: s.session
+              ? { ...s.session, narrationLog: rolled.narrationLog, isGenerating: rolled.isGenerating, history: rolled.history, choices: rolled.choices }
+              : null,
+          }));
         }
       } finally {
         setIsGenerating(false);
