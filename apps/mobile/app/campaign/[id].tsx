@@ -13,7 +13,7 @@ import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
 import { useVoiceCommands } from "@/voice/commandBus";
 import { useSession } from "@/session/store";
 import { sessionConnection } from "@/session/connection";
-import { feedNarration, speakOnce, stopNarration } from "@/audio/narrator";
+import { feedNarration, speakAfterNarration, speakOnce, stopNarration } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
 import { usePrefs } from "@/prefs/store";
@@ -76,8 +76,8 @@ export default function ActiveCampaign(): JSX.Element {
   }, [router, session]);
 
   const announceBlockedInput = useCallback(() => {
-    // Do not call speakOnce here: it interrupts in-flight narration playback.
     void playCue("failure");
+    speakAfterNarration("Please wait for the narrator to finish.");
   }, []);
 
   // Show paywall when the free-tier turn limit is hit
