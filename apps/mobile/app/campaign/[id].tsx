@@ -13,7 +13,7 @@ import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
 import { useVoiceCommands } from "@/voice/commandBus";
 import { useSession } from "@/session/store";
 import { sessionConnection } from "@/session/connection";
-import { feedNarration, speakOnce, stopNarration } from "@/audio/narrator";
+import { feedNarration, speakAfterNarration, speakOnce, stopNarration } from "@/audio/narrator";
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
 import { usePrefs } from "@/prefs/store";
@@ -28,11 +28,14 @@ export default function ActiveCampaign(): JSX.Element {
   const { id } = useLocalSearchParams<{ id: string }>();
   const headingRef = useRef<Text>(null);
   const scrollRef = useRef<ScrollView>(null);
+  const lastBlockedPromptAtRef = useRef(0);
   const session = useSession();
   const can = useCan();
   const { hapticsEnabled } = usePrefs();
   const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const [showFirstTurnTips, setShowFirstTurnTips] = useState(false);
+  const canAcceptInput = !session.awaitingGm;
 
   useLandmarkAnnounce(
     "Active campaign",
@@ -62,12 +65,30 @@ export default function ActiveCampaign(): JSX.Element {
   }, [session.transcript.length]);
 
   useEffect(() => {
+    const hasPlayerActed = session.transcript.some((t) => t.role === "player");
+    const isEarlyTurn = (session.state?.turn_number ?? 0) <= 1;
+    setShowFirstTurnTips(isEarlyTurn && !hasPlayerActed);
+  }, [session.state?.turn_number, session.transcript]);
+
+  useEffect(() => {
     return () => {
       stopNarration();
-      void sessionConnection.close();
-      session.reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const leaveCampaign = useCallback(() => {
+    sessionConnection.pause();
+    session.reset();
+    router.replace("/");
+  }, [router, session]);
+
+  const announceBlockedInput = useCallback(() => {
+    const now = Date.now();
+    if (now - lastBlockedPromptAtRef.current < 1500) return;
+    lastBlockedPromptAtRef.current = now;
+    void playCue("failure");
+    speakAfterNarration("Please wait for the narrator to finish.");
   }, []);
 
   // Show paywall when the free-tier turn limit is hit
@@ -85,6 +106,10 @@ export default function ActiveCampaign(): JSX.Element {
 
   const pickChoice = useCallback(
     (choiceId: string, label: string) => {
+      if (!canAcceptInput) {
+        announceBlockedInput();
+        return;
+      }
       if (hapticsEnabled) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
@@ -92,10 +117,14 @@ export default function ActiveCampaign(): JSX.Element {
       session.appendPlayer(label);
       sessionConnection.sendPlayerInput({ kind: "choice", choiceId });
     },
-    [session, hapticsEnabled],
+    [announceBlockedInput, canAcceptInput, session, hapticsEnabled],
   );
 
   const speakFreeform = useCallback(async () => {
+    if (!canAcceptInput) {
+      announceBlockedInput();
+      return;
+    }
     if (hapticsEnabled) {
       void Haptics.selectionAsync();
     }
@@ -111,7 +140,7 @@ export default function ActiveCampaign(): JSX.Element {
     }
     session.appendPlayer(transcript);
     sessionConnection.sendPlayerInput({ kind: "freeform", text: transcript });
-  }, [pickChoice, session, hapticsEnabled]);
+  }, [announceBlockedInput, canAcceptInput, pickChoice, session, hapticsEnabled]);
 
   useVoiceCommands({
     "repeat|read that again": () => {
@@ -128,9 +157,12 @@ export default function ActiveCampaign(): JSX.Element {
       void speakOnce(inv.length === 0 ? "Your bag is empty." : inv.map((i) => `${i.quantity} ${i.name}`).join(", "));
     },
     "save|save and pause|pause": () => {
-      sessionConnection.pause();
+      if (!canAcceptInput) {
+        announceBlockedInput();
+        return;
+      }
       void speakOnce("Paused. Returning home.");
-      router.replace("/");
+      leaveCampaign();
     },
     "do something else|custom action|speak": () => { void speakFreeform(); },
   });
@@ -180,6 +212,23 @@ export default function ActiveCampaign(): JSX.Element {
       </ScrollView>
 
       {/* Choices */}
+      {showFirstTurnTips && (
+        <View style={styles.tipsCard} accessibilityRole="summary">
+          <Text style={styles.tipsTitle}>Quick start</Text>
+          <Text style={styles.tipsBody}>1) Choose a numbered action below.</Text>
+          <Text style={styles.tipsBody}>2) Tap Mic to speak a custom action.</Text>
+          <Text style={styles.tipsBody}>3) Tap Exit to save and return home.</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss quick start tips"
+            onPress={() => setShowFirstTurnTips(false)}
+            style={({ pressed }) => [styles.tipsDismissBtn, pressed && styles.dockBtnPressed]}
+          >
+            <Text style={styles.tipsDismissText}>Got it</Text>
+          </Pressable>
+        </View>
+      )}
+
       {session.choices.length > 0 && (
         <View style={styles.choicesSection}>
           <Text style={styles.choicesLabel}>CHOOSE YOUR ACTION</Text>
@@ -191,7 +240,7 @@ export default function ActiveCampaign(): JSX.Element {
                 accessibilityLabel={`Option ${i + 1} of ${session.choices.length}: ${c.label}`}
                 onPress={() => pickChoice(c.id, c.label)}
                 style={({ pressed }) => [styles.choiceBtn, pressed && styles.choiceBtnPressed]}
-                disabled={session.awaitingGm}
+                disabled={!canAcceptInput}
               >
                 <View style={styles.choiceBadge}>
                   <Text style={styles.choiceBadgeText}>{i + 1}</Text>
@@ -204,7 +253,7 @@ export default function ActiveCampaign(): JSX.Element {
                 accessibilityRole="button"
                 accessibilityLabel="Do something else. Speak a custom action."
                 onPress={speakFreeform}
-                disabled={session.awaitingGm}
+                disabled={!canAcceptInput}
                 style={({ pressed }) => [styles.freeformBtn, pressed && styles.choiceBtnPressed]}
               >
                 <View style={[styles.choiceBadge, styles.choiceBadgeFreeform]}>
@@ -225,7 +274,7 @@ export default function ActiveCampaign(): JSX.Element {
         <DockButton
           label="Exit"
           hint="Save and return home"
-          onPress={() => { sessionConnection.pause(); router.replace("/"); }}
+          onPress={leaveCampaign}
         />
       </View>
 
@@ -295,6 +344,28 @@ const styles = StyleSheet.create({
   },
   bubbleTextPlayer: { fontSize: FS.base, color: EQ.accent2, lineHeight: 22 },
   thinking: { padding: SPACE[3], fontStyle: "italic", color: EQ.textFaint, fontSize: FS.sm },
+  tipsCard: {
+    marginHorizontal: SPACE[3],
+    marginBottom: SPACE[2],
+    padding: SPACE[3],
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface,
+    gap: SPACE[1],
+  },
+  tipsTitle: { color: EQ.text, fontSize: FS.base, fontWeight: "700" },
+  tipsBody: { color: EQ.textMuted, fontSize: FS.sm, lineHeight: 20 },
+  tipsDismissBtn: {
+    marginTop: SPACE[2],
+    alignSelf: "flex-start",
+    minHeight: TOUCH_MIN,
+    borderRadius: R.sm,
+    backgroundColor: EQ.accent,
+    paddingHorizontal: SPACE[3],
+    justifyContent: "center",
+  },
+  tipsDismissText: { color: "#fff", fontSize: FS.sm, fontWeight: "700" },
 
   choicesSection: { borderTopWidth: 1, borderTopColor: EQ.border2, paddingTop: SPACE[2] },
   choicesLabel: {

@@ -102,6 +102,11 @@ export async function speakOnce(text: string): Promise<void> {
   });
 }
 
+export function speakAfterNarration(text: string): void {
+  if (!prefs.enabled || !text.trim()) return;
+  enqueue(text);
+}
+
 // Pattern matching `[NpcName]: "dialogue"` — captures name and full segment.
 const NPC_DIALOGUE_RE = /(\[[^\]]+\]:\s*"[^"]*")/g;
 
