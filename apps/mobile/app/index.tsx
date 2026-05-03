@@ -43,7 +43,10 @@ export default function Home(): JSX.Element {
         authToken: result.authToken,
       });
       sessionConnection.sendPlayerInput({ kind: "utility", command: "begin" });
-      router.push({ pathname: "/campaign/[id]", params: { id: result.campaignId } });
+      router.push({
+        pathname: "/campaign/[id]",
+        params: { id: result.campaignId },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start a campaign.");
     } finally {
@@ -52,9 +55,10 @@ export default function Home(): JSX.Element {
   }, [router]);
 
   useVoiceCommands({
-    "start sample|sample adventure|begin sample|play sunken bell|new adventure|start new": () => {
-      void startSample();
-    },
+    "start sample|sample adventure|begin sample|play sunken bell|new adventure|start new":
+      () => {
+        void startSample();
+      },
     "library|my library|browse": () => router.push("/library"),
     "create|create world|new world": () => router.push("/create"),
     "upload|upload bible|upload game bible": () => router.push("/upload"),
@@ -63,85 +67,101 @@ export default function Home(): JSX.Element {
 
   return (
     <ScrollView contentContainerStyle={styles.container} style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.brandLabel}>ECHOQUEST</Text>
-        <Text
-          ref={headingRef}
-          role="heading"
-          aria-level={1}
-          accessibilityLabel="Home"
-          style={styles.h1}
-        >
-          Your adventure{"\n"}awaits.
-        </Text>
-        <Text style={styles.tagline}>
-          Narrated interactive adventures, powered by AI.{"\n"}Accessible to everyone.
-        </Text>
+      <View style={[styles.zone, styles.heroZone]}>
+        <View style={styles.header}>
+          <Text style={styles.brandLabel}>ECHOQUEST</Text>
+          <Text
+            ref={headingRef}
+            role="heading"
+            aria-level={1}
+            accessibilityLabel="Home"
+            style={styles.h1}
+          >
+            Your adventure{"\n"}awaits.
+          </Text>
+          <Text style={styles.tagline}>
+            Narrated interactive adventures, powered by AI.{"\n"}Accessible to
+            everyone.
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.sectionLabel}>
-        <Text style={styles.sectionLabelText}>CONTINUE ADVENTURE</Text>
-      </View>
+      <View style={[styles.zone, styles.primaryZone]}>
+        <View style={styles.sectionLabel}>
+          <Text style={styles.sectionLabelText}>CONTINUE ADVENTURE</Text>
+        </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={starting ? "Beginning your adventure…" : "Start sample adventure"}
-        accessibilityHint="Begin The Sunken Bell, a short gothic mystery"
-        accessibilityState={{ busy: starting, disabled: starting }}
-        onPress={startSample}
-        disabled={starting}
-        style={({ pressed }) => [
-          styles.primaryBtn,
-          pressed && styles.btnPressed,
-          starting && styles.btnDisabled,
-        ]}
-      >
-        <View pointerEvents="none" style={styles.topEdgeHighlight} />
-        {starting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <>
-            <Text style={styles.primaryBtnTitle}>Start New Adventure</Text>
-            <Text style={styles.primaryBtnSub}>The Sunken Bell · gothic mystery</Text>
-          </>
-        )}
-      </Pressable>
-
-      <View style={[styles.sectionLabel, { marginTop: SPACE[4] }]}>
-        <Text style={styles.sectionLabelText}>EXPLORE</Text>
-      </View>
-
-      <View style={styles.grid}>
-        <NavCard
-          label="Browse Library"
-          accessibilityLabel="Library"
-          sub="Your campaigns & worlds"
-          onPress={() => router.push("/library")}
-        />
-        <NavCard
-          label="Create World"
-          accessibilityLabel="Create world"
-          sub="Spoken wizard"
-          onPress={() => router.push("/create")}
-        />
-        <NavCard
-          label="Upload Bible"
-          accessibilityLabel="Upload game bible"
-          sub="PDF, DOCX, text"
-          onPress={() => router.push("/upload")}
-          wide
-        />
-      </View>
-
-      <View style={styles.footer}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Accessibility"
-          onPress={() => router.push("/settings/a11y")}
-          style={({ pressed }) => [styles.textLink, pressed && { opacity: 0.6 }]}
+          accessibilityLabel={
+            starting ? "Beginning your adventure…" : "Start sample adventure"
+          }
+          accessibilityHint="Begin The Sunken Bell, a short gothic mystery"
+          accessibilityState={{ busy: starting, disabled: starting }}
+          onPress={startSample}
+          disabled={starting}
+          style={({ pressed }) => [
+            styles.primaryBtn,
+            pressed && styles.btnPressed,
+            starting && styles.btnDisabled,
+          ]}
         >
-          <Text style={styles.textLinkText}>Accessibility Settings</Text>
+          <View pointerEvents="none" style={styles.topEdgeHighlight} />
+          {starting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.primaryBtnTitle}>Start New Adventure</Text>
+              <Text style={styles.primaryBtnSub}>
+                The Sunken Bell · gothic mystery
+              </Text>
+            </>
+          )}
         </Pressable>
+      </View>
+
+      <View style={[styles.zone, styles.secondaryZone]}>
+        <View style={styles.sectionLabel}>
+          <Text style={styles.sectionLabelText}>EXPLORE</Text>
+        </View>
+
+        <View style={styles.grid}>
+          <NavCard
+            label="Browse Library"
+            accessibilityLabel="Library"
+            sub="Your campaigns & worlds"
+            onPress={() => router.push("/library")}
+          />
+          <NavCard
+            label="Create World"
+            accessibilityLabel="Create world"
+            sub="Spoken wizard"
+            onPress={() => router.push("/create")}
+          />
+          <NavCard
+            label="Upload Bible"
+            accessibilityLabel="Upload game bible"
+            sub="PDF, DOCX, text"
+            onPress={() => router.push("/upload")}
+            wide
+          />
+        </View>
+      </View>
+
+      <View style={[styles.zone, styles.utilityZone]}>
+        <View style={styles.footer}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Accessibility"
+            onPress={() => router.push("/settings/a11y")}
+            style={({ pressed }) => [
+              styles.textLink,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Text style={styles.textLinkText}>Accessibility Settings</Text>
+          </Pressable>
+        </View>
       </View>
 
       {error && (
@@ -187,9 +207,35 @@ function NavCard({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: EQ.bg },
-  container: { padding: SPACE[6], gap: SPACE[3] },
+  container: { padding: SPACE[6], gap: SPACE[4] },
 
-  header: { gap: SPACE[2], marginBottom: SPACE[2] },
+  zone: { borderRadius: R.lg, borderWidth: 1, padding: SPACE[4] },
+  heroZone: {
+    backgroundColor: EQ.surface,
+    borderColor: EQ.border,
+    shadowColor: EQ.bg2,
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  primaryZone: { backgroundColor: EQ.accentBg, borderColor: EQ.border2 },
+  secondaryZone: {
+    backgroundColor: EQ.surface2,
+    borderColor: EQ.border,
+    shadowColor: EQ.bg2,
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  utilityZone: {
+    backgroundColor: EQ.surface,
+    borderColor: EQ.border,
+    opacity: 0.96,
+  },
+
+  header: { gap: SPACE[2] },
   brandLabel: {
     ...TYPE.label,
     color: EQ.accent,
@@ -225,7 +271,11 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   primaryBtnTitle: { color: "#fff", fontSize: FS.lg, fontWeight: "700" },
-  primaryBtnSub: { color: "rgba(255,255,255,0.65)", fontSize: FS.xs, marginTop: 3 },
+  primaryBtnSub: {
+    color: "rgba(255,255,255,0.65)",
+    fontSize: FS.xs,
+    marginTop: 3,
+  },
 
   grid: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
   navCard: {
@@ -249,7 +299,7 @@ const styles = StyleSheet.create({
   navCardLabel: { fontSize: FS.sm, fontWeight: "700", color: EQ.text },
   navCardSub: { fontSize: FS.xs, color: EQ.textMuted, marginTop: 3 },
 
-  footer: { alignItems: "center", marginTop: SPACE[4] },
+  footer: { alignItems: "center" },
   textLink: { padding: SPACE[2] },
   textLinkText: { color: EQ.accent, fontSize: FS.sm, fontWeight: "600" },
 
