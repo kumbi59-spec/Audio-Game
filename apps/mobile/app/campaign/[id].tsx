@@ -56,6 +56,8 @@ export default function ActiveCampaign(): JSX.Element {
         void speakOnce(evt.summary);
       } else if (evt.type === "error" && evt.code === "turn_limit_reached") {
         setUpgradeVisible(true);
+      } else if (evt.type === "error" && evt.code === "gm_degraded_mode") {
+        void speakOnce(evt.message || "Narrator degraded mode is active. Continuing with safe choices.");
       }
     });
     return unsub;

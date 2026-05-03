@@ -10,6 +10,13 @@ export interface SessionMetricsSnapshot {
   recapFailures: number;
   turnLimitRejected: number;
   turnResolvedEvents: number;
+  turnFailureTimeout: number;
+  turnFailureRateLimit: number;
+  turnFailureSafetyRefusal: number;
+  turnFailureMalformedOutput: number;
+  turnFailureNetworkFailure: number;
+  turnFailureProviderError: number;
+  turnFallbackSafeContinueChoices: number;
 }
 
 export interface SessionTransitionTelemetry {
@@ -30,6 +37,13 @@ const metrics: SessionMetricsSnapshot = {
   recapFailures: 0,
   turnLimitRejected: 0,
   turnResolvedEvents: 0,
+  turnFailureTimeout: 0,
+  turnFailureRateLimit: 0,
+  turnFailureSafetyRefusal: 0,
+  turnFailureMalformedOutput: 0,
+  turnFailureNetworkFailure: 0,
+  turnFailureProviderError: 0,
+  turnFallbackSafeContinueChoices: 0,
 };
 
 const transitionEvents: SessionTransitionTelemetry[] = [];

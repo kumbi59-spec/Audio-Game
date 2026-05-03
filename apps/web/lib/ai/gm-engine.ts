@@ -1,4 +1,10 @@
-import { getAnthropicClient, MODEL, MAX_TOKENS } from "./client";
+import {
+  getAnthropicClient,
+  MODEL,
+  MAX_TOKENS,
+  classifyProviderError,
+  type ProviderErrorClass,
+} from "./client";
 import { buildWorldSystemPrompt } from "./prompts/system";
 import {
   buildContextMessages,
@@ -18,6 +24,22 @@ export interface GMStreamEvent {
     | "error"
     | "done";
   data?: unknown;
+}
+
+export const TURN_RELIABILITY_POLICY = {
+  timeoutMs: 25_000,
+  maxRetries: 2,
+  fallback: {
+    mode: "safe_continue_choices",
+    choices: ["Take a cautious step forward", "Pause and assess", "Ask for a recap"],
+  },
+} as const;
+
+function degradedMessage(errorClass: ProviderErrorClass): string {
+  const base = "The narrator connection is unstable, so we switched to a safe fallback turn.";
+  if (errorClass === "rate_limit") return `${base} Too many requests are in flight right now.`;
+  if (errorClass === "timeout") return `${base} The response took too long.`;
+  return base;
 }
 
 // Build the full system prompt for a session
@@ -114,14 +136,21 @@ export async function* streamGMTurn(
 
   let accumulated = "";
 
-  try {
-    const stream = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: systemPrompt,
-      messages,
-      stream: true,
-    });
+  let lastErrorClass: ProviderErrorClass | null = null;
+  for (let attempt = 0; attempt <= TURN_RELIABILITY_POLICY.maxRetries; attempt += 1) {
+    try {
+      const stream = await Promise.race([
+        client.messages.create({
+          model: MODEL,
+          max_tokens: MAX_TOKENS,
+          system: systemPrompt,
+          messages,
+          stream: true,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("gm_turn_timeout")), TURN_RELIABILITY_POLICY.timeoutMs),
+        ),
+      ]);
 
     for await (const chunk of stream) {
       if (
@@ -159,12 +188,31 @@ export async function* streamGMTurn(
       },
     };
 
-    yield { type: "done", data: null };
-  } catch (err) {
-    yield {
-      type: "error",
-      data: { message: err instanceof Error ? err.message : "GM error" },
-    };
+      yield { type: "done", data: null };
+      return;
+    } catch (err) {
+      lastErrorClass = classifyProviderError(err);
+      if (attempt < TURN_RELIABILITY_POLICY.maxRetries) continue;
+      yield {
+        type: "error",
+        data: {
+          message: degradedMessage(lastErrorClass),
+          degraded: true,
+          errorClass: lastErrorClass,
+          fallbackMode: TURN_RELIABILITY_POLICY.fallback.mode,
+        },
+      };
+      yield {
+        type: "choices_ready",
+        data: {
+          choices: [...TURN_RELIABILITY_POLICY.fallback.choices],
+          narration: degradedMessage(lastErrorClass),
+          npcAction: null,
+        },
+      };
+      yield { type: "done", data: null };
+      return;
+    }
   }
 }
 
