@@ -1,3 +1,5 @@
+import type { SessionState, SessionTrigger } from "@audio-rpg/shared";
+
 export interface SessionMetricsSnapshot {
   connectionsOpened: number;
   connectionsClosed: number;
@@ -8,6 +10,14 @@ export interface SessionMetricsSnapshot {
   recapFailures: number;
   turnLimitRejected: number;
   turnResolvedEvents: number;
+}
+
+export interface SessionTransitionTelemetry {
+  from_state: SessionState;
+  to_state: SessionState;
+  trigger: SessionTrigger;
+  accepted: boolean;
+  rejection_reason?: string;
 }
 
 const metrics: SessionMetricsSnapshot = {
@@ -22,10 +32,26 @@ const metrics: SessionMetricsSnapshot = {
   turnResolvedEvents: 0,
 };
 
+const transitionEvents: SessionTransitionTelemetry[] = [];
+const MAX_TRANSITION_EVENTS = 1_000;
+
 export function incrementSessionMetric(
   key: keyof SessionMetricsSnapshot,
 ): void {
   metrics[key] += 1;
+}
+
+export function recordSessionTransition(
+  event: SessionTransitionTelemetry,
+): void {
+  transitionEvents.push(event);
+  if (transitionEvents.length > MAX_TRANSITION_EVENTS) {
+    transitionEvents.splice(0, transitionEvents.length - MAX_TRANSITION_EVENTS);
+  }
+}
+
+export function getSessionTransitionTelemetry(): SessionTransitionTelemetry[] {
+  return transitionEvents.map((evt) => ({ ...evt }));
 }
 
 export function getSessionMetricsSnapshot(): SessionMetricsSnapshot {
@@ -36,4 +62,5 @@ export function resetSessionMetrics(): void {
   (Object.keys(metrics) as Array<keyof SessionMetricsSnapshot>).forEach((k) => {
     metrics[k] = 0;
   });
+  transitionEvents.splice(0, transitionEvents.length);
 }

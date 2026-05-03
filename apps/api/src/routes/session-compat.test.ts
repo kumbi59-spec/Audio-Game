@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { transitionSession } from "@audio-rpg/shared";
 import {
   normalizeClientEventV1,
   serializeServerEvent,
@@ -70,5 +71,26 @@ describe("session transport compatibility", () => {
         v: SESSION_EVENT_VERSION,
       },
     });
+  });
+});
+
+
+describe("session machine invariants", () => {
+  it("rejects resume-like turn requests without active joined state", () => {
+    const result = transitionSession({ from: "connected", trigger: "player_input" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("invalid_transition");
+  });
+
+  it("rejects duplicate close from terminal state", () => {
+    const result = transitionSession({ from: "closed", trigger: "leave" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("already_terminal");
+  });
+
+  it("rejects actions after terminal state", () => {
+    const result = transitionSession({ from: "closed", trigger: "player_input" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("already_terminal");
   });
 });

@@ -1,6 +1,6 @@
 import {
   ClientEvent,
-  type ServerEvent,
+  ServerEvent,
   TransportEnvelope,
   createTransportEnvelope,
   isSupportedTransportVersion,
@@ -37,6 +37,12 @@ export function serializeServerEvent(event: ServerEvent): string {
       v: SESSION_EVENT_VERSION,
     }),
   );
+}
+
+export function deserializeServerEvent(raw: unknown): ServerEvent {
+  const parsedEnvelope = TransportEnvelope.safeParse(raw);
+  const payload = parsedEnvelope.success ? parsedEnvelope.data.payload : raw;
+  return ServerEvent.parse(payload);
 }
 
 function unwrapLegacyOrEnvelope(raw: unknown): unknown {

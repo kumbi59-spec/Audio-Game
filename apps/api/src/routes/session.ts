@@ -1,11 +1,19 @@
 import type { FastifyInstance } from "fastify";
-import { ServerEvent, type SessionState, canTransition } from "@audio-rpg/shared";
+import {
+  ServerEvent,
+  type SessionState,
+  type SessionTrigger,
+  transitionSession,
+} from "@audio-rpg/shared";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { runTurn, type TurnGenerator } from "../gm/orchestrator.js";
 import { generateRecap } from "../gm/claude.js";
 import { loadSession, getMemoryStore, getPersistence } from "../state/store.js";
 import { tierFromToken } from "../auth/entitlements.js";
-import { incrementSessionMetric } from "../observability/session-metrics.js";
+import {
+  incrementSessionMetric,
+  recordSessionTransition,
+} from "../observability/session-metrics.js";
 import type { DomainEventBus } from "../events/domain-events.js";
 import {
   normalizeClientEventV1,
@@ -50,10 +58,18 @@ export async function registerSessionRoutes(
     const emitInvalidTransition = (
       from: SessionState,
       to: SessionState,
-      trigger: string,
+      trigger: SessionTrigger,
+      rejectionReason: string,
     ): void => {
+      recordSessionTransition({
+        from_state: from,
+        to_state: to,
+        trigger,
+        accepted: false,
+        rejection_reason: rejectionReason,
+      });
       app.log.warn(
-        { currentState: from, targetState: to, trigger },
+        { currentState: from, targetState: to, trigger, rejectionReason },
         "session state transition rejected",
       );
       emit({
@@ -64,12 +80,19 @@ export async function registerSessionRoutes(
       });
     };
 
-    const transitionState = (to: SessionState, trigger: string): boolean => {
-      if (!canTransition(sessionState, to)) {
-        emitInvalidTransition(sessionState, to, trigger);
+    const transitionState = (trigger: SessionTrigger): boolean => {
+      const result = transitionSession({ from: sessionState, trigger });
+      if (!result.ok) {
+        emitInvalidTransition(result.from, result.to, result.trigger, result.reason);
         return false;
       }
-      sessionState = to;
+      sessionState = result.to;
+      recordSessionTransition({
+        from_state: result.from,
+        to_state: result.to,
+        trigger: result.trigger,
+        accepted: true,
+      });
       return true;
     };
 
@@ -112,7 +135,7 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "join") {
-        if (!transitionState("joined", "join")) {
+        if (!transitionState("join")) {
           return;
         }
         try {
@@ -127,7 +150,7 @@ export async function registerSessionRoutes(
             turnNumber: session.state.turn_number,
           });
         } catch (err) {
-          sessionState = "closed";
+          transitionState("join_failed");
           emit({
             type: "error",
             code: "join_failed",
@@ -141,7 +164,7 @@ export async function registerSessionRoutes(
       }
 
       if (!session) {
-        emitInvalidTransition(sessionState, "awaiting_gm", event.type);
+        emitInvalidTransition(sessionState, "awaiting_gm", "player_input", "state_mismatch");
         emit({
           type: "error",
           code: "not_joined",
@@ -153,7 +176,7 @@ export async function registerSessionRoutes(
 
       if (event.type === "player_input") {
         const stateBeforeTurn = sessionState;
-        if (!transitionState("awaiting_gm", "player_input")) {
+        if (!transitionState("player_input")) {
           return;
         }
         if (event.eventId && handledEventIds.has(event.eventId)) {
@@ -198,7 +221,7 @@ export async function registerSessionRoutes(
             },
             emit,
           );
-          if (!transitionState("turn_complete", "turn_completed")) {
+          if (!transitionState("turn_completed")) {
             return;
           }
         } catch (err) {
@@ -225,11 +248,11 @@ export async function registerSessionRoutes(
               : null;
 
         if (!recapReturnState) {
-          emitInvalidTransition(sessionState, "awaiting_recap", "request_recap");
+          emitInvalidTransition(sessionState, "awaiting_recap", "request_recap", "state_mismatch");
           return;
         }
 
-        if (!transitionState("awaiting_recap", "request_recap")) {
+        if (!transitionState("request_recap")) {
           return;
         }
 
@@ -251,12 +274,16 @@ export async function registerSessionRoutes(
           });
         }
 
-        transitionState(recapReturnState, "recap_completed");
+        if (recapReturnState === "turn_complete") {
+          transitionState("recap_completed_to_turn_complete");
+        } else {
+          transitionState("recap_completed");
+        }
         return;
       }
 
       if (event.type === "pause") {
-        if (!transitionState("closed", "pause")) {
+        if (!transitionState("pause")) {
           return;
         }
         // State is persisted after every turn — nothing extra to do.
@@ -265,7 +292,7 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "leave") {
-        if (!transitionState("closed", "leave")) {
+        if (!transitionState("leave")) {
           return;
         }
         socket.close();
