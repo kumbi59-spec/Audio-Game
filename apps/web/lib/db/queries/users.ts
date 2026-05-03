@@ -140,3 +140,13 @@ export async function recordTtsChars(userId: string, chars: number): Promise<voi
     });
   }
 }
+
+
+export async function consumeFreeAiMinute(userId: string): Promise<boolean> {
+  const result = await prisma.user.updateMany({
+    where: { id: userId, tier: "free", aiMinutesRemaining: { gt: 0 } },
+    data: { aiMinutesRemaining: { decrement: 1 } },
+  });
+
+  return result.count > 0;
+}

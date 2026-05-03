@@ -205,7 +205,7 @@ export default function AccountPage() {
           <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>AI Minutes</h2>
           <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
             {tier === "free"
-              ? "Free accounts use AI minute credits. Each game turn uses roughly 1 minute."
+              ? "Free accounts use AI minute credits. We currently bill at 1 turn = 1 minute credit."
               : "Your plan includes a generous AI session allowance. Buy extra packs any time for heavy play."}
           </p>
 

@@ -300,9 +300,9 @@ Sign in at `http://localhost:3000/auth/sign-in` with the email + password you se
 
 | Tier | Price | Key features |
 |---|---|---|
-| Free | $0 | 5 prebuilt campaigns, browser TTS, keyboard + voice nav, 60 AI minutes |
-| Storyteller | $9/mo | ElevenLabs voices, Game Bible upload, unlimited saves |
-| Creator | $19/mo | World Builder Wizard, public publishing, creator analytics |
+| Free | $0 | 3 official campaigns, browser TTS, keyboard + voice nav, 60 AI turns/day (1 turn = 1 minute credit) |
+| Storyteller | $15/mo | ElevenLabs voices, Game Bible upload, unlimited saves |
+| Creator | $29/mo | World Builder Wizard, public publishing, creator analytics |
 | Enterprise | Custom | Institutional licensing, priority support |
 
 **Accessibility features (narrator, keyboard nav, voice commands, screen reader, haptics) are free on every plan, forever.**
@@ -381,6 +381,18 @@ ELEVENLABS_VOICE_C=pNInz6obpgDQGcFmaJgB           # Adam   (NPC slot 3)
 ```
 
 ### Stripe (web subscriptions)
+
+### ElevenLabs cap tuning (margin control)
+
+Use these env vars to tune monthly narration limits by observed usage cohorts:
+
+```env
+ELEVENLABS_STORYTELLER_MONTHLY_CHAR_CAP=40000
+ELEVENLABS_CREATOR_MONTHLY_CHAR_CAP=90000
+```
+
+Recommended process: review monthly usage and gross margin per tier, then adjust caps conservatively (small step changes) before the next billing cycle.
+
 
 ```env
 STRIPE_SECRET_KEY=sk_test_...
