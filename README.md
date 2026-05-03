@@ -32,7 +32,7 @@ Play prebuilt campaigns, upload your own Game Bible (PDF/DOCX/TXT/JSON), or buil
 | Accessibility layer (ARIA, landmark announcements, 44 px targets) | ✅ |
 | Playwright + axe-core CI | ✅ |
 | Expo mobile app (iOS / Android / Web) | ✅ |
-| Next.js 14 web app (streaming, App Router) | ✅ |
+| Next.js 15 web app (streaming, App Router) | ✅ |
 
 ---
 
@@ -42,7 +42,7 @@ Play prebuilt campaigns, upload your own Game Bible (PDF/DOCX/TXT/JSON), or buil
 apps/
   api/       Fastify + Anthropic orchestration + TTS proxy (port 4000)
   mobile/    Expo (iOS / Android / Web) — accessibility-first React Native
-  web/       Next.js 14 (App Router) — streaming AI GM, browser TTS
+  web/       Next.js 15 (App Router) — streaming AI GM, browser TTS
 packages/
   shared/    Zod schemas — GM turn, Game Bible, session events, state
   gm-engine/ Pure TS — state reducer, prompt assembly, memory retrieval
@@ -56,6 +56,7 @@ packages/
 |---|---|
 | Node.js | ≥ 20.11 |
 | pnpm | 9.x (`npm i -g pnpm@9`) |
+| Expo SDK | 51.x |
 | Anthropic API key | Required for all AI features |
 
 Optional (features degrade gracefully without them):

@@ -16,7 +16,8 @@
     "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
     "dev:web": "pnpm --filter @audio-rpg/web dev",
     "security:audit:prod": "pnpm audit --prod --json",
-    "security:release-gate": "node scripts/security-release-gate.mjs"
+    "security:release-gate": "node scripts/security-release-gate.mjs",
+    "repo:consistency": "node scripts/repo-consistency-check.mjs"
   },
   "devDependencies": {
     "typescript": "5.5.4"
