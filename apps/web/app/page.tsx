@@ -36,7 +36,7 @@ const PRICING = [
     price: "$0",
     period: "",
     highlight: false,
-    features: ["5 official campaigns", "Browser text-to-speech", "60 free AI minutes/day", "Full keyboard & screen-reader support"],
+    features: ["3 official campaigns", "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support"],
     cta: "Start Playing",
     href: "/library",
   },

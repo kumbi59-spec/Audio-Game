@@ -111,7 +111,7 @@ export type AiMinutePack = (typeof AI_MINUTE_PACKS)[number];
 export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
   free: [
     "3 prebuilt campaigns",
-    "60 free AI minutes per day",
+    "60 free AI turns per day (1 turn = 1 minute credit)",
     "Buy more AI minutes any time",
     "Browser TTS narration",
     "Voice command navigation",
@@ -119,7 +119,7 @@ export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
   ],
   storyteller: [
     "Everything in Free",
-    "Generous AI session allowance",
+    "Unlimited AI turns (no daily minute-credit deductions)",
     "No ads between sessions",
     "ElevenLabs premium voice narration",
     "Create 1 private world (wizard or Bible upload)",
