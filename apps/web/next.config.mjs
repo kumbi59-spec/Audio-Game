@@ -1,8 +1,17 @@
 
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const nextConfig = {
   transpilePackages: ["@audio-rpg/shared", "@audio-rpg/gm-engine"],
   serverExternalPackages: ["pdf-parse", "mammoth"],
   webpack(config) {
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      "@audio-rpg/shared": resolve(__dirname, "../../packages/shared/src/index.ts"),
+    };
     // ESM packages in transpilePackages use .js extensions that map to .ts source files.
     // webpack resolves them literally, so we teach it to try .ts/.tsx before .js.
     config.resolve.extensionAlias = {
