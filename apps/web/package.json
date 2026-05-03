@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@audio-rpg/shared": "workspace:*",
-    "@anthropic-ai/sdk": "^0.24.3",
+    "@anthropic-ai/sdk": "0.91.0",
     "@prisma/client": "^5.14.0",
     "@radix-ui/react-accessible-icon": "^1.1.0",
     "@radix-ui/react-dialog": "^1.1.1",

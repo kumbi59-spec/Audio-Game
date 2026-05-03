@@ -16,7 +16,8 @@
     "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
     "dev:web": "pnpm --filter @audio-rpg/web dev",
     "security:audit:prod": "pnpm audit --prod --json",
-    "security:release-gate": "node scripts/security-release-gate.mjs"
+    "security:release-gate": "node scripts/security-release-gate.mjs",
+    "check:anthropic-sdk-version": "node scripts/check-anthropic-sdk-version.mjs"
   },
   "devDependencies": {
     "typescript": "5.5.4"
@@ -27,7 +28,8 @@
       "minimatch": "^9.0.9",
       "postcss": "^8.5.12",
       "send": "^1.2.1",
-      "@xmldom/xmldom": "^0.8.13"
+      "@xmldom/xmldom": "^0.8.13",
+      "@anthropic-ai/sdk": "0.91.0"
     }
   }
 }
