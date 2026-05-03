@@ -75,6 +75,11 @@ export default function ActiveCampaign(): JSX.Element {
     router.replace("/");
   }, [router, session]);
 
+  const announceBlockedInput = useCallback(() => {
+    // Do not call speakOnce here: it interrupts in-flight narration playback.
+    void playCue("failure");
+  }, []);
+
   // Show paywall when the free-tier turn limit is hit
   useEffect(() => {
     const limit = can.sessionTurnLimit;
@@ -91,7 +96,7 @@ export default function ActiveCampaign(): JSX.Element {
   const pickChoice = useCallback(
     (choiceId: string, label: string) => {
       if (!canAcceptInput) {
-        void speakOnce("Please wait for the narrator to finish.");
+        announceBlockedInput();
         return;
       }
       if (hapticsEnabled) {
@@ -101,12 +106,12 @@ export default function ActiveCampaign(): JSX.Element {
       session.appendPlayer(label);
       sessionConnection.sendPlayerInput({ kind: "choice", choiceId });
     },
-    [canAcceptInput, session, hapticsEnabled],
+    [announceBlockedInput, canAcceptInput, session, hapticsEnabled],
   );
 
   const speakFreeform = useCallback(async () => {
     if (!canAcceptInput) {
-      void speakOnce("Please wait for the narrator to finish.");
+      announceBlockedInput();
       return;
     }
     if (hapticsEnabled) {
@@ -124,7 +129,7 @@ export default function ActiveCampaign(): JSX.Element {
     }
     session.appendPlayer(transcript);
     sessionConnection.sendPlayerInput({ kind: "freeform", text: transcript });
-  }, [canAcceptInput, pickChoice, session, hapticsEnabled]);
+  }, [announceBlockedInput, canAcceptInput, pickChoice, session, hapticsEnabled]);
 
   useVoiceCommands({
     "repeat|read that again": () => {
@@ -142,7 +147,7 @@ export default function ActiveCampaign(): JSX.Element {
     },
     "save|save and pause|pause": () => {
       if (!canAcceptInput) {
-        void speakOnce("Please wait for the narrator to finish.");
+        announceBlockedInput();
         return;
       }
       void speakOnce("Paused. Returning home.");
