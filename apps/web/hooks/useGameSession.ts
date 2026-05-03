@@ -11,6 +11,7 @@ import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue } from "@/types/game";
 import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
+import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
@@ -67,10 +68,13 @@ export function useGameSession() {
 
   const submitAction = useCallback(
     async (action: PlayerAction) => {
-      if (!session || !character || !world || session.isGenerating) return;
-
       const normalizedAction = sanitizeAction(action);
       if (!normalizedAction) return;
+
+      const eligibility = validateActionEligibility({ session, character, world, action: normalizedAction });
+      if (!eligibility.allowed) return;
+
+      if (!session || !character || !world) return;
 
       // Stop any current TTS
       stopSpeech();
@@ -96,11 +100,23 @@ export function useGameSession() {
       let narrationBuffer = "";
 
       try {
-        const res = await retryWithBackoff(() => fetch("/api/game/action", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const gateway: ActionRequestGateway = {
+          submit: ({ action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, dbSessionId: reqDbSessionId, signal }) =>
+            fetch("/api/game/action", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              signal,
+              body: JSON.stringify({ action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, dbSessionId: reqDbSessionId }),
+            }),
+        };
+
+        const res = await retryWithBackoff(() => advanceSession(gateway, {
+          action: normalizedAction,
+          session,
+          character,
+          world,
+          dbSessionId,
           signal: abort.signal,
-          body: JSON.stringify({ action: normalizedAction, session, character, world, dbSessionId: dbSessionId ?? undefined }),
         }), 2, 150);
 
         if (!res.ok) {
@@ -246,9 +262,15 @@ export function useGameSession() {
         if ((err as Error).name !== "AbortError") {
           console.error("Game session error:", err);
           const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
+          const reconciled = reconcileOptimisticState({
+            optimistic: rolled,
+            server: rolled,
+            clientRevision: (session as { revision?: number }).revision,
+            serverRevision: (session as { revision?: number }).revision,
+          });
           useGameStore.setState((s) => ({
             session: s.session
-              ? { ...s.session, narrationLog: rolled.narrationLog, isGenerating: rolled.isGenerating, history: rolled.history, choices: rolled.choices }
+              ? { ...s.session, narrationLog: reconciled.state.narrationLog, isGenerating: reconciled.state.isGenerating, history: reconciled.state.history, choices: reconciled.state.choices }
               : null,
           }));
         }

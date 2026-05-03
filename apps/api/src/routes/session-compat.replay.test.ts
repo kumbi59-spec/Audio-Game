@@ -31,9 +31,14 @@ describe("transport replay fixtures", () => {
   });
 
   it("fails explicitly for malformed/partial fixtures", () => {
-    expect(() => normalizeClientEventV1(MALFORMED_FIXTURES[0].raw)).toThrow();
-    expect(() => normalizeClientEventV1(MALFORMED_FIXTURES[1].raw)).toThrowError(UnsupportedClientEventVersionError);
-    expect(() => normalizeClientEventV1(MALFORMED_FIXTURES[2].raw)).toThrow();
+    const [missingVersion, unsupportedVersion, malformedPayload] = MALFORMED_FIXTURES;
+    expect(missingVersion).toBeDefined();
+    expect(unsupportedVersion).toBeDefined();
+    expect(malformedPayload).toBeDefined();
+
+    expect(() => normalizeClientEventV1(missingVersion!.raw)).toThrow();
+    expect(() => normalizeClientEventV1(unsupportedVersion!.raw)).toThrowError(UnsupportedClientEventVersionError);
+    expect(() => normalizeClientEventV1(malformedPayload!.raw)).toThrow();
   });
 
   it("keeps deprecation metadata aligned with every legacy fixture", () => {
@@ -45,7 +50,7 @@ describe("transport replay fixtures", () => {
 
   it("encodes response envelope honoring capability negotiation", () => {
     const legacyClientEncoded = JSON.parse(
-      serializeServerEventForClient(CURRENT_FIXTURES.serverEvent, { eventVersion: undefined, transportVersion: "999" }),
+      serializeServerEventForClient(CURRENT_FIXTURES.serverEvent, { transportVersion: "999" }),
     );
     expect(legacyClientEncoded.version).toBe("1");
     expect(legacyClientEncoded.payload.v).toBeUndefined();
