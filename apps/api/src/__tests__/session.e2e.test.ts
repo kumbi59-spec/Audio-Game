@@ -310,6 +310,7 @@ describe("session end-to-end", () => {
         connectionsClosed: number;
         turnRequests: number;
         duplicateInputs: number;
+        turnResolvedEvents: number;
       };
     };
 
@@ -317,6 +318,52 @@ describe("session end-to-end", () => {
     expect(body.session.connectionsClosed).toBeGreaterThan(0);
     expect(body.session.turnRequests).toBeGreaterThan(0);
     expect(body.session.duplicateInputs).toBeGreaterThan(0);
+    expect(body.session.turnResolvedEvents).toBeGreaterThan(0);
+  });
+
+  it("publishes TurnResolved and invokes the idempotent handler in the turn path", async () => {
+    const beforeRes = await fetch(`http://${baseUrl}/metrics`);
+    const beforeBody = (await beforeRes.json()) as {
+      session: { turnResolvedEvents: number };
+    };
+
+    const res = await fetch(`http://${baseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Mira" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${baseUrl}/session`);
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+    ws.send(
+      JSON.stringify({
+        type: "player_input",
+        input: { kind: "utility", command: "begin" },
+      }),
+    );
+    await waitForEvent(events, "turn_complete");
+    ws.close();
+
+    const afterRes = await fetch(`http://${baseUrl}/metrics`);
+    const afterBody = (await afterRes.json()) as {
+      session: { turnResolvedEvents: number };
+    };
+    expect(afterBody.session.turnResolvedEvents).toBe(
+      beforeBody.session.turnResolvedEvents + 1,
+    );
   });
 
   it("reports storage backend in health and metrics", async () => {

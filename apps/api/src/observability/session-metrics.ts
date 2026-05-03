@@ -7,6 +7,7 @@ export interface SessionMetricsSnapshot {
   recapRequests: number;
   recapFailures: number;
   turnLimitRejected: number;
+  turnResolvedEvents: number;
 }
 
 const metrics: SessionMetricsSnapshot = {
@@ -18,6 +19,7 @@ const metrics: SessionMetricsSnapshot = {
   recapRequests: 0,
   recapFailures: 0,
   turnLimitRejected: 0,
+  turnResolvedEvents: 0,
 };
 
 export function incrementSessionMetric(
