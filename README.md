@@ -32,7 +32,7 @@ Play prebuilt campaigns, upload your own Game Bible (PDF/DOCX/TXT/JSON), or buil
 | Accessibility layer (ARIA, landmark announcements, 44 px targets) | ✅ |
 | Playwright + axe-core CI | ✅ |
 | Expo mobile app (iOS / Android / Web) | ✅ |
-| Next.js 14 web app (streaming, App Router) | ✅ |
+| Next.js 15 web app (streaming, App Router) | ✅ |
 
 ---
 
@@ -42,7 +42,7 @@ Play prebuilt campaigns, upload your own Game Bible (PDF/DOCX/TXT/JSON), or buil
 apps/
   api/       Fastify + Anthropic orchestration + TTS proxy (port 4000)
   mobile/    Expo (iOS / Android / Web) — accessibility-first React Native
-  web/       Next.js 14 (App Router) — streaming AI GM, browser TTS
+  web/       Next.js 15 (App Router) — streaming AI GM, browser TTS
 packages/
   shared/    Zod schemas — GM turn, Game Bible, session events, state
   gm-engine/ Pure TS — state reducer, prompt assembly, memory retrieval
@@ -339,18 +339,29 @@ See [`DEPLOY.md`](./DEPLOY.md) for the full Render + Supabase walkthrough. The r
 ## Run CI locally
 
 ```bash
-# Type-check all packages
-pnpm -r typecheck
+# Canonical CI-style root scripts
+pnpm typecheck
+pnpm test
 
-# Unit + integration tests
-pnpm --filter @audio-rpg/shared test
-pnpm --filter @audio-rpg/gm-engine test
-pnpm --filter @audio-rpg/api test
+# Optional: lint (not part of every CI lane, but useful pre-PR)
+pnpm lint
 
-# Web e2e (Playwright + axe-core) — one-time Chromium install
+# Optional: mobile web e2e (Playwright + axe-core) — one-time Chromium install
 pnpm --filter @audio-rpg/mobile test:e2e:install
 pnpm --filter @audio-rpg/mobile test:e2e
 ```
+
+> Source of truth: dependency versions and runnable scripts are canonical in each package manifest (`package.json` at repo root and under `apps/*`). Keep this README aligned to those manifests.
+
+### Release docs/scripts parity checklist
+
+- [ ] Confirm framework/runtime versions in this README match current manifest versions (for example `apps/web/package.json` for Next.js major).
+- [ ] Confirm every command documented in this README exists as an npm script in the relevant `package.json` (or is a direct tool invocation intentionally documented).
+- [ ] Run root parity checks before release:
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm lint` (recommended)
+- [ ] If scripts changed, update README in the same PR and re-run the commands above.
 
 ---
 
