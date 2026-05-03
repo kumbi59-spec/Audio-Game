@@ -3,7 +3,7 @@ import type {
   PlayerInput,
   ServerEvent,
 } from "@audio-rpg/shared";
-import { ServerEvent as ServerEventSchema } from "@audio-rpg/shared";
+import { DEGRADED_MODE_COPY, ServerEvent as ServerEventSchema } from "@audio-rpg/shared";
 import { apiWebSocketUrl } from "../api/config";
 import { useSession } from "./store";
 
@@ -58,7 +58,8 @@ export class SessionConnection {
 
     const evt = await ready;
     if (evt.type === "error") {
-      throw new Error(evt.message);
+      const reliabilityCopy = DEGRADED_MODE_COPY[evt.code as keyof typeof DEGRADED_MODE_COPY];
+      throw new Error(reliabilityCopy ?? evt.message);
     }
   }
 

@@ -26,6 +26,11 @@ const Env = z.object({
    * Backoff delay = attempt_number * GM_TURN_RETRY_BACKOFF_MS.
    */
   GM_TURN_RETRY_BACKOFF_MS: z.coerce.number().int().min(0).default(250),
+
+  TURN_REQUEST_DEADLINE_MS: z.coerce.number().int().min(1000).default(9000),
+  GM_CIRCUIT_BREAKER_ENABLED: z.coerce.boolean().default(true),
+  GM_CIRCUIT_BREAKER_FAILURE_THRESHOLD: z.coerce.number().int().min(1).default(3),
+  GM_CIRCUIT_BREAKER_COOLDOWN_MS: z.coerce.number().int().min(1000).default(15000),
 });
 
 export const config = (() => {

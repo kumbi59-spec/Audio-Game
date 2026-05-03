@@ -11,3 +11,5 @@ export * from "./entitlements.js";
 export * from "./session-machine.js";
 
 export * from "./transport.js";
+
+export * from "./reliability.js";
