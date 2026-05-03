@@ -9,8 +9,10 @@
     "build": "tsc -p tsconfig.build.json && cp src/state/schema.sql dist/state/schema.sql",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "e2e": "tsx scripts/e2e.ts"
+    "test": "pnpm run test:unit",
+    "e2e": "tsx scripts/e2e.ts",
+    "test:unit": "pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build && vitest run",
+    "test:integration": "tsx scripts/e2e.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.91.0",

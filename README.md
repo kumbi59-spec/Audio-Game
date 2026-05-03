@@ -336,20 +336,37 @@ See [`DEPLOY.md`](./DEPLOY.md) for the full Render + Supabase walkthrough. The r
 
 ---
 
+## Testing contract by app
+
+| App | Unit | Integration | E2E | A11y | Current status |
+|---|---|---|---|---|---|
+| `@audio-rpg/api` | Required (`test:unit`) | Required (`test:integration`) | Not required | Not required | Active unit + integration automation |
+| `@audio-rpg/web` | Required (`test:unit`) | Planned | Planned | Planned | Unit checks active; see known gaps below |
+| `@audio-rpg/mobile` | Planned | Planned | Required (`test:e2e`) | Required (`test:a11y`) | E2E active; unit/integration are known gaps |
+
+### Known gaps and milestones
+
+- Web integration tests are intentionally pending, target milestone **2026-07**.
+- Web E2E and accessibility automation are intentionally pending, target milestone **2026-08**.
+- Mobile unit tests are intentionally pending, target milestone **2026-06**.
+- Mobile integration tests are intentionally pending, target milestone **2026-07**.
+
+---
+
 ## Run CI locally
 
 ```bash
 # Type-check all packages
 pnpm -r typecheck
 
-# Unit + integration tests
-pnpm --filter @audio-rpg/shared test
-pnpm --filter @audio-rpg/gm-engine test
-pnpm --filter @audio-rpg/api test
+# Layered test entry points (workspace contract)
+pnpm run test:unit
+pnpm run test:integration
+pnpm run test:e2e
+pnpm run test:a11y
 
-# Web e2e (Playwright + axe-core) — one-time Chromium install
+# Mobile browser dependencies (one-time for Playwright)
 pnpm --filter @audio-rpg/mobile test:e2e:install
-pnpm --filter @audio-rpg/mobile test:e2e
 ```
 
 ---

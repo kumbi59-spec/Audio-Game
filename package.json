@@ -11,12 +11,16 @@
     "build": "pnpm -r --filter './packages/*' --filter './apps/api' --filter './apps/web' build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test",
+    "test": "pnpm run test:unit && pnpm run test:integration && pnpm run test:e2e && pnpm run test:a11y",
     "dev:api": "pnpm --filter @audio-rpg/api dev",
     "dev:mobile": "pnpm --filter @audio-rpg/mobile start",
     "dev:web": "pnpm --filter @audio-rpg/web dev",
     "security:audit:prod": "pnpm audit --prod --json",
-    "security:release-gate": "node scripts/security-release-gate.mjs"
+    "security:release-gate": "node scripts/security-release-gate.mjs",
+    "test:unit": "pnpm --filter @audio-rpg/shared test && pnpm --filter @audio-rpg/gm-engine test && pnpm --filter @audio-rpg/api test:unit && pnpm --filter @audio-rpg/web test:unit",
+    "test:integration": "pnpm --filter @audio-rpg/api test:integration",
+    "test:e2e": "pnpm --filter @audio-rpg/mobile test:e2e",
+    "test:a11y": "pnpm --filter @audio-rpg/mobile test:a11y"
   },
   "devDependencies": {
     "typescript": "5.5.4"

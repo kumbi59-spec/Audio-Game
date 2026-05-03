@@ -11,9 +11,14 @@
     "web:export": "expo export --platform web --output-dir web-build",
     "web:serve": "node serve-spa.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'no mobile tests yet' && exit 0",
+    "test": "pnpm run test:e2e",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "test:unit": "pnpm run test:placeholder:unit",
+    "test:integration": "pnpm run test:placeholder:integration",
+    "test:a11y": "playwright test --grep @a11y",
+    "test:placeholder:unit": "echo 'KNOWN GAP: Mobile unit tests pending (target: 2026-06 milestone)'",
+    "test:placeholder:integration": "echo 'KNOWN GAP: Mobile integration tests pending (target: 2026-07 milestone)'"
   },
   "dependencies": {
     "@audio-rpg/gm-engine": "workspace:*",
