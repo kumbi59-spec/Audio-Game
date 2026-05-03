@@ -4,8 +4,10 @@ import { GmTurn as GmTurnSchema } from "@audio-rpg/shared";
 import { STYLE_PROFILES, buildSystemPrompt } from "@audio-rpg/gm-engine";
 import type { MemoryTurn } from "@audio-rpg/gm-engine";
 import { config } from "../config.js";
+import { resolveModelPolicy } from "./model-policy.js";
 
 let client: Anthropic | null = null;
+const modelPolicy = resolveModelPolicy();
 
 function getClient(): Anthropic {
   if (!client) {
@@ -34,7 +36,7 @@ export async function generateGmTurn(args: GenerateTurnArgs): Promise<GmTurn> {
   const temperature = STYLE_PROFILES[args.bible.style_mode].temperature;
 
   const stream = await getClient().messages.stream({
-    model: config.CLAUDE_GM_MODEL,
+    model: modelPolicy.gmTurnModel,
     max_tokens: 1600,
     temperature,
     system: [
@@ -75,11 +77,11 @@ export async function generateSceneSummary(args: {
     `Turns to summarize:`,
     ...args.turns.map((t) => `[${t.role} t${t.turnNumber}] ${t.text}`),
     "",
-    "Write a 2-3 sentence factual summary of what happened in this scene. Then list up to 5 key events as short bullet points. Respond as JSON: {\"summary\": \"...\", \"keyEvents\": [\"...\", ...]}",
+    'Write a 2-3 sentence factual summary of what happened in this scene. Then list up to 5 key events as short bullet points. Respond as JSON: {"summary": "...", "keyEvents": ["...", ...]}',
   ];
 
   const response = await getClient().messages.create({
-    model: config.CLAUDE_GM_MODEL,
+    model: modelPolicy.summaryModel,
     max_tokens: 300,
     messages: [{ role: "user", content: lines.join("\n") }],
   });
@@ -92,7 +94,10 @@ export async function generateSceneSummary(args: {
 
   try {
     const parsed = JSON.parse(text) as { summary: string; keyEvents: string[] };
-    return { summary: parsed.summary ?? text, keyEvents: parsed.keyEvents ?? [] };
+    return {
+      summary: parsed.summary ?? text,
+      keyEvents: parsed.keyEvents ?? [],
+    };
   } catch {
     return { summary: text.slice(0, 300), keyEvents: [] };
   }
@@ -116,7 +121,10 @@ export async function generateRecap(args: {
       ? `Inventory: ${state.inventory.map((i) => `${i.name} x${i.quantity}`).join(", ")}.`
       : "",
     state.quests.filter((q) => q.status === "active").length
-      ? `Active quests: ${state.quests.filter((q) => q.status === "active").map((q) => q.name).join(", ")}.`
+      ? `Active quests: ${state.quests
+          .filter((q) => q.status === "active")
+          .map((q) => q.name)
+          .join(", ")}.`
       : "",
   ].filter(Boolean);
 
@@ -132,7 +140,7 @@ export async function generateRecap(args: {
   );
 
   const response = await getClient().messages.create({
-    model: config.CLAUDE_GM_MODEL,
+    model: modelPolicy.summaryModel,
     max_tokens: 200,
     messages: [{ role: "user", content: lines.join("\n") }],
   });
@@ -157,36 +165,29 @@ export async function generateWizardSuggestions(args: {
 }): Promise<string[]> {
   const { stepId, draft } = args;
   const ctx: string[] = [];
-  if (draft.title)    ctx.push(`World title: "${draft.title}"`);
-  if (draft.pitch)    ctx.push(`Pitch: "${draft.pitch}"`);
-  if (draft.genre)    ctx.push(`Genre: "${draft.genre}"`);
-  if (draft.setting)  ctx.push(`Setting: "${draft.setting}"`);
+  if (draft.title) ctx.push(`World title: "${draft.title}"`);
+  if (draft.pitch) ctx.push(`Pitch: "${draft.pitch}"`);
+  if (draft.genre) ctx.push(`Genre: "${draft.genre}"`);
+  if (draft.setting) ctx.push(`Setting: "${draft.setting}"`);
   if (draft.toneVoice) ctx.push(`Narrator tone: "${draft.toneVoice}"`);
 
   const prompts: Record<string, string> = {
     title:
       "Suggest 3 short, evocative world names for an audio RPG. Each should be 2-4 words and feel like a place or an era. No explanation.",
-    pitch:
-      `${ctx.join(". ")}.\nSuggest 3 one-sentence pitches that describe this world's central conflict or atmosphere. Each should be under 20 words.`,
-    genre:
-      `${ctx.join(". ")}.\nSuggest 3 genre labels that fit this world. Examples: dark fantasy, cosmic horror, space opera, folk horror, heist noir. Short labels only.`,
-    setting:
-      `${ctx.join(". ")}.\nSuggest 3 interesting settings (place + era) for this world. Examples: "a rain-soaked 1920s port city", "a frozen steppe where gods still walk". Under 12 words each.`,
-    toneVoice:
-      `${ctx.join(". ")}.\nSuggest 3 narrator tone descriptions, each exactly 3 adjectives joined by "and". Examples: "hushed and watchful", "brash and witty and dry". Exactly 3 adjectives each.`,
-    hardConstraint:
-      `${ctx.join(". ")}.\nSuggest 3 hard world rules the game master must always respect. Examples: "no firearms exist", "magic always costs blood", "the dead never stay dead". Under 10 words each.`,
-    startingScenario:
-      `${ctx.join(". ")}.\nSuggest 3 opening scenarios that drop the player immediately into action or intrigue. 1-2 sentences each, under 30 words.`,
-    characterName:
-      `${ctx.join(". ")}.\nSuggest 3 character names that fit the world's tone and genre. Just the names, nothing else.`,
+    pitch: `${ctx.join(". ")}.\nSuggest 3 one-sentence pitches that describe this world's central conflict or atmosphere. Each should be under 20 words.`,
+    genre: `${ctx.join(". ")}.\nSuggest 3 genre labels that fit this world. Examples: dark fantasy, cosmic horror, space opera, folk horror, heist noir. Short labels only.`,
+    setting: `${ctx.join(". ")}.\nSuggest 3 interesting settings (place + era) for this world. Examples: "a rain-soaked 1920s port city", "a frozen steppe where gods still walk". Under 12 words each.`,
+    toneVoice: `${ctx.join(". ")}.\nSuggest 3 narrator tone descriptions, each exactly 3 adjectives joined by "and". Examples: "hushed and watchful", "brash and witty and dry". Exactly 3 adjectives each.`,
+    hardConstraint: `${ctx.join(". ")}.\nSuggest 3 hard world rules the game master must always respect. Examples: "no firearms exist", "magic always costs blood", "the dead never stay dead". Under 10 words each.`,
+    startingScenario: `${ctx.join(". ")}.\nSuggest 3 opening scenarios that drop the player immediately into action or intrigue. 1-2 sentences each, under 30 words.`,
+    characterName: `${ctx.join(". ")}.\nSuggest 3 character names that fit the world's tone and genre. Just the names, nothing else.`,
   };
 
   const prompt = prompts[stepId];
   if (!prompt) return [];
 
   const response = await getClient().messages.create({
-    model: config.CLAUDE_GM_MODEL,
+    model: modelPolicy.gmTurnModel,
     max_tokens: 200,
     messages: [
       {
@@ -211,8 +212,11 @@ export async function generateWizardSuggestions(args: {
     if (m) {
       try {
         const arr = JSON.parse(m[0]) as string[];
-        if (Array.isArray(arr)) return arr.slice(0, 3).map((s) => String(s).trim());
-      } catch { /* fall through */ }
+        if (Array.isArray(arr))
+          return arr.slice(0, 3).map((s) => String(s).trim());
+      } catch {
+        /* fall through */
+      }
     }
   }
   return [];

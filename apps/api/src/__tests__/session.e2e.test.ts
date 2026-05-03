@@ -4,6 +4,7 @@ import WebSocket from "ws";
 import type { GmTurn, ServerEvent } from "@audio-rpg/shared";
 import { buildServer } from "../server.js";
 import { closeStore } from "../state/store.js";
+import { resetSessionMetrics } from "../observability/session-metrics.js";
 
 /**
  * End-to-end loop test. Spins up the real Fastify server with an
@@ -41,6 +42,7 @@ let app: Awaited<ReturnType<typeof buildServer>>;
 let baseUrl: string;
 
 beforeAll(async () => {
+  resetSessionMetrics();
   app = await buildServer({
     logLevel: "warn",
     turnGenerator: async ({ onText }) => {
@@ -152,7 +154,11 @@ describe("session end-to-end", () => {
     );
     expect(summaryRes.status).toBe(200);
     const summary = (await summaryRes.json()) as {
-      state: { turn_number: number; flags: Record<string, unknown>; codex: unknown[] };
+      state: {
+        turn_number: number;
+        flags: Record<string, unknown>;
+        codex: unknown[];
+      };
     };
     expect(summary.state.turn_number).toBe(1);
     expect(summary.state.flags).toMatchObject({ arrived_in_lirren: true });
@@ -185,6 +191,57 @@ describe("session end-to-end", () => {
       expect(evt.recoverable).toBe(true);
     }
     ws.close();
+  });
+
+  it("deduplicates repeated player_input events with the same eventId", async () => {
+    const res = await fetch(`http://${baseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Ida" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${baseUrl}/session`);
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    const payload = {
+      type: "player_input",
+      eventId: "evt-1",
+      input: { kind: "utility", command: "begin" },
+    };
+
+    ws.send(JSON.stringify(payload));
+    await waitForEvent(events, "turn_complete");
+
+    ws.send(JSON.stringify(payload));
+    await waitForErrorCode(events, "duplicate_event");
+
+    ws.close();
+
+    const turnCompletions = events.filter((e) => e.type === "turn_complete");
+    expect(turnCompletions).toHaveLength(1);
+
+    const duplicateError = events.find(
+      (e) => e.type === "error" && e.code === "duplicate_event",
+    );
+    expect(duplicateError).toMatchObject({
+      type: "error",
+      code: "duplicate_event",
+      eventId: "evt-1",
+    });
   });
 
   it("persists two sequential turns (exercises Postgres when DATABASE_URL is set)", async () => {
@@ -236,14 +293,53 @@ describe("session end-to-end", () => {
     expect(completes).toEqual([1, 2]);
 
     // Fetch the campaign summary — asserts Postgres round-trip of state.
-    const summaryRes = await fetch(
-      `http://${baseUrl}/campaigns/${campaignId}`,
-    );
+    const summaryRes = await fetch(`http://${baseUrl}/campaigns/${campaignId}`);
     const summary = (await summaryRes.json()) as {
       state: { turn_number: number; inventory: { name: string }[] };
     };
     expect(summary.state.turn_number).toBe(2);
     expect(summary.state.inventory.length).toBeGreaterThan(0);
+  });
+
+  it("exposes session counters on /metrics", async () => {
+    const res = await fetch(`http://${baseUrl}/metrics`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      session: {
+        connectionsOpened: number;
+        connectionsClosed: number;
+        turnRequests: number;
+        duplicateInputs: number;
+      };
+    };
+
+    expect(body.session.connectionsOpened).toBeGreaterThan(0);
+    expect(body.session.connectionsClosed).toBeGreaterThan(0);
+    expect(body.session.turnRequests).toBeGreaterThan(0);
+    expect(body.session.duplicateInputs).toBeGreaterThan(0);
+  });
+
+  it("reports storage backend in health and metrics", async () => {
+    const expectedBackend = process.env["DATABASE_URL"] ? "postgres" : "memory";
+
+    const healthRes = await fetch(`http://${baseUrl}/health`);
+    expect(healthRes.status).toBe(200);
+    const health = (await healthRes.json()) as {
+      ok: boolean;
+      storageBackend: "memory" | "postgres";
+      models: { gmTurnModel: string; summaryModel: string };
+    };
+    expect(health.ok).toBe(true);
+    expect(health.storageBackend).toBe(expectedBackend);
+    expect(health.models.gmTurnModel).toBeTruthy();
+    expect(health.models.summaryModel).toBeTruthy();
+
+    const metricsRes = await fetch(`http://${baseUrl}/metrics`);
+    expect(metricsRes.status).toBe(200);
+    const metrics = (await metricsRes.json()) as {
+      storageBackend: "memory" | "postgres";
+    };
+    expect(metrics.storageBackend).toBe(expectedBackend);
   });
 
   it("rejects an invalid session token", async () => {
@@ -305,4 +401,15 @@ async function waitForCompletion(
     await new Promise((r) => setTimeout(r, 20));
   }
   throw new Error(`timed out waiting for turn_complete ${turnNumber}`);
+}
+
+async function waitForErrorCode(
+  events: ServerEvent[],
+  code: string,
+): Promise<void> {
+  for (let i = 0; i < 50; i += 1) {
+    if (events.some((e) => e.type === "error" && e.code === code)) return;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  throw new Error(`timed out waiting for error code ${code}`);
 }

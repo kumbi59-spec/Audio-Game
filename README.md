@@ -50,6 +50,13 @@ packages/
 
 ---
 
+
+## Platform parity tracking
+
+For current web/mobile parity status and intentional gaps, see `docs/product/platform-parity.md`.
+
+---
+
 ## Prerequisites
 
 | Tool | Version |

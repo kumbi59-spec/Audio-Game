@@ -11,6 +11,9 @@ import { registerTtsRoutes } from "./routes/tts.js";
 import { registerWorldRoutes } from "./routes/worlds.js";
 import { registerWizardRoutes } from "./routes/wizard.js";
 import { registerAuthRoutes } from "./routes/auth.js";
+import { getSessionMetricsSnapshot } from "./observability/session-metrics.js";
+import { getStorageBackend } from "./state/store.js";
+import { resolveModelPolicy } from "./gm/model-policy.js";
 
 export interface BuildServerOptions {
   /** Override the GM turn generator (tests inject a deterministic fake). */
@@ -35,7 +38,15 @@ export async function buildServer(options: BuildServerOptions = {}) {
   });
   await app.register(websocket);
 
-  app.get("/health", async () => ({ ok: true }));
+  app.get("/health", async () => ({
+    ok: true,
+    storageBackend: getStorageBackend(),
+    models: resolveModelPolicy(),
+  }));
+  app.get("/metrics", async () => ({
+    storageBackend: getStorageBackend(),
+    session: getSessionMetricsSnapshot(),
+  }));
 
   await registerAuthRoutes(app);
   await registerWorldRoutes(app);
