@@ -34,6 +34,13 @@
   /* Focus ring */
   --focus-ring:   #7c6af7;
 
+  /* Motion */
+  --motion-fast: 140ms;
+  --motion-normal: 220ms;
+  --motion-reveal: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0.0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Legacy aliases (keep Tailwind utilities working) */
   --background:   var(--bg);
   --foreground:   var(--text);
@@ -182,8 +189,8 @@
 
 @layer utilities {
   /* Animation helpers */
-  .animate-fade-slide-in  { animation: fadeSlideIn 0.4s ease-out both; }
-  .animate-reveal-word    { animation: revealWord  0.35s ease-out both; }
+  .animate-fade-slide-in  { animation: fadeSlideIn var(--motion-reveal) var(--ease-standard) both; }
+  .animate-reveal-word    { animation: revealWord  var(--motion-reveal) var(--ease-standard) both; }
   .animate-shimmer        { animation: shimmer 2s linear infinite; }
   .animate-echo-pulse     { animation: echoQuestPulse 2s ease-in-out infinite; }
   .animate-bounce-subtle  { animation: bounce 1.4s ease-in-out infinite; }
@@ -239,6 +246,71 @@
     font-size: 1.125rem;
     line-height: 1.75;
   }
+
+  /* Motion primitives for interactive controls */
+  .motion-cta {
+    transition:
+      transform var(--motion-fast) var(--ease-standard),
+      opacity var(--motion-fast) var(--ease-standard),
+      box-shadow var(--motion-normal) var(--ease-standard),
+      background-color var(--motion-normal) var(--ease-standard),
+      border-color var(--motion-normal) var(--ease-standard);
+    will-change: transform, opacity;
+  }
+
+  .motion-cta:hover {
+    transform: translateY(-1px) scale(1.01);
+  }
+
+  .motion-cta:active {
+    transform: translateY(1px) scale(0.99);
+    opacity: 0.95;
+  }
+
+  .motion-step {
+    transition:
+      transform var(--motion-normal) var(--ease-emphasized),
+      opacity var(--motion-normal) var(--ease-standard),
+      background-color var(--motion-normal) var(--ease-standard);
+  }
+
+  .motion-step-active {
+    transform: translateY(-1px);
+    opacity: 1;
+  }
+
+  .motion-step-idle {
+    transform: translateY(1px);
+    opacity: 0.72;
+  }
+
+  .motion-loading {
+    transition:
+      transform var(--motion-normal) var(--ease-standard),
+      opacity var(--motion-normal) var(--ease-standard);
+  }
+
+  .motion-loading:hover {
+    transform: translateY(-1px);
+    opacity: 0.96;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-cta,
+    .motion-step,
+    .motion-loading {
+      transition: opacity var(--motion-fast) linear;
+    }
+
+    .motion-cta:hover,
+    .motion-cta:active,
+    .motion-step-active,
+    .motion-step-idle,
+    .motion-loading:hover {
+      transform: none;
+    }
+  }
+
   .large-text h1 { font-size: 2rem; }
   .large-text h2 { font-size: 1.5rem; }
 }

@@ -23,7 +23,7 @@ import {
 import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
-import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
+import { EQ, MOTION, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 import { useCan } from "@/entitlements/store";
 import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
@@ -213,7 +213,7 @@ export default function CreateWorld(): JSX.Element {
                       accessibilityLabel={`Use suggestion: ${s}`}
                       onPress={() => { setTextInput(s); void speakOnce(s); }}
                       disabled={busy}
-                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed, pressed && styles.btnPressedTransform]}
                     >
                       <Text style={styles.chipText}>{s}</Text>
                     </Pressable>
@@ -235,6 +235,7 @@ export default function CreateWorld(): JSX.Element {
                 styles.choiceBtn,
                 draft[step.id] === opt.value && styles.choiceBtnSelected,
                 pressed && styles.btnPressed,
+                pressed && styles.btnPressedTransform,
               ]}
               disabled={busy}
             >
@@ -259,6 +260,7 @@ export default function CreateWorld(): JSX.Element {
           style={({ pressed }) => [
             styles.navBtn,
             pressed && styles.btnPressed,
+                pressed && styles.btnPressedTransform,
             (busy || stepIndex === 0) && styles.btnDisabled,
           ]}
         >
@@ -270,7 +272,7 @@ export default function CreateWorld(): JSX.Element {
           accessibilityLabel="Speak my answer"
           onPress={speakAnswer}
           disabled={busy}
-          style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed]}
+          style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed, pressed && styles.btnPressedTransform]}
         >
           <View pointerEvents="none" style={styles.topEdgeHighlight} />
           <Text style={styles.navBtnText}>Mic</Text>
@@ -284,6 +286,7 @@ export default function CreateWorld(): JSX.Element {
             style={({ pressed }) => [
               styles.primaryBtn,
               pressed && styles.btnPressed,
+                pressed && styles.btnPressedTransform,
               busy && styles.btnDisabled,
             ]}
           >
@@ -329,6 +332,8 @@ function matchChoice(step: Extract<WizardStep, { kind: "choice" }>, transcript: 
   return null;
 }
 
+// Motion spec note: durations/easings from MOTION are consumed by Animated transitions in components as needed.
+// Pressable states here use the same subtle translation/scale values directly for immediate feedback.
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: EQ.bg },
   container: { padding: SPACE[6], gap: SPACE[4] },
@@ -336,9 +341,10 @@ const styles = StyleSheet.create({
   h1: { fontSize: FS.hero, fontWeight: "700", color: EQ.text, letterSpacing: -0.5 },
 
   dots: { flexDirection: "row", gap: SPACE[1], alignItems: "center" },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: EQ.surface3 },
-  dotActive: { width: 24, borderRadius: 4, backgroundColor: EQ.accent },
-  dotDone: { backgroundColor: EQ.accent2 },
+  // Step indicators: small reveal shift + opacity change to keep transitions subtle.
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: EQ.surface3, opacity: 0.72, transform: [{ translateY: 1 }] },
+  dotActive: { width: 24, borderRadius: 4, backgroundColor: EQ.accent, opacity: 1, transform: [{ translateY: -1 }] },
+  dotDone: { backgroundColor: EQ.accent2, opacity: 0.94, transform: [{ translateY: 0 }] },
   progress: { fontSize: FS.xs, color: EQ.textFaint, letterSpacing: 0.5 },
 
   prompt: { fontSize: FS.xl, fontWeight: "700", color: EQ.text, lineHeight: 28 },
@@ -359,7 +365,7 @@ const styles = StyleSheet.create({
 
   suggestionsSection: { gap: SPACE[2] },
   suggestionsLabel: { fontSize: 10, fontWeight: "600", color: EQ.textFaint, letterSpacing: 1.2 },
-  suggestionSpinner: { alignSelf: "flex-start", marginTop: SPACE[1] },
+  suggestionSpinner: { alignSelf: "flex-start", marginTop: SPACE[1], opacity: MOTION.subtleOpacity },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: SPACE[2] },
   chip: {
     borderRadius: R["3xl"],
@@ -370,7 +376,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACE[2],
     maxWidth: "100%",
   },
-  chipPressed: { opacity: 0.7 },
+  chipPressed: { opacity: MOTION.subtleOpacity },
   chipText: { color: EQ.accent, fontSize: FS.sm, lineHeight: 18 },
 
   choices: { gap: SPACE[2] },
@@ -428,7 +434,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   primaryBtnText: { color: "#fff", fontSize: FS.base, fontWeight: "700" },
-  btnPressed: { opacity: 0.75 },
+  // CTA press feedback: tiny scale + 1px translate to avoid heavy motion.
+  btnPressed: { opacity: MOTION.subtleOpacity },
+  btnPressedTransform: { transform: [{ translateY: MOTION.press.translateY }, { scale: MOTION.press.scaleIn }] },
   btnDisabled: { opacity: 0.4 },
   error: { color: EQ.danger, fontWeight: "600" },
   topEdgeHighlight: {

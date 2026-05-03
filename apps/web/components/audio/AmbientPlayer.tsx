@@ -13,7 +13,7 @@ export function AmbientPlayer() {
     } else {
       playAmbient(currentAmbient, ambientVolume);
     }
-  }, [currentAmbient, ambientEnabled, ambientVolume]);
+  }, [currentAmbient, ambientEnabled]);
 
   useEffect(() => {
     setAmbientVolume(ambientVolume);

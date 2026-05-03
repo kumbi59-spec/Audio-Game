@@ -71,3 +71,27 @@ export const FS = {
   '3xl': 28,
   hero:  32,
 } as const;
+
+
+/**
+ * Motion tokens tuned for subtle, readable UI feedback.
+ * Keep movement small (1–2px / tiny scale) for accessibility.
+ */
+export const MOTION = {
+  duration: {
+    fast: 140,
+    normal: 220,
+    reveal: 320,
+  },
+  easing: {
+    standard: "easeOutCubic",
+    emphasized: "easeOutQuint",
+  },
+  press: {
+    translateY: 1,
+    liftY: -1,
+    scaleIn: 0.99,
+    scaleOut: 1.01,
+  },
+  subtleOpacity: 0.92,
+} as const;
