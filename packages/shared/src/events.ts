@@ -50,6 +50,7 @@ export const ServerEvent = z.discriminatedUnion("type", [
     code: z.string(),
     message: z.string(),
     recoverable: z.boolean().default(true),
+    eventId: z.string().optional(),
   }),
   z.object({
     type: z.literal("voice_plan"),
@@ -74,6 +75,8 @@ export const ClientEvent = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("player_input"),
     input: PlayerInput,
+    /** Optional client-generated id used for idempotent retries over unstable networks. */
+    eventId: z.string().min(1).max(128).optional(),
   }),
   z.object({
     type: z.literal("request_recap"),

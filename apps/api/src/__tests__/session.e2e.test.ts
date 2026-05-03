@@ -187,7 +187,60 @@ describe("session end-to-end", () => {
     ws.close();
   });
 
-  it("persists two sequential turns (exercises Postgres when DATABASE_URL is set)", async () => {
+
+
+  it("deduplicates repeated player_input events with the same eventId", async () => {
+    const res = await fetch(`http://${baseUrl}/campaigns`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ worldId: "sunken_bell", characterName: "Ida" }),
+    });
+    const { campaignId, authToken } = (await res.json()) as {
+      campaignId: string;
+      authToken: string;
+    };
+
+    const ws = new WebSocket(`ws://${baseUrl}/session`);
+    const events: ServerEvent[] = [];
+    ws.on("message", (raw: Buffer) => {
+      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+    });
+    await new Promise<void>((resolve, reject) => {
+      ws.once("open", () => resolve());
+      ws.once("error", reject);
+    });
+
+    ws.send(JSON.stringify({ type: "join", campaignId, authToken }));
+    await waitForEvent(events, "session_ready");
+
+    const payload = {
+      type: "player_input",
+      eventId: "evt-1",
+      input: { kind: "utility", command: "begin" },
+    };
+
+    ws.send(JSON.stringify(payload));
+    await waitForEvent(events, "turn_complete");
+
+    ws.send(JSON.stringify(payload));
+    await waitForErrorCode(events, "duplicate_event");
+
+    ws.close();
+
+    const turnCompletions = events.filter((e) => e.type === "turn_complete");
+    expect(turnCompletions).toHaveLength(1);
+
+    const duplicateError = events.find(
+      (e) => e.type === "error" && e.code === "duplicate_event",
+    );
+    expect(duplicateError).toMatchObject({
+      type: "error",
+      code: "duplicate_event",
+      eventId: "evt-1",
+    });
+  });
+
+    it("persists two sequential turns (exercises Postgres when DATABASE_URL is set)", async () => {
     // Create a fresh campaign so we can observe the monotonic turn counter.
     const res = await fetch(`http://${baseUrl}/campaigns`, {
       method: "POST",
@@ -305,4 +358,13 @@ async function waitForCompletion(
     await new Promise((r) => setTimeout(r, 20));
   }
   throw new Error(`timed out waiting for turn_complete ${turnNumber}`);
+}
+
+
+async function waitForErrorCode(events: ServerEvent[], code: string): Promise<void> {
+  for (let i = 0; i < 50; i += 1) {
+    if (events.some((e) => e.type === "error" && e.code === code)) return;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  throw new Error(`timed out waiting for error code ${code}`);
 }

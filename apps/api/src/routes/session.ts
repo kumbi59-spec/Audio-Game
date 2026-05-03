@@ -25,6 +25,7 @@ export async function registerSessionRoutes(
     app.log.info({ ip: req.ip }, "session connected");
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
     let turnLimit: number | null = null;
+    const handledEventIds = new Set<string>();
 
     const emit = (evt: ServerEvent): void => {
       const parsed = ServerEvent.safeParse(evt);
@@ -95,16 +96,28 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "player_input") {
+        if (event.eventId && handledEventIds.has(event.eventId)) {
+          emit({
+            type: "error",
+            code: "duplicate_event",
+            message: "Duplicate player input ignored.",
+            recoverable: true,
+            eventId: event.eventId,
+          });
+          return;
+        }
         if (turnLimit !== null && session.state.turn_number >= turnLimit) {
           emit({
             type: "error",
             code: "turn_limit_reached",
             message: `You've reached the ${turnLimit}-turn limit for the free plan. Upgrade to Storyteller for unlimited play.`,
             recoverable: false,
+            eventId: event.eventId,
           });
           return;
         }
         try {
+          if (event.eventId) handledEventIds.add(event.eventId);
           session = await runTurn(
             session,
             event.input,
@@ -122,6 +135,7 @@ export async function registerSessionRoutes(
             code: "turn_failed",
             message: "The GM couldn't respond. Your input was saved.",
             recoverable: true,
+            eventId: event.eventId,
           });
         }
         return;
