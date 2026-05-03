@@ -24,6 +24,7 @@ jobs:
       - run: pnpm check:anthropic-sdk-version
       - run: pnpm -r typecheck
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api test
+      - run: pnpm --filter @audio-rpg/api test -- state-machine.matrix.test.ts
 
   postgres-e2e:
     name: "integration (Postgres + pgvector)"

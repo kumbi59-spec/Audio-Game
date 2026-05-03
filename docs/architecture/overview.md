@@ -46,3 +46,10 @@ EchoQuest is an accessibility-first audio RPG platform spanning web, mobile, and
 4. Add server emitters for the new version and keep old emit path only when explicitly required.
 5. Update client parsers before removing old-version support.
 6. Announce removal date and delete deprecated validators/fixtures after window expiry.
+
+## Transport transition matrix
+
+The session transport transition matrix is generated from code and committed at:
+`docs/architecture/generated/transport-transition-matrix.json`.
+
+Update process: run `pnpm --filter @audio-rpg/api test -- state-machine.matrix.test.ts` to validate the artifact stays in sync with declared states/events/guards.
