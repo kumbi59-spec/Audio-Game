@@ -1,22 +1,57 @@
-export type DomainEvent =
-  | { type: "TurnResolved"; eventId: string; campaignId: string; turnNumber: number }
-  | { type: "TierChanged"; eventId: string; userId: string; tier: string }
-  | { type: "WorldPublished"; eventId: string; worldId: string; ownerId: string };
+import { randomUUID } from "node:crypto";
 
-export type DomainEventHandler<T extends DomainEvent = DomainEvent> = (
-  event: T,
+export type DomainEventType =
+  | "game.turn_committed"
+  | "entitlement.changed"
+  | "moderation.outcome_finalized";
+
+export interface DomainEventEnvelope<TPayload = Record<string, unknown>> {
+  eventId: string;
+  eventType: DomainEventType;
+  aggregateId: string;
+  occurredAt: string;
+  version: number;
+  dedupeKey: string;
+  payload: TPayload;
+}
+
+export interface DomainEventBus {
+  on(type: DomainEventType, handler: DomainEventHandler): void;
+  publish(event: DomainEventEnvelope): Promise<void>;
+}
+
+export type DomainEventHandler = (
+  event: DomainEventEnvelope,
 ) => Promise<void> | void;
 
-export class DomainEventBus {
-  private handlers = new Map<DomainEvent["type"], DomainEventHandler[]>();
+export function createEventEnvelope<TPayload>(args: {
+  eventType: DomainEventType;
+  aggregateId: string;
+  version: number;
+  dedupeKey: string;
+  payload: TPayload;
+}): DomainEventEnvelope<TPayload> {
+  return {
+    eventId: randomUUID(),
+    eventType: args.eventType,
+    aggregateId: args.aggregateId,
+    occurredAt: new Date().toISOString(),
+    version: args.version,
+    dedupeKey: args.dedupeKey,
+    payload: args.payload,
+  };
+}
 
-  on<T extends DomainEvent["type"]>(type: T, handler: DomainEventHandler) {
+export class InMemoryDomainEventBus implements DomainEventBus {
+  private handlers = new Map<DomainEventType, DomainEventHandler[]>();
+
+  on(type: DomainEventType, handler: DomainEventHandler): void {
     const current = this.handlers.get(type) ?? [];
     this.handlers.set(type, [...current, handler]);
   }
 
-  async publish(event: DomainEvent) {
-    const handlers = this.handlers.get(event.type) ?? [];
+  async publish(event: DomainEventEnvelope): Promise<void> {
+    const handlers = this.handlers.get(event.eventType) ?? [];
     for (const handler of handlers) await handler(event);
   }
 }
