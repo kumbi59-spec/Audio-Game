@@ -5,6 +5,7 @@ import type { GmTurn, ServerEvent } from "@audio-rpg/shared";
 import { buildServer } from "../server.js";
 import { closeStore } from "../state/store.js";
 import { resetSessionMetrics } from "../observability/session-metrics.js";
+import { deserializeServerEvent } from "../routes/session-compat.js";
 
 /**
  * End-to-end loop test. Spins up the real Fastify server with an
@@ -91,7 +92,7 @@ describe("session end-to-end", () => {
         5000,
       );
       ws.on("message", (raw: Buffer) => {
-        const evt = JSON.parse(raw.toString("utf8")) as ServerEvent;
+        const evt = deserializeServerEvent(JSON.parse(raw.toString("utf8")));
         events.push(evt);
         if (evt.type === "turn_complete") {
           clearTimeout(timeout);
@@ -175,7 +176,7 @@ describe("session end-to-end", () => {
     });
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
 
     ws.send(
@@ -218,7 +219,7 @@ describe("session end-to-end", () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
@@ -271,7 +272,7 @@ describe("session end-to-end", () => {
     const completes: number[] = [];
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      const evt = JSON.parse(raw.toString("utf8")) as ServerEvent;
+      const evt = deserializeServerEvent(JSON.parse(raw.toString("utf8")));
       events.push(evt);
       if (evt.type === "turn_complete") completes.push(evt.turnNumber);
     });
@@ -351,7 +352,7 @@ describe("session end-to-end", () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
@@ -408,7 +409,7 @@ describe("session end-to-end", () => {
     });
     const firstMessage = new Promise<ServerEvent>((resolve) => {
       ws.once("message", (raw: Buffer) => {
-        resolve(JSON.parse(raw.toString("utf8")) as ServerEvent);
+        resolve(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
       });
     });
     ws.send(
@@ -456,7 +457,7 @@ describe("session end-to-end", () => {
     const retryWs = new WebSocket(`ws://${retryBaseUrl}/session`);
     const events: ServerEvent[] = [];
     retryWs.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
     await new Promise<void>((resolve, reject) => {
       retryWs.once("open", () => resolve());
@@ -497,7 +498,7 @@ describe("session end-to-end", () => {
     const ws = new WebSocket(`ws://${baseUrl}/session`);
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
@@ -545,7 +546,7 @@ describe("session end-to-end", () => {
     const ws = new WebSocket(`ws://${slowBaseUrl}/session`);
     const events: ServerEvent[] = [];
     ws.on("message", (raw: Buffer) => {
-      events.push(JSON.parse(raw.toString("utf8")) as ServerEvent);
+      events.push(deserializeServerEvent(JSON.parse(raw.toString("utf8"))));
     });
     await new Promise<void>((resolve, reject) => {
       ws.once("open", () => resolve());
