@@ -39,4 +39,26 @@ describe("extractText guards", () => {
         err instanceof UploadParseError && err.code === UploadParseErrorCode.FileTooLarge
     );
   });
+
+  it("rejects zip-bomb style oversized payloads immediately", async () => {
+    const oversizedZipLike = Buffer.alloc(MAX_FILE_BYTES + 1, 0);
+    oversizedZipLike[0] = 0x50;
+    oversizedZipLike[1] = 0x4b;
+    oversizedZipLike[2] = 0x03;
+    oversizedZipLike[3] = 0x04;
+
+    await expect(
+      extractText(
+        oversizedZipLike,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "bomb.docx"
+      )
+    ).rejects.toMatchObject({ code: UploadParseErrorCode.FileTooLarge });
+  });
+
+  it("rejects malformed json that fails content sniffing", async () => {
+    await expect(extractText(Buffer.from("<xml>oops</xml>"), "application/json", "world.json")).rejects.toMatchObject({
+      code: UploadParseErrorCode.ContentSniffMismatch,
+    });
+  });
 });

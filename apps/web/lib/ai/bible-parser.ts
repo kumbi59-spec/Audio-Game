@@ -138,9 +138,7 @@ export function buildSystemPromptFromBible(bible: ParsedGameBible): string {
 export async function createWorldFromBible(
   bible: ParsedGameBible,
   guestId: string,
-  rawText: string,
-  originalFilename: string,
-  mimeType: string
+  gameBibleId: string
 ): Promise<string> {
   // Unique IDs derived from a timestamp so re-uploads don't conflict
   const stamp = Date.now().toString(36);
@@ -156,17 +154,6 @@ export async function createWorldFromBible(
     Object.values(locationIdMap)[0] ??
     null;
 
-  const gameBible = await prisma.gameBible.create({
-    data: {
-      originalName: originalFilename,
-      mimeType,
-      rawText: rawText.slice(0, 200_000),
-      parsedData: JSON.stringify(bible),
-      processingStatus: "complete",
-      uploaderId: guestId,
-    },
-  });
-
   const imageUrl = await resolveWorldCoverImage(bible.worldName, bible.genre, bible.tone);
 
   await prisma.world.create({
@@ -181,7 +168,7 @@ export async function createWorldFromBible(
       isPublic: false,
       imageUrl,
       ownerId: guestId,
-      gameBibleId: gameBible.id,
+      gameBibleId,
       libraryItem: {
         create: {
           title: bible.worldName,
