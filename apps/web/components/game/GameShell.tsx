@@ -29,6 +29,26 @@ export function GameShell() {
   const [choicesMinimized, setChoicesMinimized] = useState(false);
   const openingSpokenRef = useRef(false);
 
+  const shareRecap = useCallback(async () => {
+    if (!session || !world) return;
+    const recap = session.narrationLog
+      .filter((entry) => entry.type === "narration")
+      .slice(-3)
+      .map((entry) => entry.text)
+      .join(" ")
+      .slice(0, 220);
+    const playUrl = `${window.location.origin}/create?worldId=${world.id}`;
+    const text = `I just played ${world.name} on EchoQuest. ${recap || "Come explore this world with me."}`;
+
+    if (navigator.share) {
+      await navigator.share({ title: `${world.name} recap`, text, url: playUrl });
+      return;
+    }
+
+    const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(playUrl)}`;
+    window.open(twitterIntent, "_blank", "noopener,noreferrer");
+  }, [session, world]);
+
   useEffect(() => {
     const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
     return () => clearInterval(interval);
@@ -289,6 +309,13 @@ export function GameShell() {
               className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Recap
+            </button>
+            <button
+              onClick={shareRecap}
+              aria-label="Share your session recap"
+              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Share Recap
             </button>
             <Link
               href="/library"

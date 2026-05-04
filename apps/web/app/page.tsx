@@ -326,6 +326,23 @@ export default function LandingPage() {
           </div>
         </section>
 
+
+
+        <section aria-label="Creator spotlight" className="px-6 py-16">
+          <div className="mx-auto max-w-4xl rounded-2xl border border-border bg-card p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">World of the Week</p>
+            <h2 className="mt-2 text-2xl font-bold" style={{ color: "var(--text)" }}>Creator Spotlight: Community Remix Challenge</h2>
+            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
+              Each week we feature one creator world and encourage the community to fork it, remix it, and share session recaps.
+              Featured creators bring their own audience and drive new players back into EchoQuest.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link href="/forks" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white">Explore forkable worlds</Link>
+              <Link href="/my-worlds" className="rounded-lg border border-border px-4 py-2 text-sm font-semibold">Nominate your world</Link>
+            </div>
+          </div>
+        </section>
+
         {/* Final CTA */}
         <section aria-label="Call to action" className="px-6 py-16 text-center" style={{ backgroundColor: "var(--surface)" }}>
           <h2 className="mb-3 text-2xl font-bold" style={{ color: "var(--text)" }}>Ready to begin?</h2>
