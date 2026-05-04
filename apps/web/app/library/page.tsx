@@ -357,6 +357,7 @@ function WorldCard({
         <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
           {world.description}
         </p>
+        <div className="flex gap-2">
         <button
           onClick={() => onPlay(world.id)}
           aria-label={`Play ${world.name}`}
@@ -365,6 +366,15 @@ function WorldCard({
         >
           Play →
         </button>
+        <Link
+          href="/campaigns"
+          aria-label="Read campaign world pages"
+          className="rounded-lg border px-3 py-3 text-xs font-semibold hover:opacity-90"
+          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+        >
+          World pages
+        </Link>
+      </div>
       </div>
     </article>
   );

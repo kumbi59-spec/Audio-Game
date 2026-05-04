@@ -24,6 +24,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     },
+    {
+      url: `${siteUrl}/campaigns`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/seo`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${siteUrl}/seo/play-audio-rpg-with-screen-reader`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/seo/accessible-dnd-alternative`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/seo/ai-text-adventure-with-voice`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
   ];
 
   let blogRoutes: MetadataRoute.Sitemap = [];
@@ -43,5 +73,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB unavailable during static build — skip blog routes
   }
 
-  return [...staticRoutes, ...blogRoutes];
+  const campaignRoutes = ["long-watch", "crimson-sands", "accessible-dd-alternative"].map((slug) => ({
+    url: `${siteUrl}/campaigns/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  return [...staticRoutes, ...campaignRoutes, ...blogRoutes];
 }
