@@ -24,9 +24,16 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@audio-rpg/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@audio-rpg/shared/*": [
+        "../../packages/shared/src/*"
       ]
     },
-    "target": "ES2017"
+    "target": "ES2017",
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",

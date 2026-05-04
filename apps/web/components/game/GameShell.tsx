@@ -193,7 +193,7 @@ export function GameShell() {
             </div>
             <div className="space-y-3">
               <StatusBar character={character} session={session} world={world} />
-              <AudioControls onReplayLast={replayLast} />
+              <AudioControls onReplayLast={replayLast} disableReplay={session.isGenerating || speaking} />
             </div>
           </div>
         )}

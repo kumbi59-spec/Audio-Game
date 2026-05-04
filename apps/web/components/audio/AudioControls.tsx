@@ -9,9 +9,10 @@ import type { TTSVoice } from "@/types/audio";
 interface AudioControlsProps {
   onReplayLast: () => void;
   id?: string;
+  disableReplay?: boolean;
 }
 
-export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioControlsProps) {
+export function AudioControls({ onReplayLast, id = "audio-controls", disableReplay = false }: AudioControlsProps) {
   const {
     ttsSpeed,
     ttsVoiceId,
@@ -98,7 +99,8 @@ export function AudioControls({ onReplayLast, id = "audio-controls" }: AudioCont
         <button
           onClick={onReplayLast}
           aria-label="Replay last narration (R)"
-          className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          disabled={disableReplay || speaking}
+          className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           🔁 Replay
         </button>

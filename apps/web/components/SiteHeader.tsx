@@ -43,6 +43,9 @@ export function SiteHeader() {
         <Link href="/blog" className="hover:underline" style={linkStyle("/blog")}>
           Blog
         </Link>
+        <Link href="/discussion" className="hover:underline" style={linkStyle("/discussion")}>
+          Discussion
+        </Link>
         {session?.user ? (
           <>
             <Link href="/my-worlds" className="hover:underline" style={linkStyle("/my-worlds")}>
