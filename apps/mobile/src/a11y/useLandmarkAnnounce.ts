@@ -16,7 +16,9 @@ export function useLandmarkAnnounce(
   useEffect(() => {
     const message = summary ? `${title}. ${summary}` : title;
     AccessibilityInfo.announceForAccessibility(message);
-    void speakOnce(message);
+    void AccessibilityInfo.isScreenReaderEnabled().then((enabled) => {
+      if (!enabled) void speakOnce(message);
+    });
 
     if (headingRef && "current" in headingRef) {
       const node = findNodeHandle(headingRef.current as Parameters<typeof findNodeHandle>[0]);
