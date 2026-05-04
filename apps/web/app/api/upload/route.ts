@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
 
       let file: File | null = null;
       let guestId: string | null = null;
+      let gameBibleId: string | null = null;
 
       try {
         send({ stage: "receiving", message: "Receiving your file…" });
@@ -70,9 +71,29 @@ export async function POST(req: NextRequest) {
         send({ stage: "extracting", message: "Extracting text from your file…" });
 
         const buffer = Buffer.from(await file.arrayBuffer());
+        const gameBible = await prisma.gameBible.create({
+          data: {
+            originalName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            rawText: "",
+            parsedData: "",
+            processingStatus: "uploaded",
+            uploaderId: ownerId,
+          },
+        });
+        gameBibleId = gameBible.id;
+        await prisma.gameBible.update({
+          where: { id: gameBibleId },
+          data: { processingStatus: "sniff_validating" },
+        });
+
         let rawText: string;
         try {
           rawText = await extractText(buffer, file.type, file.name);
+          await prisma.gameBible.update({
+            where: { id: gameBibleId },
+            data: { processingStatus: "parsed", rawText: rawText.slice(0, 200_000) },
+          });
         } catch (err) {
           const parseCode = err instanceof UploadParseError ? err.code : "unknown";
           const shouldQuarantine = [
@@ -83,28 +104,36 @@ export async function POST(req: NextRequest) {
           ].includes(parseCode as UploadParseErrorCode);
 
           if (shouldQuarantine) {
-            const q = await prisma.gameBible.create({
-              data: {
-                originalName: file.name,
-                mimeType: file.type || "application/octet-stream",
-                rawText: "",
-                parsedData: "",
-                processingStatus: "quarantine",
-                errorMessage: err instanceof Error ? err.message : String(err),
-                uploaderId: ownerId,
-              },
-            });
+            if (gameBibleId) {
+              await prisma.gameBible.update({
+                where: { id: gameBibleId },
+                data: {
+                  processingStatus: "quarantine",
+                  errorMessage: err instanceof Error ? err.message : String(err),
+                },
+              });
+            }
             await recordUploadAuditEvent({
               uploaderId: ownerId,
-              gameBibleId: q.id,
+              gameBibleId,
               action: "quarantined",
               reasonCode: String(parseCode),
               metadata: { filename: file.name, mimeType: file.type, size: file.size },
             });
-            console.warn("[upload] quarantined", { gameBibleId: q.id, reasonCode: parseCode, filename: file.name });
+            console.warn("[upload] quarantined", { gameBibleId, reasonCode: parseCode, filename: file.name });
           } else {
+            if (gameBibleId) {
+              await prisma.gameBible.update({
+                where: { id: gameBibleId },
+                data: {
+                  processingStatus: "failed",
+                  errorMessage: err instanceof Error ? err.message : String(err),
+                },
+              });
+            }
             await recordUploadAuditEvent({
               uploaderId: ownerId,
+              gameBibleId,
               action: "rejected",
               reasonCode: String(parseCode),
               metadata: { filename: file.name, mimeType: file.type, size: file.size },
@@ -135,6 +164,10 @@ export async function POST(req: NextRequest) {
         }
 
         send({ stage: "analysing", message: "The AI is reading your world — this takes about 15 seconds…" });
+        await prisma.gameBible.update({
+          where: { id: gameBibleId! },
+          data: { processingStatus: "ai_transforming" },
+        });
 
         // Send keep-alive pings so the proxy doesn't time out during the AI call
         const keepAlive = setInterval(() => {
@@ -157,17 +190,26 @@ export async function POST(req: NextRequest) {
         }
 
         send({ stage: "creating", message: `Building "${bible.worldName}"…` });
+        await prisma.gameBible.update({
+          where: { id: gameBibleId! },
+          data: { processingStatus: "publishing", parsedData: JSON.stringify(bible) },
+        });
 
         let worldId: string;
         try {
           worldId = await createWorldFromBible(
             bible,
             ownerId,
-            rawText,
-            file.name,
-            file.type || "text/plain"
+            gameBibleId!
           );
         } catch (err) {
+          await prisma.gameBible.update({
+            where: { id: gameBibleId! },
+            data: {
+              processingStatus: "failed",
+              errorMessage: err instanceof Error ? err.message : "database error",
+            },
+          });
           send({
             stage: "error",
             message: `Could not save your world: ${err instanceof Error ? err.message : "database error"}`,
@@ -176,11 +218,16 @@ export async function POST(req: NextRequest) {
         }
         await recordUploadAuditEvent({
           uploaderId: ownerId,
+          gameBibleId,
           action: "accepted",
           reasonCode: "world_created",
           metadata: { worldId, filename: file.name, mimeType: file.type, size: file.size },
         });
         console.info("[upload] accepted", { ownerId, worldId, filename: file.name });
+        await prisma.gameBible.update({
+          where: { id: gameBibleId! },
+          data: { processingStatus: "complete" },
+        });
 
         send({
           stage: "done",
