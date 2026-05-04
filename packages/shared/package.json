@@ -3,38 +3,38 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "node": "./src/index.ts",
-      "browser": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "node": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./gm": {
-      "types": "./src/gm.ts",
-      "node": "./src/gm.ts",
-      "browser": "./src/gm.ts",
-      "default": "./src/gm.ts"
+      "types": "./dist/gm.d.ts",
+      "node": "./dist/gm.js",
+      "browser": "./dist/gm.js",
+      "default": "./dist/gm.js"
     },
     "./bible": {
-      "types": "./src/bible.ts",
-      "node": "./src/bible.ts",
-      "browser": "./src/bible.ts",
-      "default": "./src/bible.ts"
+      "types": "./dist/bible.d.ts",
+      "node": "./dist/bible.js",
+      "browser": "./dist/bible.js",
+      "default": "./dist/bible.js"
     },
     "./events": {
-      "types": "./src/events.ts",
-      "node": "./src/events.ts",
-      "browser": "./src/events.ts",
-      "default": "./src/events.ts"
+      "types": "./dist/events.d.ts",
+      "node": "./dist/events.js",
+      "browser": "./dist/events.js",
+      "default": "./dist/events.js"
     },
     "./state": {
-      "types": "./src/state.ts",
-      "node": "./src/state.ts",
-      "browser": "./src/state.ts",
-      "default": "./src/state.ts"
+      "types": "./dist/state.d.ts",
+      "node": "./dist/state.js",
+      "browser": "./dist/state.js",
+      "default": "./dist/state.js"
     }
   },
   "scripts": {
