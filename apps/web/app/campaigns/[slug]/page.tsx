@@ -10,8 +10,11 @@ export function generateStaticParams() {
   return SEO_CAMPAIGNS.map((campaign) => ({ slug: campaign.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const campaign = getSeoCampaign(params.slug);
+type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const campaign = getSeoCampaign(slug);
   if (!campaign) return {};
   const canonical = `${SITE_URL}/campaigns/${campaign.slug}`;
   return {
@@ -27,8 +30,9 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function CampaignDetailPage({ params }: { params: { slug: string } }) {
-  const campaign = getSeoCampaign(params.slug);
+export default async function CampaignDetailPage({ params }: Props) {
+  const { slug } = await params;
+  const campaign = getSeoCampaign(slug);
   if (!campaign) notFound();
 
   return (
