@@ -214,7 +214,7 @@ export const useGameStore = create<GameStore>()(
       saveCurrentCampaign: () => set((state) => {
         if (!state.session || !state.character || !state.world) return {};
         const id = `${state.world.id}:${state.session.id}`;
-        const entry = { id, savedAt: Date.now(), session: state.session, character: state.character, world: state.world, dbSessionId: state.dbSessionId };
+        const entry = { id, savedAt: Date.now(), session: { ...state.session, isGenerating: false }, character: state.character, world: state.world, dbSessionId: state.dbSessionId };
         return {
           savedCampaigns: [entry, ...state.savedCampaigns.filter((c) => c.id !== id)].slice(0, 20),
         };
@@ -222,7 +222,7 @@ export const useGameStore = create<GameStore>()(
       loadSavedCampaign: (id) => set((state) => {
         const saved = state.savedCampaigns.find((c) => c.id === id);
         if (!saved) return {};
-        return { session: saved.session, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
+        return { session: { ...saved.session, isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
       }),
       deleteSavedCampaign: (id) => set((state) => ({
         savedCampaigns: state.savedCampaigns.filter((c) => c.id !== id),
@@ -235,7 +235,7 @@ export const useGameStore = create<GameStore>()(
         character: state.character,
         world: state.world,
         dbSessionId: state.dbSessionId,
-        savedCampaigns: state.savedCampaigns,
+        savedCampaigns: state.savedCampaigns.map((saved) => ({ ...saved, session: { ...saved.session, isGenerating: false } })),
       }),
     }
   )
