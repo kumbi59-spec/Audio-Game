@@ -179,6 +179,13 @@ export async function POST(req: NextRequest) {
           bible = await parseGameBible(rawText);
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
+          await prisma.gameBible.update({
+            where: { id: gameBibleId! },
+            data: {
+              processingStatus: "failed",
+              errorMessage: msg,
+            },
+          });
           console.error("[upload] parseGameBible failed:", msg);
           send({
             stage: "error",
