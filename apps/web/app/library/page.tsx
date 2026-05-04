@@ -51,7 +51,7 @@ export default function LibraryPage() {
   const router = useRouter();
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session, world: savedWorld, clearSession } = useGameStore();
+  const { session, world: savedWorld, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [worlds, setWorlds] = useState<WorldItem[]>([]);
@@ -146,14 +146,14 @@ export default function LibraryPage() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => router.push("/play")}
+                  onClick={() => { saveCurrentCampaign(); router.push("/play"); }}
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
                   style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
                 >
                   Resume →
                 </button>
                 <button
-                  onClick={clearSession}
+                  onClick={() => { saveCurrentCampaign(); clearSession(); }}
                   aria-label="Discard saved game"
                   className="rounded-lg border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400"
                   style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
@@ -164,6 +164,28 @@ export default function LibraryPage() {
             </div>
           )}
 
+
+
+          {savedCampaigns.length > 0 && (
+            <div className="mb-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+              <h2 className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>Saved campaigns</h2>
+              <ul className="space-y-2">
+                {savedCampaigns.map((save) => (
+                  <li key={save.id} className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm" style={{ color: "var(--text)" }}>{save.world.name}</p>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
+                      <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Share</button>
+                      <button onClick={() => deleteSavedCampaign(save.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Delete</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {/* Tab bar */}
           <div
             role="tablist"
