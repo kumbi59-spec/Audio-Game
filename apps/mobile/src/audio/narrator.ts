@@ -51,18 +51,27 @@ async function ensureProbed(): Promise<void> {
 let npcVoiceMap: Record<string, "voice_a" | "voice_b" | "voice_c"> = {};
 const ROLE_ORDER: Array<"voice_a" | "voice_b" | "voice_c"> = ["voice_a", "voice_b", "voice_c"];
 
+function npcVoiceKey(npcName: string): string {
+  return npcName.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function assignVoiceRole(npcName: string): "voice_a" | "voice_b" | "voice_c" {
-  if (npcVoiceMap[npcName]) return npcVoiceMap[npcName];
+  const key = npcVoiceKey(npcName);
+  if (npcVoiceMap[key]) return npcVoiceMap[key];
   const usedCount = Object.keys(npcVoiceMap).length;
   const role = ROLE_ORDER[usedCount % ROLE_ORDER.length] ?? "voice_a";
-  npcVoiceMap[npcName] = role;
+  npcVoiceMap[key] = role;
   return role;
 }
 
 export function updateNpcVoiceMap(
   assignments: Record<string, "voice_a" | "voice_b" | "voice_c">,
 ): void {
-  npcVoiceMap = { ...npcVoiceMap, ...assignments };
+  const normalized: Record<string, "voice_a" | "voice_b" | "voice_c"> = {};
+  for (const [name, role] of Object.entries(assignments)) {
+    normalized[npcVoiceKey(name)] = role;
+  }
+  npcVoiceMap = { ...npcVoiceMap, ...normalized };
 }
 
 export function resetNpcVoiceMap(): void {
