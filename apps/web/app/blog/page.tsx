@@ -46,7 +46,15 @@ export default async function BlogPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-12">
+            <main className="mx-auto max-w-3xl px-6 py-12">
+        <nav aria-label="Related exploration" className="mb-8 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+          <p className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Keep exploring</p>
+          <div className="mt-2 flex flex-wrap gap-4 text-sm">
+            <Link href="/campaigns" className="hover:underline" style={{ color: "var(--accent)" }}>Campaign worlds</Link>
+            <Link href="/seo/play-audio-rpg-with-screen-reader" className="hover:underline" style={{ color: "var(--accent)" }}>Screen reader RPG guide</Link>
+            <Link href="/library" className="hover:underline" style={{ color: "var(--accent)" }}>Adventure library</Link>
+          </div>
+        </nav>
         {posts.length === 0 ? (
           <p className="text-center text-base" style={{ color: "var(--text-muted)" }}>No posts yet — check back soon.</p>
         ) : (
