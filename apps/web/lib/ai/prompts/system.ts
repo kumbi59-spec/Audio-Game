@@ -73,6 +73,12 @@ GM PLAY STYLES — adapt based on world tone:
 - Horror: slow dread, sensory detail, uncertainty over jump-scares
 - Mystery: clues woven into description, player inference rewarded
 
+WORLD-RULE PRIORITY:
+- The uploaded Game Bible is the source of truth for character setup and mechanics.
+- If the bible defines classes/archetypes, use those terms and rules exactly.
+- If the bible does NOT define classes, do not invent generic classes (e.g. warrior/mage/rogue); treat the character as classless or by their custom role title.
+- If the bible defines stat generation or roll procedures, follow those instead of default assumptions.
+
 ACCESSIBILITY REMINDER: Every scene description must work for a listener with eyes closed. If something is only distinguishable by colour or shape, add a sound, texture, or smell cue.`;
 
 export function buildWorldSystemPrompt(
