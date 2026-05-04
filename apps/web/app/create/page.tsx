@@ -14,6 +14,17 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 type Step = "name" | "class" | "backstory" | "starting";
 
+const CLASSLESS_STARTING_STATS: CharacterData["stats"] = {
+  hp: 20,
+  maxHp: 20,
+  strength: 10,
+  dexterity: 10,
+  intelligence: 10,
+  charisma: 10,
+  level: 1,
+  experience: 0,
+};
+
 function CreateCharacterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -103,7 +114,10 @@ function CreateCharacterPage() {
     setIsStarting(true);
     narrate("Starting your adventure. The Game Master is preparing your world…");
 
+    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
     const classData = CLASS_DESCRIPTIONS[selectedClass];
+    const startingStats = worldDefinesClasses ? classData.startingStats : CLASSLESS_STARTING_STATS;
+    const startingItems = worldDefinesClasses ? classData.startingItems : [];
     const parsedAge = Number.parseInt(age.trim(), 10);
     const character: CharacterData = {
       id: `char-${Date.now()}`,
@@ -114,8 +128,8 @@ function CreateCharacterPage() {
       class: selectedClass,
       roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
       backstory: opts.skipBackstory ? "" : backstory.trim(),
-      stats: { ...classData.startingStats },
-      inventory: classData.startingItems.map((item, i) => ({
+      stats: { ...startingStats },
+      inventory: startingItems.map((item, i) => ({
         id: `item-${i}`,
         name: item,
         description: "",
