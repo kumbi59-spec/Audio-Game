@@ -73,9 +73,9 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
  * otherwise falls back to an upgrade prompt.
  * Returns null for paid users (showAds = false).
  */
-export function AdBanner() {
+export function AdBanner({ visible = true }: { visible?: boolean }) {
   const { showAds } = useCanWeb();
-  if (!showAds) return null;
+  if (!showAds || !visible) return null;
 
   if (PUB_ID && AD_SLOT) {
     return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;

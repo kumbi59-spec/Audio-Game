@@ -123,6 +123,7 @@ export function GameShell() {
   }
 
   const hasChoices = session.choices.length > 0;
+  const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 11 === 0;
   const degradedMessage = [...session.narrationLog]
     .reverse()
     .find((e) => e.type === "system" && /fallback|unstable|degraded/i.test(e.text))?.text;
@@ -241,7 +242,7 @@ export function GameShell() {
         </div>
 
         {/* Ad banner — free tier only */}
-        <AdBanner />
+        <AdBanner visible={shouldShowAdBanner} />
 
         {/* Bottom toolbar */}
         <div
