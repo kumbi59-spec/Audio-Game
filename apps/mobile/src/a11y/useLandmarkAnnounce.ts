@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AccessibilityInfo, findNodeHandle } from "react-native";
 import type { RefObject } from "react";
+import { speakOnce } from "@/audio/narrator";
 
 /**
  * Announces a screen's title + summary on mount so screen reader users
@@ -15,6 +16,9 @@ export function useLandmarkAnnounce(
   useEffect(() => {
     const message = summary ? `${title}. ${summary}` : title;
     AccessibilityInfo.announceForAccessibility(message);
+    void AccessibilityInfo.isScreenReaderEnabled().then((enabled) => {
+      if (!enabled) void speakOnce(message);
+    });
 
     if (headingRef && "current" in headingRef) {
       const node = findNodeHandle(headingRef.current as Parameters<typeof findNodeHandle>[0]);

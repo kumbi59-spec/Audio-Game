@@ -25,6 +25,7 @@ let prefs: NarratorPrefs = {
 let elevenLabs: ElevenLabsNarrator | null = null;
 let probed = false;
 let useElevenLabs = false;
+let probePromise: Promise<void> | null = null;
 
 export function configureNarrator(next: Partial<NarratorPrefs>): void {
   prefs = { ...prefs, ...next };
@@ -35,15 +36,22 @@ export function configureNarrator(next: Partial<NarratorPrefs>): void {
 
 async function ensureProbed(): Promise<void> {
   if (probed) return;
-  probed = true;
-  try {
-    useElevenLabs = await elevenLabsAvailable();
-    if (useElevenLabs) {
-      elevenLabs = new ElevenLabsNarrator(prefs.elevenLabsVoiceId);
-    }
-  } catch {
-    useElevenLabs = false;
+  if (probePromise) {
+    await probePromise;
+    return;
   }
+  probePromise = (async () => {
+    probed = true;
+    try {
+      useElevenLabs = await elevenLabsAvailable();
+      if (useElevenLabs) {
+        elevenLabs = new ElevenLabsNarrator(prefs.elevenLabsVoiceId);
+      }
+    } catch {
+      useElevenLabs = false;
+    }
+  })();
+  await probePromise;
 }
 
 // NPC name → assigned voice role, populated from voice_plan events and
@@ -98,7 +106,9 @@ export function stopNarration(): void {
 
 export async function speakOnce(text: string): Promise<void> {
   if (!prefs.enabled || !text.trim()) return;
-  await ensureProbed();
+  // Start capability probing in the background so first-use narration is
+  // immediate on screen load instead of waiting on a network round-trip.
+  void ensureProbed();
   if (useElevenLabs && elevenLabs) {
     elevenLabs.speak(text);
     return;
@@ -228,6 +238,7 @@ async function drain(): Promise<void> {
 }
 
 export function __resetNarratorForTests(): void {
+  probePromise = null;
   probed = false;
   useElevenLabs = false;
   elevenLabs = null;
