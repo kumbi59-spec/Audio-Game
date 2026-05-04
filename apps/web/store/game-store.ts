@@ -11,6 +11,7 @@ interface GameStore {
   world: WorldData | null;
   /** DB-persisted session ID (null when running in-memory only) */
   dbSessionId: string | null;
+  savedCampaigns: Array<{ id: string; savedAt: number; session: InMemorySession; character: CharacterData; world: WorldData; dbSessionId: string | null }>;
 
   setSession: (session: InMemorySession) => void;
   setCharacter: (character: CharacterData) => void;
@@ -28,6 +29,9 @@ interface GameStore {
   applyQuestMutation: (mutation: QuestMutation) => void;
   updateLocation: (locationId: string) => void;
   clearSession: () => void;
+  saveCurrentCampaign: () => void;
+  loadSavedCampaign: (id: string) => void;
+  deleteSavedCampaign: (id: string) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -37,6 +41,7 @@ export const useGameStore = create<GameStore>()(
       character: null,
       world: null,
       dbSessionId: null,
+      savedCampaigns: [],
 
       setSession: (session) => set({ session }),
       setCharacter: (character) => set({ character }),
@@ -206,6 +211,22 @@ export const useGameStore = create<GameStore>()(
 
       clearSession: () =>
         set({ session: null, character: null, world: null, dbSessionId: null }),
+      saveCurrentCampaign: () => set((state) => {
+        if (!state.session || !state.character || !state.world) return {};
+        const id = `${state.world.id}:${state.session.id}`;
+        const entry = { id, savedAt: Date.now(), session: { ...state.session, isGenerating: false }, character: state.character, world: state.world, dbSessionId: state.dbSessionId };
+        return {
+          savedCampaigns: [entry, ...state.savedCampaigns.filter((c) => c.id !== id)].slice(0, 20),
+        };
+      }),
+      loadSavedCampaign: (id) => set((state) => {
+        const saved = state.savedCampaigns.find((c) => c.id === id);
+        if (!saved) return {};
+        return { session: { ...saved.session, isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
+      }),
+      deleteSavedCampaign: (id) => set((state) => ({
+        savedCampaigns: state.savedCampaigns.filter((c) => c.id !== id),
+      })),
     }),
     {
       name: "echoquest-game",
@@ -214,6 +235,7 @@ export const useGameStore = create<GameStore>()(
         character: state.character,
         world: state.world,
         dbSessionId: state.dbSessionId,
+        savedCampaigns: state.savedCampaigns.map((saved) => ({ ...saved, session: { ...saved.session, isGenerating: false } })),
       }),
     }
   )
