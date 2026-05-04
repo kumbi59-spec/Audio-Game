@@ -28,6 +28,7 @@ function CreateCharacterPage() {
   const [name, setName] = useState("");
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
   const [selectedWorldClass, setSelectedWorldClass] = useState<string | null>(null);
+  const [customRoleTitle, setCustomRoleTitle] = useState("");
   const [pronouns, setPronouns] = useState("");
   const [age, setAge] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -75,15 +76,8 @@ function CreateCharacterPage() {
   function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    narrate(`Name set to ${name}. Step 2: Choose your class.`);
+    narrate(`Name set to ${name}. Step 2: Choose your role.`);
     setStep("class");
-  }
-
-  function handleClassSelect(cls: CharacterClass) {
-    setSelectedClass(cls);
-    setSelectedWorldClass(null);
-    const info = CLASS_DESCRIPTIONS[cls];
-    narrate(`${info.name} selected. ${info.description}. Press Continue to proceed or choose a different class.`);
   }
 
   function handleWorldClassSelect(cls: { name: string; description: string }) {
@@ -92,7 +86,10 @@ function CreateCharacterPage() {
   }
 
   function handleClassSubmit() {
-    const displayClass = selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name;
+    const displayClass =
+      selectedWorldClass ??
+      customRoleTitle.trim() ??
+      CLASS_DESCRIPTIONS[selectedClass].name;
     narrate(
       `Class confirmed as ${displayClass}. Step 3 of 3: Optional character details. ` +
       `You can fill in pronouns, age, appearance, and a written backstory, or skip them entirely. ` +
@@ -115,7 +112,7 @@ function CreateCharacterPage() {
       age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
       shortDescription: shortDescription.trim() || null,
       class: selectedClass,
-      roleTitle: selectedWorldClass ?? null,
+      roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
       backstory: opts.skipBackstory ? "" : backstory.trim(),
       stats: { ...classData.startingStats },
       inventory: classData.startingItems.map((item, i) => ({
@@ -302,7 +299,7 @@ function CreateCharacterPage() {
         {step === "class" && (
           <section aria-labelledby="step-class-heading">
             <h2 id="step-class-heading" className="mb-4 text-lg font-semibold">
-              Step 2: Choose your class, {name}
+              Step 2: Choose your role, {name}
             </h2>
             <div className="mb-4 space-y-3" role="radiogroup" aria-label="Character class">
               {world.classes && world.classes.length > 0
@@ -332,44 +329,31 @@ function CreateCharacterPage() {
                       </div>
                     </button>
                   ))
-                : Object.entries(CLASS_DESCRIPTIONS).map(([cls, info]) => (
-                    <button
-                      key={cls}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedClass === cls}
-                      onClick={() => handleClassSelect(cls as CharacterClass)}
-                      aria-label={`${info.name}: ${info.description}`}
-                      className={`surface-gradient inner-highlight flex cursor-pointer items-start gap-4 rounded-xl border p-4 motion-cta transition-colors ${
-                        selectedClass === cls
-                          ? "border-primary bg-accent"
-                          : "border-border bg-secondary hover:border-primary/50"
-                      }`}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={`mt-0.5 h-4 w-4 rounded-full border ${
-                          selectedClass === cls ? "border-primary bg-primary" : "border-border bg-background"
-                        }`}
-                      />
-                      <div>
-                        <p className="font-medium">{info.name}</p>
-                        <p className="text-sm text-muted-foreground">{info.description}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          HP: {info.startingStats.hp} · STR: {info.startingStats.strength} · DEX:{" "}
-                          {info.startingStats.dexterity} · INT: {info.startingStats.intelligence} · CHA:{" "}
-                          {info.startingStats.charisma}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
+                : (
+                  <div className="surface-gradient inner-highlight rounded-xl border border-border p-4">
+                    <p className="text-sm text-muted-foreground">
+                      This world&apos;s game bible does not define fixed classes. Enter any role/title you want, or leave it blank.
+                    </p>
+                    <label htmlFor="custom-role" className="mt-3 mb-1 block text-sm font-medium">
+                      Role / Title (optional)
+                    </label>
+                    <input
+                      id="custom-role"
+                      type="text"
+                      value={customRoleTitle}
+                      onChange={(e) => setCustomRoleTitle(e.target.value)}
+                      placeholder="e.g. Relic Diver, Street Oracle, Court Attaché"
+                      className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </div>
+                )}
             </div>
             <button
               onClick={handleClassSubmit}
               disabled={world.classes && world.classes.length > 0 ? !selectedWorldClass : false}
               className="surface-active-glow w-full rounded-lg bg-primary py-3 font-semibold text-primary-foreground motion-cta hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
             >
-              Continue with {selectedWorldClass ?? CLASS_DESCRIPTIONS[selectedClass].name} →
+              Continue with {(selectedWorldClass ?? customRoleTitle.trim()) || "your character"} →
             </button>
           </section>
         )}

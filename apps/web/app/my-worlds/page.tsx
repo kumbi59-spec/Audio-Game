@@ -392,7 +392,7 @@ export default function MyWorldsPage() {
                       </button>
                       {reparseResult[world.id]?.ok && reparseResult[world.id]!.classCount === 0 && (
                         <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
-                          No classes defined in your bible — generic classes will be used. Add a &ldquo;Character Classes&rdquo; or &ldquo;Roles&rdquo; section to your document and re-analyse.
+                          No classes defined in your bible — character creation will stay classless (or use a custom role title) to match your world rules.
                         </p>
                       )}
                     </div>
