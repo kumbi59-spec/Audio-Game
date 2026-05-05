@@ -10,6 +10,7 @@ import {
   applyMutations,
   buildMemoryBundle,
   buildTurnUserPrompt,
+  DEFAULT_MEMORY_BUDGET,
   type MemoryStore,
 } from "@audio-rpg/gm-engine";
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
@@ -151,6 +152,11 @@ export async function runTurn(
     campaignId: session.campaignId,
     worldId: session.worldId,
     query: inputText,
+    turnCount: session.state.turn_number,
+    budget: {
+      ...DEFAULT_MEMORY_BUDGET,
+      estimatedPromptTokens: Math.floor(inputText.length / 4) + session.state.turn_number * 150,
+    },
   });
 
   const userPrompt = buildTurnUserPrompt({
