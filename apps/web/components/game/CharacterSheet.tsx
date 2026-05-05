@@ -28,6 +28,27 @@ const CATEGORY_ICONS: Record<string, string> = {
   misc: "📦",
 };
 
+function normalizeStatLabel(key: string): string {
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).trim();
+}
+
+function buildUniqueShortLabel(label: string, used: Set<string>): string {
+  const compact = label.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "STAT";
+  for (let len = 3; len <= Math.min(6, compact.length); len += 1) {
+    const candidate = compact.slice(0, len);
+    if (!used.has(candidate)) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+  let suffix = 2;
+  const candidate = compact.slice(0, 3);
+  while (used.has(`${candidate}${suffix}`)) suffix += 1;
+  const finalLabel = `${candidate}${suffix}`;
+  used.add(finalLabel);
+  return finalLabel;
+}
+
 function StatBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   const pct = Math.round((Math.max(0, value) / Math.max(1, max)) * 100);
   return (
@@ -83,6 +104,28 @@ function StatsTab({ character }: { character: CharacterData }) {
   const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
 
   const customStatEntries = Object.entries(character.customStats ?? {});
+  const customPrimaryStats = (() => {
+    const used = new Set<string>();
+    return customStatEntries
+      .filter(([k]) => !k.endsWith("Max"))
+      .sort(([a], [b]) => normalizeStatLabel(a).localeCompare(normalizeStatLabel(b)))
+      .slice(0, 4)
+      .map(([key, value]) => {
+        const label = normalizeStatLabel(key);
+        return { label, short: buildUniqueShortLabel(label, used), value };
+      });
+  })();
+
+  const defaultPrimaryStats = [
+    { label: "STR", value: s.strength },
+    { label: "AGI", value: s.dexterity },
+    { label: "INT", value: s.intelligence },
+    { label: "CHA", value: s.charisma },
+  ];
+
+  const primaryStats = customPrimaryStats.length > 0
+    ? customPrimaryStats.map((stat) => ({ label: stat.short, value: stat.value }))
+    : defaultPrimaryStats;
 
   const xpNeeded = xpForNextLevel(s.level);
   const xpProgress = xpIntoLevel(s.experience, s.level);
@@ -155,10 +198,9 @@ function StatsTab({ character }: { character: CharacterData }) {
           Attributes
         </h3>
         <div className="grid grid-cols-4 gap-2">
-          <StatItem label="STR" value={s.strength} />
-          <StatItem label="DEX" value={s.dexterity} />
-          <StatItem label="INT" value={s.intelligence} />
-          <StatItem label="CHA" value={s.charisma} />
+          {primaryStats.map((stat) => (
+            <StatItem key={stat.label} label={stat.label} value={stat.value} />
+          ))}
         </div>
       </div>
 
@@ -459,6 +501,14 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       .filter(([k]) => !k.endsWith("Max"))
       .map(([k, v]) => `${k} ${v}`)
       .join(", ");
+    const customPrimaryStats = Object.entries(character.customStats ?? {})
+      .filter(([k]) => !k.endsWith("Max"))
+      .sort(([a], [b]) => normalizeStatLabel(a).localeCompare(normalizeStatLabel(b)))
+      .slice(0, 4)
+      .map(([key, value]) => ({
+        label: normalizeStatLabel(key),
+        value,
+      }));
     const xpNeeded = xpForNextLevel(s.level);
     const xpProgress = xpIntoLevel(s.experience, s.level);
     const text = [
@@ -466,7 +516,9 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       `Health: ${s.hp} of ${s.maxHp}.`,
       `Experience: ${s.experience} total. ${xpProgress} of ${xpNeeded} XP towards level ${s.level + 1}.`,
       custom ? `Other stats: ${custom}.` : "",
-      `Strength ${s.strength}, Dexterity ${s.dexterity}, Intelligence ${s.intelligence}, Charisma ${s.charisma}.`,
+      customPrimaryStats.length > 0
+        ? `Core stats: ${customPrimaryStats.map((stat) => `${stat.label} ${stat.value}`).join(", ")}.`
+        : `Strength ${s.strength}, Agility ${s.dexterity}, Intellect ${s.intelligence}, Charisma ${s.charisma}.`,
       `Inventory: ${inv}.`,
       `Active quests: ${active}.`,
     ].filter(Boolean).join(" ");
