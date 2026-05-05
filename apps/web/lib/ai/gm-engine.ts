@@ -11,7 +11,7 @@ import {
   buildCharacterStateBlock,
   buildWorldStateBlock,
 } from "./memory/context-window";
-import type { InMemorySession, GMResponse, PlayerAction } from "@/types/game";
+import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
@@ -34,6 +34,51 @@ export const TURN_RELIABILITY_POLICY = {
     choices: ["Take a cautious step forward", "Pause and assess", "Ask for a recap"],
   },
 } as const;
+
+function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
+  const text = `${action.type} ${action.content}`.toLowerCase();
+  const stats = character.stats;
+  const customStats = character.customStats ?? {};
+  const bonuses: PassiveBonus[] = [];
+
+  const pushBonus = (sourceStat: string, value: number, reason: string, targetRoll: string) => {
+    if (value <= 0) return;
+    bonuses.push({ sourceStat, value, reason, targetRoll });
+  };
+
+  const meleeKeywords = ["attack", "strike", "slash", "melee", "hit"];
+  const evadeKeywords = ["dodge", "evade", "avoid", "parry", "duck", "defend"];
+  const socialKeywords = ["persuade", "convince", "charm", "negotiate", "deceive"];
+
+  if (meleeKeywords.some((k) => text.includes(k))) {
+    pushBonus("strength", Math.max(0, Math.floor((stats.strength - 10) / 3)), "Physical power improves close-quarters attacks", "melee_attack");
+  }
+  if (evadeKeywords.some((k) => text.includes(k))) {
+    pushBonus("dexterity", Math.max(0, Math.floor((stats.dexterity - 10) / 4)), "Quick reflexes improve evasive reactions", "evade");
+  }
+  if (socialKeywords.some((k) => text.includes(k))) {
+    pushBonus("charisma", Math.max(0, Math.floor((stats.charisma - 10) / 4)), "Presence and confidence improve social influence", "social_check");
+  }
+
+  for (const [key, val] of Object.entries(customStats)) {
+    if (typeof val !== "number") continue;
+    if (key.toLowerCase().includes("armor") && text.includes("damage")) {
+      pushBonus(key, Math.max(0, Math.floor(val / 5)), "Defensive training softens incoming hits", "damage_taken");
+    }
+    if (key.toLowerCase().includes("luck")) {
+      pushBonus(key, Math.max(0, Math.floor(val / 8)), "Innate luck marginally improves risky outcomes", "general_risk");
+    }
+  }
+
+  const narration = bonuses.map((bonus) => {
+    if (bonus.targetRoll === "damage_taken") {
+      return `${bonus.sourceStat} bonus reduced incoming damage by ${bonus.value}.`;
+    }
+    return `${bonus.sourceStat.toUpperCase()} granted +${bonus.value} on ${bonus.targetRoll.replace(/_/g, " ")}.`;
+  });
+
+  return { bonuses, narration };
+}
 
 function degradedMessage(errorClass: ProviderErrorClass): string {
   const base = "The narrator connection is unstable, so we switched to a safe fallback turn.";
@@ -175,9 +220,13 @@ export async function* streamGMTurn(
       yield { type: "sound_cue", data: { cue: gmResponse.soundCue } };
     }
 
-    if (gmResponse.stateChanges) {
-      yield { type: "state_change", data: gmResponse.stateChanges };
-    }
+    const passive = computePassiveBonuses(action, character);
+    const mergedStateChanges = {
+      ...(gmResponse.stateChanges ?? {}),
+      passiveBonuses: passive.bonuses,
+      passiveBonusNarration: passive.narration,
+    };
+    yield { type: "state_change", data: mergedStateChanges };
 
     yield {
       type: "choices_ready",

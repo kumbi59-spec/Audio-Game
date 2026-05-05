@@ -45,6 +45,15 @@ export interface GameStateUpdate {
   npcStates?: Record<string, unknown>;
   inventoryChanges?: ItemMutation[];
   questChanges?: QuestMutation[];
+  passiveBonuses?: PassiveBonus[];
+  passiveBonusNarration?: string[];
+}
+
+export interface PassiveBonus {
+  sourceStat: string;
+  value: number;
+  reason: string;
+  targetRoll: string;
 }
 
 
