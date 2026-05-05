@@ -25,6 +25,25 @@ const CLASSLESS_STARTING_STATS: CharacterData["stats"] = {
   experience: 0,
 };
 
+
+function parseCustomStatNames(rulesNotes?: string): string[] {
+  if (!rulesNotes) return [];
+  const threeStatsMatch = rulesNotes.match(/three stats\s*:\s*([^\n]+)/i);
+  if (threeStatsMatch?.[1]) {
+    return threeStatsMatch[1]
+      .split(",")
+      .map((part) => part.trim().split(/\s*\(/)[0]?.trim() ?? "")
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
+  const bulletMatches = [...rulesNotes.matchAll(/[-*]\s*([A-Za-z][A-Za-z\s'-]{1,24})\s*:\s*/g)]
+    .map((m) => m[1]?.trim() ?? "")
+    .filter((v) => /stat|skill|attribute|lore|grit|sense|focus|will|might|agility|intellect|charisma|dexterity|strength/i.test(v));
+
+  return Array.from(new Set(bulletMatches)).slice(0, 4);
+}
+
 function CreateCharacterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +64,8 @@ function CreateCharacterPage() {
   const [shortDescription, setShortDescription] = useState("");
   const [backstory, setBackstory] = useState("");
   const [isStarting, setIsStarting] = useState(false);
+  const [coreStatOverrides, setCoreStatOverrides] = useState(CLASS_DESCRIPTIONS[selectedClass].startingStats);
+  const [customStatOverrides, setCustomStatOverrides] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const prebuiltWorld = PREBUILT_WORLDS.find((w) => w.id === worldId);
@@ -84,6 +105,25 @@ function CreateCharacterPage() {
     narrate(`Character creation for ${world.name}. Step 1: Enter your character's name.`);
   }, [world, narrate]);
 
+  useEffect(() => {
+    if (!world) return;
+    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
+    const starting = worldDefinesClasses ? CLASS_DESCRIPTIONS[selectedClass].startingStats : CLASSLESS_STARTING_STATS;
+    setCoreStatOverrides({ ...starting });
+
+    const customNames = parseCustomStatNames(world.rulesNotes);
+    if (customNames.length > 0) {
+      setCustomStatOverrides((prev) => {
+        const next: Record<string, number> = {};
+        for (const name of customNames) next[name] = prev[name] ?? 10;
+        return next;
+      });
+    } else {
+      setCustomStatOverrides({});
+    }
+  }, [selectedClass, world]);
+
+
   function handleNameSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
@@ -116,7 +156,7 @@ function CreateCharacterPage() {
 
     const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
     const classData = CLASS_DESCRIPTIONS[selectedClass];
-    const startingStats = worldDefinesClasses ? classData.startingStats : CLASSLESS_STARTING_STATS;
+    const startingStats = { ...coreStatOverrides };
     const startingItems = worldDefinesClasses ? classData.startingItems : [];
     const parsedAge = Number.parseInt(age.trim(), 10);
     const character: CharacterData = {
@@ -129,6 +169,7 @@ function CreateCharacterPage() {
       roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
       backstory: opts.skipBackstory ? "" : backstory.trim(),
       stats: { ...startingStats },
+      ...(Object.keys(customStatOverrides).length > 0 ? { customStats: { ...customStatOverrides } } : {}),
       inventory: startingItems.map((item, i) => ({
         id: `item-${i}`,
         name: item,
@@ -441,6 +482,66 @@ function CreateCharacterPage() {
                   className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
+            </div>
+            <div className="surface-gradient inner-highlight mb-4 rounded-lg border border-border p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Customize Stat Points
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  ["Strength", "strength"],
+                  ["Agility", "dexterity"],
+                  ["Intellect", "intelligence"],
+                  ["Charisma", "charisma"],
+                ] as const).map(([label, key]) => (
+                  <label key={key} className="text-xs text-muted-foreground">
+                    {label}
+                    <input
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={coreStatOverrides[key]}
+                      onChange={(e) => {
+                        const next = Number.parseInt(e.target.value, 10);
+                        setCoreStatOverrides((prev) => ({
+                          ...prev,
+                          [key]: Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : prev[key],
+                        }));
+                      }}
+                      className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </label>
+                ))}
+              </div>
+
+              {Object.keys(customStatOverrides).length > 0 && (
+                <div className="mt-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    World-defined Stats
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {Object.entries(customStatOverrides).map(([label, value]) => (
+                      <label key={label} className="text-xs text-muted-foreground">
+                        {label}
+                        <input
+                          type="number"
+                          min={1}
+                          max={30}
+                          value={value}
+                          onChange={(e) => {
+                            const next = Number.parseInt(e.target.value, 10);
+                            setCustomStatOverrides((prev) => ({
+                              ...prev,
+                              [label]: Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : prev[label],
+                            }));
+                          }}
+                          className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <p className="mb-4 text-sm text-muted-foreground">
               Tell the Game Master about your character&apos;s past. This shapes how NPCs and the world respond to you.
