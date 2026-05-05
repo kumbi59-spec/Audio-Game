@@ -51,6 +51,29 @@ describe("buildMemoryBundle", () => {
     expect(bundle.scenes).toHaveLength(3);
   });
 
+
+  it("omits retrieved turns that are already present in recent turns", async () => {
+    const store = makeStore();
+
+    vi.mocked(store.recentTurns).mockResolvedValueOnce([
+      { turnNumber: 8, role: "player", text: "recent-8" },
+      { turnNumber: 9, role: "gm", text: "overlap" },
+      { turnNumber: 10, role: "player", text: "recent-10" },
+    ]);
+    vi.mocked(store.searchTurns).mockResolvedValueOnce([
+      { turnNumber: 9, role: "gm", text: "overlap" },
+      { turnNumber: 7, role: "gm", text: "retrieved-7" },
+    ]);
+
+    const bundle = await buildMemoryBundle(store, {
+      campaignId: "c4",
+      worldId: "w4",
+      query: "overlap",
+      turnCount: 10,
+    });
+
+    expect(bundle.retrieved).toEqual([{ turnNumber: 7, role: "gm", text: "retrieved-7" }]);
+  });
   it("clamps retrieval sizes when estimated prompt tokens are near budget", async () => {
     const store = makeStore();
 

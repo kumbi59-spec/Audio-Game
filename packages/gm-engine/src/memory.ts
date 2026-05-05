@@ -87,7 +87,13 @@ export async function buildMemoryBundle(
     store.searchTurns(opts.campaignId, opts.query, sizes.retrieved),
     store.searchBible(opts.worldId, opts.query, sizes.bibleHits),
   ]);
-  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved, bibleHits };
+  const recentKeys = new Set(recent.map((turn) => toTurnKey(turn)));
+  const uniqueRetrieved = retrieved.filter((turn) => !recentKeys.has(toTurnKey(turn)));
+  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved: uniqueRetrieved, bibleHits };
+}
+
+function toTurnKey(turn: MemoryTurn): string {
+  return `${turn.turnNumber}|${turn.role}|${turn.text}`;
 }
 
 function getCampaignPhase(turnCount: number, budget: MemoryBudget): "early" | "mid" | "late" {
