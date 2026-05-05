@@ -40,6 +40,32 @@ interface BlogPost {
 type Tab = "users" | "worlds" | "blog";
 
 const EMPTY_DRAFT = { title: "", excerpt: "", content: "", publishedAt: "" };
+type SeoCheck = { label: string; pass: boolean };
+
+function stripMarkdown(markdown: string): string {
+  return markdown
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`[^`]*`/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\[[^\]]+\]\([^)]+\)/g, " ")
+    .replace(/[#>*_~-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getSeoChecks(post: BlogPost): SeoCheck[] {
+  const plain = stripMarkdown(post.content);
+  const primaryPhrase = post.title.toLowerCase().split(/\s+/).slice(0, 4).join(" ").trim();
+  const first100Words = plain.toLowerCase().split(/\s+/).slice(0, 100).join(" ");
+  return [
+    { label: "Meta description", pass: post.excerpt.trim().length >= 80 },
+    { label: "Keyword in first 100 words", pass: !!primaryPhrase && first100Words.includes(primaryPhrase) },
+    { label: "Has H2/H3 section", pass: /^#{2,3}\s+/m.test(post.content) },
+    { label: "Internal link", pass: /\]\(\/(blog|library|campaigns|pricing|worlds)(?:\/[^)]*)?\)/i.test(post.content) },
+    { label: "External link", pass: /\]\(https?:\/\/(?!echoquest\.app)[^)]+\)/i.test(post.content) },
+    { label: "Image alt text", pass: /!\[[^\]]{4,}\]\([^)]+\)/.test(post.content) },
+  ];
+}
 
 export default function AdminPage() {
   const router = useRouter();
@@ -92,6 +118,7 @@ export default function AdminPage() {
   const [blogError, setBlogError] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState("");
+  const [seoFixing, setSeoFixing] = useState(false);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   async function seedPosts(force = false) {
@@ -111,6 +138,26 @@ export default function AdminPage() {
       setSeedResult(err instanceof Error ? err.message : "Seed failed.");
     } finally {
       setSeeding(false);
+    }
+  }
+
+  async function applySeoFixes() {
+    setSeoFixing(true);
+    setSeedResult("");
+    try {
+      const res = await fetch("/api/admin/blog/seo-fix", { method: "POST" });
+      const data = await res.json().catch(() => ({})) as { error?: string; updatedCount?: number };
+      if (!res.ok) {
+        setSeedResult(data.error ?? `SEO fix failed (${res.status}).`);
+        return;
+      }
+      const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
+      setPosts(Array.isArray(newPosts) ? newPosts : []);
+      setSeedResult(`Applied SEO updates to ${data.updatedCount ?? 0} posts.`);
+    } catch (err) {
+      setSeedResult(err instanceof Error ? err.message : "SEO fix failed.");
+    } finally {
+      setSeoFixing(false);
     }
   }
 
@@ -433,6 +480,12 @@ export default function AdminPage() {
                     style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
                     + New post
                   </button>
+                  <button onClick={applySeoFixes} disabled={seoFixing}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Auto-updates existing blog content with baseline SEO improvements.">
+                    {seoFixing ? "Applying SEO…" : "Auto-fix existing SEO"}
+                  </button>
                 </div>
               </div>
               {seedResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{seedResult}</p>}
@@ -459,6 +512,15 @@ export default function AdminPage() {
                           className="text-xs hover:underline" style={{ color: "var(--accent)" }}>
                           View ↗
                         </Link>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {getSeoChecks(p).map((check) => (
+                          <span key={check.label}
+                            className="rounded-full border px-2 py-0.5 text-[10px] font-medium"
+                            style={{ borderColor: check.pass ? "#16a34a" : "#f59e0b", color: check.pass ? "#16a34a" : "#f59e0b" }}>
+                            {check.pass ? "✓" : "!"} {check.label}
+                          </span>
+                        ))}
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-2">
@@ -493,14 +555,14 @@ export default function AdminPage() {
                 <div>
                   <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Title</label>
                   <input type="text" value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                    placeholder="Post title"
+                    placeholder="Post title (include your primary keyword naturally)"
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Excerpt <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(shown in list)</span></label>
+                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Excerpt <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(shown in list + used as meta description)</span></label>
                   <input type="text" value={draft.excerpt} onChange={(e) => setDraft((d) => ({ ...d, excerpt: e.target.value }))}
-                    placeholder="Short summary shown on the blog index…"
+                    placeholder="1–2 sentence summary with the target keyword and user intent."
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
                 </div>
@@ -508,9 +570,21 @@ export default function AdminPage() {
                   <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Content <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(Markdown)</span></label>
                   <textarea ref={contentRef} value={draft.content}
                     onChange={(e) => setDraft((d) => ({ ...d, content: e.target.value }))}
-                    rows={16} placeholder="Write your post in Markdown…"
+                    rows={16} placeholder="Write your post in Markdown. Use the target keyword in the first paragraph, add at least one H2/H3 with the key phrase, include internal/external links, and add image alt text."
                     className="w-full rounded-lg border px-3 py-2 font-mono text-sm"
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)", resize: "vertical" }} />
+                </div>
+                <div className="rounded-lg border p-4 text-sm" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}>
+                  <p className="font-semibold">SEO publishing checklist</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5" style={{ color: "var(--text-muted)" }}>
+                    <li>Confirm keyword + intent from Ahrefs/SEMrush/Google Keyword Planner before writing.</li>
+                    <li>Keep URL short and descriptive when choosing the slug.</li>
+                    <li>Use the target phrase in title, excerpt (meta description), and at least one H2/H3.</li>
+                    <li>Put the target phrase naturally in the first ~100 words.</li>
+                    <li>Use short paragraphs and add useful multimedia with descriptive alt text.</li>
+                    <li>Add internal links to relevant EchoQuest posts/pages and external links to reputable sources.</li>
+                    <li>Include an author section and revisit posts periodically for freshness + broken links.</li>
+                  </ul>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Publish date <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(leave blank to save as draft)</span></label>
