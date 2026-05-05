@@ -13,15 +13,25 @@ import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { OperationsManual } from "@/components/game/OperationsManual";
+import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
 import { AdBanner } from "@/components/ads/AdBanner";
-import type { PlayerAction } from "@/types/game";
+import type { PlayerAction, SceneTransition } from "@/types/game";
 
 export function GameShell() {
-  const { session, character, world, submitAction, replayLast, speakText } =
+  const {
+    session,
+    character,
+    world,
+    submitAction,
+    replayLast,
+    speakText,
+    sceneTransitionHint,
+    clearSceneTransitionHint,
+  } =
     useGameSession();
   const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
   const {
@@ -30,6 +40,8 @@ export function GameShell() {
     openOperationsManual,
     closeOperationsManual,
     markOperationsManualSeen,
+    reducedMotion,
+    audioOnlyMode,
   } = useAccessibilityStore();
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
@@ -39,6 +51,8 @@ export function GameShell() {
   const [choicesMinimized, setChoicesMinimized] = useState(false);
   const panelHeadingRef = useRef<HTMLSpanElement>(null);
   const openingSpokenRef = useRef(false);
+  const previousLocationIdRef = useRef<string | null>(null);
+  const [sceneTransition, setSceneTransition] = useState<SceneTransition | null>(null);
 
   const shareRecap = useCallback(async () => {
     if (!session || !world) return;
@@ -92,6 +106,29 @@ export function GameShell() {
     if (!session || operationsManualSeen) return;
     openOperationsManual();
   }, [session, operationsManualSeen, openOperationsManual]);
+
+  const currentLocationId = session?.currentLocationId ?? null;
+
+  useEffect(() => {
+    if (!currentLocationId || !world) return;
+    const prevLocationId = previousLocationIdRef.current;
+    const nextLocationId = currentLocationId;
+    previousLocationIdRef.current = nextLocationId;
+    if (!prevLocationId || !nextLocationId || prevLocationId === nextLocationId) return;
+    const from = world.locations.find((l) => l.id === prevLocationId);
+    const to = world.locations.find((l) => l.id === nextLocationId);
+    setSceneTransition({
+      type: "location",
+      title: to?.name ?? "Unknown Location",
+      subtitle: from ? `${from.name} → ${to?.name ?? "Unknown Location"}` : to?.shortDesc,
+    });
+  }, [currentLocationId, world]);
+
+  useEffect(() => {
+    if (!sceneTransitionHint) return;
+    setSceneTransition(sceneTransitionHint);
+    clearSceneTransitionHint();
+  }, [sceneTransitionHint, clearSceneTransitionHint]);
 
   const handleCloseOperationsManual = useCallback(() => {
     closeOperationsManual();
@@ -176,6 +213,12 @@ export function GameShell() {
       <AmbientPlayer
         isNarratorSpeaking={speaking}
         isNarratorLoading={session.isGenerating}
+      />
+      <SceneTransitionLayer
+        transition={sceneTransition}
+        reducedMotion={reducedMotion}
+        instantMode={audioOnlyMode}
+        onComplete={() => setSceneTransition(null)}
       />
       <AudioUnlocker />
       <KeyboardShortcuts

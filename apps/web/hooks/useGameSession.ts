@@ -9,7 +9,7 @@ import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
-import type { PlayerAction, NarrationEntry, GMResponse, SoundCue } from "@/types/game";
+import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition } from "@/types/game";
 import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
 import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
@@ -39,6 +39,7 @@ export function useGameSession() {
   // Per-session NPC name → voice slot map (A/B/C), reset when session changes
   const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
   const [lastNarration, setLastNarration] = useState("");
+  const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   // Reset the NPC voice map whenever a new session starts
@@ -188,6 +189,17 @@ export function useGameSession() {
                     applyInventoryMutation(mut);
                   }
                 }
+                if (change.sceneTransition && typeof change.sceneTransition === "object") {
+                  const transition = change.sceneTransition as Partial<SceneTransition>;
+                  if (transition.type && transition.title) {
+                    setSceneTransitionHint({
+                      type: transition.type,
+                      title: transition.title,
+                      subtitle: transition.subtitle,
+                      durationMs: transition.durationMs,
+                    });
+                  }
+                }
                 if (Array.isArray(change.questChanges)) {
                   for (const mut of change.questChanges as import("@/types/game").QuestMutation[]) {
                     applyQuestMutation(mut);
@@ -294,5 +306,7 @@ export function useGameSession() {
     replayLast,
     speakText,
     lastNarration,
+    sceneTransitionHint,
+    clearSceneTransitionHint: () => setSceneTransitionHint(null),
   };
 }
