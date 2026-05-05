@@ -12,8 +12,10 @@ import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
+import { OperationsManual } from "@/components/game/OperationsManual";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAudioStore } from "@/store/audio-store";
+import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
 import { AdBanner } from "@/components/ads/AdBanner";
 import type { PlayerAction } from "@/types/game";
@@ -22,6 +24,13 @@ export function GameShell() {
   const { session, character, world, submitAction, replayLast, speakText } =
     useGameSession();
   const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
+  const {
+    operationsManualSeen,
+    operationsManualOpen,
+    openOperationsManual,
+    closeOperationsManual,
+    markOperationsManualSeen,
+  } = useAccessibilityStore();
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
@@ -76,6 +85,26 @@ export function GameShell() {
       speakText(latestNarration.text);
     }
   }, [session, speakText]);
+
+  useEffect(() => {
+    if (!session || operationsManualSeen) return;
+    openOperationsManual();
+  }, [session, operationsManualSeen, openOperationsManual]);
+
+  const handleCloseOperationsManual = useCallback(() => {
+    closeOperationsManual();
+    if (!operationsManualSeen) {
+      markOperationsManualSeen();
+    }
+  }, [closeOperationsManual, operationsManualSeen, markOperationsManualSeen]);
+
+  const handleToggleOperationsManual = useCallback(() => {
+    if (operationsManualOpen) {
+      handleCloseOperationsManual();
+      return;
+    }
+    openOperationsManual();
+  }, [operationsManualOpen, handleCloseOperationsManual, openOperationsManual]);
 
   const handleAction = useCallback(
     (action: PlayerAction) => {
@@ -142,7 +171,12 @@ export function GameShell() {
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
         onToggleCharacterSheet={() => setSheetOpen((o) => !o)}
+        onToggleHelpManual={handleToggleOperationsManual}
         isSpeaking={speaking}
+      />
+      <OperationsManual
+        open={operationsManualOpen}
+        onClose={handleCloseOperationsManual}
       />
 
       {sheetOpen && (
@@ -280,6 +314,18 @@ export function GameShell() {
 
           {/* HUD / Sheet / Recap / Exit */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleToggleOperationsManual}
+              aria-pressed={operationsManualOpen}
+              aria-label={operationsManualOpen ? "Close Help / Operations Manual" : "Open Help / Operations Manual (H)"}
+              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                operationsManualOpen
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              Help
+            </button>
             <button
               onClick={() => setSheetOpen((o) => !o)}
               aria-pressed={sheetOpen}
