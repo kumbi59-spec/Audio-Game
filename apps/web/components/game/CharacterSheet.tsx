@@ -83,6 +83,25 @@ function StatsTab({ character }: { character: CharacterData }) {
   const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
 
   const customStatEntries = Object.entries(character.customStats ?? {});
+  const customPrimaryStats = customStatEntries
+    .filter(([k]) => !k.endsWith("Max"))
+    .slice(0, 4)
+    .map(([key, value]) => ({
+      label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      short: key.slice(0, 3).toUpperCase(),
+      value,
+    }));
+
+  const defaultPrimaryStats = [
+    { label: "STR", value: s.strength },
+    { label: "AGI", value: s.dexterity },
+    { label: "INT", value: s.intelligence },
+    { label: "CHA", value: s.charisma },
+  ];
+
+  const primaryStats = customPrimaryStats.length > 0
+    ? customPrimaryStats.map((stat) => ({ label: stat.short, value: stat.value }))
+    : defaultPrimaryStats;
 
   const xpNeeded = xpForNextLevel(s.level);
   const xpProgress = xpIntoLevel(s.experience, s.level);
@@ -155,10 +174,9 @@ function StatsTab({ character }: { character: CharacterData }) {
           Attributes
         </h3>
         <div className="grid grid-cols-4 gap-2">
-          <StatItem label="STR" value={s.strength} />
-          <StatItem label="DEX" value={s.dexterity} />
-          <StatItem label="INT" value={s.intelligence} />
-          <StatItem label="CHA" value={s.charisma} />
+          {primaryStats.map((stat) => (
+            <StatItem key={stat.label} label={stat.label} value={stat.value} />
+          ))}
         </div>
       </div>
 
@@ -459,6 +477,13 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       .filter(([k]) => !k.endsWith("Max"))
       .map(([k, v]) => `${k} ${v}`)
       .join(", ");
+    const customPrimaryStats = Object.entries(character.customStats ?? {})
+      .filter(([k]) => !k.endsWith("Max"))
+      .slice(0, 4)
+      .map(([key, value]) => ({
+        label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        value,
+      }));
     const xpNeeded = xpForNextLevel(s.level);
     const xpProgress = xpIntoLevel(s.experience, s.level);
     const text = [
@@ -466,7 +491,9 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       `Health: ${s.hp} of ${s.maxHp}.`,
       `Experience: ${s.experience} total. ${xpProgress} of ${xpNeeded} XP towards level ${s.level + 1}.`,
       custom ? `Other stats: ${custom}.` : "",
-      `Strength ${s.strength}, Dexterity ${s.dexterity}, Intelligence ${s.intelligence}, Charisma ${s.charisma}.`,
+      customPrimaryStats.length > 0
+        ? `Core stats: ${customPrimaryStats.map((stat) => `${stat.label} ${stat.value}`).join(", ")}.`
+        : `Strength ${s.strength}, Agility ${s.dexterity}, Intellect ${s.intelligence}, Charisma ${s.charisma}.`,
       `Inventory: ${inv}.`,
       `Active quests: ${active}.`,
     ].filter(Boolean).join(" ");

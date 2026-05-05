@@ -21,7 +21,25 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
   const s = character.stats;
   const hpPercent = Math.round((s.hp / s.maxHp) * 100);
 
-  const statusText = `${character.name}, ${character.class}. Health: ${s.hp} of ${s.maxHp}. Location: ${location?.name ?? "Unknown"}. ${session.timeOfDay}, ${session.weather}.`;
+  const customCoreStats = Object.entries(character.customStats ?? {})
+    .filter(([key]) => !key.endsWith("Max"))
+    .slice(0, 3)
+    .map(([key, value]) => ({
+      label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      short: key.slice(0, 3).toUpperCase(),
+      value,
+    }));
+
+  const defaultCoreStats = [
+    { label: "Strength", short: "STR", value: s.strength },
+    { label: "Agility", short: "AGI", value: s.dexterity },
+    { label: "Intellect", short: "INT", value: s.intelligence },
+  ];
+
+  const coreStats = customCoreStats.length > 0 ? customCoreStats : defaultCoreStats;
+  const coreStatSpeech = coreStats.map((stat) => `${stat.label} ${stat.value}`).join(", ");
+
+  const statusText = `${character.name}, ${character.class}. Health: ${s.hp} of ${s.maxHp}. ${coreStatSpeech}. Location: ${location?.name ?? "Unknown"}. ${session.timeOfDay}, ${session.weather}.`;
 
   function readStatusAloud() {
     announce(statusText);
@@ -35,6 +53,18 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       aria-label="Character status"
       className="grid gap-2 rounded-lg border border-border bg-background/70 p-3 text-sm md:grid-cols-[auto,1fr,auto,auto]"
     >
+      {/* Portrait + core stats */}
+      <div className="flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1" aria-label="Character portrait and core attributes">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-sm" aria-hidden="true">
+          {character.class === "warrior" ? "🛡️" : character.class === "rogue" ? "🗡️" : character.class === "mage" ? "🔮" : character.class === "ranger" ? "🏹" : "🎵"}
+        </div>
+        <div className="flex gap-2 text-xs font-mono text-muted-foreground">
+          {coreStats.map((stat) => (
+            <span key={stat.short}>{stat.short} {stat.value}</span>
+          ))}
+        </div>
+      </div>
+
       {/* HP */}
       <div
         role="meter"
