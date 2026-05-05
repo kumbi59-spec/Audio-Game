@@ -5,6 +5,7 @@ import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
 import type {
   CampaignStore,
+  CriticalFactRecord,
   PersistTurnArgs,
   StoredCampaign,
   StoredCampaignSummary,
@@ -16,7 +17,7 @@ interface MemCampaign extends StoredCampaign {
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
   sceneSummaries: { sceneNumber: number; summary: string; keyEvents: string[] }[];
-  criticalFacts: { turnNumber: number; text: string }[];
+  criticalFacts: CriticalFactRecord[];
 }
 
 /**
@@ -181,18 +182,10 @@ export class MemoryCampaignStore implements CampaignStore {
     }
   }
 
-  async persistCriticalFacts(campaignId: string, facts: string[]): Promise<void> {
+  async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
     const existing = this.campaigns.get(campaignId);
     if (!existing || facts.length === 0) return;
-    const turnNumber = existing.state.turn_number;
-    for (const text of facts) {
-      if (!existing.criticalFacts.some((f) => f.text === text)) {
-        existing.criticalFacts.push({ turnNumber, text });
-      }
-    }
-    if (existing.criticalFacts.length > 200) {
-      existing.criticalFacts.splice(0, existing.criticalFacts.length - 200);
-    }
+    existing.criticalFacts = normalizeAndTrimCriticalFacts([...existing.criticalFacts, ...facts], 200);
   }
 
   memoryStore(): MemoryStore {
@@ -225,8 +218,37 @@ export class MemoryCampaignStore implements CampaignStore {
       async criticalFacts(campaignId: string, n: number) {
         const c = self.campaigns.get(campaignId);
         if (!c) return [];
-        return c.criticalFacts.slice(-n);
+        return c.criticalFacts.slice(-n).map(({ turnNumber, text }) => ({ turnNumber, text }));
       },
     };
   }
+}
+
+function semanticKey(fact: CriticalFactRecord): string {
+  const normalizedText = fact.text.trim().toLowerCase().replace(/\s+/g, " ");
+  const refs = Array.from(new Set(fact.entityRefs.map((ref) => ref.trim().toLowerCase()).filter(Boolean))).sort();
+  return `${fact.kind}|${normalizedText}|${refs.join(",")}`;
+}
+
+function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: number): CriticalFactRecord[] {
+  const deduped = new Map<string, CriticalFactRecord>();
+  for (const fact of facts) {
+    if (!fact.text?.trim()) continue;
+    const normalized: CriticalFactRecord = {
+      turnNumber: Math.max(0, Number.isFinite(fact.turnNumber) ? fact.turnNumber : 0),
+      text: fact.text.trim(),
+      kind: fact.kind,
+      importance: Number.isFinite(fact.importance) ? fact.importance : 0,
+      entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
+    };
+    const key = semanticKey(normalized);
+    const existing = deduped.get(key);
+    if (!existing || normalized.importance > existing.importance || (normalized.importance === existing.importance && normalized.turnNumber >= existing.turnNumber)) {
+      deduped.set(key, normalized);
+    }
+  }
+  return Array.from(deduped.values())
+    .sort((a, b) => (a.importance === b.importance ? b.turnNumber - a.turnNumber : b.importance - a.importance))
+    .slice(0, maxFacts)
+    .sort((a, b) => a.turnNumber - b.turnNumber);
 }
