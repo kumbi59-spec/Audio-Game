@@ -23,12 +23,12 @@ export function AmbientPlayer({
       : ambientVolume;
 
   useEffect(() => {
-    if (!ambientEnabled || currentAmbient === "none" || (!isNarratorSpeaking && !isNarratorLoading)) {
+    if (!ambientEnabled || currentAmbient === "none") {
       stopAmbient();
     } else {
-      playAmbient(currentAmbient, effectiveVolume);
+      playAmbient(currentAmbient, ambientVolume);
     }
-  }, [currentAmbient, ambientEnabled, effectiveVolume, isNarratorSpeaking, isNarratorLoading]);
+  }, [currentAmbient, ambientEnabled, ambientVolume]);
 
   useEffect(() => {
     setAmbientVolume(effectiveVolume);
