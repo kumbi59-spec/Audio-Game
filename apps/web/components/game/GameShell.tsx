@@ -35,7 +35,9 @@ export function GameShell() {
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetTab, setSheetTab] = useState<"stats" | "inventory" | "quests" | "bio">("stats");
   const [choicesMinimized, setChoicesMinimized] = useState(false);
+  const panelHeadingRef = useRef<HTMLSpanElement>(null);
   const openingSpokenRef = useRef(false);
 
   const shareRecap = useCallback(async () => {
@@ -143,6 +145,18 @@ export function GameShell() {
     speak(text, { rate: ttsSpeed, volume });
   }, [character, session, world, ttsSpeed, volume]);
 
+  const focusPanelHeading = useCallback(() => {
+    requestAnimationFrame(() => panelHeadingRef.current?.focus());
+  }, []);
+
+  const handleOpenSheetTab = useCallback((tab: "inventory" | "quests") => {
+    setSheetTab(tab);
+    setSheetOpen(true);
+    focusPanelHeading();
+  }, [focusPanelHeading]);
+
+  const activeQuestCount = character?.quests.filter((q) => q.status === "active").length ?? 0;
+
   if (!session || !character || !world) {
     return (
       <div role="status" className="flex h-full items-center justify-center">
@@ -171,6 +185,8 @@ export function GameShell() {
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
         onToggleCharacterSheet={() => setSheetOpen((o) => !o)}
+        onToggleInventory={() => handleOpenSheetTab("inventory")}
+        onToggleQuestLog={() => handleOpenSheetTab("quests")}
         onToggleHelpManual={handleToggleOperationsManual}
         isSpeaking={speaking}
       />
@@ -180,7 +196,13 @@ export function GameShell() {
       />
 
       {sheetOpen && (
-        <CharacterSheet character={character} onClose={() => setSheetOpen(false)} />
+        <CharacterSheet
+          character={character}
+          onClose={() => setSheetOpen(false)}
+          initialTab={sheetTab}
+          headingId="character-sheet-heading"
+          headingRef={panelHeadingRef}
+        />
       )}
 
       <div
@@ -337,6 +359,30 @@ export function GameShell() {
               }`}
             >
               Sheet
+            </button>
+            <button
+              onClick={() => handleOpenSheetTab("inventory")}
+              aria-label={`Open inventory (I). ${character.inventory.length} items.`}
+              className="relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Briefcase
+              {character.inventory.length > 0 && (
+                <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary" aria-hidden="true">
+                  {character.inventory.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => handleOpenSheetTab("quests")}
+              aria-label={`Open quest log (Q). ${activeQuestCount} active quests.`}
+              className="relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Quest Book
+              {activeQuestCount > 0 && (
+                <span className="ml-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] text-primary" aria-hidden="true">
+                  {activeQuestCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setHudOpen((h) => !h)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type RefObject } from "react";
 import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
@@ -9,6 +9,11 @@ import type { CharacterData } from "@/types/character";
 interface CharacterSheetProps {
   character: CharacterData;
   onClose: () => void;
+  initialTab?: Tab;
+  activeTab?: Tab;
+  onTabChange?: (tab: Tab) => void;
+  headingId?: string;
+  headingRef?: RefObject<HTMLSpanElement>;
 }
 
 type Tab = "stats" | "inventory" | "quests" | "bio";
@@ -452,12 +457,25 @@ function BioTab({ character }: { character: CharacterData }) {
   );
 }
 
-export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
-  const [tab, setTab] = useState<Tab>("stats");
+export function CharacterSheet({
+  character,
+  onClose,
+  initialTab = "stats",
+  activeTab,
+  onTabChange,
+  headingId,
+  headingRef,
+}: CharacterSheetProps) {
+  const [uncontrolledTab, setUncontrolledTab] = useState<Tab>(initialTab);
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const tab = activeTab ?? uncontrolledTab;
+
+  useEffect(() => {
+    if (!activeTab) setUncontrolledTab(initialTab);
+  }, [initialTab, activeTab]);
 
   // Trap focus inside dialog
   useEffect(() => {
@@ -488,7 +506,8 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
   }, [onClose]);
 
   function switchTab(t: Tab) {
-    setTab(t);
+    if (!activeTab) setUncontrolledTab(t);
+    onTabChange?.(t);
     announce(TAB_LABELS[t]);
   }
 
@@ -573,7 +592,13 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <span className="truncate text-sm font-bold" style={{ color: "var(--text)" }}>
+            <span
+              id={headingId}
+              ref={headingRef}
+              tabIndex={-1}
+              className="truncate text-sm font-bold"
+              style={{ color: "var(--text)" }}
+            >
               {character.name}
             </span>
             <span className="ml-2 text-xs" style={{ color: "var(--text-muted)" }}>
