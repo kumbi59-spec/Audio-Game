@@ -34,6 +34,7 @@ export interface QuestMutation {
 }
 
 export interface GameStateUpdate {
+  sceneTransition?: SceneTransition;
   hp?: number;
   /** Arbitrary stat deltas — e.g. { mp: -10, stamina: -5 } */
   statDeltas?: Record<string, number>;
@@ -44,6 +45,14 @@ export interface GameStateUpdate {
   npcStates?: Record<string, unknown>;
   inventoryChanges?: ItemMutation[];
   questChanges?: QuestMutation[];
+}
+
+
+export interface SceneTransition {
+  type: string;
+  title: string;
+  subtitle?: string;
+  durationMs?: number;
 }
 
 export interface NPCAction {
