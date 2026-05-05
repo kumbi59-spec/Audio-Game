@@ -11,7 +11,7 @@ export const SHORTCUT_HELP = [
   { key: "[", description: "Slow down speech" },
   { key: "]", description: "Speed up speech" },
   { key: "M", description: "Toggle ambient sound" },
-  { key: "H", description: "Open / close keyboard help" },
+  { key: "H", description: "Open / close Help / Operations Manual" },
   { key: "1–9", description: "Select a numbered choice" },
   { key: "T", description: "Focus the action input" },
   { key: "V", description: "Activate voice input" },
@@ -33,6 +33,7 @@ interface KeyboardShortcutsProps {
   onToggleVoice?: () => void;
   onReadLocation?: () => void;
   onReadStatus?: () => void;
+  onToggleHelpManual?: () => void;
   isSpeaking?: boolean;
 }
 
@@ -46,6 +47,7 @@ export function KeyboardShortcuts({
   onToggleVoice,
   onReadLocation,
   onReadStatus,
+  onToggleHelpManual,
   isSpeaking = false,
 }: KeyboardShortcutsProps) {
   const { keyboardHelpOpen, setKeyboardHelpOpen } = useAccessibilityStore();
@@ -101,7 +103,7 @@ export function KeyboardShortcuts({
         case "h":
         case "H":
           e.preventDefault();
-          setKeyboardHelpOpen(!keyboardHelpOpen);
+          onToggleHelpManual?.();
           break;
         case "t":
         case "T":
@@ -148,7 +150,7 @@ export function KeyboardShortcuts({
       isSpeaking, ttsSpeed, ambientEnabled, keyboardHelpOpen,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
-      setTTSSpeed, setAmbientEnabled, setKeyboardHelpOpen,
+      setTTSSpeed, setAmbientEnabled, onToggleHelpManual,
     ]
   );
 

@@ -7,6 +7,8 @@ interface AccessibilityStore {
   largeText: boolean;
   audioOnlyMode: boolean;
   keyboardHelpOpen: boolean;
+  operationsManualSeen: boolean;
+  operationsManualOpen: boolean;
   lastAnnouncement: string;
 
   setHighContrast: (value: boolean) => void;
@@ -14,6 +16,9 @@ interface AccessibilityStore {
   setLargeText: (value: boolean) => void;
   setAudioOnlyMode: (value: boolean) => void;
   setKeyboardHelpOpen: (value: boolean) => void;
+  openOperationsManual: () => void;
+  closeOperationsManual: () => void;
+  markOperationsManualSeen: () => void;
   announce: (message: string) => void;
 }
 
@@ -25,6 +30,8 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       largeText: false,
       audioOnlyMode: false,
       keyboardHelpOpen: false,
+      operationsManualSeen: false,
+      operationsManualOpen: false,
       lastAnnouncement: "",
 
       setHighContrast: (value) => set({ highContrast: value }),
@@ -32,6 +39,9 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       setLargeText: (value) => set({ largeText: value }),
       setAudioOnlyMode: (value) => set({ audioOnlyMode: value }),
       setKeyboardHelpOpen: (value) => set({ keyboardHelpOpen: value }),
+      openOperationsManual: () => set({ operationsManualOpen: true }),
+      closeOperationsManual: () => set({ operationsManualOpen: false }),
+      markOperationsManualSeen: () => set({ operationsManualSeen: true }),
       announce: (message) => set({ lastAnnouncement: message }),
     }),
     { name: "audio-game-a11y" }
