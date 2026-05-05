@@ -139,5 +139,7 @@ export function getPersistence() {
       campaignId: string,
       summary: { sceneNumber: number; summary: string; keyEvents: string[] },
     ) => store.persistSceneSummary(campaignId, summary),
+    persistCriticalFacts: (campaignId: string, facts: string[]) =>
+      store.persistCriticalFacts(campaignId, facts),
   };
 }

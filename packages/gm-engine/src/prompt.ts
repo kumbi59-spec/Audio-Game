@@ -99,6 +99,14 @@ export function buildTurnUserPrompt(opts: {
     }
   }
 
+  if (memory.criticalFacts.length) {
+    parts.push("\n## Critical continuity facts");
+    for (const fact of memory.criticalFacts.slice(0, 10)) {
+      const concise = fact.text.replace(/\s+/g, " ").trim().slice(0, 180);
+      parts.push(`- [t${fact.turnNumber}] ${concise}`);
+    }
+  }
+
   if (memory.recent.length) {
     parts.push("\n## Last turns");
     for (const t of memory.recent) {

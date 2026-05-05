@@ -13,6 +13,8 @@ export interface MemoryStore {
   searchTurns(campaignId: string, query: string, k: number): Promise<MemoryTurn[]>;
   /** Retrieve the most relevant Game Bible chunks for a query. */
   searchBible(worldId: string, query: string, k: number): Promise<BibleChunk[]>;
+  /** Deterministic high-priority continuity anchors. */
+  criticalFacts(campaignId: string, n: number): Promise<CriticalFact[]>;
 }
 
 export interface MemoryTurn {
@@ -31,6 +33,11 @@ export interface BibleChunk {
   categories: string[];
   text: string;
   score: number;
+}
+
+export interface CriticalFact {
+  turnNumber: number;
+  text: string;
 }
 
 export interface MemoryBudget {
@@ -81,13 +88,14 @@ export async function buildMemoryBundle(
     },
     budget,
   );
-  const [recent, scenes, retrieved, bibleHits] = await Promise.all([
+  const [recent, scenes, retrieved, bibleHits, criticalFacts] = await Promise.all([
     store.recentTurns(opts.campaignId, sizes.recent),
     store.sceneSummaries(opts.campaignId),
     store.searchTurns(opts.campaignId, opts.query, sizes.retrieved),
     store.searchBible(opts.worldId, opts.query, sizes.bibleHits),
+    store.criticalFacts(opts.campaignId, 10),
   ]);
-  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved, bibleHits };
+  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved, bibleHits, criticalFacts };
 }
 
 function getCampaignPhase(turnCount: number, budget: MemoryBudget): "early" | "mid" | "late" {
@@ -117,6 +125,7 @@ export interface MemoryBundle {
   scenes: SceneSummary[];
   retrieved: MemoryTurn[];
   bibleHits: BibleChunk[];
+  criticalFacts: CriticalFact[];
 }
 
 /** Truncate a bible down to a size safe to put in a cached system block. */

@@ -354,6 +354,24 @@ export class PostgresCampaignStore implements CampaignStore {
     );
   }
 
+  async persistCriticalFacts(campaignId: string, facts: string[]): Promise<void> {
+    await this.ready;
+    if (facts.length === 0) return;
+    await this.pool.query(
+      `UPDATE campaigns
+          SET critical_facts = (
+            SELECT to_jsonb(
+              ARRAY(
+                SELECT DISTINCT x
+                FROM jsonb_array_elements_text(coalesce(critical_facts, '[]'::jsonb) || $2::jsonb) AS x
+              )
+            )
+          )
+        WHERE campaign_id = $1`,
+      [campaignId, JSON.stringify(facts)],
+    );
+  }
+
   /**
    * Inject an embedder after construction. We can't take one in the ctor
    * because DATABASE_URL is known before credentials are resolved; any
@@ -371,6 +389,7 @@ export class PostgresCampaignStore implements CampaignStore {
       sceneSummaries: (campaignId) => this.sceneSummaries(campaignId),
       searchTurns: (campaignId, query, k) => this.searchTurns(campaignId, query, k),
       searchBible: (worldId, query, k) => this.searchBible(worldId, query, k),
+      criticalFacts: (campaignId, n) => this.criticalFacts(campaignId, n),
     };
   }
 
@@ -473,6 +492,18 @@ export class PostgresCampaignStore implements CampaignStore {
       summary: r.summary,
       keyEvents: r.key_events ?? [],
     }));
+  }
+
+  private async criticalFacts(campaignId: string, n: number): Promise<{ turnNumber: number; text: string }[]> {
+    await this.ready;
+    const { rows } = await this.pool.query<{ critical_facts: string[]; state: CampaignState }>(
+      `SELECT critical_facts, state FROM campaigns WHERE campaign_id = $1`,
+      [campaignId],
+    );
+    const row = rows[0];
+    if (!row) return [];
+    const turnNumber = row.state.turn_number;
+    return (row.critical_facts ?? []).slice(-n).map((text) => ({ turnNumber, text }));
   }
 }
 
