@@ -28,6 +28,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
 
   return (
     <nav aria-label="Available choices">
+      {/* A11y motion checklist: interactions stay fully visible/usable without animation; movement is decorative only; reduced-motion users get static controls. */}
       <ol ref={listRef} className="flex flex-col gap-2.5">
         {choices.map((choice, i) => (
           <li key={i}>
@@ -35,7 +36,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
               onClick={() => onSelect(i, choice)}
               disabled={disabled}
               aria-label={`Option ${i + 1}: ${choice}`}
-              className="flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+              className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
             >
               <span
                 aria-hidden="true"
@@ -48,6 +49,26 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
           </li>
         ))}
       </ol>
+      <style jsx>{`
+        @media (prefers-reduced-motion: no-preference) {
+          .choice-button {
+            transition:
+              transform var(--motion-fast) var(--ease-decelerate),
+              opacity var(--motion-fast) var(--ease-standard),
+              box-shadow var(--motion-medium) var(--ease-standard);
+          }
+          .choice-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+          }
+          .choice-button:active:not(:disabled) {
+            transform: translateY(0) scale(0.99);
+            opacity: 0.96;
+          }
+          .choice-button:focus-visible {
+            animation: focusPulse var(--motion-medium) var(--ease-standard) 1;
+          }
+        }
+      `}</style>
     </nav>
   );
 }

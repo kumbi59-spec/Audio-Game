@@ -68,6 +68,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
       aria-label="Audio controls"
       className="rounded-xl border border-border bg-muted/30 p-3"
     >
+      {/* A11y motion checklist: playback state remains announced via aria-live text; icons/buttons remain understandable without motion; reduced-motion keeps controls static. */}
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Narration controls
@@ -82,7 +83,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           onClick={togglePlay}
           aria-label={paused ? "Resume narration (Space)" : "Pause narration (Space)"}
           disabled={!speaking && !paused}
-          className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="audio-control-btn rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           {paused ? "▶ Resume" : "⏸ Pause"}
         </button>
@@ -91,7 +92,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           onClick={stopSpeech}
           aria-label="Stop narration"
           disabled={!speaking && !paused}
-          className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           ⏹ Stop
         </button>
@@ -100,7 +101,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           onClick={onReplayLast}
           aria-label="Replay last narration (R)"
           disabled={disableReplay || speaking}
-          className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           🔁 Replay
         </button>
@@ -204,6 +205,25 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           </label>
         </div>
       </details>
+      <style jsx>{`
+        @media (prefers-reduced-motion: no-preference) {
+          .audio-control-btn {
+            transition:
+              transform var(--motion-fast) var(--ease-decelerate),
+              opacity var(--motion-fast) var(--ease-standard),
+              background-color var(--motion-medium) var(--ease-standard);
+          }
+          .audio-control-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+          }
+          .audio-control-btn:active:not(:disabled) {
+            transform: scale(0.98);
+          }
+          .audio-control-btn:focus-visible {
+            animation: focusPulse var(--motion-medium) var(--ease-standard) 1;
+          }
+        }
+      `}</style>
     </section>
   );
 }

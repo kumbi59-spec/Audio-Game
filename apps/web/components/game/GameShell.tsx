@@ -349,6 +349,7 @@ export function GameShell() {
           aria-label="Game controls"
           className="flex shrink-0 items-center justify-between border-t border-border bg-muted/10 px-4 py-2"
         >
+          {/* A11y motion checklist: labels/icons communicate state without animation; all controls are keyboard/focus operable; reduced-motion uses static visuals. */}
           {/* Speed controls */}
           <div className="flex items-center gap-1" aria-label="Narration speed">
             <button
@@ -356,7 +357,7 @@ export function GameShell() {
                 setTTSSpeed(Math.max(0.5, parseFloat((ttsSpeed - 0.1).toFixed(1))))
               }
               aria-label="Decrease narration speed"
-              className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               −
             </button>
@@ -371,7 +372,7 @@ export function GameShell() {
                 setTTSSpeed(Math.min(2, parseFloat((ttsSpeed + 0.1).toFixed(1))))
               }
               aria-label="Increase narration speed"
-              className="flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               +
             </button>
@@ -383,7 +384,7 @@ export function GameShell() {
               onClick={handleToggleOperationsManual}
               aria-pressed={operationsManualOpen}
               aria-label={operationsManualOpen ? "Close Help / Operations Manual" : "Open Help / Operations Manual (H)"}
-              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 operationsManualOpen
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -395,7 +396,7 @@ export function GameShell() {
               onClick={() => setSheetOpen((o) => !o)}
               aria-pressed={sheetOpen}
               aria-label={sheetOpen ? "Close character sheet" : "Open character sheet (C)"}
-              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 sheetOpen
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -406,7 +407,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("inventory")}
               aria-label={`Open inventory (I). ${character.inventory.length} items.`}
-              className="relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Briefcase
               {character.inventory.length > 0 && (
@@ -418,7 +419,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("quests")}
               aria-label={`Open quest log (Q). ${activeQuestCount} active quests.`}
-              className="relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Quest Book
               {activeQuestCount > 0 && (
@@ -431,7 +432,7 @@ export function GameShell() {
               onClick={() => setHudOpen((h) => !h)}
               aria-pressed={hudOpen}
               aria-label={hudOpen ? "Close HUD" : "Open HUD — status and audio settings"}
-              className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 hudOpen
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -442,26 +443,46 @@ export function GameShell() {
             <button
               onClick={replayLast}
               aria-label="Replay last narration (R)"
-              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Recap
             </button>
             <button
               onClick={shareRecap}
               aria-label="Share your session recap"
-              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Share Recap
             </button>
             <Link
               href="/library"
               aria-label="Exit game and return to library"
-              className="rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               ← Exit
             </Link>
           </div>
         </div>
+        <style jsx>{`
+          @media (prefers-reduced-motion: no-preference) {
+            .toolbar-btn {
+              transition:
+                transform var(--motion-fast) var(--ease-decelerate),
+                opacity var(--motion-fast) var(--ease-standard),
+                background-color var(--motion-medium) var(--ease-standard);
+            }
+            .toolbar-btn:hover {
+              transform: translateY(-1px);
+            }
+            .toolbar-btn:active {
+              transform: scale(0.98);
+              opacity: 0.95;
+            }
+            .toolbar-btn:focus-visible {
+              animation: focusPulse var(--motion-medium) var(--ease-standard) 1;
+            }
+          }
+        `}</style>
       </div>
     </>
   );

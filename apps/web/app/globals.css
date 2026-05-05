@@ -35,11 +35,14 @@
   --focus-ring:   #7c6af7;
 
   /* Motion */
-  --motion-fast: 140ms;
+  --motion-fast: 120ms;
+  --motion-medium: 180ms;
   --motion-normal: 220ms;
   --motion-reveal: 320ms;
   --ease-standard: cubic-bezier(0.2, 0.0, 0, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
 
   /* Legacy aliases (keep Tailwind utilities working) */
   --background:   var(--bg);
@@ -130,6 +133,15 @@
   50%       { transform: translateY(-4px); }
 }
 
+@keyframes focusPulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--accent-dim);
+  }
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
 /* ─── Base styles ─────────────────────────────────────────────────────────── */
 
 @layer base {
@@ -194,6 +206,7 @@
   .animate-shimmer        { animation: shimmer 2s linear infinite; }
   .animate-echo-pulse     { animation: echoQuestPulse 2s ease-in-out infinite; }
   .animate-bounce-subtle  { animation: bounce 1.4s ease-in-out infinite; }
+  .animate-focus-pulse { animation: focusPulse var(--motion-medium) var(--ease-standard) 1; }
 
   /* Shimmer loading skeleton */
   .skeleton {
