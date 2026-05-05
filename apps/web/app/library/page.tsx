@@ -153,7 +153,7 @@ export default function LibraryPage() {
                   Resume →
                 </button>
                 <button
-                  onClick={() => { saveCurrentCampaign(); clearSession(); }}
+                  onClick={clearSession}
                   aria-label="Discard saved game"
                   className="rounded-lg border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400"
                   style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
