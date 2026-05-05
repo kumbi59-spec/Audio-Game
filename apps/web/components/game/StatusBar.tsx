@@ -14,6 +14,27 @@ interface StatusBarProps {
   id?: string;
 }
 
+function normalizeStatLabel(key: string): string {
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).trim();
+}
+
+function buildUniqueShortLabel(label: string, used: Set<string>): string {
+  const compact = label.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "STAT";
+  for (let len = 3; len <= Math.min(6, compact.length); len += 1) {
+    const candidate = compact.slice(0, len);
+    if (!used.has(candidate)) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+  let suffix = 2;
+  let candidate = compact.slice(0, 3);
+  while (used.has(`${candidate}${suffix}`)) suffix += 1;
+  const finalLabel = `${candidate}${suffix}`;
+  used.add(finalLabel);
+  return finalLabel;
+}
+
 export function StatusBar({ character, session, world, id = "status-bar" }: StatusBarProps) {
   const { announce } = useAnnouncer();
   const { ttsSpeed, volume } = useAudioStore();
@@ -21,14 +42,17 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
   const s = character.stats;
   const hpPercent = Math.round((s.hp / s.maxHp) * 100);
 
-  const customCoreStats = Object.entries(character.customStats ?? {})
-    .filter(([key]) => !key.endsWith("Max"))
-    .slice(0, 3)
-    .map(([key, value]) => ({
-      label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      short: key.slice(0, 3).toUpperCase(),
-      value,
-    }));
+  const customCoreStats = (() => {
+    const used = new Set<string>();
+    return Object.entries(character.customStats ?? {})
+      .filter(([key]) => !key.endsWith("Max"))
+      .sort(([a], [b]) => normalizeStatLabel(a).localeCompare(normalizeStatLabel(b)))
+      .slice(0, 3)
+      .map(([key, value]) => {
+        const label = normalizeStatLabel(key);
+        return { label, short: buildUniqueShortLabel(label, used), value };
+      });
+  })();
 
   const defaultCoreStats = [
     { label: "Strength", short: "STR", value: s.strength },

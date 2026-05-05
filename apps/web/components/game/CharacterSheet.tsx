@@ -28,6 +28,27 @@ const CATEGORY_ICONS: Record<string, string> = {
   misc: "📦",
 };
 
+function normalizeStatLabel(key: string): string {
+  return key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()).trim();
+}
+
+function buildUniqueShortLabel(label: string, used: Set<string>): string {
+  const compact = label.replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "STAT";
+  for (let len = 3; len <= Math.min(6, compact.length); len += 1) {
+    const candidate = compact.slice(0, len);
+    if (!used.has(candidate)) {
+      used.add(candidate);
+      return candidate;
+    }
+  }
+  let suffix = 2;
+  const candidate = compact.slice(0, 3);
+  while (used.has(`${candidate}${suffix}`)) suffix += 1;
+  const finalLabel = `${candidate}${suffix}`;
+  used.add(finalLabel);
+  return finalLabel;
+}
+
 function StatBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
   const pct = Math.round((Math.max(0, value) / Math.max(1, max)) * 100);
   return (
@@ -83,14 +104,17 @@ function StatsTab({ character }: { character: CharacterData }) {
   const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
 
   const customStatEntries = Object.entries(character.customStats ?? {});
-  const customPrimaryStats = customStatEntries
-    .filter(([k]) => !k.endsWith("Max"))
-    .slice(0, 4)
-    .map(([key, value]) => ({
-      label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-      short: key.slice(0, 3).toUpperCase(),
-      value,
-    }));
+  const customPrimaryStats = (() => {
+    const used = new Set<string>();
+    return customStatEntries
+      .filter(([k]) => !k.endsWith("Max"))
+      .sort(([a], [b]) => normalizeStatLabel(a).localeCompare(normalizeStatLabel(b)))
+      .slice(0, 4)
+      .map(([key, value]) => {
+        const label = normalizeStatLabel(key);
+        return { label, short: buildUniqueShortLabel(label, used), value };
+      });
+  })();
 
   const defaultPrimaryStats = [
     { label: "STR", value: s.strength },
@@ -479,9 +503,10 @@ export function CharacterSheet({ character, onClose }: CharacterSheetProps) {
       .join(", ");
     const customPrimaryStats = Object.entries(character.customStats ?? {})
       .filter(([k]) => !k.endsWith("Max"))
+      .sort(([a], [b]) => normalizeStatLabel(a).localeCompare(normalizeStatLabel(b)))
       .slice(0, 4)
       .map(([key, value]) => ({
-        label: key.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        label: normalizeStatLabel(key),
         value,
       }));
     const xpNeeded = xpForNextLevel(s.level);
