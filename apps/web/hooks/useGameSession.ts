@@ -205,6 +205,17 @@ export function useGameSession() {
                     applyQuestMutation(mut);
                   }
                 }
+                if (Array.isArray(change.passiveBonuses)) {
+                  updateFlags({ passiveBonuses: change.passiveBonuses as unknown });
+                }
+                if (Array.isArray(change.passiveBonusNarration) && change.passiveBonusNarration.length > 0) {
+                  addNarrationEntry({
+                    id: (Date.now() + 3).toString(),
+                    text: `Combat modifiers: ${(change.passiveBonusNarration as string[]).join(" ")}`,
+                    type: "system",
+                    timestamp: new Date(),
+                  });
+                }
               } else if (eventType === "choices_ready") {
                 // Full response parsed — update choices and add narration entry
                 const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;

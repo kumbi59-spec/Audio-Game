@@ -64,6 +64,9 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
   const coreStatSpeech = coreStats.map((stat) => `${stat.label} ${stat.value}`).join(", ");
 
   const statusText = `${character.name}, ${character.class}. Health: ${s.hp} of ${s.maxHp}. ${coreStatSpeech}. Location: ${location?.name ?? "Unknown"}. ${session.timeOfDay}, ${session.weather}.`;
+  const passiveBonuses = Array.isArray(session.globalFlags?.passiveBonuses)
+    ? (session.globalFlags.passiveBonuses as Array<{ sourceStat: string; value: number; targetRoll: string }>)
+    : [];
 
   function readStatusAloud() {
     announce(statusText);
@@ -138,6 +141,17 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       {/* Turn count */}
       <div aria-label={`Turn ${session.turnCount}`} className="text-muted-foreground md:justify-self-end">
         Turn {session.turnCount}
+      </div>
+
+      <div
+        aria-label="Current combat modifiers"
+        className="rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground md:col-span-2"
+      >
+        {passiveBonuses.length > 0
+          ? `Modifiers: ${passiveBonuses
+              .map((b) => `${b.sourceStat.toUpperCase()} +${b.value} ${b.targetRoll.replace(/_/g, " ")}`)
+              .join(" • ")}`
+          : "Modifiers: None active"}
       </div>
 
       {/* Read status button */}

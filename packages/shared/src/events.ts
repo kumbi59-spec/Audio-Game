@@ -3,6 +3,14 @@ import { ChoiceOption, PlayerInput, SoundCue, StateMutation } from "./gm.js";
 
 const EventVersion = z.literal("v1").optional();
 
+export const PassiveBonus = z.object({
+  sourceStat: z.string(),
+  value: z.number(),
+  reason: z.string(),
+  targetRoll: z.string(),
+});
+export type PassiveBonus = z.infer<typeof PassiveBonus>;
+
 export const VoiceRole = z.enum(["narrator", "voice_a", "voice_b", "voice_c"]);
 export type VoiceRole = z.infer<typeof VoiceRole>;
 
@@ -37,6 +45,8 @@ export const ServerEvent = z.discriminatedUnion("type", [
     v: EventVersion,
     turnId: z.string(),
     mutations: z.array(StateMutation),
+    passiveBonuses: z.array(PassiveBonus).optional(),
+    bonusNarration: z.array(z.string()).optional(),
   }),
   z.object({
     type: z.literal("sound_cue"),
