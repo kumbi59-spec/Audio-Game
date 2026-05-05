@@ -33,6 +33,34 @@ export interface BibleChunk {
   score: number;
 }
 
+export interface MemoryBudget {
+  earlyGameMaxTurn: number;
+  midGameMaxTurn: number;
+  estimatedPromptTokens: number;
+  maxPromptTokens: number;
+  recentTurns: { early: number; mid: number; late: number };
+  retrievedTurns: { early: number; mid: number; late: number };
+  sceneSummaries: { early: number; mid: number; late: number };
+  bibleHits: { early: number; mid: number; late: number };
+  tokenThresholds: { warning: number; critical: number };
+  reductionStep: number;
+  minimums: { recentTurns: number; retrievedTurns: number; sceneSummaries: number; bibleHits: number };
+}
+
+export const DEFAULT_MEMORY_BUDGET: MemoryBudget = {
+  earlyGameMaxTurn: 6,
+  midGameMaxTurn: 20,
+  estimatedPromptTokens: 0,
+  maxPromptTokens: 8_000,
+  recentTurns: { early: 4, mid: 6, late: 8 },
+  retrievedTurns: { early: 2, mid: 4, late: 5 },
+  sceneSummaries: { early: 1, mid: 2, late: 3 },
+  bibleHits: { early: 7, mid: 5, late: 3 },
+  tokenThresholds: { warning: 0.75, critical: 0.9 },
+  reductionStep: 1,
+  minimums: { recentTurns: 2, retrievedTurns: 1, sceneSummaries: 1, bibleHits: 1 },
+};
+
 /**
  * Compose the memory bundle we inject into each GM turn. Keeps the hot
  * context small enough to live alongside the cached Bible without
@@ -40,15 +68,48 @@ export interface BibleChunk {
  */
 export async function buildMemoryBundle(
   store: MemoryStore,
-  opts: { campaignId: string; worldId: string; query: string },
+  opts: { campaignId: string; worldId: string; query: string; turnCount?: number; budget?: MemoryBudget },
 ): Promise<MemoryBundle> {
+  const budget = opts.budget ?? DEFAULT_MEMORY_BUDGET;
+  const phase = getCampaignPhase(opts.turnCount ?? 0, budget);
+  const sizes = applyTokenClamp(
+    {
+      recent: budget.recentTurns[phase],
+      retrieved: budget.retrievedTurns[phase],
+      scenes: budget.sceneSummaries[phase],
+      bibleHits: budget.bibleHits[phase],
+    },
+    budget,
+  );
   const [recent, scenes, retrieved, bibleHits] = await Promise.all([
-    store.recentTurns(opts.campaignId, 8),
+    store.recentTurns(opts.campaignId, sizes.recent),
     store.sceneSummaries(opts.campaignId),
-    store.searchTurns(opts.campaignId, opts.query, 4),
-    store.searchBible(opts.worldId, opts.query, 5),
+    store.searchTurns(opts.campaignId, opts.query, sizes.retrieved),
+    store.searchBible(opts.worldId, opts.query, sizes.bibleHits),
   ]);
-  return { recent, scenes, retrieved, bibleHits };
+  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved, bibleHits };
+}
+
+function getCampaignPhase(turnCount: number, budget: MemoryBudget): "early" | "mid" | "late" {
+  if (turnCount <= budget.earlyGameMaxTurn) return "early";
+  if (turnCount <= budget.midGameMaxTurn) return "mid";
+  return "late";
+}
+
+function applyTokenClamp(
+  sizes: { recent: number; retrieved: number; scenes: number; bibleHits: number },
+  budget: MemoryBudget,
+): { recent: number; retrieved: number; scenes: number; bibleHits: number } {
+  const ratio = budget.maxPromptTokens > 0 ? budget.estimatedPromptTokens / budget.maxPromptTokens : 1;
+  if (ratio < budget.tokenThresholds.warning) return sizes;
+
+  const reductions = ratio >= budget.tokenThresholds.critical ? budget.reductionStep * 2 : budget.reductionStep;
+  return {
+    recent: Math.max(budget.minimums.recentTurns, sizes.recent - reductions),
+    retrieved: Math.max(budget.minimums.retrievedTurns, sizes.retrieved - reductions),
+    scenes: Math.max(budget.minimums.sceneSummaries, sizes.scenes - reductions),
+    bibleHits: Math.max(budget.minimums.bibleHits, sizes.bibleHits - reductions),
+  };
 }
 
 export interface MemoryBundle {
