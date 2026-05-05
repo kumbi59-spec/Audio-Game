@@ -80,9 +80,10 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       aria-label="Character status"
       className="grid gap-2 rounded-lg border border-border bg-background/70 p-3 text-sm md:grid-cols-[auto,1fr,auto,auto]"
     >
+      {/* A11y motion checklist: emoji/status meaning is always textual; HP color/values remain readable statically; reduced-motion disables decorative pulses/flashes. */}
       {/* Portrait + core stats */}
       <div className="flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1" aria-label="Character portrait and core attributes">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-sm" aria-hidden="true">
+        <div className="status-portrait flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-sm" aria-hidden="true">
           {character.class === "warrior" ? "🛡️" : character.class === "rogue" ? "🗡️" : character.class === "mage" ? "🔮" : character.class === "ranger" ? "🏹" : "🎵"}
         </div>
         <div className="flex gap-2 text-xs font-mono text-muted-foreground">
@@ -108,7 +109,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
         </span>
         <div aria-hidden="true" className="h-2 w-16 overflow-hidden rounded-full bg-muted">
           <div
-            className={`h-full rounded-full transition-all ${
+            className={`status-hp-fill h-full rounded-full transition-all ${
               hpPercent > 50
                 ? "bg-green-500"
                 : hpPercent > 25
@@ -163,6 +164,21 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       >
         <span aria-hidden="true">🔊 Read</span>
       </button>
+      <style jsx>{`
+        @media (prefers-reduced-motion: no-preference) {
+          .status-portrait {
+            animation: echoQuestPulse 2.2s ease-in-out infinite;
+          }
+          .status-hp-fill {
+            transition:
+              width var(--motion-medium) var(--ease-emphasized),
+              opacity var(--motion-fast) var(--ease-standard);
+          }
+          .status-hp-fill:not([style*="width: 100%"]) {
+            animation: echoQuestPulse 360ms var(--ease-standard) 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
