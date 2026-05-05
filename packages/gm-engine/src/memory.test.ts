@@ -15,6 +15,9 @@ function makeStore(): MemoryStore {
     searchBible: vi.fn(async (_worldId: string, _query: string, k: number) =>
       Array.from({ length: k }, (_, i) => ({ categories: ["lore"], text: `bible-${i}`, score: 1 })),
     ),
+    criticalFacts: vi.fn(async (_campaignId: string, n: number) =>
+      Array.from({ length: n }, (_, i) => ({ turnNumber: i + 1, text: `fact-${i}` })),
+    ),
   };
 }
 
@@ -33,6 +36,7 @@ describe("buildMemoryBundle", () => {
     expect(bundle.retrieved).toHaveLength(2);
     expect(bundle.bibleHits).toHaveLength(7);
     expect(bundle.scenes).toHaveLength(1);
+    expect(bundle.criticalFacts).toHaveLength(10);
   });
 
   it("uses late-game mix with more retrieved turns and scene summaries", async () => {

@@ -38,11 +38,13 @@ CREATE TABLE IF NOT EXISTS campaigns (
   title        text NOT NULL,
   state        jsonb NOT NULL,
   presented_choices jsonb NOT NULL DEFAULT '[]'::jsonb,
+  critical_facts jsonb NOT NULL DEFAULT '[]'::jsonb,
   created_at   timestamptz NOT NULL DEFAULT now(),
   last_played_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS campaigns_last_played_idx ON campaigns (last_played_at DESC);
+ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS critical_facts jsonb NOT NULL DEFAULT '[]'::jsonb;
 
 -- Every GM and player utterance. Embeddings land here for cold-memory
 -- retrieval; the state column is a snapshot after the GM turn applied.

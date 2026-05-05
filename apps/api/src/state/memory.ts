@@ -16,6 +16,7 @@ interface MemCampaign extends StoredCampaign {
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
   sceneSummaries: { sceneNumber: number; summary: string; keyEvents: string[] }[];
+  criticalFacts: { turnNumber: number; text: string }[];
 }
 
 /**
@@ -87,6 +88,7 @@ export class MemoryCampaignStore implements CampaignStore {
       lastPresentedChoices: [],
       narrationLog: [],
       sceneSummaries: [],
+      criticalFacts: [],
     });
   }
 
@@ -179,6 +181,20 @@ export class MemoryCampaignStore implements CampaignStore {
     }
   }
 
+  async persistCriticalFacts(campaignId: string, facts: string[]): Promise<void> {
+    const existing = this.campaigns.get(campaignId);
+    if (!existing || facts.length === 0) return;
+    const turnNumber = existing.state.turn_number;
+    for (const text of facts) {
+      if (!existing.criticalFacts.some((f) => f.text === text)) {
+        existing.criticalFacts.push({ turnNumber, text });
+      }
+    }
+    if (existing.criticalFacts.length > 200) {
+      existing.criticalFacts.splice(0, existing.criticalFacts.length - 200);
+    }
+  }
+
   memoryStore(): MemoryStore {
     const self = this;
     return {
@@ -205,6 +221,11 @@ export class MemoryCampaignStore implements CampaignStore {
       },
       async searchBible() {
         return [];
+      },
+      async criticalFacts(campaignId: string, n: number) {
+        const c = self.campaigns.get(campaignId);
+        if (!c) return [];
+        return c.criticalFacts.slice(-n);
       },
     };
   }

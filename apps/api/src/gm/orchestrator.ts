@@ -5,6 +5,7 @@ import type {
   GmTurn,
   PlayerInput,
   ServerEvent,
+  StateMutation,
 } from "@audio-rpg/shared";
 import {
   applyMutations,
@@ -113,6 +114,21 @@ export interface OrchestratorDeps {
     campaignId: string,
     summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ) => Promise<void>;
+  persistCriticalFacts?: (campaignId: string, facts: string[]) => Promise<void>;
+}
+
+function extractCriticalFacts(mutations: readonly StateMutation[]): string[] {
+  const facts: string[] = [];
+  for (const m of mutations) {
+    if (m.op === "quest.start") facts.push(`Quest started: ${m.name}.`);
+    if (m.op === "quest.complete") facts.push(`Quest completed: ${m.name}.`);
+    if (m.op === "flag.set") facts.push(`Flag changed: ${m.key}=${JSON.stringify(m.value)}.`);
+    if (m.op === "inventory.add" && m.quantity >= 1) facts.push(`Major item acquired: ${m.item} x${m.quantity}.`);
+    if (m.op === "relationship.adjust" && Math.abs(m.delta) >= 3) {
+      facts.push(`Relationship milestone with ${m.npc}: ${m.delta > 0 ? "+" : ""}${m.delta}.`);
+    }
+  }
+  return Array.from(new Set(facts));
 }
 
 /**
@@ -288,6 +304,10 @@ export async function runTurn(
     turn,
   });
   await deps.persistState(session.campaignId, nextState);
+  const criticalFacts = extractCriticalFacts(turn.state_mutations);
+  if (deps.persistCriticalFacts && criticalFacts.length > 0) {
+    await deps.persistCriticalFacts(session.campaignId, criticalFacts);
+  }
   if (deps.domainEvents) {
     await deps.domainEvents.publish(
       createEventEnvelope({

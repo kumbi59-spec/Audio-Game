@@ -9,7 +9,17 @@ const baseSession: Session = {
   lastPresentedChoices: [{ id: "a", label: "A" }],
 };
 
-const deps = { memory: { recentTurns: async () => [], sceneSummaries: async () => [], searchTurns: async () => [], searchBible: async () => [] }, persistTurn: async () => undefined, persistState: async () => undefined };
+const deps = {
+  memory: {
+    recentTurns: async () => [],
+    sceneSummaries: async () => [],
+    searchTurns: async () => [],
+    searchBible: async () => [],
+    criticalFacts: async () => [],
+  },
+  persistTurn: async () => undefined,
+  persistState: async () => undefined,
+};
 
 describe("runTurn reliability", () => {
   it("returns error when retries are exhausted", async () => {

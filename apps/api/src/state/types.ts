@@ -70,6 +70,7 @@ export interface CampaignStore {
     campaignId: string,
     summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ): Promise<void>;
+  persistCriticalFacts(campaignId: string, facts: string[]): Promise<void>;
 
   /**
    * Embedding sinks. No-op on the in-memory store; the Postgres store
