@@ -19,9 +19,9 @@ describe("critical facts persistence", () => {
     });
 
     await store.persistCriticalFacts("c1", [
-      { turnNumber: 2, text: "  Find the bell  ", kind: "quest", importance: 0.6, entityRefs: [" Bell "] },
-      { turnNumber: 3, text: "find   the bell", kind: "quest", importance: 0.9, entityRefs: ["bell"] },
-      { turnNumber: 4, text: "Meet Captain Vale", kind: "relationship", importance: 0.5, entityRefs: ["captain-vale"] },
+      { turnNumber: 2, text: "  Find the bell  ", kind: "quest", importance: 0.6, entityRefs: [" Bell "], sourceMutation: "quest.start" },
+      { turnNumber: 3, text: "find   the bell", kind: "quest", importance: 0.9, entityRefs: ["bell"], sourceMutation: "quest.start" },
+      { turnNumber: 4, text: "Meet Captain Vale", kind: "relationship", importance: 0.5, entityRefs: ["captain-vale"], sourceMutation: "relationship.adjust" },
     ]);
 
     const facts = await store.memoryStore().criticalFacts("c1", 10);
@@ -51,6 +51,7 @@ describe("critical facts persistence", () => {
       kind: "plot" as const,
       importance: i < 5 ? 0 : 1,
       entityRefs: [],
+      sourceMutation: "test",
     }));
     await store.persistCriticalFacts("c2", facts);
     const got = await store.memoryStore().criticalFacts("c2", 500);

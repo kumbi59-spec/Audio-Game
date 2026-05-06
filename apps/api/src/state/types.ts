@@ -36,14 +36,20 @@ export type CriticalFactKind =
   | "relationship"
   | "flag"
   | "item"
-  | "plot";
+  | "plot"
+  | "scene"
+  | "codex"
+  | "condition"
+  | "loss"
+  | "oath";
 
 export interface CriticalFactRecord {
+  kind: CriticalFactKind;
   turnNumber: number;
   text: string;
-  kind: CriticalFactKind;
   importance: number;
   entityRefs: string[];
+  sourceMutation: string;
 }
 
 /**

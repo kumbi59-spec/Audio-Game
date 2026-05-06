@@ -538,6 +538,7 @@ function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: nu
       kind: fact.kind,
       importance: Number.isFinite(fact.importance) ? fact.importance : 0,
       entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
+      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
     };
     const key = semanticKey(normalized);
     const existing = deduped.get(key);
@@ -569,7 +570,7 @@ function asCriticalFactRecords(value: unknown): CriticalFactRecord[] {
     if (typeof raw === "string") {
       const text = raw.trim();
       if (!text) continue;
-      out.push({ turnNumber: 0, text, kind: "plot", importance: 0, entityRefs: [] });
+      out.push({ turnNumber: 0, text, kind: "plot", importance: 0, entityRefs: [], sourceMutation: "legacy" });
       continue;
     }
     if (!raw || typeof raw !== "object") continue;
@@ -581,6 +582,7 @@ function asCriticalFactRecords(value: unknown): CriticalFactRecord[] {
       kind: obj.kind ?? "plot",
       importance: typeof obj.importance === "number" ? obj.importance : 0,
       entityRefs: Array.isArray(obj.entityRefs) ? obj.entityRefs.filter((x): x is string => typeof x === "string") : [],
+      sourceMutation: typeof obj.sourceMutation === "string" ? obj.sourceMutation : "legacy",
     });
   }
   return out;
