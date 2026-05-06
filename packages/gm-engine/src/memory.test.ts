@@ -138,4 +138,102 @@ describe("buildMemoryBundle", () => {
     expect(bundle.scenes.length).toBeGreaterThanOrEqual(1);
     expect(bundle.criticalFacts.map((f) => f.text).join(" ")).toContain("moon shattered");
   });
+
+  it("reduces duplicated memories across adjacent turns", async () => {
+    let searchCall = 0;
+    const store: MemoryStore = {
+      recentTurns: vi.fn(async () => [
+        { turnNumber: 40, role: "player", text: "We entered the obsidian vault." },
+        { turnNumber: 41, role: "gm", text: "The wardens still patrol silently." },
+      ]),
+      sceneSummaries: vi.fn(async () => [{ sceneNumber: 9, summary: "Vault breach", keyEvents: ["alarm muted"] }]),
+      searchTurns: vi.fn(async () => {
+        searchCall += 1;
+        return [
+          { turnNumber: 12, role: "gm", text: "The obsidian vault was built by the Ash Court." },
+          { turnNumber: 21, role: "player", text: "A map marks a hidden tunnel under the vault." },
+          {
+            turnNumber: 43,
+            role: "gm",
+            text:
+              searchCall > 1
+                ? "A fresh rune key appeared after the wards shifted."
+                : "The wardens are blind to moonlight sigils.",
+          },
+        ];
+      }),
+      searchBible: vi.fn(async () => []),
+      criticalFacts: vi.fn(async () => [{ turnNumber: 8, text: "Never speak the Warden's true name aloud." }]),
+    };
+
+    const first = await buildMemoryBundle(store, {
+      campaignId: "adjacent",
+      worldId: "w",
+      query: "obsidian vault wardens",
+      turnCount: 42,
+    });
+
+    const second = await buildMemoryBundle(store, {
+      campaignId: "adjacent",
+      worldId: "w",
+      query: "obsidian vault wardens",
+      turnCount: 43,
+      selection: { injectedState: first.injectionState },
+    });
+
+    const firstTexts = new Set([
+      ...first.recent.map((m) => m.text),
+      ...first.retrieved.map((m) => m.text),
+      ...first.scenes.map((m) => `${m.summary} ${m.keyEvents.join(" ")}`),
+      ...first.criticalFacts.map((m) => m.text),
+    ]);
+    const secondTexts = [
+      ...second.recent.map((m) => m.text),
+      ...second.retrieved.map((m) => m.text),
+      ...second.scenes.map((m) => `${m.summary} ${m.keyEvents.join(" ")}`),
+      ...second.criticalFacts.map((m) => m.text),
+    ];
+    const overlap = secondTexts.filter((text) => firstTexts.has(text));
+
+    expect(overlap.length).toBeLessThan(secondTexts.length);
+    expect(second.retrieved.map((item) => item.text)).toContain("A fresh rune key appeared after the wards shifted.");
+  });
+
+  it("allows critical repeated facts when fallback override is set", async () => {
+    const fact = { turnNumber: 5, text: "Companion Nyra is mortally allergic to silverleaf tonic." };
+    const store: MemoryStore = {
+      ...makeStore(),
+      criticalFacts: vi.fn(async () => [fact]),
+      searchBible: vi.fn(async () => []),
+    };
+
+    const first = await buildMemoryBundle(store, {
+      campaignId: "critical",
+      worldId: "w",
+      query: "healing options",
+      turnCount: 10,
+    });
+    const repeatedCritical = first.criticalFacts[0];
+    const overrideId = `critical:${repeatedCritical.turnNumber}:${(() => {
+      let hash = 2166136261;
+      for (let i = 0; i < repeatedCritical.text.length; i += 1) {
+        hash ^= repeatedCritical.text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(16);
+    })()}`;
+
+    const second = await buildMemoryBundle(store, {
+      campaignId: "critical",
+      worldId: "w",
+      query: "healing options",
+      turnCount: 11,
+      selection: {
+        injectedState: first.injectionState,
+        criticalRepeatIds: [overrideId],
+      },
+    });
+
+    expect(second.criticalFacts.map((item) => item.text)).toContain(fact.text);
+  });
 });

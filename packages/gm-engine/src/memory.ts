@@ -87,6 +87,7 @@ export const DEFAULT_MEMORY_BUDGET: MemoryBudget = {
 type MemorySource = "recent" | "retrieved" | "scene" | "critical";
 
 interface UnifiedMemoryCandidate {
+  id: string;
   source: MemorySource;
   text: string;
   turnNumber: number;
@@ -94,8 +95,22 @@ interface UnifiedMemoryCandidate {
   intrinsicImportance: number;
   recency: number;
   noveltyPenalty: number;
+  repetitionPenalty: number;
+  relevanceBoost: number;
+  unresolvedBoost: number;
+  fallbackOverride: boolean;
   blendedScore: number;
   payload: MemoryTurn | SceneSummary | CriticalFact;
+}
+
+export interface MemoryInjectionState {
+  turnWindow: number;
+  seenIds: string[];
+}
+
+export interface MemorySelectionOptions {
+  injectedState?: MemoryInjectionState;
+  criticalRepeatIds?: string[];
 }
 
 /**
@@ -105,7 +120,14 @@ interface UnifiedMemoryCandidate {
  */
 export async function buildMemoryBundle(
   store: MemoryStore,
-  opts: { campaignId: string; worldId: string; query: string; turnCount?: number; budget?: MemoryBudget },
+  opts: {
+    campaignId: string;
+    worldId: string;
+    query: string;
+    turnCount?: number;
+    budget?: MemoryBudget;
+    selection?: MemorySelectionOptions;
+  },
 ): Promise<MemoryBundle> {
   const budget = opts.budget ?? DEFAULT_MEMORY_BUDGET;
   const phase = getCampaignPhase(opts.turnCount ?? 0, budget);
@@ -132,6 +154,7 @@ export async function buildMemoryBundle(
     opts.turnCount ?? 0,
     memoryBudgetK,
     budget,
+    opts.selection,
   );
 
   return {
@@ -140,6 +163,7 @@ export async function buildMemoryBundle(
     retrieved: selected.retrieved,
     bibleHits,
     criticalFacts: selected.criticalFacts,
+    injectionState: selected.injectionState,
   };
 }
 
@@ -148,8 +172,9 @@ function selectTopMemoryCandidates(
   turnCount: number,
   totalK: number,
   budget: MemoryBudget,
-): Pick<MemoryBundle, "recent" | "retrieved" | "scenes" | "criticalFacts"> {
-  const candidates = buildCandidates(inputs, turnCount, budget);
+  selection?: MemorySelectionOptions,
+): Pick<MemoryBundle, "recent" | "retrieved" | "scenes" | "criticalFacts" | "injectionState"> {
+  const candidates = buildCandidates(inputs, turnCount, budget, selection);
   const sorted = candidates.sort((a, b) => b.blendedScore - a.blendedScore);
 
   const selected: UnifiedMemoryCandidate[] = [];
@@ -175,6 +200,7 @@ function selectTopMemoryCandidates(
     criticalFacts: selected
       .filter((c): c is UnifiedMemoryCandidate & { payload: CriticalFact } => c.source === "critical")
       .map((c) => c.payload),
+    injectionState: buildNextInjectionState(selected, selection?.injectedState),
   };
 }
 
@@ -196,12 +222,26 @@ function buildCandidates(
   inputs: { recent: MemoryTurn[]; scenes: SceneSummary[]; retrieved: MemoryTurn[]; criticalFacts: CriticalFact[] },
   turnCount: number,
   budget: MemoryBudget,
+  selection?: MemorySelectionOptions,
 ): UnifiedMemoryCandidate[] {
+  const seen = new Set(selection?.injectedState?.seenIds ?? []);
+  const forced = new Set(selection?.criticalRepeatIds ?? []);
   const recentCandidates = inputs.recent.map((turn) =>
-    makeCandidate("recent", turn.text, turn.turnNumber, turn, 0.45, 0.4, turnCount, budget),
+    makeCandidate("recent", turn.text, turn.turnNumber, turn, 0.45, 0.4, turnCount, budget, seen, forced),
   );
   const retrievedCandidates = inputs.retrieved.map((turn, idx) =>
-    makeCandidate("retrieved", turn.text, turn.turnNumber, turn, Math.max(0.3, 1 - idx * 0.1), 0.6, turnCount, budget),
+    makeCandidate(
+      "retrieved",
+      turn.text,
+      turn.turnNumber,
+      turn,
+      Math.max(0.3, 1 - idx * 0.1),
+      0.6,
+      turnCount,
+      budget,
+      seen,
+      forced,
+    ),
   );
   const sceneCandidates = inputs.scenes.map((scene, idx) =>
     makeCandidate(
@@ -213,6 +253,8 @@ function buildCandidates(
       0.8,
       turnCount,
       budget,
+      seen,
+      forced,
     ),
   );
   const criticalCandidates = inputs.criticalFacts.map((fact, idx) =>
@@ -225,6 +267,8 @@ function buildCandidates(
       1,
       turnCount,
       budget,
+      seen,
+      forced,
     ),
   );
 
@@ -240,17 +284,59 @@ function makeCandidate<T extends MemoryTurn | SceneSummary | CriticalFact>(
   intrinsicImportance: number,
   currentTurn: number,
   budget: MemoryBudget,
+  recentlyInjected: Set<string>,
+  forceAllowRepeat: Set<string>,
 ): UnifiedMemoryCandidate {
+  const id = `${source}:${turnNumber}:${hashText(text)}`;
   const recencyAge = Math.max(0, currentTurn - turnNumber);
   const recency = Math.exp((-Math.LN2 * recencyAge) / Math.max(1, budget.memoryScoring.recencyHalfLifeTurns));
   const noveltyPenalty = Math.min(0.8, Math.max(0, text.length > 140 ? 0 : 0.15));
+  const repeated = recentlyInjected.has(id);
+  const fallbackOverride = repeated && forceAllowRepeat.has(id);
+  const repetitionPenalty = repeated && !fallbackOverride ? 0.35 : 0;
+  const unresolvedBoost = source === "critical" ? 0.2 : 0;
+  const relevanceBoost = repeated ? 0 : source === "retrieved" ? 0.12 : source === "scene" ? 0.08 : 0;
   const blendedScore =
     budget.memoryScoring.semanticWeight * semanticRelevance +
     budget.memoryScoring.importanceWeight * intrinsicImportance +
     budget.memoryScoring.recencyWeight * recency -
-    budget.memoryScoring.noveltyPenaltyWeight * noveltyPenalty;
+    budget.memoryScoring.noveltyPenaltyWeight * noveltyPenalty -
+    repetitionPenalty +
+    unresolvedBoost +
+    relevanceBoost;
 
-  return { source, text, turnNumber, semanticRelevance, intrinsicImportance, recency, noveltyPenalty, blendedScore, payload };
+  return {
+    id,
+    source,
+    text,
+    turnNumber,
+    semanticRelevance,
+    intrinsicImportance,
+    recency,
+    noveltyPenalty,
+    repetitionPenalty,
+    relevanceBoost,
+    unresolvedBoost,
+    fallbackOverride,
+    blendedScore,
+    payload,
+  };
+}
+
+function buildNextInjectionState(selected: UnifiedMemoryCandidate[], existing?: MemoryInjectionState): MemoryInjectionState {
+  const turnWindow = Math.max(1, existing?.turnWindow ?? 2);
+  const maxSize = turnWindow * Math.max(1, selected.length);
+  const merged = [...(existing?.seenIds ?? []), ...selected.map((candidate) => candidate.id)];
+  return { turnWindow, seenIds: merged.slice(-maxSize) };
+}
+
+function hashText(text: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
 }
 
 function getCampaignPhase(turnCount: number, budget: MemoryBudget): "early" | "mid" | "late" {
@@ -281,6 +367,7 @@ export interface MemoryBundle {
   retrieved: MemoryTurn[];
   bibleHits: BibleChunk[];
   criticalFacts: CriticalFact[];
+  injectionState: MemoryInjectionState;
 }
 
 /** Truncate a bible down to a size safe to put in a cached system block. */
