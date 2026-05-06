@@ -358,19 +358,33 @@ export class PostgresCampaignStore implements CampaignStore {
   async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
     await this.ready;
     if (facts.length === 0) return;
-    const { rows } = await this.pool.query<{ critical_facts: unknown }>(
-      `SELECT critical_facts FROM campaigns WHERE campaign_id = $1`,
-      [campaignId],
-    );
-    const existing = asCriticalFactRecords(rows[0]?.critical_facts);
-    const normalizedFacts = normalizeAndTrimCriticalFacts([...existing, ...facts], 200);
-    if (normalizedFacts.length === 0) return;
-    await this.pool.query(
-      `UPDATE campaigns
-          SET critical_facts = $2::jsonb
-        WHERE campaign_id = $1`,
-      [campaignId, JSON.stringify(normalizedFacts)],
-    );
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query<{ critical_facts: unknown }>(
+        `SELECT critical_facts
+           FROM campaigns
+          WHERE campaign_id = $1
+          FOR UPDATE`,
+        [campaignId],
+      );
+      const existing = asCriticalFactRecords(rows[0]?.critical_facts);
+      const normalizedFacts = normalizeAndTrimCriticalFacts([...existing, ...facts], 200);
+      if (normalizedFacts.length > 0) {
+        await client.query(
+          `UPDATE campaigns
+              SET critical_facts = $2::jsonb
+            WHERE campaign_id = $1`,
+          [campaignId, JSON.stringify(normalizedFacts)],
+        );
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   /**
