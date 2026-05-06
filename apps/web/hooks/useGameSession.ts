@@ -249,11 +249,12 @@ export function useGameSession() {
                 }
               } else if (eventType === "error") {
                 receivedStreamError = true;
-                streamErrorMessage = data?.message ?? "Narrator degraded mode is active.";
+                const errorMessage = data?.message ?? "Narrator degraded mode is active.";
+                streamErrorMessage = errorMessage;
                 console.error("GM error:", data.message);
                 addNarrationEntry({
                   id: (Date.now() + 2).toString(),
-                  text: streamErrorMessage,
+                  text: errorMessage,
                   type: "system",
                   timestamp: new Date(),
                 });
