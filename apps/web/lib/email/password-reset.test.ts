@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 type VerificationTokenRecord = {
@@ -34,7 +35,9 @@ vi.mock("@/lib/db", () => {
           return data;
         },
         async findFirst({ where }: any) {
-          return records.find((r) => r.identifier === where.identifier) ?? null;
+          return (
+            records.find((r) => r.identifier === where.identifier && (where.token === undefined || r.token === where.token)) ?? null
+          );
         },
       },
     },
@@ -46,6 +49,11 @@ import { createPasswordResetToken, validatePasswordResetToken } from "./password
 beforeEach(() => {
   records.length = 0;
 });
+
+function hashLikeProduction(token: string): string {
+  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
+  return `v2:${createHash("sha256").update(`${secret}:${token}`).digest("hex")}`;
+}
 
 describe("password-reset hashed token mode", () => {
   it("accepts a valid token and stores only hash", async () => {
@@ -81,5 +89,13 @@ describe("password-reset hashed token mode", () => {
 
     await expect(validatePasswordResetToken("legacy@example.com", "any")).resolves.toBe("invalid");
     expect(records).toHaveLength(0);
+  });
+
+  it("remains deterministic when duplicate identifier rows exist", async () => {
+    const identifier = "pwreset:user@example.com";
+    records.push({ identifier, token: hashLikeProduction("first"), expires: new Date(Date.now() + 60_000) });
+    records.push({ identifier, token: hashLikeProduction("second"), expires: new Date(Date.now() + 60_000) });
+
+    await expect(validatePasswordResetToken("user@example.com", "second")).resolves.toBe("ok");
   });
 });

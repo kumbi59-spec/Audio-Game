@@ -51,7 +51,7 @@ export async function validatePasswordResetToken(
 
   const identifier = `${PREFIX}${email.toLowerCase()}`;
   const tokenHash = hashResetToken(token);
-  const record = await prisma.verificationToken.findFirst({ where: { identifier } });
+  const record = await prisma.verificationToken.findFirst({ where: { identifier, token: tokenHash } });
 
   if (!record || !safeTokenHashEquals(record.token, tokenHash)) return "invalid";
   if (record.expires < new Date()) {
