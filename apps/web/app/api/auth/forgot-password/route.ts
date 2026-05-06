@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createPasswordResetToken } from "@/lib/email/password-reset";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
+
+
+const FORGOT_IP_LIMIT = 10;
+const FORGOT_EMAIL_LIMIT = 5;
+const FORGOT_WINDOW_SECONDS = 60 * 60;
+const THROTTLED_MESSAGE = "If the details are valid, we'll send reset instructions shortly.";
 
 export async function POST(req: Request) {
   const { email } = await req.json() as { email?: string };
@@ -10,6 +17,25 @@ export async function POST(req: Request) {
   }
 
   const normalised = email.trim().toLowerCase();
+  const ip = getClientIp(req);
+
+  const ipDecision = await consumeRateLimit({
+    key: `auth:forgot:ip:${ip}`,
+    limit: FORGOT_IP_LIMIT,
+    windowSeconds: FORGOT_WINDOW_SECONDS,
+  });
+  if (!ipDecision.allowed) {
+    return NextResponse.json({ error: THROTTLED_MESSAGE }, { status: 429, headers: { "Retry-After": String(ipDecision.retryAfterSeconds) } });
+  }
+
+  const emailDecision = await consumeRateLimit({
+    key: `auth:forgot:email:${normalised}`,
+    limit: FORGOT_EMAIL_LIMIT,
+    windowSeconds: FORGOT_WINDOW_SECONDS,
+  });
+  if (!emailDecision.allowed) {
+    return NextResponse.json({ error: THROTTLED_MESSAGE }, { status: 429, headers: { "Retry-After": String(emailDecision.retryAfterSeconds) } });
+  }
 
   if (!process.env["RESEND_API_KEY"]) {
     return NextResponse.json(
