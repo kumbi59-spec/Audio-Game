@@ -55,26 +55,12 @@ export async function POST(req: NextRequest) {
   const dbSessionId = body.dbSessionId;
 
   const authSession = await auth();
-  if (authSession?.user?.id) {
-    const user = await prisma.user.findUnique({
+  const user = authSession?.user?.id
+    ? await prisma.user.findUnique({
       where: { id: authSession.user.id },
       select: { tier: true },
-    });
-
-    if (user?.tier === "free") {
-      await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
-      const consumed = await consumeFreeAiMinute(authSession.user.id);
-      if (!consumed) {
-        return NextResponse.json(
-          {
-            error: "ai_minutes_exhausted",
-            message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
-          },
-          { status: 402 },
-        );
-      }
-    }
-  }
+    })
+    : null;
 
   const inputCheck = moderatePlayerInput(action.content);
   if (!inputCheck.safe) {
@@ -84,6 +70,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (authSession?.user?.id && user?.tier === "free") {
+    await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
+    const consumed = await consumeFreeAiMinute(authSession.user.id);
+    if (!consumed) {
+      return NextResponse.json(
+        {
+          error: "ai_minutes_exhausted",
+          message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
+        },
+        { status: 402 },
+      );
+    }
+  }
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
