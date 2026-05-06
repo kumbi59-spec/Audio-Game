@@ -358,11 +358,11 @@ export class PostgresCampaignStore implements CampaignStore {
   async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
     await this.ready;
     if (facts.length === 0) return;
-    const { rows } = await this.pool.query<{ critical_facts: CriticalFactRecord[] }>(
+    const { rows } = await this.pool.query<{ critical_facts: unknown }>(
       `SELECT critical_facts FROM campaigns WHERE campaign_id = $1`,
       [campaignId],
     );
-    const existing = rows[0]?.critical_facts ?? [];
+    const existing = asCriticalFactRecords(rows[0]?.critical_facts);
     const normalizedFacts = normalizeAndTrimCriticalFacts([...existing, ...facts], 200);
     if (normalizedFacts.length === 0) return;
     await this.pool.query(
@@ -497,13 +497,13 @@ export class PostgresCampaignStore implements CampaignStore {
 
   private async criticalFacts(campaignId: string, n: number): Promise<{ turnNumber: number; text: string }[]> {
     await this.ready;
-    const { rows } = await this.pool.query<{ critical_facts: string[]; state: CampaignState }>(
+    const { rows } = await this.pool.query<{ critical_facts: unknown; state: CampaignState }>(
       `SELECT critical_facts, state FROM campaigns WHERE campaign_id = $1`,
       [campaignId],
     );
     const row = rows[0];
     if (!row) return [];
-    const facts = normalizeAndTrimCriticalFacts(row.critical_facts ?? [], 200);
+    const facts = normalizeAndTrimCriticalFacts(asCriticalFactRecords(row.critical_facts), 200);
     return facts.slice(-n).map((fact) => ({ turnNumber: fact.turnNumber, text: fact.text }));
   }
 }
@@ -547,6 +547,30 @@ function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: nu
     .sort((a, b) => a.turnNumber - b.turnNumber);
 }
 
+
+function asCriticalFactRecords(value: unknown): CriticalFactRecord[] {
+  if (!Array.isArray(value)) return [];
+  const out: CriticalFactRecord[] = [];
+  for (const raw of value) {
+    if (typeof raw === "string") {
+      const text = raw.trim();
+      if (!text) continue;
+      out.push({ turnNumber: 0, text, kind: "plot", importance: 0, entityRefs: [] });
+      continue;
+    }
+    if (!raw || typeof raw !== "object") continue;
+    const obj = raw as Partial<CriticalFactRecord>;
+    if (typeof obj.text !== "string") continue;
+    out.push({
+      turnNumber: typeof obj.turnNumber === "number" ? obj.turnNumber : 0,
+      text: obj.text,
+      kind: obj.kind ?? "plot",
+      importance: typeof obj.importance === "number" ? obj.importance : 0,
+      entityRefs: Array.isArray(obj.entityRefs) ? obj.entityRefs.filter((x): x is string => typeof x === "string") : [],
+    });
+  }
+  return out;
+}
 /** pgvector wants `[1,2,3]` text; node-postgres has no native adapter. */
 function toVectorLiteral(v: readonly number[]): string {
   return `[${v.map((x) => (Number.isFinite(x) ? x.toString() : "0")).join(",")}]`;
