@@ -374,13 +374,13 @@ pnpm --filter @audio-rpg/mobile test:e2e
 
 ## CI (GitHub Actions)
 
-Three jobs run on every PR to `main`:
+Three CI jobs run on every PR to `main`:
 
 | Job | What it checks |
 |---|---|
 | `typecheck + unit + in-memory integration` | TypeScript + unit tests + API integration (SQLite) |
 | `integration (Postgres + pgvector)` | API integration suite against `pgvector/pgvector:pg16` |
-| `web e2e (Playwright + axe-core)` | Builds Expo web bundle, runs Playwright + WCAG 2.1 AA scan |
+| `mobile web e2e (Expo web + Playwright + axe-core)` | Runs Expo mobile app e2e in web mode via Playwright (`pnpm --filter @audio-rpg/mobile test:e2e:install` then `pnpm --filter @audio-rpg/mobile test:e2e`) and uploads `apps/mobile/playwright-report/` on failure |
 
 A manually-dispatched `Credentialed E2E` workflow runs against real external providers (Anthropic, ElevenLabs, Deepgram, Postgres). Trigger from the Actions tab — secrets live in the `credentialed` environment.
 
