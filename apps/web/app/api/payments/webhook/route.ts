@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { constructWebhookEvent, tierForPriceKey, isPackPriceKey, minutesForPackKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
-import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId, addAiMinutes } from "@/lib/db/queries/users";
+import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId, addAiMinutes, hasProcessedStripeEvent, markStripeEventProcessed } from "@/lib/db/queries/users";
 import { sendUpgradeEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push/sender";
 
@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const alreadyProcessed = await hasProcessedStripeEvent(event.id);
+    if (alreadyProcessed) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as {
         mode?: string;
@@ -38,11 +43,15 @@ export async function POST(req: NextRequest) {
         const minutes = minutesForPackKey(packId);
         if (minutes > 0) {
           await addAiMinutes(userId, minutes);
-          void sendPushToUser(userId, {
-            title: `${minutes} AI minutes added`,
-            body: "Your EchoQuest credit pack is ready. Dive back into your adventure!",
-            url: "/library",
-          });
+          try {
+            await sendPushToUser(userId, {
+              title: `${minutes} AI minutes added`,
+              body: "Your EchoQuest credit pack is ready. Dive back into your adventure!",
+              url: "/library",
+            });
+          } catch (error) {
+            console.error("Non-critical webhook side effect failed: pack push", { eventId: event.id, error });
+          }
         }
       }
     }
@@ -63,12 +72,20 @@ export async function POST(req: NextRequest) {
           const newTier = tierForPriceKey(priceKey);
           await updateUserTier(user.id, newTier);
           const tierLabel = newTier === "creator" ? "Creator" : "Storyteller";
-          void sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
-          void sendPushToUser(user.id, {
-            title: `EchoQuest ${tierLabel} plan active`,
-            body: "Unlimited play and premium voices are now unlocked. Tap to start your adventure.",
-            url: "/library",
-          });
+          try {
+            await sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
+          } catch (error) {
+            console.error("Non-critical webhook side effect failed: upgrade email", { eventId: event.id, error });
+          }
+          try {
+            await sendPushToUser(user.id, {
+              title: `EchoQuest ${tierLabel} plan active`,
+              body: "Unlimited play and premium voices are now unlocked. Tap to start your adventure.",
+              url: "/library",
+            });
+          } catch (error) {
+            console.error("Non-critical webhook side effect failed: upgrade push", { eventId: event.id, error });
+          }
         }
       }
     }
@@ -78,9 +95,14 @@ export async function POST(req: NextRequest) {
       const user = await findUserByStripeCustomerId(sub.customer);
       if (user) await updateUserTier(user.id, "free");
     }
+
+    const marked = await markStripeEventProcessed(event.id);
+    if (!marked) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
   } catch (err) {
     console.error("Webhook handler error:", err);
-    // Return 200 so Stripe doesn't retry — log the error for investigation
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
