@@ -240,6 +240,7 @@ function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: nu
       kind: fact.kind,
       importance: Number.isFinite(fact.importance) ? fact.importance : 0,
       entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
+      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
     };
     const key = semanticKey(normalized);
     const existing = deduped.get(key);

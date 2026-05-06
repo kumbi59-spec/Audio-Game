@@ -118,15 +118,56 @@ export interface OrchestratorDeps {
   persistCriticalFacts?: (campaignId: string, facts: CriticalFactRecord[]) => Promise<void>;
 }
 
-function extractCriticalFacts(mutations: readonly StateMutation[], turnNumber: number): CriticalFactRecord[] {
+type CanonicalFactSeed = Omit<CriticalFactRecord, "turnNumber" | "sourceMutation">;
+
+function clampImportance(value: number): number {
+  return Math.max(0, Math.min(1, Number(value.toFixed(2))));
+}
+
+function createCriticalFact(turnNumber: number, sourceMutation: StateMutation["op"], seed: CanonicalFactSeed): CriticalFactRecord {
+  return { ...seed, turnNumber, sourceMutation, importance: clampImportance(seed.importance) };
+}
+
+export function extractCriticalFacts(mutations: readonly StateMutation[], turnNumber: number): CriticalFactRecord[] {
   const facts: CriticalFactRecord[] = [];
   for (const m of mutations) {
-    if (m.op === "quest.start") facts.push({ turnNumber, text: `Quest started: ${m.name}.`, kind: "quest", importance: 0.8, entityRefs: [m.name] });
-    if (m.op === "quest.complete") facts.push({ turnNumber, text: `Quest completed: ${m.name}.`, kind: "quest", importance: 1, entityRefs: [m.name] });
-    if (m.op === "flag.set") facts.push({ turnNumber, text: `Flag changed: ${m.key}=${JSON.stringify(m.value)}.`, kind: "flag", importance: 0.6, entityRefs: [m.key] });
-    if (m.op === "inventory.add" && m.quantity >= 1) facts.push({ turnNumber, text: `Major item acquired: ${m.item} x${m.quantity}.`, kind: "item", importance: 0.7, entityRefs: [m.item] });
+    if (m.op === "quest.start") {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `QUEST_START|${m.name}`, kind: "quest", importance: 0.82, entityRefs: [m.name] }));
+    }
+    if (m.op === "quest.complete") {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `QUEST_COMPLETE|${m.name}`, kind: "quest", importance: 0.97, entityRefs: [m.name] }));
+    }
+    if (m.op === "scene.set") {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `SCENE_CHANGE|${m.name}`, kind: "scene", importance: 0.84, entityRefs: [m.name] }));
+    }
+    if (m.op === "codex.unlock") {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `CODEX_UNLOCK|${m.key}|${m.title}`, kind: "codex", importance: 0.88, entityRefs: [m.key, m.title] }));
+    }
+    if (m.op === "flag.set") {
+      const normalizedValue = String(m.value).toLowerCase();
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `FLAG_SET|${m.key}|${normalizedValue}`, kind: "flag", importance: 0.6, entityRefs: [m.key] }));
+      if (/injur|wound|poison|diseas|curs|bleed|crippl/i.test(m.key)) {
+        facts.push(createCriticalFact(turnNumber, m.op, { text: `CONDITION_STATE|${m.key}|${normalizedValue}`, kind: "condition", importance: 0.9, entityRefs: [m.key] }));
+      }
+      if (/dead|killed|destroyed|irrevers|lost_forever/i.test(m.key) && (m.value === true || m.value === "true")) {
+        facts.push(createCriticalFact(turnNumber, m.op, { text: `IRREVERSIBLE_LOSS|${m.key}`, kind: "loss", importance: 0.95, entityRefs: [m.key] }));
+      }
+      if (/oath|promise|vow|debt/i.test(m.key)) {
+        const action = normalizedValue === "false" || normalizedValue === "0" ? "RESOLVED" : "CREATED";
+        facts.push(createCriticalFact(turnNumber, m.op, { text: `OATH_OR_DEBT_${action}|${m.key}`, kind: "oath", importance: 0.86, entityRefs: [m.key] }));
+      }
+    }
+    if (m.op === "inventory.add" && m.quantity >= 1) {
+      const qty = Math.max(1, m.quantity);
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `ITEM_GAIN|${m.item}|x${qty}`, kind: "item", importance: qty >= 3 ? 0.62 : 0.56, entityRefs: [m.item] }));
+    }
+    if (m.op === "inventory.remove" && m.quantity >= 1) {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `ITEM_LOSS|${m.item}|x${m.quantity}`, kind: "loss", importance: m.quantity >= 3 ? 0.78 : 0.68, entityRefs: [m.item] }));
+    }
     if (m.op === "relationship.adjust" && Math.abs(m.delta) >= 3) {
-      facts.push({ turnNumber, text: `Relationship milestone with ${m.npc}: ${m.delta > 0 ? "+" : ""}${m.delta}.`, kind: "relationship", importance: 0.75, entityRefs: [m.npc] });
+      const magnitude = Math.abs(m.delta);
+      const direction = m.delta > 0 ? "POS" : "NEG";
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `RELATIONSHIP_THRESHOLD|${m.npc}|${direction}|${magnitude}`, kind: "relationship", importance: magnitude >= 7 ? 0.91 : 0.77, entityRefs: [m.npc] }));
     }
   }
   return facts;
