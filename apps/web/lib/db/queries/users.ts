@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Tier } from "@audio-rpg/shared";
 import { effectiveTierForEmail } from "@/lib/admin";
-import { Prisma } from "@prisma/client";
 
 export async function ensureGuestUser(guestId: string) {
   return prisma.user.upsert({
@@ -94,15 +93,13 @@ export async function addAiMinutes(userId: string, minutes: number) {
 }
 
 export async function markStripeEventProcessed(eventId: string): Promise<boolean> {
-  try {
-    await prisma.processedStripeEvent.create({ data: { id: eventId } });
-    return true;
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return false;
-    }
-    throw error;
-  }
+  const rows = await prisma.$executeRaw`
+    INSERT INTO "ProcessedStripeEvent" ("id")
+    VALUES (${eventId})
+    ON CONFLICT ("id") DO NOTHING
+  `;
+
+  return rows > 0;
 }
 
 const FREE_DAILY_AI_MINUTES = 60;
