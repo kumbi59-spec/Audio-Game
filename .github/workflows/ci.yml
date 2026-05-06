@@ -73,8 +73,8 @@ jobs:
       - name: transport compatibility contracts
         run: pnpm --filter @audio-rpg/api test -- session-compat.contract.test.ts
 
-  web-e2e:
-    name: "web e2e (Playwright + axe-core)"
+  mobile-web-e2e:
+    name: "mobile web e2e (Expo web + Playwright + axe-core)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,6 +92,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: mobile-web-playwright-report
           path: apps/mobile/playwright-report/
           retention-days: 7
