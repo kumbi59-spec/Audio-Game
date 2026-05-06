@@ -209,8 +209,16 @@ export class MemoryCampaignStore implements CampaignStore {
           keyEvents: s.keyEvents,
         }));
       },
-      async searchTurns() {
-        return [];
+      /**
+       * Local/dev fallback retrieval for parity with Postgres vector memory.
+       * This is intentionally lightweight and deterministic (not embedding-grade):
+       * lexical overlap + a recency blend over the in-memory narration log.
+       */
+      async searchTurns(campaignId: string, query: string, k: number) {
+        const c = self.campaigns.get(campaignId);
+        if (!c || k <= 0) return [];
+        const scored = scoreNarrationTurns(c.narrationLog, query).slice(0, k);
+        return scored.map(({ turnNumber, role, text }) => ({ turnNumber, role, text }));
       },
       async searchBible() {
         return [];
@@ -252,4 +260,44 @@ function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: nu
     .sort((a, b) => (a.importance === b.importance ? b.turnNumber - a.turnNumber : b.importance - a.importance))
     .slice(0, maxFacts)
     .sort((a, b) => a.turnNumber - b.turnNumber);
+}
+
+function scoreNarrationTurns(
+  turns: { turnNumber: number; role: "gm" | "player"; text: string }[],
+  query: string,
+): { turnNumber: number; role: "gm" | "player"; text: string }[] {
+  const qTokens = tokenize(query);
+  if (qTokens.length === 0 || turns.length === 0) return [];
+  const qUnique = new Set(qTokens);
+  const latestTurn = Math.max(...turns.map((t) => t.turnNumber));
+  const lexWeight = 0.75;
+  const recencyWeight = 0.25;
+  const byScore = turns
+    .map((turn) => {
+      const tTokens = tokenize(turn.text);
+      const tUnique = new Set(tTokens);
+      const overlap = Array.from(qUnique).filter((token) => tUnique.has(token)).length;
+      const lexicalScore = overlap / Math.max(qUnique.size, 1);
+      const recencyScore = Math.max(0, 1 - (latestTurn - turn.turnNumber) / 200);
+      return {
+        ...turn,
+        score: lexWeight * lexicalScore + recencyWeight * recencyScore,
+      };
+    })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.turnNumber !== a.turnNumber) return b.turnNumber - a.turnNumber;
+      if (a.role !== b.role) return a.role.localeCompare(b.role);
+      return a.text.localeCompare(b.text);
+    });
+  return byScore.map(({ turnNumber, role, text }) => ({ turnNumber, role, text }));
+}
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
 }
