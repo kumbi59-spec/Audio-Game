@@ -1,0 +1,20 @@
+[
+  {
+    "id": "contradiction_quest",
+    "memoryFacts": ["QUEST_COMPLETE|Rescue Arlen"],
+    "narration": "The mission is still unfinished and nobody has rescued Arlen.",
+    "expected": { "contradiction": true, "omission": false }
+  },
+  {
+    "id": "omission_oath",
+    "memoryFacts": ["OATH_OR_DEBT_CREATED|oath_to_mara"],
+    "narration": "You make camp and plan your supplies.",
+    "expected": { "contradiction": false, "omission": true }
+  },
+  {
+    "id": "clean_turn",
+    "memoryFacts": ["FLAG_SET|visited_bazaar|true"],
+    "narration": "You return to the bazaar and bargain with the spice broker.",
+    "expected": { "contradiction": false, "omission": false }
+  }
+]

@@ -143,18 +143,18 @@ describe("buildMemoryBundle", () => {
     let searchCall = 0;
     const store: MemoryStore = {
       recentTurns: vi.fn(async () => [
-        { turnNumber: 40, role: "player", text: "We entered the obsidian vault." },
-        { turnNumber: 41, role: "gm", text: "The wardens still patrol silently." },
+        { turnNumber: 40, role: "player" as const, text: "We entered the obsidian vault." },
+        { turnNumber: 41, role: "gm" as const, text: "The wardens still patrol silently." },
       ]),
       sceneSummaries: vi.fn(async () => [{ sceneNumber: 9, summary: "Vault breach", keyEvents: ["alarm muted"] }]),
       searchTurns: vi.fn(async () => {
         searchCall += 1;
         return [
-          { turnNumber: 12, role: "gm", text: "The obsidian vault was built by the Ash Court." },
-          { turnNumber: 21, role: "player", text: "A map marks a hidden tunnel under the vault." },
+          { turnNumber: 12, role: "gm" as const, text: "The obsidian vault was built by the Ash Court." },
+          { turnNumber: 21, role: "player" as const, text: "A map marks a hidden tunnel under the vault." },
           {
             turnNumber: 43,
-            role: "gm",
+            role: "gm" as const,
             text:
               searchCall > 1
                 ? "A fresh rune key appeared after the wards shifted."
@@ -214,6 +214,8 @@ describe("buildMemoryBundle", () => {
       turnCount: 10,
     });
     const repeatedCritical = first.criticalFacts[0];
+    expect(repeatedCritical).toBeDefined();
+    if (!repeatedCritical) throw new Error("expected repeated critical fact");
     const overrideId = `critical:${repeatedCritical.turnNumber}:${(() => {
       let hash = 2166136261;
       for (let i = 0; i < repeatedCritical.text.length; i += 1) {

@@ -19,6 +19,7 @@ function saturatedMemory(): MemoryBundle {
     retrieved: Array.from({ length: 30 }, (_, i) => ({ turnNumber: i + 1, role: "player", text: `retrieved-${i}` })),
     scenes: Array.from({ length: 10 }, (_, i) => ({ sceneNumber: i + 1, summary: `scene-${i}`, keyEvents: [] })),
     bibleHits: Array.from({ length: 10 }, (_, i) => ({ categories: ["lore"], text: `bible-${i}`, score: 1 })),
+    injectionState: { turnWindow: 2, seenIds: [] },
   };
 }
 
