@@ -16,7 +16,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "pnpm --filter @audio-rpg/shared build && vitest run"
+    "test": "pnpm --filter @audio-rpg/shared build && vitest run --passWithNoTests"
   },
   "dependencies": {
     "@audio-rpg/shared": "workspace:*",

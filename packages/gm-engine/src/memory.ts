@@ -52,6 +52,14 @@ export interface MemoryBudget {
   tokenThresholds: { warning: number; critical: number };
   reductionStep: number;
   minimums: { recentTurns: number; retrievedTurns: number; sceneSummaries: number; bibleHits: number };
+  memoryScoring: {
+    semanticWeight: number;
+    importanceWeight: number;
+    recencyWeight: number;
+    noveltyPenaltyWeight: number;
+    recencyHalfLifeTurns: number;
+    sourceMinimums: { criticalFacts: number; sceneSummaries: number };
+  };
 }
 
 export const DEFAULT_MEMORY_BUDGET: MemoryBudget = {
@@ -66,7 +74,29 @@ export const DEFAULT_MEMORY_BUDGET: MemoryBudget = {
   tokenThresholds: { warning: 0.75, critical: 0.9 },
   reductionStep: 1,
   minimums: { recentTurns: 2, retrievedTurns: 1, sceneSummaries: 1, bibleHits: 1 },
+  memoryScoring: {
+    semanticWeight: 0.45,
+    importanceWeight: 0.3,
+    recencyWeight: 0.25,
+    noveltyPenaltyWeight: 0.2,
+    recencyHalfLifeTurns: 12,
+    sourceMinimums: { criticalFacts: 2, sceneSummaries: 1 },
+  },
 };
+
+type MemorySource = "recent" | "retrieved" | "scene" | "critical";
+
+interface UnifiedMemoryCandidate {
+  source: MemorySource;
+  text: string;
+  turnNumber: number;
+  semanticRelevance: number;
+  intrinsicImportance: number;
+  recency: number;
+  noveltyPenalty: number;
+  blendedScore: number;
+  payload: MemoryTurn | SceneSummary | CriticalFact;
+}
 
 /**
  * Compose the memory bundle we inject into each GM turn. Keeps the hot
@@ -88,14 +118,139 @@ export async function buildMemoryBundle(
     },
     budget,
   );
+  const memoryBudgetK = sizes.recent + sizes.retrieved + sizes.scenes;
   const [recent, scenes, retrieved, bibleHits, criticalFacts] = await Promise.all([
-    store.recentTurns(opts.campaignId, sizes.recent),
+    store.recentTurns(opts.campaignId, Math.max(sizes.recent * 2, sizes.recent)),
     store.sceneSummaries(opts.campaignId),
-    store.searchTurns(opts.campaignId, opts.query, sizes.retrieved),
+    store.searchTurns(opts.campaignId, opts.query, Math.max(sizes.retrieved * 2, sizes.retrieved)),
     store.searchBible(opts.worldId, opts.query, sizes.bibleHits),
     store.criticalFacts(opts.campaignId, 10),
   ]);
-  return { recent, scenes: scenes.slice(-sizes.scenes), retrieved, bibleHits, criticalFacts };
+
+  const selected = selectTopMemoryCandidates(
+    { recent, scenes, retrieved, criticalFacts },
+    opts.turnCount ?? 0,
+    memoryBudgetK,
+    budget,
+  );
+
+  return {
+    recent: selected.recent,
+    scenes: selected.scenes,
+    retrieved: selected.retrieved,
+    bibleHits,
+    criticalFacts: selected.criticalFacts,
+  };
+}
+
+function selectTopMemoryCandidates(
+  inputs: { recent: MemoryTurn[]; scenes: SceneSummary[]; retrieved: MemoryTurn[]; criticalFacts: CriticalFact[] },
+  turnCount: number,
+  totalK: number,
+  budget: MemoryBudget,
+): Pick<MemoryBundle, "recent" | "retrieved" | "scenes" | "criticalFacts"> {
+  const candidates = buildCandidates(inputs, turnCount, budget);
+  const sorted = candidates.sort((a, b) => b.blendedScore - a.blendedScore);
+
+  const selected: UnifiedMemoryCandidate[] = [];
+  const minCritical = Math.min(budget.memoryScoring.sourceMinimums.criticalFacts, totalK);
+  const minScenes = Math.min(budget.memoryScoring.sourceMinimums.sceneSummaries, Math.max(0, totalK - minCritical));
+
+  pickSourceMinimum(sorted, selected, "critical", minCritical);
+  pickSourceMinimum(sorted, selected, "scene", minScenes);
+
+  for (const candidate of sorted) {
+    if (selected.length >= totalK) break;
+    if (!selected.includes(candidate)) selected.push(candidate);
+  }
+
+  return {
+    recent: selected.filter((c): c is UnifiedMemoryCandidate & { payload: MemoryTurn } => c.source === "recent").map((c) => c.payload),
+    retrieved: selected
+      .filter((c): c is UnifiedMemoryCandidate & { payload: MemoryTurn } => c.source === "retrieved")
+      .map((c) => c.payload),
+    scenes: selected
+      .filter((c): c is UnifiedMemoryCandidate & { payload: SceneSummary } => c.source === "scene")
+      .map((c) => c.payload),
+    criticalFacts: selected
+      .filter((c): c is UnifiedMemoryCandidate & { payload: CriticalFact } => c.source === "critical")
+      .map((c) => c.payload),
+  };
+}
+
+function pickSourceMinimum(
+  sorted: UnifiedMemoryCandidate[],
+  selected: UnifiedMemoryCandidate[],
+  source: MemorySource,
+  minimum: number,
+): void {
+  if (minimum <= 0) return;
+  for (const candidate of sorted) {
+    if (selected.length >= minimum && selected.filter((c) => c.source === source).length >= minimum) break;
+    if (candidate.source !== source || selected.includes(candidate)) continue;
+    selected.push(candidate);
+  }
+}
+
+function buildCandidates(
+  inputs: { recent: MemoryTurn[]; scenes: SceneSummary[]; retrieved: MemoryTurn[]; criticalFacts: CriticalFact[] },
+  turnCount: number,
+  budget: MemoryBudget,
+): UnifiedMemoryCandidate[] {
+  const recentCandidates = inputs.recent.map((turn) =>
+    makeCandidate("recent", turn.text, turn.turnNumber, turn, 0.45, 0.4, turnCount, budget),
+  );
+  const retrievedCandidates = inputs.retrieved.map((turn, idx) =>
+    makeCandidate("retrieved", turn.text, turn.turnNumber, turn, Math.max(0.3, 1 - idx * 0.1), 0.6, turnCount, budget),
+  );
+  const sceneCandidates = inputs.scenes.map((scene, idx) =>
+    makeCandidate(
+      "scene",
+      `${scene.summary} ${scene.keyEvents.join(" ")}`,
+      scene.sceneNumber,
+      scene,
+      Math.max(0.3, 0.8 - idx * 0.08),
+      0.8,
+      turnCount,
+      budget,
+    ),
+  );
+  const criticalCandidates = inputs.criticalFacts.map((fact, idx) =>
+    makeCandidate(
+      "critical",
+      fact.text,
+      fact.turnNumber,
+      fact,
+      Math.max(0.4, 0.9 - idx * 0.06),
+      1,
+      turnCount,
+      budget,
+    ),
+  );
+
+  return [...recentCandidates, ...retrievedCandidates, ...sceneCandidates, ...criticalCandidates];
+}
+
+function makeCandidate<T extends MemoryTurn | SceneSummary | CriticalFact>(
+  source: MemorySource,
+  text: string,
+  turnNumber: number,
+  payload: T,
+  semanticRelevance: number,
+  intrinsicImportance: number,
+  currentTurn: number,
+  budget: MemoryBudget,
+): UnifiedMemoryCandidate {
+  const recencyAge = Math.max(0, currentTurn - turnNumber);
+  const recency = Math.exp((-Math.LN2 * recencyAge) / Math.max(1, budget.memoryScoring.recencyHalfLifeTurns));
+  const noveltyPenalty = Math.min(0.8, Math.max(0, text.length > 140 ? 0 : 0.15));
+  const blendedScore =
+    budget.memoryScoring.semanticWeight * semanticRelevance +
+    budget.memoryScoring.importanceWeight * intrinsicImportance +
+    budget.memoryScoring.recencyWeight * recency -
+    budget.memoryScoring.noveltyPenaltyWeight * noveltyPenalty;
+
+  return { source, text, turnNumber, semanticRelevance, intrinsicImportance, recency, noveltyPenalty, blendedScore, payload };
 }
 
 function getCampaignPhase(turnCount: number, budget: MemoryBudget): "early" | "mid" | "late" {
@@ -129,7 +284,7 @@ export interface MemoryBundle {
 }
 
 /** Truncate a bible down to a size safe to put in a cached system block. */
-export function summarizeBibleForSystem(bible: GameBible): string {
+export function summarizeBibleForSystem(bible: GameBible): string { /* unchanged */
   const lines: string[] = [];
   lines.push(`# World: ${bible.title}`);
   if (bible.pitch) lines.push(`Pitch: ${bible.pitch}`);
@@ -137,10 +292,7 @@ export function summarizeBibleForSystem(bible: GameBible): string {
   if (bible.setting) lines.push(`Setting: ${bible.setting}`);
   lines.push(`Style: ${bible.style_mode}`);
   lines.push(`Content rating: ${bible.tone.content_rating}`);
-
-  if (bible.tone.forbidden_topics.length) {
-    lines.push(`Forbidden: ${bible.tone.forbidden_topics.join(", ")}`);
-  }
+  if (bible.tone.forbidden_topics.length) lines.push(`Forbidden: ${bible.tone.forbidden_topics.join(", ")}`);
   if (bible.rules.hard_constraints.length) {
     lines.push("Hard constraints:");
     for (const c of bible.rules.hard_constraints) lines.push(`  - ${c}`);
@@ -148,15 +300,10 @@ export function summarizeBibleForSystem(bible: GameBible): string {
   if (bible.rules.combat) lines.push(`Combat: ${bible.rules.combat}`);
   if (bible.rules.magic) lines.push(`Magic: ${bible.rules.magic}`);
   if (bible.rules.skill_checks) lines.push(`Checks: ${bible.rules.skill_checks}`);
-
   if (bible.entities.length) {
     lines.push("Key entities:");
-    for (const e of bible.entities.slice(0, 40)) {
-      lines.push(`  - [${e.kind}] ${e.name}: ${e.description}`);
-    }
+    for (const e of bible.entities.slice(0, 40)) lines.push(`  - [${e.kind}] ${e.name}: ${e.description}`);
   }
-  if (bible.starting_scenario) {
-    lines.push(`Starting scenario: ${bible.starting_scenario}`);
-  }
+  if (bible.starting_scenario) lines.push(`Starting scenario: ${bible.starting_scenario}`);
   return lines.join("\n");
 }
