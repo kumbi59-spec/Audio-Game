@@ -21,6 +21,7 @@ import { config } from "../config.js";
 import { createEventEnvelope, type DomainEventBus } from "../events/domain-events.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
 import { DEGRADED_MODE_COPY, ReliabilityErrorCode } from "@audio-rpg/shared";
+import type { CriticalFactRecord } from "../state/types.js";
 
 const SCENE_SUMMARY_EVERY = 15;
 
@@ -114,21 +115,21 @@ export interface OrchestratorDeps {
     campaignId: string,
     summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ) => Promise<void>;
-  persistCriticalFacts?: (campaignId: string, facts: string[]) => Promise<void>;
+  persistCriticalFacts?: (campaignId: string, facts: CriticalFactRecord[]) => Promise<void>;
 }
 
-function extractCriticalFacts(mutations: readonly StateMutation[]): string[] {
-  const facts: string[] = [];
+function extractCriticalFacts(mutations: readonly StateMutation[], turnNumber: number): CriticalFactRecord[] {
+  const facts: CriticalFactRecord[] = [];
   for (const m of mutations) {
-    if (m.op === "quest.start") facts.push(`Quest started: ${m.name}.`);
-    if (m.op === "quest.complete") facts.push(`Quest completed: ${m.name}.`);
-    if (m.op === "flag.set") facts.push(`Flag changed: ${m.key}=${JSON.stringify(m.value)}.`);
-    if (m.op === "inventory.add" && m.quantity >= 1) facts.push(`Major item acquired: ${m.item} x${m.quantity}.`);
+    if (m.op === "quest.start") facts.push({ turnNumber, text: `Quest started: ${m.name}.`, kind: "quest", importance: 0.8, entityRefs: [m.name] });
+    if (m.op === "quest.complete") facts.push({ turnNumber, text: `Quest completed: ${m.name}.`, kind: "quest", importance: 1, entityRefs: [m.name] });
+    if (m.op === "flag.set") facts.push({ turnNumber, text: `Flag changed: ${m.key}=${JSON.stringify(m.value)}.`, kind: "flag", importance: 0.6, entityRefs: [m.key] });
+    if (m.op === "inventory.add" && m.quantity >= 1) facts.push({ turnNumber, text: `Major item acquired: ${m.item} x${m.quantity}.`, kind: "item", importance: 0.7, entityRefs: [m.item] });
     if (m.op === "relationship.adjust" && Math.abs(m.delta) >= 3) {
-      facts.push(`Relationship milestone with ${m.npc}: ${m.delta > 0 ? "+" : ""}${m.delta}.`);
+      facts.push({ turnNumber, text: `Relationship milestone with ${m.npc}: ${m.delta > 0 ? "+" : ""}${m.delta}.`, kind: "relationship", importance: 0.75, entityRefs: [m.npc] });
     }
   }
-  return Array.from(new Set(facts));
+  return facts;
 }
 
 /**
@@ -304,7 +305,7 @@ export async function runTurn(
     turn,
   });
   await deps.persistState(session.campaignId, nextState);
-  const criticalFacts = extractCriticalFacts(turn.state_mutations);
+  const criticalFacts = extractCriticalFacts(turn.state_mutations, nextState.turn_number);
   if (deps.persistCriticalFacts && criticalFacts.length > 0) {
     await deps.persistCriticalFacts(session.campaignId, criticalFacts);
   }
