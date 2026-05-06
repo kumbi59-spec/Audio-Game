@@ -139,7 +139,7 @@ export function getPersistence() {
       campaignId: string,
       summary: { sceneNumber: number; summary: string; keyEvents: string[] },
     ) => store.persistSceneSummary(campaignId, summary),
-    persistCriticalFacts: (campaignId: string, facts: string[]) =>
+    persistCriticalFacts: (campaignId: string, facts: import("./types.js").CriticalFactRecord[]) =>
       store.persistCriticalFacts(campaignId, facts),
   };
 }

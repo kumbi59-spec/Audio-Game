@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   title        text NOT NULL,
   state        jsonb NOT NULL,
   presented_choices jsonb NOT NULL DEFAULT '[]'::jsonb,
+  -- [{ turnNumber, text, kind, importance, entityRefs[] }]
   critical_facts jsonb NOT NULL DEFAULT '[]'::jsonb,
   created_at   timestamptz NOT NULL DEFAULT now(),
   last_played_at timestamptz NOT NULL DEFAULT now()
@@ -75,3 +76,16 @@ CREATE TABLE IF NOT EXISTS scene_summaries (
 );
 
 CREATE INDEX IF NOT EXISTS scene_summaries_campaign_idx ON scene_summaries (campaign_id, scene_number);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'campaigns_critical_facts_is_array'
+  ) THEN
+    ALTER TABLE campaigns
+      ADD CONSTRAINT campaigns_critical_facts_is_array
+      CHECK (jsonb_typeof(critical_facts) = 'array') NOT VALID;
+  END IF;
+END $$;
