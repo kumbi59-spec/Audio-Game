@@ -20,6 +20,7 @@ import { randomUUID } from "node:crypto";
 import { config } from "../config.js";
 import { createEventEnvelope, type DomainEventBus } from "../events/domain-events.js";
 import { incrementSessionMetric } from "../observability/session-metrics.js";
+import { continuityHeuristics } from "./continuity.js";
 import { DEGRADED_MODE_COPY, ReliabilityErrorCode } from "@audio-rpg/shared";
 import type { CriticalFactRecord } from "../state/types.js";
 
@@ -74,6 +75,7 @@ function recordOutcome(outcome: GmTurnOutcome): void {
     }),
   );
 }
+
 
 export type TurnGenerator = (args: {
   bible: GameBible;
@@ -216,6 +218,18 @@ export async function runTurn(
       estimatedPromptTokens: Math.floor(inputText.length / 4) + session.state.turn_number * 150,
     },
   });
+  const memoryComposition = {
+    recent: memory.recent.length,
+    retrieved: memory.retrieved.length,
+    scenes: memory.scenes.length,
+    bibleHits: memory.bibleHits.length,
+    criticalFacts: memory.criticalFacts.length,
+  };
+  const highImportanceFactCount = memory.criticalFacts.filter((fact) =>
+    /(quest_complete|irreversible_loss|condition_state|oath_or_debt)/i.test(fact.text),
+  ).length;
+  const memoryAnchorIds = memory.criticalFacts.map((fact) => `critical:${fact.turnNumber}:${fact.text}`);
+  console.info(JSON.stringify({ event: "memory_bundle_metrics", turnId, campaignId: session.campaignId, ...memoryComposition, highImportanceFactCount }));
 
   const userPrompt = buildTurnUserPrompt({
     state: session.state,
@@ -311,6 +325,23 @@ export async function runTurn(
     throw lastError ?? new Error("gm_turn_failed");
   }
 
+  const continuity = continuityHeuristics(memory.criticalFacts.map((fact) => fact.text), turn.narration);
+  incrementSessionMetric("continuityChecks");
+  if (continuity.contradictionFlags.length > 0) incrementSessionMetric("continuityContradictionFlags");
+  if (continuity.omissionFlags.length > 0) incrementSessionMetric("continuityOmissionFlags");
+  console.info(
+    JSON.stringify({
+      event: "turn_continuity_heuristics",
+      turnId,
+      campaignId: session.campaignId,
+      contradictionCount: continuity.contradictionFlags.length,
+      omissionCount: continuity.omissionFlags.length,
+      contradictionFlags: continuity.contradictionFlags,
+      omissionFlags: continuity.omissionFlags,
+      memoryAnchorIds,
+    }),
+  );
+
   circuitState.failures = 0;
 
   if (maxAttempts === 1) {
@@ -322,6 +353,7 @@ export async function runTurn(
   }
 
   emit({ type: "narration_chunk", turnId, text: "", done: true });
+  console.info(JSON.stringify({ event: "turn_structured_log", turnId, campaignId: session.campaignId, memoryAnchorIds }));
   emit({
     type: "choice_list",
     turnId,
