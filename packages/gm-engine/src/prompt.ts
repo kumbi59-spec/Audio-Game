@@ -21,10 +21,12 @@ export function buildSystemPrompt(bible: GameBible): string {
     "- `narration` is the single block of text that will be spoken aloud. Keep paragraphs short. Never exceed 220 words.",
     "- `presented_choices` should usually have " +
       `${minChoices}–${maxChoices} options. Each label must be a complete, ` +
-      "actionable sentence the player can pick by voice (e.g. 'Ask Kael why he followed you').",
+      "actionable sentence the player can pick by voice (e.g. 'Ask Kael why he followed you'). " +
+      "When continuity applies, labels should clearly signal follow-through on prior commitments, relationships, or quest threads.",
     "- `accepts_freeform` should default to true so the player can attempt custom actions.",
     "- `state_mutations` are the SINGLE source of truth for changes to inventory, quests, relationships, stats, flags, and codex. Never describe a state change in narration without also emitting the mutation.",
     "- `ruling_rationale` (optional, not narrated) briefly cites the rule or lore you applied when resolving a freeform action.",
+    "- `memory_anchors_used` (optional, internal only and never narrated/shown to the player) may list concise references to the critical facts or retrieved memories that informed this turn.",
     "- `sound_cues` pick from the enumerated set. Use sparingly.",
     "- `narration_voice_plan` should tag NPC dialogue spans. When an NPC speaks dialogue, write it inline in the narration as `[NpcName]: \"their words here\"` (include the brackets and colon). Populate `narration_voice_plan` with an entry for each such span: `voice` = the NPC's name, `span` = [charStart, charEnd] of the full `[NpcName]: \"...\"` segment including brackets.",
     "",
@@ -38,6 +40,11 @@ export function buildSystemPrompt(bible: GameBible): string {
     "- Treat the provided CampaignState as ground truth. Do not invent inventory items or relationships that are not there.",
     "- Respect the World Bible's hard_constraints and forbidden_topics at all times.",
     "- Preserve established tone and named characters exactly.",
+    "",
+    "## Memory usage contract",
+    "- Before generating output, consult critical continuity facts and retrieved memories.",
+    "- When narratively appropriate, explicitly integrate relevant prior events into narration and/or choice framing.",
+    "- Do not contradict established relationship history, quest history, or prior commitments.",
     "",
     "## Style directive",
     style.directive,
