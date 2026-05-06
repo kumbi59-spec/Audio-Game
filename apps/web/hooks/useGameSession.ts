@@ -99,6 +99,8 @@ export function useGameSession() {
 
       let accumulatedNarration = "";
       let narrationBuffer = "";
+      let receivedStreamError = false;
+      let streamErrorMessage: string | null = null;
 
       try {
         const gateway: ActionRequestGateway = {
@@ -246,19 +248,57 @@ export function useGameSession() {
                   }
                 }
               } else if (eventType === "error") {
+                receivedStreamError = true;
+                streamErrorMessage = data?.message ?? "Narrator degraded mode is active.";
                 console.error("GM error:", data.message);
                 addNarrationEntry({
                   id: (Date.now() + 2).toString(),
-                  text: data?.message ?? "Narrator degraded mode is active.",
+                  text: streamErrorMessage,
                   type: "system",
                   timestamp: new Date(),
                 });
+                break;
               }
 
               eventType = "";
               dataLine = "";
             }
           }
+
+          if (receivedStreamError) break;
+        }
+
+        if (receivedStreamError) {
+          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
+          const reconciled = reconcileOptimisticState({
+            optimistic: rolled,
+            server: rolled,
+            clientRevision: (session as { revision?: number }).revision,
+            serverRevision: (session as { revision?: number }).revision,
+          });
+
+          useGameStore.setState((s) => ({
+            session: s.session
+              ? {
+                ...s.session,
+                narrationLog: streamErrorMessage
+                  ? [
+                    ...reconciled.state.narrationLog,
+                    {
+                      id: (Date.now() + 4).toString(),
+                      text: streamErrorMessage,
+                      type: "system",
+                      timestamp: new Date(),
+                    },
+                  ]
+                  : reconciled.state.narrationLog,
+                isGenerating: reconciled.state.isGenerating,
+                history: reconciled.state.history,
+                choices: reconciled.state.choices,
+              }
+              : null,
+          }));
+          return;
         }
 
         // Update session history for context continuity
