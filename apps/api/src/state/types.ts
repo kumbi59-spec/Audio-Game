@@ -31,6 +31,27 @@ export interface PersistTurnArgs {
   text: string;
 }
 
+export type CriticalFactKind =
+  | "quest"
+  | "relationship"
+  | "flag"
+  | "item"
+  | "plot"
+  | "scene"
+  | "codex"
+  | "condition"
+  | "loss"
+  | "oath";
+
+export interface CriticalFactRecord {
+  kind: CriticalFactKind;
+  turnNumber: number;
+  text: string;
+  importance: number;
+  entityRefs: string[];
+  sourceMutation: string;
+}
+
 /**
  * Single source of truth contract every storage backend implements.
  * In-memory for local dev and tests; Postgres when DATABASE_URL is set.
@@ -70,7 +91,7 @@ export interface CampaignStore {
     campaignId: string,
     summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ): Promise<void>;
-  persistCriticalFacts(campaignId: string, facts: string[]): Promise<void>;
+  persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void>;
 
   /**
    * Embedding sinks. No-op on the in-memory store; the Postgres store

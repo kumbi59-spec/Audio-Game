@@ -17,7 +17,33 @@ export interface SessionMetricsSnapshot {
   turnFailureNetworkFailure: number;
   turnFailureProviderError: number;
   turnFallbackSafeContinueChoices: number;
+  continuityContradictionFlags: number;
+  continuityOmissionFlags: number;
+  continuityChecks: number;
 }
+
+export interface ContinuityAlertThresholds {
+  contradictionRateWarn: number;
+  contradictionRateCritical: number;
+  omissionRateWarn: number;
+  omissionRateCritical: number;
+  minSamples: number;
+}
+
+export interface ContinuityAlertSnapshot {
+  contradictionRate: number;
+  omissionRate: number;
+  checks: number;
+  alerts: Array<{ level: "warn" | "critical"; kind: "contradiction" | "omission"; threshold: number }>;
+}
+
+export const DEFAULT_CONTINUITY_ALERT_THRESHOLDS: ContinuityAlertThresholds = {
+  contradictionRateWarn: 0.06,
+  contradictionRateCritical: 0.12,
+  omissionRateWarn: 0.1,
+  omissionRateCritical: 0.2,
+  minSamples: 25,
+};
 
 export interface SessionTransitionTelemetry {
   from_state: SessionState;
@@ -44,6 +70,9 @@ const metrics: SessionMetricsSnapshot = {
   turnFailureNetworkFailure: 0,
   turnFailureProviderError: 0,
   turnFallbackSafeContinueChoices: 0,
+  continuityContradictionFlags: 0,
+  continuityOmissionFlags: 0,
+  continuityChecks: 0,
 };
 
 const transitionEvents: SessionTransitionTelemetry[] = [];
@@ -77,4 +106,26 @@ export function resetSessionMetrics(): void {
     metrics[k] = 0;
   });
   transitionEvents.splice(0, transitionEvents.length);
+}
+
+export function getContinuityAlertSnapshot(
+  thresholds: ContinuityAlertThresholds = DEFAULT_CONTINUITY_ALERT_THRESHOLDS,
+): ContinuityAlertSnapshot {
+  const checks = metrics.continuityChecks;
+  const contradictionRate = checks > 0 ? metrics.continuityContradictionFlags / checks : 0;
+  const omissionRate = checks > 0 ? metrics.continuityOmissionFlags / checks : 0;
+  const alerts: ContinuityAlertSnapshot["alerts"] = [];
+  if (checks >= thresholds.minSamples) {
+    if (contradictionRate >= thresholds.contradictionRateCritical) {
+      alerts.push({ level: "critical", kind: "contradiction", threshold: thresholds.contradictionRateCritical });
+    } else if (contradictionRate >= thresholds.contradictionRateWarn) {
+      alerts.push({ level: "warn", kind: "contradiction", threshold: thresholds.contradictionRateWarn });
+    }
+    if (omissionRate >= thresholds.omissionRateCritical) {
+      alerts.push({ level: "critical", kind: "omission", threshold: thresholds.omissionRateCritical });
+    } else if (omissionRate >= thresholds.omissionRateWarn) {
+      alerts.push({ level: "warn", kind: "omission", threshold: thresholds.omissionRateWarn });
+    }
+  }
+  return { contradictionRate, omissionRate, checks, alerts };
 }

@@ -92,6 +92,16 @@ export async function addAiMinutes(userId: string, minutes: number) {
   });
 }
 
+export async function markStripeEventProcessed(eventId: string): Promise<boolean> {
+  const rows = await prisma.$executeRaw`
+    INSERT INTO "ProcessedStripeEvent" ("id")
+    VALUES (${eventId})
+    ON CONFLICT ("id") DO NOTHING
+  `;
+
+  return rows > 0;
+}
+
 const FREE_DAILY_AI_MINUTES = 60;
 
 export async function resetDailyMinutesIfNeeded(userId: string, tier: string): Promise<void> {

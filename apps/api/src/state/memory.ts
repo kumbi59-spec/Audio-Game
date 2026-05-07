@@ -5,6 +5,7 @@ import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
 import type {
   CampaignStore,
+  CriticalFactRecord,
   PersistTurnArgs,
   StoredCampaign,
   StoredCampaignSummary,
@@ -16,7 +17,7 @@ interface MemCampaign extends StoredCampaign {
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
   sceneSummaries: { sceneNumber: number; summary: string; keyEvents: string[] }[];
-  criticalFacts: { turnNumber: number; text: string }[];
+  criticalFacts: CriticalFactRecord[];
 }
 
 /**
@@ -181,18 +182,10 @@ export class MemoryCampaignStore implements CampaignStore {
     }
   }
 
-  async persistCriticalFacts(campaignId: string, facts: string[]): Promise<void> {
+  async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
     const existing = this.campaigns.get(campaignId);
     if (!existing || facts.length === 0) return;
-    const turnNumber = existing.state.turn_number;
-    for (const text of facts) {
-      if (!existing.criticalFacts.some((f) => f.text === text)) {
-        existing.criticalFacts.push({ turnNumber, text });
-      }
-    }
-    if (existing.criticalFacts.length > 200) {
-      existing.criticalFacts.splice(0, existing.criticalFacts.length - 200);
-    }
+    existing.criticalFacts = normalizeAndTrimCriticalFacts([...existing.criticalFacts, ...facts], 200);
   }
 
   memoryStore(): MemoryStore {
@@ -216,8 +209,16 @@ export class MemoryCampaignStore implements CampaignStore {
           keyEvents: s.keyEvents,
         }));
       },
-      async searchTurns() {
-        return [];
+      /**
+       * Local/dev fallback retrieval for parity with Postgres vector memory.
+       * This is intentionally lightweight and deterministic (not embedding-grade):
+       * lexical overlap + a recency blend over the in-memory narration log.
+       */
+      async searchTurns(campaignId: string, query: string, k: number) {
+        const c = self.campaigns.get(campaignId);
+        if (!c || k <= 0) return [];
+        const scored = scoreNarrationTurns(c.narrationLog, query).slice(0, k);
+        return scored.map(({ turnNumber, role, text }) => ({ turnNumber, role, text }));
       },
       async searchBible() {
         return [];
@@ -225,8 +226,78 @@ export class MemoryCampaignStore implements CampaignStore {
       async criticalFacts(campaignId: string, n: number) {
         const c = self.campaigns.get(campaignId);
         if (!c) return [];
-        return c.criticalFacts.slice(-n);
+        return c.criticalFacts.slice(-n).map(({ turnNumber, text }) => ({ turnNumber, text }));
       },
     };
   }
+}
+
+function semanticKey(fact: CriticalFactRecord): string {
+  const normalizedText = fact.text.trim().toLowerCase().replace(/\s+/g, " ");
+  const refs = Array.from(new Set(fact.entityRefs.map((ref) => ref.trim().toLowerCase()).filter(Boolean))).sort();
+  return `${fact.kind}|${normalizedText}|${refs.join(",")}`;
+}
+
+function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: number): CriticalFactRecord[] {
+  const deduped = new Map<string, CriticalFactRecord>();
+  for (const fact of facts) {
+    if (!fact.text?.trim()) continue;
+    const normalized: CriticalFactRecord = {
+      turnNumber: Math.max(0, Number.isFinite(fact.turnNumber) ? fact.turnNumber : 0),
+      text: fact.text.trim(),
+      kind: fact.kind,
+      importance: Number.isFinite(fact.importance) ? fact.importance : 0,
+      entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
+      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
+    };
+    const key = semanticKey(normalized);
+    const existing = deduped.get(key);
+    if (!existing || normalized.importance > existing.importance || (normalized.importance === existing.importance && normalized.turnNumber >= existing.turnNumber)) {
+      deduped.set(key, normalized);
+    }
+  }
+  return Array.from(deduped.values())
+    .sort((a, b) => (a.importance === b.importance ? b.turnNumber - a.turnNumber : b.importance - a.importance))
+    .slice(0, maxFacts)
+    .sort((a, b) => a.turnNumber - b.turnNumber);
+}
+
+function scoreNarrationTurns(
+  turns: { turnNumber: number; role: "gm" | "player"; text: string }[],
+  query: string,
+): { turnNumber: number; role: "gm" | "player"; text: string }[] {
+  const qTokens = tokenize(query);
+  if (qTokens.length === 0 || turns.length === 0) return [];
+  const qUnique = new Set(qTokens);
+  const latestTurn = Math.max(...turns.map((t) => t.turnNumber));
+  const lexWeight = 0.75;
+  const recencyWeight = 0.25;
+  const byScore = turns
+    .map((turn) => {
+      const tTokens = tokenize(turn.text);
+      const tUnique = new Set(tTokens);
+      const overlap = Array.from(qUnique).filter((token) => tUnique.has(token)).length;
+      const lexicalScore = overlap / Math.max(qUnique.size, 1);
+      const recencyScore = Math.max(0, 1 - (latestTurn - turn.turnNumber) / 200);
+      return {
+        ...turn,
+        score: lexWeight * lexicalScore + recencyWeight * recencyScore,
+      };
+    })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.turnNumber !== a.turnNumber) return b.turnNumber - a.turnNumber;
+      if (a.role !== b.role) return a.role.localeCompare(b.role);
+      return a.text.localeCompare(b.text);
+    });
+  return byScore.map(({ turnNumber, role, text }) => ({ turnNumber, role, text }));
+}
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
 }

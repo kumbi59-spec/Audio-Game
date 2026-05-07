@@ -14,6 +14,7 @@ import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
 import type {
   CampaignStore,
+  CriticalFactRecord,
   PersistTurnArgs,
   StoredCampaign,
   StoredCampaignSummary,
@@ -354,22 +355,36 @@ export class PostgresCampaignStore implements CampaignStore {
     );
   }
 
-  async persistCriticalFacts(campaignId: string, facts: string[]): Promise<void> {
+  async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
     await this.ready;
     if (facts.length === 0) return;
-    await this.pool.query(
-      `UPDATE campaigns
-          SET critical_facts = (
-            SELECT to_jsonb(
-              ARRAY(
-                SELECT DISTINCT x
-                FROM jsonb_array_elements_text(coalesce(critical_facts, '[]'::jsonb) || $2::jsonb) AS x
-              )
-            )
-          )
-        WHERE campaign_id = $1`,
-      [campaignId, JSON.stringify(facts)],
-    );
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const { rows } = await client.query<{ critical_facts: unknown }>(
+        `SELECT critical_facts
+           FROM campaigns
+          WHERE campaign_id = $1
+          FOR UPDATE`,
+        [campaignId],
+      );
+      const existing = asCriticalFactRecords(rows[0]?.critical_facts);
+      const normalizedFacts = normalizeAndTrimCriticalFacts([...existing, ...facts], 200);
+      if (normalizedFacts.length > 0) {
+        await client.query(
+          `UPDATE campaigns
+              SET critical_facts = $2::jsonb
+            WHERE campaign_id = $1`,
+          [campaignId, JSON.stringify(normalizedFacts)],
+        );
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {});
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -496,17 +511,82 @@ export class PostgresCampaignStore implements CampaignStore {
 
   private async criticalFacts(campaignId: string, n: number): Promise<{ turnNumber: number; text: string }[]> {
     await this.ready;
-    const { rows } = await this.pool.query<{ critical_facts: string[]; state: CampaignState }>(
+    const { rows } = await this.pool.query<{ critical_facts: unknown; state: CampaignState }>(
       `SELECT critical_facts, state FROM campaigns WHERE campaign_id = $1`,
       [campaignId],
     );
     const row = rows[0];
     if (!row) return [];
-    const turnNumber = row.state.turn_number;
-    return (row.critical_facts ?? []).slice(-n).map((text) => ({ turnNumber, text }));
+    const facts = normalizeAndTrimCriticalFacts(asCriticalFactRecords(row.critical_facts), 200);
+    return facts.slice(-n).map((fact) => ({ turnNumber: fact.turnNumber, text: fact.text }));
   }
 }
 
+function semanticKey(fact: CriticalFactRecord): string {
+  const normalizedText = fact.text.trim().toLowerCase().replace(/\s+/g, " ");
+  const entityRefs = Array.from(new Set(fact.entityRefs.map((ref) => ref.trim().toLowerCase()).filter(Boolean))).sort();
+  return `${fact.kind}|${normalizedText}|${entityRefs.join(",")}`;
+}
+
+function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: number): CriticalFactRecord[] {
+  const deduped = new Map<string, CriticalFactRecord>();
+  for (const fact of facts) {
+    if (!fact.text?.trim()) continue;
+    const normalized: CriticalFactRecord = {
+      turnNumber: Math.max(0, Number.isFinite(fact.turnNumber) ? fact.turnNumber : 0),
+      text: fact.text.trim(),
+      kind: fact.kind,
+      importance: Number.isFinite(fact.importance) ? fact.importance : 0,
+      entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
+      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
+    };
+    const key = semanticKey(normalized);
+    const existing = deduped.get(key);
+    if (!existing) {
+      deduped.set(key, normalized);
+      continue;
+    }
+    if (
+      normalized.importance > existing.importance ||
+      (normalized.importance === existing.importance && normalized.turnNumber >= existing.turnNumber)
+    ) {
+      deduped.set(key, normalized);
+    }
+  }
+  return Array.from(deduped.values())
+    .sort((a, b) => {
+      if (a.importance !== b.importance) return b.importance - a.importance;
+      return b.turnNumber - a.turnNumber;
+    })
+    .slice(0, maxFacts)
+    .sort((a, b) => a.turnNumber - b.turnNumber);
+}
+
+
+function asCriticalFactRecords(value: unknown): CriticalFactRecord[] {
+  if (!Array.isArray(value)) return [];
+  const out: CriticalFactRecord[] = [];
+  for (const raw of value) {
+    if (typeof raw === "string") {
+      const text = raw.trim();
+      if (!text) continue;
+      out.push({ turnNumber: 0, text, kind: "plot", importance: 0, entityRefs: [], sourceMutation: "legacy" });
+      continue;
+    }
+    if (!raw || typeof raw !== "object") continue;
+    const obj = raw as Partial<CriticalFactRecord>;
+    if (typeof obj.text !== "string") continue;
+    out.push({
+      turnNumber: typeof obj.turnNumber === "number" ? obj.turnNumber : 0,
+      text: obj.text,
+      kind: obj.kind ?? "plot",
+      importance: typeof obj.importance === "number" ? obj.importance : 0,
+      entityRefs: Array.isArray(obj.entityRefs) ? obj.entityRefs.filter((x): x is string => typeof x === "string") : [],
+      sourceMutation: typeof obj.sourceMutation === "string" ? obj.sourceMutation : "legacy",
+    });
+  }
+  return out;
+}
 /** pgvector wants `[1,2,3]` text; node-postgres has no native adapter. */
 function toVectorLiteral(v: readonly number[]): string {
   return `[${v.map((x) => (Number.isFinite(x) ? x.toString() : "0")).join(",")}]`;

@@ -3,11 +3,71 @@ import { z } from "zod";
 import { streamGMTurn } from "@/lib/ai/gm-engine";
 import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/safety/moderator";
 import type { InMemorySession, PlayerAction } from "@/types/game";
-import type { CharacterData } from "@/types/character";
-import type { WorldData } from "@/types/world";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { consumeFreeAiMinute, resetDailyMinutesIfNeeded } from "@/lib/db/queries/users";
+
+const CharacterSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  class: z.enum(["warrior", "rogue", "mage", "ranger", "bard"]),
+  roleTitle: z.string().nullish(),
+  backstory: z.string(),
+  stats: z.object({
+    hp: z.number(),
+    maxHp: z.number(),
+    strength: z.number(),
+    dexterity: z.number(),
+    intelligence: z.number(),
+    charisma: z.number(),
+    level: z.number(),
+    experience: z.number(),
+  }),
+  customStats: z.record(z.number()).optional(),
+  inventory: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      description: z.string().default(""),
+      quantity: z.number(),
+    })
+  ),
+  quests: z.array(
+    z.object({
+      id: z.string().min(1),
+      title: z.string().min(1),
+      status: z.enum(["active", "completed", "failed", "abandoned"]),
+      objectives: z.array(
+        z.object({
+          id: z.string().min(1),
+          text: z.string().min(1),
+          completed: z.boolean(),
+        })
+      ),
+    })
+  ),
+  pronouns: z.string().nullish(),
+  age: z.number().nullish(),
+  shortDescription: z.string().nullish(),
+});
+
+const WorldSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string(),
+  genre: z.string(),
+  tone: z.string(),
+  systemPrompt: z.string(),
+  isPrebuilt: z.boolean(),
+  locations: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      shortDesc: z.string(),
+    })
+  ),
+  npcs: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })).default([]),
+});
 
 const ActionSchema = z.object({
   action: z.object({
@@ -34,8 +94,8 @@ const ActionSchema = z.object({
     choices: z.array(z.string()).default([]),
     isGenerating: z.boolean().default(false),
   }),
-  character: z.unknown(),
-  world: z.unknown(),
+  character: CharacterSchema,
+  world: WorldSchema,
   dbSessionId: z.string().nullish(),
 });
 
@@ -44,37 +104,27 @@ export async function POST(req: NextRequest) {
   try {
     body = ActionSchema.parse(await req.json());
   } catch (err) {
-    console.error("[action] Zod validation failed:", JSON.stringify((err as { issues?: unknown }).issues ?? err, null, 2));
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    const details = err instanceof z.ZodError ? err.issues : [];
+    console.error("[action] Zod validation failed:", JSON.stringify(details, null, 2));
+    return NextResponse.json(
+      { error: "invalid_request_body", details },
+      { status: 400 }
+    );
   }
 
-  const action = body.action as PlayerAction;
-  const session = body.session as InMemorySession;
-  const character = body.character as CharacterData;
-  const world = body.world as WorldData;
+  const action: PlayerAction = body.action;
+  const session: InMemorySession = body.session as InMemorySession;
+  const character = body.character;
+  const world = body.world;
   const dbSessionId = body.dbSessionId;
 
   const authSession = await auth();
-  if (authSession?.user?.id) {
-    const user = await prisma.user.findUnique({
+  const user = authSession?.user?.id
+    ? await prisma.user.findUnique({
       where: { id: authSession.user.id },
       select: { tier: true },
-    });
-
-    if (user?.tier === "free") {
-      await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
-      const consumed = await consumeFreeAiMinute(authSession.user.id);
-      if (!consumed) {
-        return NextResponse.json(
-          {
-            error: "ai_minutes_exhausted",
-            message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
-          },
-          { status: 402 },
-        );
-      }
-    }
-  }
+    })
+    : null;
 
   const inputCheck = moderatePlayerInput(action.content);
   if (!inputCheck.safe) {
@@ -84,6 +134,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (authSession?.user?.id && user?.tier === "free") {
+    await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
+    const consumed = await consumeFreeAiMinute(authSession.user.id);
+    if (!consumed) {
+      return NextResponse.json(
+        {
+          error: "ai_minutes_exhausted",
+          message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
+        },
+        { status: 402 },
+      );
+    }
+  }
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
