@@ -212,7 +212,7 @@ export default function LandingPage() {
           <h2 id="features-heading" className="mb-10 text-center text-2xl font-bold" style={{ color: "var(--text)" }}>
             Built different
           </h2>
-          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
+          <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 md:grid-cols-3">
             {FEATURES.map((f) => (
               <article key={f.title} className="rounded-xl border p-6" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}>
                 <div aria-hidden="true" className="mb-3 text-3xl">{f.icon}</div>
@@ -280,7 +280,7 @@ export default function LandingPage() {
           <p className="mb-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
             Start free. Upgrade when you want more.
           </p>
-          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
+          <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 md:grid-cols-3">
             {PRICING.map((p) => (
               <article
                 key={p.tier}
@@ -329,16 +329,31 @@ export default function LandingPage() {
 
 
         <section aria-label="Creator spotlight" className="px-6 py-16">
-          <div className="mx-auto max-w-4xl rounded-2xl border border-border bg-card p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">World of the Week</p>
+          <div
+            className="mx-auto max-w-4xl rounded-2xl border p-8"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>World of the Week</p>
             <h2 className="mt-2 text-2xl font-bold" style={{ color: "var(--text)" }}>Creator Spotlight: Community Remix Challenge</h2>
             <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
               Each week we feature one creator world and encourage the community to fork it, remix it, and share session recaps.
               Featured creators bring their own audience and drive new players back into EchoQuest.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/forks" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white">Explore forkable worlds</Link>
-              <Link href="/my-worlds" className="rounded-lg border border-border px-4 py-2 text-sm font-semibold">Nominate your world</Link>
+              <Link
+                href="/forks"
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: "var(--accent)" }}
+              >
+                Explore forkable worlds
+              </Link>
+              <Link
+                href="/my-worlds"
+                className="rounded-lg border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
+                style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+              >
+                Nominate your world
+              </Link>
             </div>
           </div>
         </section>

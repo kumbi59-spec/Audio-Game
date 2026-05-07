@@ -487,7 +487,7 @@ function CreateCharacterPage() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Customize Stat Points
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {([
                   ["Strength", "strength"],
                   ["Agility", "dexterity"],
@@ -519,7 +519,7 @@ function CreateCharacterPage() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     World-defined Stats
                   </p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {Object.entries(customStatOverrides).map(([label, value]) => (
                       <label key={label} className="text-xs text-muted-foreground">
                         {label}

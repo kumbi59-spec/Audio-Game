@@ -78,7 +78,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
       id={id}
       role="region"
       aria-label="Character status"
-      className="grid gap-2 rounded-lg border border-border bg-background/70 p-3 text-sm md:grid-cols-[auto,1fr,auto,auto]"
+      className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background/70 p-3 text-sm"
     >
       {/* A11y motion checklist: emoji/status meaning is always textual; HP color/values remain readable statically; reduced-motion disables decorative pulses/flashes. */}
       {/* Portrait + core stats */}
@@ -109,14 +109,16 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
         </span>
         <div aria-hidden="true" className="h-2 w-16 overflow-hidden rounded-full bg-muted">
           <div
-            className={`status-hp-fill h-full rounded-full transition-all ${
-              hpPercent > 50
-                ? "bg-green-500"
-                : hpPercent > 25
-                ? "bg-yellow-500"
-                : "bg-red-500"
-            }`}
-            style={{ width: `${hpPercent}%` }}
+            className="status-hp-fill h-full rounded-full"
+            style={{
+              width: `${hpPercent}%`,
+              backgroundColor:
+                hpPercent > 50
+                  ? "var(--success)"
+                  : hpPercent > 25
+                  ? "var(--warning)"
+                  : "var(--danger)",
+            }}
           />
         </div>
       </div>
@@ -146,7 +148,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
 
       <div
         aria-label="Current combat modifiers"
-        className="rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground md:col-span-2"
+        className="rounded-md bg-muted/40 px-2 py-1 text-xs text-muted-foreground"
       >
         {passiveBonuses.length > 0
           ? `Modifiers: ${passiveBonuses
@@ -160,7 +162,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
         onClick={readStatusAloud}
         aria-label="Read character status aloud (S)"
         title="Read status aloud (S)"
-        className="justify-self-start rounded-md border border-border px-2 py-1 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:justify-self-end"
+        className="rounded-md border border-border px-2 py-1 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span aria-hidden="true">🔊 Read</span>
       </button>
@@ -172,10 +174,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
           .status-hp-fill {
             transition:
               width var(--motion-medium) var(--ease-emphasized),
-              opacity var(--motion-fast) var(--ease-standard);
-          }
-          .status-hp-fill:not([style*="width: 100%"]) {
-            animation: echoQuestPulse 360ms var(--ease-standard) 1;
+              background-color var(--motion-medium) var(--ease-standard);
           }
         }
       `}</style>

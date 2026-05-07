@@ -286,7 +286,7 @@ export function GameShell() {
                 type="button"
                 onClick={() => setHudOpen(false)}
                 aria-label="Close HUD"
-                className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
               >
                 ✕
               </button>
@@ -309,7 +309,7 @@ export function GameShell() {
                 onClick={() => setChoicesMinimized((m) => !m)}
                 aria-expanded={!choicesMinimized}
                 aria-controls="choices-panel"
-                className="rounded text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="rounded text-xs text-muted-foreground hover:text-foreground focus-ring"
               >
                 {choicesMinimized ? "Expand ▼" : "Minimize ▲"}
               </button>
@@ -350,41 +350,32 @@ export function GameShell() {
           className="flex shrink-0 items-center justify-between border-t border-border bg-muted/10 px-4 py-2"
         >
           {/* A11y motion checklist: labels/icons communicate state without animation; all controls are keyboard/focus operable; reduced-motion uses static visuals. */}
-          {/* Speed controls */}
-          <div className="flex items-center gap-1" aria-label="Narration speed">
-            <button
-              onClick={() =>
-                setTTSSpeed(Math.max(0.5, parseFloat((ttsSpeed - 0.1).toFixed(1))))
-              }
-              aria-label="Decrease narration speed"
-              className="toolbar-btn flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              −
-            </button>
-            <span
-              aria-label={`Speed ${ttsSpeed.toFixed(1)} times`}
-              className="min-w-[2.75rem] text-center text-xs tabular-nums text-muted-foreground"
-            >
+          {/* Speed control — compact slider replaces ± buttons */}
+          <div className="flex min-w-[110px] items-center gap-2" aria-label="Narration speed">
+            <label htmlFor="speed-slider" className="sr-only">Narration speed</label>
+            <input
+              id="speed-slider"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={ttsSpeed}
+              onChange={(e) => setTTSSpeed(parseFloat(e.target.value))}
+              aria-valuetext={`${ttsSpeed.toFixed(1)} times`}
+              className="w-full cursor-pointer accent-[var(--accent)]"
+            />
+            <span aria-hidden="true" className="min-w-[2.5rem] text-right text-xs tabular-nums text-muted-foreground">
               {ttsSpeed.toFixed(1)}×
             </span>
-            <button
-              onClick={() =>
-                setTTSSpeed(Math.min(2, parseFloat((ttsSpeed + 0.1).toFixed(1))))
-              }
-              aria-label="Increase narration speed"
-              className="toolbar-btn flex h-8 w-8 items-center justify-center rounded border border-border text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              +
-            </button>
           </div>
 
-          {/* HUD / Sheet / Recap / Exit */}
+          {/* Primary toolbar buttons — always visible */}
           <div className="flex items-center gap-2">
             <button
               onClick={handleToggleOperationsManual}
               aria-pressed={operationsManualOpen}
               aria-label={operationsManualOpen ? "Close Help / Operations Manual" : "Open Help / Operations Manual (H)"}
-              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 operationsManualOpen
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -396,7 +387,7 @@ export function GameShell() {
               onClick={() => setSheetOpen((o) => !o)}
               aria-pressed={sheetOpen}
               aria-label={sheetOpen ? "Close character sheet" : "Open character sheet (C)"}
-              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 sheetOpen
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -405,9 +396,22 @@ export function GameShell() {
               Sheet
             </button>
             <button
+              onClick={() => setHudOpen((h) => !h)}
+              aria-pressed={hudOpen}
+              aria-label={hudOpen ? "Close HUD" : "Open HUD — status and audio settings"}
+              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
+                hudOpen
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+            >
+              HUD
+            </button>
+            {/* Secondary buttons — visible on md+ screens */}
+            <button
               onClick={() => handleOpenSheetTab("inventory")}
               aria-label={`Open inventory (I). ${character.inventory.length} items.`}
-              className="toolbar-btn relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Briefcase
               {character.inventory.length > 0 && (
@@ -419,7 +423,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("quests")}
               aria-label={`Open quest log (Q). ${activeQuestCount} active quests.`}
-              className="toolbar-btn relative rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Quest Book
               {activeQuestCount > 0 && (
@@ -429,35 +433,43 @@ export function GameShell() {
               )}
             </button>
             <button
-              onClick={() => setHudOpen((h) => !h)}
-              aria-pressed={hudOpen}
-              aria-label={hudOpen ? "Close HUD" : "Open HUD — status and audio settings"}
-              className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                hudOpen
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
-              }`}
-            >
-              HUD
-            </button>
-            <button
               onClick={replayLast}
               aria-label="Replay last narration (R)"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Recap
             </button>
             <button
               onClick={shareRecap}
               aria-label="Share your session recap"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Share Recap
             </button>
+            {/* Mobile overflow menu — hidden on md+ */}
+            <details className="relative md:hidden">
+              <summary className="toolbar-btn list-none cursor-pointer rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring">
+                ⋯ More
+              </summary>
+              <div className="absolute bottom-full right-0 z-50 mb-1 flex flex-col gap-1 rounded-lg border border-border bg-background p-2 shadow-lg">
+                <button onClick={() => handleOpenSheetTab("inventory")} aria-label={`Open inventory. ${character.inventory.length} items.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Briefcase {character.inventory.length > 0 && `(${character.inventory.length})`}
+                </button>
+                <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Quest Book {activeQuestCount > 0 && `(${activeQuestCount})`}
+                </button>
+                <button onClick={replayLast} aria-label="Replay last narration" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Recap
+                </button>
+                <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Share Recap
+                </button>
+              </div>
+            </details>
             <Link
               href="/library"
               aria-label="Exit game and return to library"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
             >
               ← Exit
             </Link>

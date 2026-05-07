@@ -177,9 +177,9 @@ export default function LibraryPage() {
                       <p className="text-xs" style={{ color: "var(--text-muted)" }}>Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
-                      <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Share</button>
-                      <button onClick={() => deleteSavedCampaign(save.id)} className="rounded border px-2 py-1 text-xs" style={{ borderColor: 'var(--border)' }}>Delete</button>
+                      <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
+                      <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Share</button>
+                      <button onClick={() => deleteSavedCampaign(save.id)} className="min-h-[44px] rounded border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400" style={{ borderColor: 'var(--border)' }}>Delete</button>
                     </div>
                   </li>
                 ))}
@@ -278,12 +278,19 @@ export default function LibraryPage() {
                 {[0, 1, 2].map((i) => <li key={i}><SkeletonCard /></li>)}
               </ul>
             ) : visibleWorlds.length === 0 ? (
-              <p
-                className="py-12 text-center text-sm"
-                style={{ color: "var(--text-muted)" }}
-              >
-                No community worlds yet. Be the first to share yours!
-              </p>
+              <div className="flex flex-col items-center gap-4 py-16 text-center">
+                <span className="text-5xl opacity-20" aria-hidden="true">🌍</span>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  No community worlds yet.
+                </p>
+                <Link
+                  href="/worlds/new"
+                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                >
+                  Create the first one →
+                </Link>
+              </div>
             ) : (
               <WorldList worlds={visibleWorlds} showAuthor onPlay={(id) => router.push(`/create?worldId=${id}`)} />
             )}
@@ -330,7 +337,7 @@ function WorldCard({
     >
       {/* Cover image */}
       {world.imageUrl ? (
-        <div className="relative h-44 w-full overflow-hidden" aria-hidden="true">
+        <div className="relative aspect-video w-full overflow-hidden" aria-hidden="true">
           {/* eslint-disable-next-line @next/next/no-img-element -- arbitrary user-supplied URL; next/image would require allowing all remote domains */}
           <img
             src={world.imageUrl}
@@ -342,7 +349,7 @@ function WorldCard({
         </div>
       ) : (
         <div
-          className="flex h-44 w-full items-center justify-center"
+          className="flex aspect-video w-full items-center justify-center"
           aria-hidden="true"
           style={{ backgroundColor: "var(--surface-2, var(--surface))" }}
         >
@@ -386,15 +393,15 @@ function WorldCard({
           className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
         >
-          Play →
+          Play Game →
         </button>
         <Link
           href="/campaigns"
-          aria-label="Read campaign world pages"
+          aria-label="View campaign information page"
           className="rounded-lg border px-3 py-3 text-xs font-semibold hover:opacity-90"
           style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
         >
-          World pages
+          Campaign Info
         </Link>
       </div>
       </div>

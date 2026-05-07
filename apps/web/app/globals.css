@@ -241,6 +241,13 @@
       0 8px 28px var(--accent-dim);
   }
 
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
 
   .eyebrow {
     font-size: 0.75rem;
