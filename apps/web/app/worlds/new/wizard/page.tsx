@@ -193,6 +193,8 @@ export default function WorldWizardPage() {
         narrate("I didn't catch that. Please click one of the listed options.", "assertive");
       } else {
         setTextInput(transcript);
+        // Auto-advance on freeform voice input to match mobile behaviour.
+        advance(transcript);
       }
     };
     rec.onerror = () => { setListening(false); };
@@ -224,6 +226,12 @@ export default function WorldWizardPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <style>{`
+        @keyframes pulse-ring {
+          0%, 100% { box-shadow: 0 0 0 2px var(--accentBg, rgba(124,106,247,0.22)); }
+          50%       { box-shadow: 0 0 0 6px var(--accentBg, rgba(124,106,247,0.10)); }
+        }
+      `}</style>
       {/* Skip link */}
       <a
         href="#wizard-main"
@@ -495,14 +503,27 @@ export default function WorldWizardPage() {
             disabled={busy}
             aria-label={listening ? "Listening for your answer…" : "Speak your answer (V)"}
             aria-pressed={listening}
-            className="rounded-lg border px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-40"
+            className="relative rounded-lg border px-4 py-2.5 text-sm font-semibold transition-colors hover:opacity-80 disabled:opacity-40"
             style={{
               borderColor: listening ? "var(--accent)" : "var(--border)",
               backgroundColor: listening ? "var(--accentBg, rgba(99,102,241,0.08))" : "transparent",
               color: listening ? "var(--accent)" : "var(--text)",
+              boxShadow: listening ? "0 0 0 3px var(--accentBg, rgba(124,106,247,0.22))" : "none",
+              animation: listening ? "pulse-ring 1.4s ease-in-out infinite" : "none",
             }}
           >
             {listening ? "🎤 Listening…" : "🎤 Speak"}
+          </button>
+
+          <button
+            onClick={() => step && narrate(`Step ${stepIndex + 1}. ${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`)}
+            disabled={busy}
+            aria-label="Read the question aloud again (R)"
+            title="Re-read (R)"
+            className="rounded-lg border px-3 py-2.5 text-sm transition-opacity hover:opacity-80 disabled:opacity-40"
+            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+          >
+            ↻ Re-read
           </button>
 
           {step.kind === "freeform" && (
@@ -518,6 +539,11 @@ export default function WorldWizardPage() {
             </button>
           )}
         </div>
+
+        {/* Keyboard hint bar */}
+        <p className="mt-3 text-xs" style={{ color: "var(--text-faint)" }} aria-hidden="true">
+          Keyboard: <kbd>V</kbd> speak · <kbd>R</kbd> re-read · <kbd>←</kbd> back · <kbd>→ / Enter</kbd> next
+        </p>
 
         {/* Cover image (shown on last step only) */}
         {isLast && (
