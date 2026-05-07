@@ -38,8 +38,10 @@ export async function POST(req: NextRequest) {
 
   // Use the effective tier from the JWT (already has effectiveTierForEmail applied)
   // rather than reading raw tier from DB, which would block admin-email users.
+  const isAdmin = (session.user as { isAdmin?: boolean }).isAdmin === true;
   const tier = (session.user as { tier?: string }).tier ?? "free";
-  const cap = TTS_CHAR_CAPS[tier] ?? 0;
+  // Admins always get unlimited TTS regardless of their stored tier.
+  const cap: number | null = isAdmin ? null : (TTS_CHAR_CAPS[tier] ?? 0);
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
