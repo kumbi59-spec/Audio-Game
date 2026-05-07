@@ -28,11 +28,49 @@ export interface SessionRouteOptions {
   domainEvents?: DomainEventBus;
 }
 
+// ── Multiplayer campaign rooms ─────────────────────────────────────────────
+// Maps campaignId → set of per-socket emit functions so that any turn result
+// is broadcast to every player connected to the same campaign.
+
+type EmitFn = (evt: ServerEvent) => void;
+const campaignEmitters = new Map<string, Set<EmitFn>>();
+// Prevents two players from simultaneously driving a GM turn for the same campaign.
+const campaignTurnLock = new Map<string, boolean>();
+
+function broadcastToCampaign(campaignId: string, evt: ServerEvent): void {
+  for (const emitter of campaignEmitters.get(campaignId) ?? []) {
+    emitter(evt);
+  }
+}
+
+function registerEmitter(campaignId: string, emit: EmitFn): void {
+  if (!campaignEmitters.has(campaignId)) campaignEmitters.set(campaignId, new Set());
+  campaignEmitters.get(campaignId)!.add(emit);
+}
+
+function unregisterEmitter(campaignId: string, emit: EmitFn): void {
+  const set = campaignEmitters.get(campaignId);
+  if (!set) return;
+  set.delete(emit);
+  if (set.size === 0) {
+    campaignEmitters.delete(campaignId);
+    campaignTurnLock.delete(campaignId);
+  }
+}
+
+/** Exposed for test teardown only. */
+export function clearCampaignRooms(): void {
+  campaignEmitters.clear();
+  campaignTurnLock.clear();
+}
+
+// ── Route ─────────────────────────────────────────────────────────────────
+
 /**
- * Per-campaign WebSocket. The client sends `join` + `player_input` events,
- * the server streams `narration_chunk`, `choice_list`, `state_delta`,
- * `sound_cue`, `turn_complete`. Audio is fetched separately from the TTS
- * proxy keyed by turnId.
+ * Per-campaign WebSocket. All players who join the same campaignId share the
+ * same GM turn stream — narration, choices, and state deltas broadcast to
+ * every connected socket. Only one turn runs at a time; additional player_input
+ * events are rejected while a turn is in progress.
  */
 export async function registerSessionRoutes(
   app: FastifyInstance,
@@ -44,9 +82,11 @@ export async function registerSessionRoutes(
     let sessionState: SessionState = "connected";
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
     let turnLimit: number | null = null;
+    let currentCampaignId: string | null = null;
     const handledEventIds = new Set<string>();
 
-    const emit = (evt: ServerEvent): void => {
+    // Local emit — sends to this socket only (used for join ACK, errors).
+    const localEmit = (evt: ServerEvent): void => {
       const parsed = ServerEvent.safeParse(evt);
       if (!parsed.success) {
         app.log.error({ evt, error: parsed.error }, "invalid server event");
@@ -54,6 +94,9 @@ export async function registerSessionRoutes(
       }
       socket.send(serializeServerEvent(parsed.data));
     };
+
+    // After joining, emit broadcasts to the whole campaign room.
+    let emit: EmitFn = localEmit;
 
     const emitInvalidTransition = (
       from: SessionState,
@@ -72,7 +115,7 @@ export async function registerSessionRoutes(
         { currentState: from, targetState: to, trigger, rejectionReason },
         "session state transition rejected",
       );
-      emit({
+      localEmit({
         type: "error",
         code: "invalid_state_transition",
         message: `Invalid session state transition from '${from}' to '${to}' via '${trigger}'.`,
@@ -101,7 +144,7 @@ export async function registerSessionRoutes(
       try {
         msg = JSON.parse(raw.toString("utf8"));
       } catch {
-        emit({
+        localEmit({
           type: "error",
           code: "bad_json",
           message: "Message was not JSON.",
@@ -115,7 +158,7 @@ export async function registerSessionRoutes(
         event = normalizeClientEventV1(msg);
       } catch (err) {
         if (err instanceof UnsupportedClientEventVersionError) {
-          emit({
+          localEmit({
             type: "error",
             code: err.code,
             message: err.message,
@@ -124,7 +167,7 @@ export async function registerSessionRoutes(
           return;
         }
 
-        emit({
+        localEmit({
           type: "error",
           code: "bad_event",
           message:
@@ -144,14 +187,20 @@ export async function registerSessionRoutes(
             ? tierFromToken(event.tierToken)
             : "free";
           turnLimit = TIER_ENTITLEMENTS[tier].sessionTurnLimit;
-          emit({
+
+          // Register this socket in the campaign room so turns broadcast to all players.
+          currentCampaignId = event.campaignId;
+          registerEmitter(currentCampaignId, localEmit);
+          emit = (evt) => broadcastToCampaign(currentCampaignId!, evt);
+
+          localEmit({
             type: "session_ready",
             campaignId: event.campaignId,
             turnNumber: session.state.turn_number,
           });
         } catch (err) {
           transitionState("join_failed");
-          emit({
+          localEmit({
             type: "error",
             code: "join_failed",
             message:
@@ -165,7 +214,7 @@ export async function registerSessionRoutes(
 
       if (!session) {
         emitInvalidTransition(sessionState, "awaiting_gm", "player_input", "state_mismatch");
-        emit({
+        localEmit({
           type: "error",
           code: "not_joined",
           message: "Send a 'join' event first.",
@@ -175,6 +224,18 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "player_input") {
+        // Reject if another player is already driving a turn for this campaign.
+        if (currentCampaignId && campaignTurnLock.get(currentCampaignId)) {
+          localEmit({
+            type: "error",
+            code: "turn_in_progress",
+            message: "Another player's turn is in progress. Please wait.",
+            recoverable: true,
+            eventId: event.eventId,
+          });
+          return;
+        }
+
         const stateBeforeTurn = sessionState;
         if (!transitionState("player_input")) {
           return;
@@ -182,7 +243,7 @@ export async function registerSessionRoutes(
         if (event.eventId && handledEventIds.has(event.eventId)) {
           sessionState = stateBeforeTurn;
           incrementSessionMetric("duplicateInputs");
-          emit({
+          localEmit({
             type: "error",
             code: "duplicate_event",
             message: "Duplicate player input ignored.",
@@ -194,7 +255,7 @@ export async function registerSessionRoutes(
         if (turnLimit !== null && session.state.turn_number >= turnLimit) {
           sessionState = stateBeforeTurn;
           incrementSessionMetric("turnLimitRejected");
-          emit({
+          localEmit({
             type: "error",
             code: "turn_limit_reached",
             message: `You've reached the ${turnLimit}-turn limit for the free plan. Upgrade to Storyteller for unlimited play.`,
@@ -206,6 +267,7 @@ export async function registerSessionRoutes(
         try {
           incrementSessionMetric("turnRequests");
           if (event.eventId) handledEventIds.add(event.eventId);
+          if (currentCampaignId) campaignTurnLock.set(currentCampaignId, true);
           session = await runTurn(
             session,
             event.input,
@@ -235,6 +297,8 @@ export async function registerSessionRoutes(
             recoverable: true,
             eventId: event.eventId,
           });
+        } finally {
+          if (currentCampaignId) campaignTurnLock.set(currentCampaignId, false);
         }
         return;
       }
@@ -264,11 +328,11 @@ export async function registerSessionRoutes(
             state: session.state,
             recentTurns,
           });
-          emit({ type: "recap_ready", summary });
+          localEmit({ type: "recap_ready", summary });
         } catch (err) {
           app.log.error({ err }, "recap generation failed");
           incrementSessionMetric("recapFailures");
-          emit({
+          localEmit({
             type: "recap_ready",
             summary: `You are in ${session.state.scene.name}, turn ${session.state.turn_number}.`,
           });
@@ -300,6 +364,12 @@ export async function registerSessionRoutes(
     });
 
     socket.on("close", () => {
+      if (currentCampaignId) {
+        unregisterEmitter(currentCampaignId, localEmit);
+        if (campaignTurnLock.get(currentCampaignId)) {
+          campaignTurnLock.set(currentCampaignId, false);
+        }
+      }
       incrementSessionMetric("connectionsClosed");
       app.log.info("session closed");
     });

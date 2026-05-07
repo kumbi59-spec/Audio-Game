@@ -110,6 +110,8 @@ export const MultiplayerServerEvent = z.discriminatedUnion("type", [
     participants: z.array(LobbyParticipant),
     maxPlayers: z.number().int().min(2).max(4),
     hostUserId: z.string(),
+    /** Echoed only in the first lobby_state sent to a newly-joined player so they know their own server-assigned userId. */
+    myUserId: z.string().optional(),
   }),
   z.object({
     type: z.literal("player_joined"),

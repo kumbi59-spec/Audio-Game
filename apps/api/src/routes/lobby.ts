@@ -143,9 +143,10 @@ export async function registerLobbyRoutes(
             return;
           }
 
-          // Derive a per-player stable userId from the token nonce
-          const tokenParts = event.authToken.split(".");
-          userId = tokenParts[1] ?? randomUUID();
+          // Assign a stable UUID for this connection. Using a random UUID rather
+          // than the token nonce means the client can receive it via myUserId in
+          // lobby_state and use it to identify itself in the participant list.
+          userId = randomUUID();
 
           let room = rooms.get(campaignId);
           if (!room) {
@@ -175,7 +176,8 @@ export async function registerLobbyRoutes(
           };
           room.connections.set(userId, { socket, participant });
 
-          // Send full state to the new joiner
+          // Send full state to the new joiner, including their own userId so the
+          // client can identify itself in the participant list without guessing.
           socket.send(
             JSON.stringify({
               type: "lobby_state",
@@ -184,6 +186,7 @@ export async function registerLobbyRoutes(
               participants: participantList(room),
               maxPlayers: room.maxPlayers,
               hostUserId: room.hostUserId,
+              myUserId: userId,
             } satisfies MultiplayerServerEvent),
           );
 

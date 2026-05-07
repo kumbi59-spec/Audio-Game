@@ -36,13 +36,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  // Use the effective tier from the JWT (already has effectiveTierForEmail applied)
+  // rather than reading raw tier from DB, which would block admin-email users.
+  const tier = (session.user as { tier?: string }).tier ?? "free";
+  const cap = TTS_CHAR_CAPS[tier] ?? 0;
+
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { tier: true, ttsCharsUsedThisMonth: true, ttsCharsResetAt: true },
+    select: { ttsCharsUsedThisMonth: true, ttsCharsResetAt: true },
   });
-
-  const tier = user?.tier ?? "free";
-  const cap = TTS_CHAR_CAPS[tier] ?? 0;
 
   if (cap === 0) {
     return NextResponse.json({ error: "ElevenLabs requires a paid plan" }, { status: 403 });
@@ -62,7 +64,9 @@ export async function POST(req: NextRequest) {
     startOfMonth.setHours(0, 0, 0, 0);
 
     const charsUsed =
-      user!.ttsCharsResetAt >= startOfMonth ? user!.ttsCharsUsedThisMonth : 0;
+      user?.ttsCharsResetAt && user.ttsCharsResetAt >= startOfMonth
+        ? user.ttsCharsUsedThisMonth
+        : 0;
 
     if (charsUsed + body.text.length > cap) {
       return NextResponse.json(
