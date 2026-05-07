@@ -11,6 +11,10 @@ const Schema = z.object({
 });
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
+// ElevenLabs' voice_settings.speed only accepts 0.7–1.2. Wider ranges from the
+// UI (0.5–2.0) are realised on the client via HTMLAudioElement.playbackRate.
+const ELEVENLABS_SPEED_MIN = 0.7;
+const ELEVENLABS_SPEED_MAX = 1.2;
 
 // Monthly ElevenLabs character caps by tier. null = unlimited.
 // Defaults are tuned to keep healthy margins; override per deployment with env vars.
@@ -73,6 +77,8 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, body.speed));
+
   const res = await fetch(
     `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}`,
     {
@@ -88,7 +94,7 @@ export async function POST(req: NextRequest) {
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
-          speed: body.speed,
+          speed: apiSpeed,
         },
       }),
     }
@@ -97,9 +103,19 @@ export async function POST(req: NextRequest) {
   if (!res.ok) {
     let errorMsg = `ElevenLabs error ${res.status}`;
     try {
-      const errData = await res.json() as { detail?: { message?: string; status?: string } | string };
+      const errData = (await res.json()) as {
+        detail?:
+          | { message?: string; status?: string }
+          | string
+          | Array<{ msg?: string; loc?: unknown }>;
+      };
       const detail = errData.detail;
-      if (typeof detail === "object" && detail?.message) {
+      if (Array.isArray(detail)) {
+        errorMsg = detail
+          .map((d) => d?.msg ?? "validation error")
+          .filter(Boolean)
+          .join("; ") || errorMsg;
+      } else if (typeof detail === "object" && detail?.message) {
         errorMsg = detail.message;
       } else if (typeof detail === "string") {
         errorMsg = detail;
@@ -107,6 +123,12 @@ export async function POST(req: NextRequest) {
     } catch {
       // fall through with status-code message
     }
+    console.error("ElevenLabs upstream error", {
+      status: res.status,
+      voiceId: body.voiceId,
+      speed: apiSpeed,
+      message: errorMsg,
+    });
     return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 

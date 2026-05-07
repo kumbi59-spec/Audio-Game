@@ -2,6 +2,10 @@ import type { TTSOptions, TTSVoice, TTSProvider } from "@/types/audio";
 
 const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel
 const TTS_PROXY = "/api/game/tts";
+// Mirror of the server-side clamp: ElevenLabs rejects voice_settings.speed
+// outside this range. Speeds beyond it are realised via playbackRate.
+const ELEVENLABS_SPEED_MIN = 0.7;
+const ELEVENLABS_SPEED_MAX = 1.2;
 
 export class ElevenLabsTTS implements TTSProvider {
   private audio: HTMLAudioElement | null = null;
@@ -27,13 +31,19 @@ export class ElevenLabsTTS implements TTSProvider {
     if (!this.isSupported()) return;
     this.stop();
 
+    const requestedRate = options.rate ?? 1.0;
+    const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, requestedRate));
+    // The server clamps to the same range; keeping the math here lets us
+    // compute the exact playbackRate compensation the client should apply.
+    const playbackCompensation = requestedRate / apiSpeed;
+
     const res = await fetch(TTS_PROXY, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text,
         voiceId: options.voiceId ?? DEFAULT_VOICE_ID,
-        speed: options.rate ?? 1.0,
+        speed: apiSpeed,
       }),
     });
 
@@ -54,7 +64,7 @@ export class ElevenLabsTTS implements TTSProvider {
     return new Promise((resolve, reject) => {
       const audio = new Audio(url);
       audio.volume = options.volume ?? 1.0;
-      if (options.rate) audio.playbackRate = options.rate;
+      audio.playbackRate = playbackCompensation;
 
       audio.onended = () => {
         this._speaking = false;

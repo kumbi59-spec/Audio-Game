@@ -14,6 +14,7 @@ EXTRACTION RULES:
 9. classes: extract all playable character classes, archetypes, or roles defined in the document. If the world uses classes (e.g. Soldier, Hacker, Priest), list them. If no classes are defined, return [].
 10. backgrounds: extract all character backgrounds, origins, or archetypes mentioned. If none, return [].
 11. rulesNotes: capture ALL mechanical rules — stats, special abilities, magic systems, combat rules, advancement, resource management. Be thorough here.
+12. statRules: extract structured limits on character creation stat allocation. Include ONLY values explicitly stated by the document; otherwise omit the field. Recognised limits: a minimum value any single stat can be set to (perStatMin), a maximum (perStatMax), and a total point pool to distribute across stats (totalPointPool). If the bible does not mention any of these, return an empty object {}.
 
 OUTPUT — respond with ONLY valid JSON matching this exact TypeScript shape:
 
@@ -71,7 +72,14 @@ OUTPUT — respond with ONLY valid JSON matching this exact TypeScript shape:
       "name": string,        // e.g. "Street Rat", "Noble", "Veteran"
       "description": string  // 1 sentence describing the background and any starting bonuses
     }
-  ]
+  ],
+  "statRules": {
+    // All fields optional. Include only values the bible explicitly states.
+    // Omit (or set to {}) if no caps are mentioned.
+    "perStatMin"?: number,
+    "perStatMax"?: number,
+    "totalPointPool"?: number
+  }
 }
 
 Do not include any text before or after the JSON. Output only the JSON object.`;

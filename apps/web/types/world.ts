@@ -13,6 +13,13 @@ export interface WorldData {
   classes?: Array<{ name: string; description: string }>;
   backgrounds?: Array<{ name: string; description: string }>;
   rulesNotes?: string;
+  /** Structured stat-allocation rules pulled from the bible. Partial — any
+   *  missing field falls back to the official-world defaults. */
+  statRules?: {
+    perStatMin?: number;
+    perStatMax?: number;
+    totalPointPool?: number | null;
+  };
 }
 
 export interface LocationData {
@@ -82,4 +89,12 @@ export interface ParsedGameBible {
   // World-specific character mechanics (empty arrays if not applicable)
   classes: Array<{ name: string; description: string; role: string }>;
   backgrounds: Array<{ name: string; description: string }>;
+  /** Optional structured stat caps. When present these override the values
+   *  parsed from `rulesNotes`. Partial — missing fields fall back to the
+   *  platform's official-world defaults. */
+  statRules?: {
+    perStatMin?: number;
+    perStatMax?: number;
+    totalPointPool?: number | null;
+  };
 }

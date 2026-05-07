@@ -29,8 +29,9 @@ let probePromise: Promise<void> | null = null;
 
 export function configureNarrator(next: Partial<NarratorPrefs>): void {
   prefs = { ...prefs, ...next };
-  if (elevenLabs && next.elevenLabsVoiceId) {
-    elevenLabs.setVoice(next.elevenLabsVoiceId);
+  if (elevenLabs) {
+    if (next.elevenLabsVoiceId) elevenLabs.setVoice(next.elevenLabsVoiceId);
+    if (typeof next.rate === "number") elevenLabs.setRate(next.rate);
   }
 }
 
@@ -46,6 +47,7 @@ async function ensureProbed(): Promise<void> {
       useElevenLabs = await elevenLabsAvailable();
       if (useElevenLabs) {
         elevenLabs = new ElevenLabsNarrator(prefs.elevenLabsVoiceId);
+        elevenLabs.setRate(prefs.rate);
       }
     } catch {
       useElevenLabs = false;
