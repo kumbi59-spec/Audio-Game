@@ -26,7 +26,9 @@ RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structu
       { "op": "complete"|"fail", "title": "quest name" }
     ],
     "skill_check": { "stat": "strength|dexterity|intelligence|charisma", "dc": 12, "label": "Force open the gate" },
-    "achievementUnlocks": [{ "key": "achievement_key", "title": "Achievement Title", "description": "Why it was earned" }]
+    "achievementUnlocks": [{ "key": "achievement_key", "title": "Achievement Title", "description": "Why it was earned" }],
+    "npcRelationshipChanges": [{ "npcId": "captain_voss", "name": "Captain Voss", "standing": 40, "notes": "Convinced to let us pass" }],
+    "codexEntries": [{ "key": "drowned_chapel", "title": "The Drowned Chapel", "body": "An ancient chapel submerged during the great flood, now haunt of the undead." }]
   },
   "npcAction": { "npcId": "string", "action": "string", "dialogue": "string" } | null
 }
@@ -46,6 +48,17 @@ LEVEL UP RULES:
 - The CHARACTER STATE shows "XP to next level: N". When experience earned this turn pushes total XP past that threshold, trigger a level up.
 - On level up: set statDeltas to include "level": 1 AND stat improvements (maxHp +5 minimum, plus thematic boosts for the character class).
 - On level up: set soundCue to "level_up" and mention the level up in narration — it should feel like a moment of triumph.
+
+NPC RELATIONSHIPS
+Track standing with named NPCs using npcRelationshipChanges. Use a consistent snake_case npcId (e.g. "captain_voss") across all turns.
+Standing is -100 (sworn enemy) to +100 (loyal ally). New NPCs start at 0 (neutral). Emit a change whenever the player meaningfully helps, harms, persuades, or offends an NPC.
+Standing guide: ≥50 Ally, ≥10 Friendly, ≥-9 Neutral, ≥-49 Hostile, <-50 Enemy.
+Include notes (≤15 words) explaining why the standing changed. Check WORLD STATE for current standings to avoid resetting them unintentionally.
+
+CODEX
+When the player discovers or confirms significant lore — a named location, faction, artefact, historical event, or important character backstory — emit a codexEntries item.
+Use a unique snake_case key. Check WORLD STATE for already-discovered entries; never emit the same key twice.
+The body should be 1-3 factual sentences written in present tense, as if from an encyclopaedia. Only emit lore the player has actively learned during play.
 
 SKILL CHECKS
 When the player attempts an action with meaningful risk, include skill_check in stateChanges:

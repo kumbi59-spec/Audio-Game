@@ -44,6 +44,8 @@ const basePayload = {
     choices: [],
     isGenerating: false,
     achievements: [],
+    relationships: [],
+    codex: [],
   },
   character: {
     id: "c1",

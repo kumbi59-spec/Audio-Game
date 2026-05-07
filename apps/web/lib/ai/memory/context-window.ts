@@ -70,14 +70,41 @@ export function buildWorldStateBlock(session: InMemorySession, world: WorldData)
     (l) => l.id === session.currentLocationId
   );
   const flagsStr = Object.entries(session.globalFlags)
+    .filter(([k]) => !k.startsWith("_") && k !== "passiveBonuses" && k !== "last_skill_check")
     .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
     .join(", ") || "none";
+
+  const relStr =
+    session.relationships?.length > 0
+      ? session.relationships
+          .map((r) => {
+            const label =
+              r.standing >= 50
+                ? "Ally"
+                : r.standing >= 10
+                ? "Friendly"
+                : r.standing >= -9
+                ? "Neutral"
+                : r.standing >= -49
+                ? "Hostile"
+                : "Enemy";
+            return `${r.name} (${r.standing >= 0 ? "+" : ""}${r.standing} ${label}${r.notes ? `, "${r.notes}"` : ""})`;
+          })
+          .join("; ")
+      : "none";
+
+  const codexStr =
+    session.codex?.length > 0
+      ? session.codex.map((c) => c.title).join(", ")
+      : "none";
 
   return [
     `Current Location: ${location?.name ?? "Unknown"} — ${location?.shortDesc ?? ""}`,
     `Time of Day: ${session.timeOfDay}`,
     `Weather: ${session.weather}`,
     `World Flags: ${flagsStr}`,
+    `NPC Relationships: ${relStr}`,
+    `Discovered Lore: ${codexStr}`,
   ].join("\n");
 }
 

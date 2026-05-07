@@ -322,6 +322,8 @@ export async function generateOpeningNarration(
     choices: [],
     isGenerating: false,
     achievements: [],
+    relationships: [],
+    codex: [],
   };
 
   const openingAction: PlayerAction = {

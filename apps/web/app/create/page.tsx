@@ -198,6 +198,8 @@ function CreateCharacterPage() {
       choices: [],
       isGenerating: false,
       achievements: [],
+      relationships: [],
+      codex: [],
     };
 
     setStoreWorld(world);
