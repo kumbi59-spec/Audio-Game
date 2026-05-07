@@ -80,6 +80,22 @@ function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
   return { bonuses, narration };
 }
 
+function buildFallbackChoices(character: CharacterData): string[] {
+  const classActions: Record<string, string> = {
+    warrior: "Search the area for threats",
+    rogue: "Scout from the shadows",
+    mage: "Study the surroundings for magical traces",
+    ranger: "Track movement nearby",
+    bard: "Gather information about the situation",
+  };
+  return [
+    classActions[character.class] ?? "Explore carefully",
+    "Pause and reassess the situation",
+    "Review your inventory and resources",
+    "Continue toward your current objective",
+  ];
+}
+
 function degradedMessage(errorClass: ProviderErrorClass): string {
   const base = "The narrator connection is unstable, so we switched to a safe fallback turn.";
   if (errorClass === "rate_limit") return `${base} Too many requests are in flight right now.`;
@@ -124,6 +140,7 @@ function parseGMResponse(raw: string): GMResponse {
       soundCue: parsed.soundCue ?? null,
       stateChanges: parsed.stateChanges ?? undefined,
       npcAction: parsed.npcAction ?? null,
+      skill_check: parsed.skill_check ?? null,
     };
   } catch {
     // If JSON parsing fails, treat entire content as narration
@@ -221,11 +238,29 @@ export async function* streamGMTurn(
     }
 
     const passive = computePassiveBonuses(action, character);
-    const mergedStateChanges = {
+    const mergedStateChanges: Record<string, unknown> = {
       ...(gmResponse.stateChanges ?? {}),
       passiveBonuses: passive.bonuses,
       passiveBonusNarration: passive.narration,
     };
+
+    if (gmResponse.skill_check) {
+      const { stat, dc, label } = gmResponse.skill_check;
+      const statValue = (character.stats as unknown as Record<string, unknown>)[stat];
+      const base = typeof statValue === "number" ? statValue : 10;
+      const modifier = Math.floor((base - 10) / 2);
+      const roll = Math.floor(Math.random() * 20) + 1;
+      const total = roll + modifier;
+      const success = total >= dc;
+      mergedStateChanges.flags = {
+        ...((mergedStateChanges.flags as Record<string, unknown>) ?? {}),
+        last_skill_check: JSON.stringify({ stat, roll, modifier, dc, total, success, label }),
+      };
+      if (!gmResponse.soundCue) {
+        yield { type: "sound_cue", data: { cue: success ? "success" : "failure" } };
+      }
+    }
+
     yield { type: "state_change", data: mergedStateChanges };
 
     yield {
@@ -254,7 +289,7 @@ export async function* streamGMTurn(
       yield {
         type: "choices_ready",
         data: {
-          choices: [...TURN_RELIABILITY_POLICY.fallback.choices],
+          choices: buildFallbackChoices(character),
           narration: degradedMessage(lastErrorClass),
           npcAction: null,
         },
@@ -286,6 +321,7 @@ export async function generateOpeningNarration(
     narrationLog: [],
     choices: [],
     isGenerating: false,
+    achievements: [],
   };
 
   const openingAction: PlayerAction = {

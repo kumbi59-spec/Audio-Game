@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, QuestMutation } from "@/types/game";
+import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, QuestMutation, AchievementUnlock } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
@@ -27,6 +27,7 @@ interface GameStore {
   updateStat: (statName: string, delta: number) => void;
   applyInventoryMutation: (mutation: ItemMutation) => void;
   applyQuestMutation: (mutation: QuestMutation) => void;
+  unlockAchievement: (achievement: AchievementUnlock) => void;
   updateLocation: (locationId: string) => void;
   clearSession: () => void;
   saveCurrentCampaign: () => void;
@@ -204,6 +205,13 @@ export const useGameStore = create<GameStore>()(
           return { character: { ...state.character, quests: updated } };
         }),
 
+      unlockAchievement: (achievement) =>
+        set((s) =>
+          s.session
+            ? { session: { ...s.session, achievements: [...(s.session.achievements ?? []), achievement] } }
+            : s
+        ),
+
       updateLocation: (locationId) =>
         set((state) => ({
           session: state.session ? { ...state.session, currentLocationId: locationId } : null,
@@ -222,7 +230,7 @@ export const useGameStore = create<GameStore>()(
       loadSavedCampaign: (id) => set((state) => {
         const saved = state.savedCampaigns.find((c) => c.id === id);
         if (!saved) return {};
-        return { session: { ...saved.session, isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
+        return { session: { ...saved.session, achievements: saved.session.achievements ?? [], isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
       }),
       deleteSavedCampaign: (id) => set((state) => ({
         savedCampaigns: state.savedCampaigns.filter((c) => c.id !== id),

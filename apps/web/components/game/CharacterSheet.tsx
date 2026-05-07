@@ -5,9 +5,11 @@ import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import type { CharacterData } from "@/types/character";
+import type { AchievementUnlock } from "@/types/game";
 
 interface CharacterSheetProps {
   character: CharacterData;
+  achievements?: AchievementUnlock[];
   onClose: () => void;
   initialTab?: Tab;
   activeTab?: Tab;
@@ -16,13 +18,14 @@ interface CharacterSheetProps {
   headingRef?: RefObject<HTMLSpanElement>;
 }
 
-type Tab = "stats" | "inventory" | "quests" | "bio";
+type Tab = "stats" | "inventory" | "quests" | "bio" | "achievements";
 
 const TAB_LABELS: Record<Tab, string> = {
   stats: "Stats",
   inventory: "Inventory",
   quests: "Quests",
   bio: "Bio",
+  achievements: "Awards",
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -457,8 +460,38 @@ function BioTab({ character }: { character: CharacterData }) {
   );
 }
 
+function AchievementsTab({ achievements }: { achievements: AchievementUnlock[] }) {
+  if (achievements.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="text-4xl opacity-20" aria-hidden="true">🏆</span>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No achievements yet. Keep adventuring!</p>
+      </div>
+    );
+  }
+  return (
+    <ul className="space-y-3" aria-label="Unlocked achievements">
+      {achievements.map((a) => (
+        <li
+          key={a.key}
+          className="flex items-start gap-3 rounded-lg border p-3"
+          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}
+        >
+          <span className="mt-0.5 text-xl shrink-0" aria-hidden="true">🏆</span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{a.title}</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.description}</p>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--text-faint)" }}>Turn {a.unlockedAt}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CharacterSheet({
   character,
+  achievements = [],
   onClose,
   initialTab = "stats",
   activeTab,
@@ -634,7 +667,7 @@ export function CharacterSheet({
           aria-label="Character sheet sections"
           style={{ borderColor: "var(--border)" }}
         >
-          {(["stats", "inventory", "quests", "bio"] as Tab[]).map((t) => (
+          {(["stats", "inventory", "quests", "bio", "achievements"] as Tab[]).map((t) => (
             <button
               key={t}
               role="tab"
@@ -656,6 +689,9 @@ export function CharacterSheet({
                   ({character.quests.filter((q) => q.status === "active").length})
                 </span>
               )}
+              {t === "achievements" && achievements.length > 0 && (
+                <span className="ml-1 opacity-70">({achievements.length})</span>
+              )}
             </button>
           ))}
         </div>
@@ -671,6 +707,7 @@ export function CharacterSheet({
           {tab === "inventory" && <InventoryTab character={character} />}
           {tab === "quests" && <QuestsTab character={character} />}
           {tab === "bio" && <BioTab character={character} />}
+          {tab === "achievements" && <AchievementsTab achievements={achievements} />}
         </div>
 
         {/* Footer hint */}

@@ -241,6 +241,7 @@ export function GameShell() {
       {sheetOpen && (
         <CharacterSheet
           character={character}
+          achievements={session?.achievements ?? []}
           onClose={() => setSheetOpen(false)}
           initialTab={sheetTab}
           headingId="character-sheet-heading"

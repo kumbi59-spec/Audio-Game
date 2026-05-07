@@ -6,12 +6,20 @@ export interface PlayerAction {
   choiceIndex?: number;
 }
 
+export interface AchievementUnlock {
+  key: string;
+  title: string;
+  description: string;
+  unlockedAt: number;
+}
+
 export interface GMResponse {
   narration: string;
   choices: string[];
   soundCue?: string | null;
   stateChanges?: Partial<GameStateUpdate>;
   npcAction?: NPCAction | null;
+  skill_check?: { stat: string; dc: number; label: string } | null;
 }
 
 export interface ItemMutation {
@@ -45,6 +53,7 @@ export interface GameStateUpdate {
   npcStates?: Record<string, unknown>;
   inventoryChanges?: ItemMutation[];
   questChanges?: QuestMutation[];
+  achievementUnlocks?: AchievementUnlock[];
   passiveBonuses?: PassiveBonus[];
   passiveBonusNarration?: string[];
 }
@@ -93,6 +102,7 @@ export interface InMemorySession {
   narrationLog: NarrationEntry[];
   choices: string[];
   isGenerating: boolean;
+  achievements: AchievementUnlock[];
 }
 
 export interface HistoryMessage {

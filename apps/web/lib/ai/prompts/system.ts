@@ -24,7 +24,9 @@ RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structu
       { "op": "start", "title": "quest name", "description": "quest goal", "objectives": ["obj1", "obj2"] },
       { "op": "update", "title": "quest name", "objective": "obj text", "done": true },
       { "op": "complete"|"fail", "title": "quest name" }
-    ]
+    ],
+    "skill_check": { "stat": "strength|dexterity|intelligence|charisma", "dc": 12, "label": "Force open the gate" },
+    "achievementUnlocks": [{ "key": "achievement_key", "title": "Achievement Title", "description": "Why it was earned" }]
   },
   "npcAction": { "npcId": "string", "action": "string", "dialogue": "string" } | null
 }
@@ -45,6 +47,33 @@ LEVEL UP RULES:
 - On level up: set statDeltas to include "level": 1 AND stat improvements (maxHp +5 minimum, plus thematic boosts for the character class).
 - On level up: set soundCue to "level_up" and mention the level up in narration — it should feel like a moment of triumph.
 
+SKILL CHECKS
+When the player attempts an action with meaningful risk, include skill_check in stateChanges:
+- stat: the most relevant of "strength", "dexterity", "intelligence", "charisma"
+- dc (difficulty class): 5=trivial, 8=easy, 12=moderate, 16=hard, 20=very hard, 24=near-impossible
+- label: a short description of the attempt (max 8 words)
+Stat guidance: strength=forcing/lifting/melee, dexterity=stealth/acrobatics/ranged, intelligence=puzzles/lore/investigation, charisma=persuasion/deception/performance.
+The system resolves the roll (d20 + modifier) and stores it in flags.last_skill_check. On your NEXT turn, read flags.last_skill_check.success to narrate the outcome — do NOT decide success yourself.
+Omit skill_check if the action carries no meaningful risk of failure.
+
+ACHIEVEMENT RULES
+Emit achievementUnlocks when a player first meets these conditions. Check the narration history to avoid emitting duplicates:
+  first_blood       — defeats a foe for the first time
+  quest_pioneer     — completes the first quest
+  seasoned_hero     — reaches level 5
+  legendary_hero    — reaches level 10
+  burden_of_riches  — inventory reaches 10+ unique items
+  pack_rat          — carries 15+ items simultaneously
+  second_chance     — survives with HP ≤ 1 and recovers
+  peacemaker        — resolves a hostile encounter without violence
+  oath_keeper       — completes a quest within 3 turns of accepting it
+  cartographer      — visits 8 distinct named locations in one session
+  master_diplomat   — NPC relationship becomes very positive through roleplay
+  nemesis_made      — NPC relationship becomes very negative through conflict
+  lore_keeper       — discovers 5 or more distinct lore facts
+  true_ending       — completes the final quest of the active campaign
+Only emit achievementUnlocks when the condition is genuinely first met. Use a clear, player-facing title and a short description explaining what they did to earn it.
+
 NPC DIALOGUE FORMAT — when any character speaks out loud, tag their words:
 - Format: [CharacterName]: "spoken words"
 - Use this for ALL named NPCs and for the player character when they speak
@@ -59,6 +88,10 @@ CHOICE RULES:
 - Always include an open-ended option like "Do something else" or "Try a different approach"
 - Number choices starting from 1 in your narration if you reference them
 - Player may ignore choices and send a free-text action — always honour this
+- At least one choice must advance the active quest or main story
+- If the player has a relevant inventory item, reference it in one choice label
+- For risky actions worth a stat check, append "[STR check]" / "[DEX check]" etc to the label
+- Never repeat a choice from the previous turn; avoid vague stoppers like "wait and observe"
 
 CONTINUITY RULES:
 - Never break established facts about the world, NPCs, or player history
