@@ -142,7 +142,7 @@ function adjustRel(
       r === existing
         ? {
             ...r,
-            standing: r.standing + m.delta,
+            standing: Math.max(-100, Math.min(100, r.standing + m.delta)),
             notes: m.note ?? r.notes,
             last_interaction_turn: turnNumber,
           }
@@ -153,7 +153,7 @@ function adjustRel(
     ...rels,
     {
       npc: m.npc,
-      standing: m.delta,
+      standing: Math.max(-100, Math.min(100, m.delta)),
       notes: m.note,
       last_interaction_turn: turnNumber,
     },
@@ -196,9 +196,18 @@ function completeQuest(
   quests: readonly Quest[],
   m: Extract<StateMutation, { op: "quest.complete" }>,
 ): Quest[] {
-  return quests.map((q) =>
-    q.name === m.name ? { ...q, status: "complete" } : q,
-  );
+  return quests.map((q) => {
+    if (q.name !== m.name) return q;
+    const openObjectives = q.objectives.filter((o) => !o.done);
+    if (openObjectives.length > 0) {
+      console.warn(JSON.stringify({
+        event: "quest_complete_with_open_objectives",
+        quest: m.name,
+        openObjectives: openObjectives.map((o) => o.text),
+      }));
+    }
+    return { ...q, status: "complete" };
+  });
 }
 
 function unlockAchievement(

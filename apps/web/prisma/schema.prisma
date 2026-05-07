@@ -264,6 +264,17 @@ model ProcessedStripeEvent {
   createdAt DateTime @default(now())
 }
 
+model RateLimitBucket {
+  key           String    @id
+  count         Int       @default(0)
+  resetAt       DateTime
+  cooldownUntil DateTime?
+  updatedAt     DateTime  @default(now())
+
+  @@index([resetAt])
+  @@index([cooldownUntil])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String

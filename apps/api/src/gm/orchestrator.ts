@@ -483,8 +483,14 @@ export async function runTurn(
           summary: result.summary,
           keyEvents: result.keyEvents,
         });
-      } catch {
+      } catch (err) {
         // Summarization is best-effort; never crash the game loop.
+        console.warn(JSON.stringify({
+          event: "scene_summary_failed",
+          campaignId: session.campaignId,
+          sceneNumber: Math.floor(nextState.turn_number / SCENE_SUMMARY_EVERY),
+          error: err instanceof Error ? err.message : String(err),
+        }));
       }
     })();
   }

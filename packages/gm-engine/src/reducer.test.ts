@@ -70,6 +70,25 @@ describe("reducer", () => {
     expect(s.quests[0]?.objectives[0]?.done).toBe(true);
   });
 
+  it("clamps relationship standing to [-100, 100]", () => {
+    let s = baseState();
+    // Large positive delta should not exceed 100
+    s = applyMutation(s, { op: "relationship.adjust", npc: "Lyra", delta: 9999 });
+    expect(s.relationships[0]?.standing).toBe(100);
+
+    // Accumulating more positive deltas stays capped
+    s = applyMutation(s, { op: "relationship.adjust", npc: "Lyra", delta: 50 });
+    expect(s.relationships[0]?.standing).toBe(100);
+
+    // Large negative delta should not go below -100
+    s = applyMutation(s, { op: "relationship.adjust", npc: "Lyra", delta: -9999 });
+    expect(s.relationships[0]?.standing).toBe(-100);
+
+    // New NPC with large initial delta is also clamped
+    s = applyMutation(s, { op: "relationship.adjust", npc: "Vorn", delta: -500 });
+    expect(s.relationships.find((r) => r.npc === "Vorn")?.standing).toBe(-100);
+  });
+
   it("applies flag and codex mutations idempotently", () => {
     let s = baseState();
     s = applyMutation(s, { op: "flag.set", key: "saw_ghost", value: true });

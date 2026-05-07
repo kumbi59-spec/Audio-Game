@@ -17,7 +17,7 @@ export class AudioQueue {
   constructor(private options: AudioQueueOptions = {}) {}
 
   enqueue(entry: Omit<AudioQueueEntry, "id">): void {
-    this.queue.push({ ...entry, id: Math.random().toString(36).slice(2) });
+    this.queue.push({ ...entry, id: crypto.randomUUID() });
     if (!this.processing && !this.stopped) {
       this.process();
     }
