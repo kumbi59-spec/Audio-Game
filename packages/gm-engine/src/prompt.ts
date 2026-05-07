@@ -1,7 +1,7 @@
 import type { CampaignState, GameBible, PlayerInput } from "@audio-rpg/shared";
 import { STYLE_PROFILES } from "./styles.js";
 import type { MemoryBundle } from "./memory.js";
-import { summarizeBibleForSystem } from "./memory.js";
+import { summarizeBibleForSystem, formatFactForPrompt } from "./memory.js";
 
 /**
  * The system prompt is the primary cacheable block (Bible + style +
@@ -91,7 +91,10 @@ export function buildTurnUserPrompt(opts: {
   if (state.relationships.length) {
     parts.push("Relationships:");
     for (const r of state.relationships) {
-      parts.push(`  - ${r.npc}: ${r.standing >= 0 ? "+" : ""}${r.standing}`);
+      const standingStr = `${r.standing >= 0 ? "+" : ""}${r.standing}`;
+      const lastTurn = r.last_interaction_turn != null ? ` (last: t${r.last_interaction_turn})` : "";
+      const note = r.notes ? ` — ${r.notes}` : "";
+      parts.push(`  - ${r.npc}: ${standingStr}${lastTurn}${note}`);
     }
   }
   const flagKeys = Object.keys(state.flags);
@@ -109,8 +112,7 @@ export function buildTurnUserPrompt(opts: {
   if (memory.criticalFacts.length) {
     parts.push("\n## Critical continuity facts");
     for (const fact of memory.criticalFacts.slice(0, 10)) {
-      const concise = fact.text.replace(/\s+/g, " ").trim().slice(0, 180);
-      parts.push(`- [t${fact.turnNumber}] ${concise}`);
+      parts.push(`- [t${fact.turnNumber}] ${formatFactForPrompt(fact.text)}`);
     }
   }
 

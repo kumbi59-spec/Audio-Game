@@ -38,6 +38,7 @@ export interface BibleChunk {
 export interface CriticalFact {
   turnNumber: number;
   text: string;
+  importance?: number;
 }
 
 export interface MemoryBudget {
@@ -264,7 +265,7 @@ function buildCandidates(
       fact.turnNumber,
       fact,
       Math.max(0.4, 0.9 - idx * 0.06),
-      1,
+      fact.importance ?? 1,
       turnCount,
       budget,
       seen,
@@ -368,6 +369,63 @@ export interface MemoryBundle {
   bibleHits: BibleChunk[];
   criticalFacts: CriticalFact[];
   injectionState: MemoryInjectionState;
+}
+
+/**
+ * Convert a pipe-coded critical fact string into natural-language English
+ * so Claude can read it without decoding an internal format.
+ */
+export function formatFactForPrompt(text: string): string {
+  const [code, ...rest] = text.split("|");
+  switch (code) {
+    case "QUEST_START":
+      return `Quest started: "${rest[0] ?? ""}"`;
+    case "QUEST_COMPLETE":
+      return `Quest completed: "${rest[0] ?? ""}"`;
+    case "QUEST_OBJECTIVE_DONE":
+      return `Quest objective completed: "${rest[1] ?? ""}" (quest: "${rest[0] ?? ""}")`;
+    case "SCENE_CHANGE":
+      return `Scene changed to: "${rest[0] ?? ""}"`;
+    case "CODEX_UNLOCK":
+      return `Codex unlocked: "${rest[1] ?? rest[0] ?? ""}"`;
+    case "FLAG_SET":
+      return `Flag set: ${rest[0] ?? ""} = ${rest[1] ?? ""}`;
+    case "CONDITION_STATE":
+      return `Active condition: ${rest[0] ?? ""} (${rest[1] ?? ""})`;
+    case "IRREVERSIBLE_LOSS":
+      return `Permanent loss: ${rest[0] ?? ""}`;
+    case "OATH_OR_DEBT_CREATED":
+      return `Active oath/debt: ${rest[0] ?? ""}`;
+    case "OATH_OR_DEBT_RESOLVED":
+      return `Oath/debt resolved: ${rest[0] ?? ""}`;
+    case "ITEM_GAIN": {
+      const qty = rest[1] ?? "x1";
+      return `Gained: ${rest[0] ?? ""} ×${qty.replace(/^x/, "")}`;
+    }
+    case "ITEM_LOSS": {
+      const qty = rest[1] ?? "x1";
+      return `Lost: ${rest[0] ?? ""} ×${qty.replace(/^x/, "")}`;
+    }
+    case "RELATIONSHIP_THRESHOLD": {
+      const npc = rest[0] ?? "";
+      const dir = rest[1] ?? "";
+      const mag = rest[2] ?? "";
+      const note = rest[3] ? `; reason: ${rest[3]}` : "";
+      const sign = dir === "POS" ? `+${mag}` : `−${mag}`;
+      const verb = dir === "POS" ? "improved" : "worsened";
+      return `Relationship with ${npc} ${verb} significantly (${sign})${note}`;
+    }
+    case "STAT_CHANGE": {
+      const stat = rest[0] ?? "";
+      const dir = rest[1] ?? "";
+      const mag = rest[2] ?? "";
+      return dir === "GAIN"
+        ? `Stat increased: ${stat} +${mag}`
+        : `Stat decreased: ${stat} −${mag}`;
+    }
+    default:
+      return text;
+  }
 }
 
 /** Truncate a bible down to a size safe to put in a cached system block. */

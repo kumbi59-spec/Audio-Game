@@ -78,4 +78,53 @@ describe("buildTurnUserPrompt critical facts", () => {
     const bulletCount = (prompt.match(/^- \[t\d+\]/gm) ?? []).length;
     expect(bulletCount).toBe(10);
   });
+
+  it("renders critical facts as human-readable text", () => {
+    const memory: MemoryBundle = {
+      ...saturatedMemory(),
+      criticalFacts: [
+        { turnNumber: 3, text: "QUEST_COMPLETE|Dragon Slain" },
+        { turnNumber: 7, text: "RELATIONSHIP_THRESHOLD|Vale|POS|5" },
+        { turnNumber: 9, text: "STAT_CHANGE|hp|LOSS|10" },
+      ],
+    };
+    const prompt = buildTurnUserPrompt({
+      state: baseState(),
+      memory,
+      input: { kind: "freeform", text: "Look around" } as PlayerInput,
+    });
+    expect(prompt).toContain('Quest completed: "Dragon Slain"');
+    expect(prompt).toContain("Relationship with Vale improved significantly (+5)");
+    expect(prompt).toContain("Stat decreased: hp −10");
+  });
+
+  it("renders relationship notes and last interaction turn when present", () => {
+    const state = {
+      ...baseState(),
+      relationships: [
+        { npc: "Captain Vale", standing: 5, notes: "helped at sea", last_interaction_turn: 12 },
+      ],
+    };
+    const prompt = buildTurnUserPrompt({
+      state,
+      memory: { ...saturatedMemory(), criticalFacts: [] },
+      input: { kind: "freeform", text: "Look around" } as PlayerInput,
+    });
+    expect(prompt).toContain("Captain Vale: +5 (last: t12) — helped at sea");
+  });
+
+  it("omits last-turn and note when relationship has neither", () => {
+    const state = {
+      ...baseState(),
+      relationships: [{ npc: "Stranger", standing: -2 }],
+    };
+    const prompt = buildTurnUserPrompt({
+      state,
+      memory: { ...saturatedMemory(), criticalFacts: [] },
+      input: { kind: "freeform", text: "Look around" } as PlayerInput,
+    });
+    expect(prompt).toContain("Stranger: -2");
+    expect(prompt).not.toContain("last:");
+    expect(prompt).not.toContain(" — ");
+  });
 });

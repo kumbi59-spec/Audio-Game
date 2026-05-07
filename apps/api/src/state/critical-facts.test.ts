@@ -26,8 +26,8 @@ describe("critical facts persistence", () => {
 
     const facts = await store.memoryStore().criticalFacts("c1", 10);
     expect(facts).toHaveLength(2);
-    expect(facts[0]).toEqual({ turnNumber: 3, text: "find   the bell" });
-    expect(facts[1]).toEqual({ turnNumber: 4, text: "Meet Captain Vale" });
+    expect(facts[0]).toMatchObject({ turnNumber: 3, text: "find   the bell", importance: 0.9 });
+    expect(facts[1]).toMatchObject({ turnNumber: 4, text: "Meet Captain Vale", importance: 0.5 });
   });
 
   it("trims to 200 by dropping lowest-importance oldest facts first", async () => {

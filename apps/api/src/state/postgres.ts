@@ -518,7 +518,7 @@ export class PostgresCampaignStore implements CampaignStore {
     const row = rows[0];
     if (!row) return [];
     const facts = normalizeAndTrimCriticalFacts(asCriticalFactRecords(row.critical_facts), 200);
-    return facts.slice(-n).map((fact) => ({ turnNumber: fact.turnNumber, text: fact.text }));
+    return facts.slice(-n).map((fact) => ({ turnNumber: fact.turnNumber, text: fact.text, importance: fact.importance }));
   }
 }
 
