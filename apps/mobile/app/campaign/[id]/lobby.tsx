@@ -279,7 +279,6 @@ export default function LobbyScreen(): JSX.Element {
             <View
               style={styles.allReadyBanner}
               accessibilityLiveRegion="assertive"
-              accessibilityRole="status"
             >
               <Text style={styles.allReadyText}>All players ready — starting adventure…</Text>
             </View>
