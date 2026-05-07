@@ -215,15 +215,6 @@ export default function LobbyPage() {
           Multiplayer Lobby
         </h1>
 
-        {/* Coming-soon notice */}
-        <div
-          className="mt-4 rounded-xl border px-4 py-3 text-sm"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text-muted)" }}
-          role="note"
-        >
-          Multiplayer is coming soon. This lobby screen is a preview of the experience.
-        </div>
-
         {/* Status */}
         {status === "connecting" && (
           <p className="mt-6 text-sm" style={{ color: "var(--text-muted)" }} role="status">

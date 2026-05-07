@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       where: { slug },
       include: { author: { select: { name: true } } },
     });
-  } catch { /* table not yet created */ }
+  } catch (err) { console.error("[blog] DB query failed:", err); }
   if (!post) return { title: "Not Found" };
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   return {
@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: Props) {
       where: { slug },
       include: { author: { select: { name: true } } },
     });
-  } catch { /* table not yet created */ }
+  } catch (err) { console.error("[blog] DB query failed:", err); }
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
