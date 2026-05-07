@@ -335,6 +335,86 @@ function CreateCharacterPage() {
     router.push("/play");
   }
 
+  async function handleStartMultiplayer() {
+    if (!world) return;
+    setIsStarting(true);
+    narrate("Setting up your multiplayer lobby…");
+
+    const sessionId = `session-${Date.now()}`;
+    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
+    const classData = CLASS_DESCRIPTIONS[selectedClass];
+    const startingStats = { ...coreStatOverrides };
+    const startingItems = worldDefinesClasses ? classData.startingItems : [];
+    const parsedAge = Number.parseInt(age.trim(), 10);
+    const character: CharacterData = {
+      id: `char-${Date.now()}`,
+      name: name.trim(),
+      pronouns: pronouns.trim() || null,
+      age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
+      shortDescription: shortDescription.trim() || null,
+      class: selectedClass,
+      roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
+      backstory: backstory.trim(),
+      stats: { ...startingStats },
+      ...(Object.keys(customStatOverrides).length > 0 ? { customStats: { ...customStatOverrides } } : {}),
+      inventory: startingItems.map((item, i) => ({
+        id: `item-${i}`,
+        name: item,
+        description: "",
+        category: "misc" as const,
+        quantity: 1,
+        properties: {},
+      })),
+      quests: [],
+    };
+
+    const session: InMemorySession = {
+      id: sessionId,
+      worldId: world.id,
+      characterId: character.id,
+      status: "active",
+      turnCount: 0,
+      currentLocationId: world.locations[0]?.id ?? null,
+      timeOfDay: "morning",
+      weather: "clear",
+      globalFlags: {},
+      npcStates: {},
+      memorySummary: "",
+      history: [],
+      narrationLog: [],
+      choices: [],
+      isGenerating: false,
+      achievements: [],
+      relationships: [],
+      codex: [],
+    };
+
+    setStoreWorld(world);
+    setCharacter(character);
+    setSession(session);
+
+    const guestId = (() => {
+      const stored = localStorage.getItem("echoquest-guest-id");
+      if (stored) return stored;
+      const id = crypto.randomUUID();
+      localStorage.setItem("echoquest-guest-id", id);
+      return id;
+    })();
+
+    void fetch("/api/game/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ guestId, worldId: world.id, character }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { sessionId?: string } | null) => {
+        if (data?.sessionId) setDbSessionId(data.sessionId);
+      })
+      .catch(() => undefined);
+
+    router.push(`/campaign/${encodeURIComponent(sessionId)}/lobby`);
+  }
+
   return (
     <div className="min-h-screen surface-gradient">
       <SiteHeader />
@@ -664,9 +744,22 @@ function CreateCharacterPage() {
                 You&apos;ve spent more stat points than this world allows. Lower a stat before starting.
               </p>
             )}
+            <button
+              onClick={() => void handleStartMultiplayer()}
+              disabled={isStarting || overBudget}
+              aria-label="Create a multiplayer lobby so friends can join"
+              className="surface-active-glow mb-3 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground motion-cta hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+            >
+              {isStarting ? <span className="motion-loading">Setting up…</span> : "Start Multiplayer →"}
+            </button>
+            <div className="relative mb-3 flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or play solo</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
             <div className="flex gap-3">
               <button
-                onClick={() => handleStart({ skipBackstory: true })}
+                onClick={() => void handleStart({ skipBackstory: true })}
                 disabled={isStarting || overBudget}
                 aria-label="Begin adventure without writing a backstory"
                 className="surface-gradient inner-highlight flex-1 rounded-lg border border-border py-3 text-sm motion-cta hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
@@ -674,7 +767,7 @@ function CreateCharacterPage() {
                 Skip backstory & begin
               </button>
               <button
-                onClick={() => handleStart()}
+                onClick={() => void handleStart()}
                 disabled={isStarting || overBudget}
                 aria-label={
                   backstory.trim()
