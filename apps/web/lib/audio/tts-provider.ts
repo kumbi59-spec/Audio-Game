@@ -45,6 +45,24 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
   }
 }
 
+/**
+ * Like speak() but never auto-switches the provider on error. Use this for
+ * settings-page previews so a failed ElevenLabs call doesn't permanently
+ * change the user's provider selection.
+ */
+export async function speakPreview(text: string, options: TTSOptions = {}): Promise<void> {
+  const state = useAudioStore.getState();
+  const resolvedOpts: TTSOptions = {
+    rate: options.rate ?? state.ttsSpeed,
+    pitch: options.pitch ?? state.ttsPitch,
+    volume: options.volume ?? state.volume,
+    voiceId: options.voiceId ?? state.ttsVoiceId,
+    ...(options.onEnd ? { onEnd: options.onEnd } : {}),
+    ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),
+  };
+  return instanceFor(state.ttsProvider).speak(text, resolvedOpts);
+}
+
 export function stopSpeech(): void {
   // Stop all providers — switching mid-narration shouldn't leak audio.
   for (const inst of Object.values(instances)) inst?.stop();

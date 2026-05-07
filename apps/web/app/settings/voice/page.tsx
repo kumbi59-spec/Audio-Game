@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
-import { speak, stopSpeech } from "@/lib/audio/tts-provider";
+import { speakPreview, stopSpeech } from "@/lib/audio/tts-provider";
 import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 import type { TTSProviderType, TTSVoice } from "@/types/audio";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -114,7 +114,7 @@ export default function VoiceSettingsPage() {
     setPreviewError(null);
     try {
       stopSpeech();
-      await speak(text, { voiceId: voiceId || undefined });
+      await speakPreview(text, { voiceId: voiceId || undefined });
     } catch (err) {
       setPreviewError(friendlyTtsError(err));
     } finally {
@@ -127,7 +127,7 @@ export default function VoiceSettingsPage() {
     setPreviewError(null);
     try {
       stopSpeech();
-      await speak(PREVIEW_TEXT);
+      await speakPreview(PREVIEW_TEXT);
     } catch (err) {
       setPreviewError(friendlyTtsError(err));
     } finally {
