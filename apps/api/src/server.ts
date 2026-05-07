@@ -4,7 +4,9 @@ import multipart from "@fastify/multipart";
 import websocket from "@fastify/websocket";
 import { config } from "./config.js";
 import type { TurnGenerator } from "./gm/orchestrator.js";
+import type { LobbyRouteOptions } from "./routes/lobby.js";
 import { registerSessionRoutes } from "./routes/session.js";
+import { registerLobbyRoutes } from "./routes/lobby.js";
 import { registerCampaignRoutes } from "./routes/campaigns.js";
 import { registerSttRoutes } from "./routes/stt.js";
 import { registerTtsRoutes } from "./routes/tts.js";
@@ -23,6 +25,8 @@ export interface BuildServerOptions {
   turnGenerator?: TurnGenerator;
   /** Override log level; defaults to LOG_LEVEL env or "info". */
   logLevel?: string;
+  /** Lobby-specific options (e.g. startDelayMs for tests). */
+  lobby?: LobbyRouteOptions;
 }
 
 export async function buildServer(options: BuildServerOptions = {}) {
@@ -70,6 +74,7 @@ export async function buildServer(options: BuildServerOptions = {}) {
     domainEvents,
     ...(options.turnGenerator ? { turnGenerator: options.turnGenerator } : {}),
   });
+  await registerLobbyRoutes(app, options.lobby);
 
   return app;
 }
