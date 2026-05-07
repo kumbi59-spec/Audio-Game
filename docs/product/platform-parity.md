@@ -1,6 +1,6 @@
 # Web ↔ Mobile Feature Parity Matrix
 
-Last updated: 2026-05-03
+Last updated: 2026-05-07
 
 ## Legend
 - ✅ Full parity
@@ -38,9 +38,9 @@ Last updated: 2026-05-03
 |---|---|---|---|
 | Browse prebuilt library | ✅ | ✅ | Same world catalog intent. |
 | Upload Game Bible | ✅ | ✅ | Surface UX differs; backend parsing path shared. |
-| Spoken world wizard | 🟡 | ✅ | Mobile has first-class spoken flow; web support is functional but less voice-centric. |
+| Spoken world wizard | ✅ | ✅ | Both clients speak step questions, accept voice answers, and show mic pulse UX. |
 | Admin dashboard | ✅ | ❌ | Web-only operational UI. |
-| Creator analytics view | ✅ | ❌ | Web-only at present. |
+| Creator analytics view | ✅ | ✅ | Mobile analytics screen shipped in my-worlds.tsx. |
 
 ## Accessibility
 | Capability | Web | Mobile | Notes |
@@ -52,8 +52,6 @@ Last updated: 2026-05-03
 
 ## Planned parity work
 1. Mobile-native subscription purchase/management flow parity with web checkout.
-2. Web spoken wizard UX improvements to match mobile-first voice guidance.
-3. Analytics visibility path for creators on mobile (read-only first).
 
 ## Ownership and review cadence
 - **Owners:** product + web + mobile + API
