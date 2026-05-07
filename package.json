@@ -30,7 +30,7 @@
       "postcss": "^8.5.12",
       "send": "^1.2.1",
       "@xmldom/xmldom": "^0.8.13",
-      "@anthropic-ai/sdk": "0.91.0"
+      "@anthropic-ai/sdk": "^0.91.0"
     }
   }
 }

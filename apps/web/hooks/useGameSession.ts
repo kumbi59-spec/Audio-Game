@@ -44,6 +44,7 @@ export function useGameSession() {
   const [lastNarration, setLastNarration] = useState("");
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const inFlightRef = useRef(false);
 
   // Reset the NPC voice map whenever a new session starts
   useEffect(() => {
@@ -79,6 +80,11 @@ export function useGameSession() {
       if (!eligibility.allowed) return;
 
       if (!session || !character || !world) return;
+
+      // Synchronous guard: prevents a second submit firing in the same render
+      // cycle before setIsGenerating(true) has re-rendered.
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
 
       // Stop any current TTS
       stopSpeech();
@@ -390,6 +396,7 @@ export function useGameSession() {
           }));
         }
       } finally {
+        inFlightRef.current = false;
         setIsGenerating(false);
       }
     },

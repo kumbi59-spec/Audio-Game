@@ -139,7 +139,13 @@ export class MemoryCampaignStore implements CampaignStore {
       text: args.text,
     });
     if (c.narrationLog.length > 200) {
-      c.narrationLog.splice(0, c.narrationLog.length - 200);
+      const discardCount = c.narrationLog.length - 200;
+      c.narrationLog.splice(0, discardCount);
+      console.debug(JSON.stringify({
+        event: "narration_log_trimmed",
+        campaignId: args.campaignId,
+        discardCount,
+      }));
     }
     return { turnId: null };
   }
