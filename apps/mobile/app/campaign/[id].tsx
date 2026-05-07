@@ -22,6 +22,7 @@ import { useCan } from "@/entitlements/store";
 import { AdBanner } from "@/entitlements/AdBanner";
 import { AiMinutesSheet } from "@/entitlements/AiMinutesSheet";
 import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
+import { StatusSheet } from "@/components/StatusSheet";
 import { parseChoiceCommand } from "@/domain/session/use-cases";
 
 export default function ActiveCampaign(): JSX.Element {
@@ -35,6 +36,7 @@ export default function ActiveCampaign(): JSX.Element {
   const { hapticsEnabled } = usePrefs();
   const [minutesSheetVisible, setMinutesSheetVisible] = useState(false);
   const [upgradeVisible, setUpgradeVisible] = useState(false);
+  const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [showFirstTurnTips, setShowFirstTurnTips] = useState(false);
   const canAcceptInput = !session.awaitingGm;
 
@@ -158,6 +160,11 @@ export default function ActiveCampaign(): JSX.Element {
       const inv = session.state?.inventory ?? [];
       void speakOnce(inv.length === 0 ? "Your bag is empty." : inv.map((i) => `${i.quantity} ${i.name}`).join(", "));
     },
+    "achievements|my achievements": () => {
+      const ach = session.state?.achievements ?? [];
+      void speakOnce(ach.length === 0 ? "No achievements yet." : `${ach.length} achievement${ach.length !== 1 ? "s" : ""}: ${ach.map((a) => a.title).join(", ")}.`);
+    },
+    "status|character status": () => setStatusSheetVisible(true),
     "save|save and pause|pause": () => {
       if (!canAcceptInput) {
         announceBlockedInput();
@@ -273,6 +280,7 @@ export default function ActiveCampaign(): JSX.Element {
         <DockButton label="Mic" hint="Speak a choice or action" onPress={speakFreeform} />
         <DockButton label="Repeat" hint="Replay last narration" onPress={() => { if (lastGm) void speakOnce(lastGm.text); }} />
         <DockButton label="Recap" hint="Summarize the scene so far" onPress={() => sessionConnection.requestRecap()} />
+        <DockButton label="Status" hint="View achievements, NPCs, and lore" onPress={() => setStatusSheetVisible(true)} />
         <DockButton
           label="Exit"
           hint="Save and return home"
@@ -286,6 +294,13 @@ export default function ActiveCampaign(): JSX.Element {
         <Text style={styles.error} accessibilityLiveRegion="assertive">{session.lastError}</Text>
       )}
 
+      {session.state && (
+        <StatusSheet
+          visible={statusSheetVisible}
+          onDismiss={() => setStatusSheetVisible(false)}
+          state={session.state}
+        />
+      )}
       <AiMinutesSheet
         visible={minutesSheetVisible}
         onDismiss={() => setMinutesSheetVisible(false)}

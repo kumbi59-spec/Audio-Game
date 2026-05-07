@@ -84,8 +84,20 @@ export async function updateGameState(
     globalFlags?: Record<string, unknown>;
     npcStates?: Record<string, unknown>;
     memorySummary?: string;
+    achievements?: unknown[];
+    relationships?: unknown[];
+    codex?: unknown[];
   }
 ) {
+  let npcStatesPatch: string | undefined;
+  if (patch.npcStates !== undefined || patch.achievements !== undefined || patch.relationships !== undefined || patch.codex !== undefined) {
+    const base: Record<string, unknown> = patch.npcStates ?? {};
+    if (patch.achievements !== undefined) base._achievements = patch.achievements;
+    if (patch.relationships !== undefined) base._relationships = patch.relationships;
+    if (patch.codex !== undefined) base._codex = patch.codex;
+    npcStatesPatch = JSON.stringify(base);
+  }
+
   return prisma.gameState.update({
     where: { sessionId },
     data: {
@@ -93,7 +105,7 @@ export async function updateGameState(
       timeOfDay: patch.timeOfDay,
       weather: patch.weather,
       globalFlags: patch.globalFlags !== undefined ? JSON.stringify(patch.globalFlags) : undefined,
-      npcStates: patch.npcStates !== undefined ? JSON.stringify(patch.npcStates) : undefined,
+      npcStates: npcStatesPatch,
       memorySummary: patch.memorySummary,
       lastUpdatedAt: new Date(),
     },
