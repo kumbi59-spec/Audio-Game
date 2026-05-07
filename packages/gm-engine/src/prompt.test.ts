@@ -8,7 +8,7 @@ function baseState(): CampaignState {
     scene: { name: "Dock", summary: "" },
     turn_number: 42,
     character: { name: "Rue", stats: {}, background: {} },
-    inventory: [], quests: [], relationships: [], codex: [], flags: {},
+    inventory: [], quests: [], relationships: [], codex: [], achievements: [], flags: {},
   };
 }
 

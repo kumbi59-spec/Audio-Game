@@ -124,6 +124,7 @@ export function crimsonSandsStartingState(characterName = "Dune"): CampaignState
     quests: [],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: { rival_guild_ahead: true },
   };
 }

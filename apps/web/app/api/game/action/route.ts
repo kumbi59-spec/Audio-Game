@@ -141,9 +141,13 @@ export async function POST(req: NextRequest) {
   const user = authSession?.user?.id
     ? await prisma.user.findUnique({
       where: { id: authSession.user.id },
-      select: { tier: true },
+      select: { tier: true, email: true },
     })
     : null;
+
+  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+    .split(",").map((e) => e.trim()).filter(Boolean);
+  const isAdmin = user?.email ? adminEmails.includes(user.email) : false;
 
   const inputCheck = moderatePlayerInput(action.content);
   if (!inputCheck.safe) {
@@ -153,7 +157,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (authSession?.user?.id && user?.tier === "free") {
+  if (authSession?.user?.id && user?.tier === "free" && !isAdmin) {
     await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
     const consumed = await consumeFreeAiMinute(authSession.user.id);
     if (!consumed) {

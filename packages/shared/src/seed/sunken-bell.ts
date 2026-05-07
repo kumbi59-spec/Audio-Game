@@ -107,6 +107,7 @@ export function sunkenBellStartingState(characterName = "Wren"): CampaignState {
     quests: [],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: {},
   };
 }

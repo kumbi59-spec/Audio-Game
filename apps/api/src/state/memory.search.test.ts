@@ -10,6 +10,7 @@ const baseState = {
   quests: [],
   relationships: [],
   codex: [],
+  achievements: [],
   flags: {},
 };
 

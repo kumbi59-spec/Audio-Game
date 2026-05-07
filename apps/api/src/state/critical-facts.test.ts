@@ -14,7 +14,7 @@ describe("critical facts persistence", () => {
         scene: { name: "S", summary: "" },
         turn_number: 1,
         character: { name: "hero", stats: {}, background: {} },
-        inventory: [], quests: [], relationships: [], codex: [], flags: {},
+        inventory: [], quests: [], relationships: [], codex: [], achievements: [], flags: {},
       },
     });
 
@@ -41,7 +41,7 @@ describe("critical facts persistence", () => {
         scene: { name: "S", summary: "" },
         turn_number: 1,
         character: { name: "hero", stats: {}, background: {} },
-        inventory: [], quests: [], relationships: [], codex: [], flags: {},
+        inventory: [], quests: [], relationships: [], codex: [], achievements: [], flags: {},
       },
     });
 

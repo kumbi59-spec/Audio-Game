@@ -180,8 +180,28 @@ export function extractCriticalFacts(mutations: readonly StateMutation[], turnNu
       const direction = m.delta > 0 ? "GAIN" : "LOSS";
       facts.push(createCriticalFact(turnNumber, m.op, { text: `STAT_CHANGE|${m.stat}|${direction}|${abs}`, kind: "plot", importance: abs >= 15 ? 0.80 : abs >= 10 ? 0.70 : 0.60, entityRefs: [m.stat] }));
     }
+    if (m.op === "achievement.unlock") {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `ACHIEVEMENT_UNLOCK|${m.key}|${m.title}`, kind: "plot", importance: 0.92, entityRefs: [m.key] }));
+    }
   }
   return facts;
+}
+
+function buildContextualFallbackChoices(sceneName: string, characterClass?: string): string[] {
+  const scene = sceneName || "the area";
+  const classActions: Record<string, string> = {
+    warrior: `Search ${scene} for threats`,
+    rogue: `Scout ${scene} from the shadows`,
+    mage: `Study ${scene} for magical traces`,
+    ranger: `Track movement around ${scene}`,
+    bard: `Gather information about ${scene}`,
+  };
+  return [
+    classActions[characterClass ?? ""] ?? `Explore ${scene} carefully`,
+    "Pause and reassess the situation",
+    "Review your inventory and resources",
+    "Continue toward your current objective",
+  ];
 }
 
 /**
@@ -331,6 +351,17 @@ export async function runTurn(
     }
     incrementSessionMetric("turnFallbackSafeContinueChoices");
     recordOutcome("exhausted_retries");
+    // Emit contextual fallback choices so the player can keep going despite the failure
+    const fallbackLabels = buildContextualFallbackChoices(
+      session.state.scene.name,
+      session.state.character.background["class"],
+    );
+    emit({
+      type: "choice_list",
+      turnId,
+      choices: fallbackLabels.map((label, i) => ({ id: `fallback_${i}`, label })),
+      acceptsFreeform: true,
+    });
     throw lastError ?? new Error("gm_turn_failed");
   }
 
@@ -369,14 +400,33 @@ export async function runTurn(
     choices: turn.presented_choices,
     acceptsFreeform: turn.accepts_freeform,
   });
-  if (turn.state_mutations.length) {
-    emit({ type: "state_delta", turnId, mutations: turn.state_mutations });
+
+  // Resolve skill check declared by the GM: roll d20 + stat modifier, store result as a flag
+  const allMutations: StateMutation[] = [...turn.state_mutations];
+  if (turn.skill_check) {
+    const { stat, dc, label } = turn.skill_check;
+    const statValue = session.state.character.stats[stat] ?? 10;
+    const modifier = Math.floor((statValue - 10) / 2);
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + modifier;
+    const success = total >= dc;
+    allMutations.push({
+      op: "flag.set",
+      key: "last_skill_check",
+      value: JSON.stringify({ stat, roll, modifier, dc, total, success, label }),
+    });
+    emit({ type: "sound_cue", cue: success ? "success" : "failure" });
+    console.info(JSON.stringify({ event: "skill_check_resolved", turnId, stat, roll, modifier, dc, total, success }));
+  }
+
+  if (allMutations.length) {
+    emit({ type: "state_delta", turnId, mutations: allMutations });
   }
   for (const cue of turn.sound_cues) emit({ type: "sound_cue", cue });
 
   const nextState = applyMutations(
     { ...session.state, turn_number: session.state.turn_number + 1 },
-    turn.state_mutations,
+    allMutations,
   );
 
   await deps.persistTurn({
@@ -387,7 +437,7 @@ export async function runTurn(
     turn,
   });
   await deps.persistState(session.campaignId, nextState);
-  const criticalFacts = extractCriticalFacts(turn.state_mutations, nextState.turn_number);
+  const criticalFacts = extractCriticalFacts(allMutations, nextState.turn_number);
   if (deps.persistCriticalFacts && criticalFacts.length > 0) {
     await deps.persistCriticalFacts(session.campaignId, criticalFacts);
   }

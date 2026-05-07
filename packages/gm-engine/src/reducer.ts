@@ -1,4 +1,5 @@
 import type {
+  AchievementEntry,
   CampaignState,
   InventoryItem,
   Quest,
@@ -48,18 +49,43 @@ export function applyMutation(
       };
     case "stat.adjust": {
       const current = state.character.stats[m.stat] ?? 0;
+      const newValue = current + m.delta;
+      let newStats = { ...state.character.stats, [m.stat]: newValue };
+
+      if (m.stat === "experience") {
+        const currentLevel = newStats["level"] ?? 1;
+        const xpThreshold = currentLevel * currentLevel * 100;
+        if (newValue >= xpThreshold) {
+          const nextLevel = currentLevel + 1;
+          newStats["level"] = nextLevel;
+          const newMaxHp = (newStats["maxHp"] ?? 10) + 5;
+          newStats["maxHp"] = newMaxHp;
+          newStats["hp"] = Math.min((newStats["hp"] ?? 0) + 5, newMaxHp);
+          // Alternate bonus: odd levels boost STR+DEX, even levels boost INT+CHA
+          if (nextLevel % 2 !== 0) {
+            newStats["strength"] = (newStats["strength"] ?? 10) + 1;
+            newStats["dexterity"] = (newStats["dexterity"] ?? 10) + 1;
+          } else {
+            newStats["intelligence"] = (newStats["intelligence"] ?? 10) + 1;
+            newStats["charisma"] = (newStats["charisma"] ?? 10) + 1;
+          }
+        }
+      }
+
       return {
         ...state,
-        character: {
-          ...state.character,
-          stats: { ...state.character.stats, [m.stat]: current + m.delta },
-        },
+        character: { ...state.character, stats: newStats },
       };
     }
     case "scene.set":
       return {
         ...state,
         scene: { name: m.name, summary: m.summary ?? state.scene.summary },
+      };
+    case "achievement.unlock":
+      return {
+        ...state,
+        achievements: unlockAchievement(state.achievements, m, state.turn_number),
       };
   }
 }
@@ -173,4 +199,16 @@ function completeQuest(
   return quests.map((q) =>
     q.name === m.name ? { ...q, status: "complete" } : q,
   );
+}
+
+function unlockAchievement(
+  achievements: readonly AchievementEntry[],
+  m: Extract<StateMutation, { op: "achievement.unlock" }>,
+  turnNumber: number,
+): AchievementEntry[] {
+  if (achievements.some((a) => a.key === m.key)) return [...achievements];
+  return [
+    ...achievements,
+    { key: m.key, title: m.title, description: m.description, unlocked_turn: turnNumber },
+  ];
 }

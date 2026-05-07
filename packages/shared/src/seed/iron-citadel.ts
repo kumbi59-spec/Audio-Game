@@ -134,6 +134,7 @@ export function ironCitadelStartingState(characterName = "Rook"): CampaignState 
     ],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: { klaxon_count: 3 },
   };
 }

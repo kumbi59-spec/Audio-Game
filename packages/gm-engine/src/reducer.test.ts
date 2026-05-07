@@ -11,6 +11,7 @@ function baseState(): CampaignState {
     quests: [],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: {},
   };
 }

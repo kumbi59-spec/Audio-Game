@@ -34,6 +34,14 @@ export const CodexEntry = z.object({
 });
 export type CodexEntry = z.infer<typeof CodexEntry>;
 
+export const AchievementEntry = z.object({
+  key: z.string(),
+  title: z.string(),
+  description: z.string(),
+  unlocked_turn: z.number().int().nonnegative(),
+});
+export type AchievementEntry = z.infer<typeof AchievementEntry>;
+
 export const Character = z.object({
   name: z.string(),
   pronouns: z.string().optional(),
@@ -59,6 +67,7 @@ export const CampaignState = z.object({
   quests: z.array(Quest).default([]),
   relationships: z.array(Relationship).default([]),
   codex: z.array(CodexEntry).default([]),
+  achievements: z.array(AchievementEntry).default([]),
   flags: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).default({}),
 });
 export type CampaignState = z.infer<typeof CampaignState>;

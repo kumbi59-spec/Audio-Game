@@ -85,6 +85,12 @@ export const StateMutation = z.discriminatedUnion("op", [
     name: z.string(),
     summary: z.string().optional(),
   }),
+  z.object({
+    op: z.literal("achievement.unlock"),
+    key: z.string(),
+    title: z.string(),
+    description: z.string(),
+  }),
 ]);
 export type StateMutation = z.infer<typeof StateMutation>;
 
@@ -94,6 +100,13 @@ export const NarrationSpan = z.object({
   emotion: z.string().optional(),
 });
 export type NarrationSpan = z.infer<typeof NarrationSpan>;
+
+export const SkillCheck = z.object({
+  stat: z.enum(["strength", "dexterity", "intelligence", "charisma"]),
+  dc: z.number().int().min(5).max(25),
+  label: z.string().max(80),
+});
+export type SkillCheck = z.infer<typeof SkillCheck>;
 
 /**
  * The structured GM turn envelope. Every GM call returns this shape,
@@ -106,6 +119,7 @@ export const GmTurn = z.object({
   sound_cues: z.array(SoundCue).default([]),
   state_mutations: z.array(StateMutation).default([]),
   narration_voice_plan: z.array(NarrationSpan).default([]),
+  skill_check: SkillCheck.optional(),
   ruling_rationale: z.string().optional(),
   scene_ends: z.boolean().default(false),
 });
