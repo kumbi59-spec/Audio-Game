@@ -8,6 +8,8 @@ import { stopSpeech } from "@/lib/audio/tts-provider";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { STEPS, EMPTY_DRAFT, type Draft, type WizardStep } from "@/lib/wizard/steps";
+
+const IMPORT_KEY = "echoquest_import_draft";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export default function WorldWizardPage() {
@@ -17,7 +19,20 @@ export default function WorldWizardPage() {
 
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [draft, setDraft] = useState<Draft>(() => {
+    // Seed from import-notes if the user arrived via /worlds/new/import.
+    // Consumed once and cleared so Back → wizard doesn't re-seed.
+    if (typeof window === "undefined") return EMPTY_DRAFT;
+    const raw = sessionStorage.getItem(IMPORT_KEY);
+    if (!raw) return EMPTY_DRAFT;
+    sessionStorage.removeItem(IMPORT_KEY);
+    try {
+      const seeded = JSON.parse(raw) as Partial<Draft>;
+      return { ...EMPTY_DRAFT, ...seeded };
+    } catch {
+      return EMPTY_DRAFT;
+    }
+  });
   const [textInput, setTextInput] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
