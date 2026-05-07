@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { stopSpeech } from "@/lib/audio/tts-provider";
@@ -14,6 +14,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 
 export default function WorldWizardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const forkName = searchParams.get("forkName");
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
 
@@ -254,9 +256,15 @@ export default function WorldWizardPage() {
         <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
           World Builder Wizard
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-          Answer {STEPS.length} questions and your world is ready to play.
-        </p>
+        {forkName ? (
+          <p className="mt-1 text-sm font-medium" style={{ color: "var(--accent)" }}>
+            Forking from &ldquo;{forkName}&rdquo; — adjust any fields you want to change.
+          </p>
+        ) : (
+          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+            Answer {STEPS.length} questions and your world is ready to play.
+          </p>
+        )}
       </header>
 
       <main id="wizard-main" className="mx-auto max-w-xl px-6 pb-20">

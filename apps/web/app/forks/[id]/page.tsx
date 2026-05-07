@@ -39,7 +39,12 @@ export default async function ForkWorldPage({ params }: { params: Promise<{ id: 
         </ol>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href={`/create?worldId=${world.id}`} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Play original</Link>
-          <Link href="/worlds/new" className="rounded-md border border-border px-4 py-2 text-sm font-semibold">Start your fork</Link>
+          <Link
+            href={`/worlds/new/wizard?forkFrom=${encodeURIComponent(world.id)}&forkName=${encodeURIComponent(world.name)}`}
+            className="rounded-md border border-border px-4 py-2 text-sm font-semibold"
+          >
+            Start your fork
+          </Link>
         </div>
       </div>
     </main>
