@@ -43,11 +43,11 @@ Opening Scenario:
 The player wakes in a thaw chamber. The light is amber. Captain Mirovic is sitting on a stool beside the chamber, sipping ration coffee from a thermal mug. Her uniform is rumpled. She says: "Sorry to do this to you. Pod 217 opened from the inside at oh-four-eighteen this morning. I pulled you because you're the only one currently logged who has investigation rated above maintenance, and I haven't filed an incident yet because I think one of my crew may be involved. I don't want to formalize anything until you've talked to all five of us. Take an hour. Drink water. I'll be on the bridge."
 
 Sound Design:
-- The Bridge: silent_corp ambient (the bridge is quiet — only soft beeps and the hum of life support)
-- Cryobays: cold_room ambient
+- The Bridge: space_station ambient (electrical hum, ventilation, sparse metallic pings)
+- Cryobays: space_station ambient (cold ventilation, low hum)
 - The Spinhub: city_day ambient
-- The Long Hall: industrial ambient
-- Engineering: industrial ambient`,
+- The Long Hall: space_station ambient (deep hum, sound carries forever)
+- Engineering: space_station ambient (reactor hum, life-support machinery)`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/long-watch.svg",
   locations: [
@@ -57,7 +57,7 @@ Sound Design:
       description:
         "A six-meter-square room with three operator stations forming a crescent in front of the long-range scope display. The display is mostly black, with three small clusters of points labeled with neutral catalog numbers. The astrogator on duty, Mira Chen, hasn't slept in twenty-six hours and is trying to hide it. Captain Mirovic's command chair sits raised behind the operator stations. The temperature is held at eighteen degrees Celsius.",
       shortDesc: "The Hesperia's compact bridge with the long-range scope display",
-      ambientSound: "silent_corp",
+      ambientSound: "space_station",
       connectedTo: ["loc-spinhub"],
       properties: { danger: "none", scope_anomaly: true },
     },
@@ -67,7 +67,7 @@ Sound Design:
       description:
         "A long, narrow chamber lined with vertical cryo pods on both sides. The air is twelve degrees Celsius and dry. Frost has formed in spirals on the pod canopies. The pod numbered 217 is open. Its interior is at ambient temperature. The maintenance log shows the lock opened at 04:18 ship-time from the inside. The diagnostic feed for the seventy-two hours prior to that is not corrupted; it is missing entirely.",
       shortDesc: "The cryobay containing the pod that opened from inside",
-      ambientSound: "cold_room",
+      ambientSound: "space_station",
       connectedTo: ["loc-long-hall"],
       properties: { danger: "low", pod_217_open: true },
     },
@@ -87,7 +87,7 @@ Sound Design:
       description:
         "A two-kilometer corridor running the length of the ship's spine. Lights only every fifty meters. A maglev rail in the floor still functions but moves at a walking pace since the last refit. The corridor is silent except for the hum of the ship's spin and the occasional click of cooling metal. Voices carry an alarming distance here.",
       shortDesc: "The spine corridor connecting cryobays, the spinhub, and engineering",
-      ambientSound: "industrial",
+      ambientSound: "space_station",
       connectedTo: ["loc-spinhub", "loc-cryobay-4", "loc-engineering"],
       properties: { danger: "none", echo: "extreme" },
     },
@@ -97,7 +97,7 @@ Sound Design:
       description:
         "The fusion reactor and life-support core. Three concentric rings of consoles around a central diagnostic well. The chief engineer, Esai Vong, sits at the third console with a hand-written notebook open beside him. The lighting is utilitarian. A coffee pot on a hot-plate has been running for the better part of a decade. There are no decorations. Vong does not believe in decorations.",
       shortDesc: "The Hesperia's engineering bay, where Chief Engineer Vong keeps the ship alive",
-      ambientSound: "industrial",
+      ambientSound: "space_station",
       connectedTo: ["loc-spinhub", "loc-long-hall"],
       properties: { danger: "low", vong_present: true },
     },

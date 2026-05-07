@@ -43,9 +43,9 @@ The player arrives at the Korst estate at 4:47 PM on a Sunday in late October. T
 
 Sound Design:
 - Front Parlor: tavern (use a quiet variant) ambient
-- The Library: cave (very quiet) ambient
-- The Grounds: forest_day or rain_indoor ambient depending on weather
-- The Reading Room: silent_corp ambient
+- The Library: cave (very quiet, with reverb) ambient
+- The Grounds: forest_day ambient
+- The Reading Room: cosmic_void ambient (ultra-low sub drone, eerie sweeps — the book's presence)
 - The Cove: ocean ambient`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/black-vellum.svg",
@@ -76,7 +76,7 @@ Sound Design:
       description:
         "A small upstairs study. One window onto a stand of cedars. A leather chair with a worn arm. A walnut desk with Korst's unfinished notes spread across it under a glass paperweight. The notes are precise, scholarly, and stop mid-sentence on a page dated three weeks before his death. There is no apparent disturbance. Korst seems to have set down his pen and never picked it up again.",
       shortDesc: "Korst's private upstairs study with his unfinished annotations",
-      ambientSound: "silent_corp",
+      ambientSound: "cosmic_void",
       connectedTo: ["loc-library"],
       properties: { danger: "low", korst_notes: true },
     },

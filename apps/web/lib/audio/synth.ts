@@ -157,11 +157,30 @@ function fadeAndStop(g: GainNode, dur: number, nodes: AudioNode[]): void {
   setTimeout(() => nodes.forEach((n) => { try { n.disconnect(); } catch { /* already gone */ } }), (dur + 0.2) * 1000);
 }
 
+/** Synthetic impulse response reverb — no audio files required. */
+function makeReverb(
+  ac: AudioContext,
+  duration = 2.5,
+  decay = 2.0,
+): ConvolverNode {
+  const length = Math.ceil(ac.sampleRate * duration);
+  const ir = ac.createBuffer(2, length, ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = ir.getChannelData(ch);
+    for (let i = 0; i < length; i++)
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+  }
+  const conv = ac.createConvolver();
+  conv.buffer = ir;
+  return conv;
+}
+
 // ─── Ambient engine ──────────────────────────────────────────────────────────
 
 interface AmbientHandle {
   masterGain: GainNode;
   nodes: AudioNode[];
+  cleanup?: () => void;
 }
 
 let _ambient: AmbientHandle | null = null;
@@ -215,11 +234,19 @@ function buildAmbient(ac: AudioContext, track: AmbientTrack): AmbientHandle | nu
     }
 
     case "dungeon": {
-      // Deep pink noise
+      // Deep pink noise — stone chamber reverb
+      const conv = makeReverb(ac, 2.0, 2.5);
+      conv.connect(master);
+      const wetGain = gain(ac, 0.45);
+      wetGain.connect(conv);
+
       const pink = pinkNoise(ac);
       const lp = lpf(ac, 220, 0.8);
-      const g1 = gain(ac, 0.3);
-      pink.connect(lp); lp.connect(g1); g1.connect(master);
+      const dryG = gain(ac, 0.20);
+      pink.connect(lp); lp.connect(dryG); dryG.connect(master);
+      const sendG = gain(ac, 0.10);
+      lp.connect(sendG); sendG.connect(wetGain);
+
       // Low ominous drone
       const drone = osc(ac, "sine", 55);
       const dg = gain(ac, 0.28);
@@ -229,24 +256,32 @@ function buildAmbient(ac: AudioContext, track: AmbientTrack): AmbientHandle | nu
       const drone2 = osc(ac, "triangle", 110);
       const dg2 = gain(ac, 0.07);
       drone2.connect(dg2); dg2.connect(master);
-      add(pink, lp, g1, drone, dg, lfoDrone, drone2, dg2);
+      add(conv, wetGain, pink, lp, dryG, sendG, drone, dg, lfoDrone, drone2, dg2);
       [pink, drone, drone2, lfoDrone].forEach((n) => (n as AudioScheduledSourceNode).start());
       break;
     }
 
     case "cave": {
-      // Very dark, resonant
+      // Very dark, resonant — with synthetic convolution reverb
+      const conv = makeReverb(ac, 3.0, 1.8);
+      conv.connect(master);
+      const wetGain = gain(ac, 0.55);
+      wetGain.connect(conv);
+
       const pink = pinkNoise(ac);
       const lp = lpf(ac, 140, 1.2);
-      const g1 = gain(ac, 0.22);
-      pink.connect(lp); lp.connect(g1); g1.connect(master);
+      const dryG = gain(ac, 0.13);
+      pink.connect(lp); lp.connect(dryG); dryG.connect(master);
+      const sendG = gain(ac, 0.09);
+      lp.connect(sendG); sendG.connect(wetGain);
+
       // Sub rumble
       const sub = osc(ac, "sine", 38);
       const sg = gain(ac, 0.18);
       sub.connect(sg); sg.connect(master);
       // Slow tremolo on sub to simulate dripping sensation
       const lfo = lfoTremolo(ac, sg, 0.06, 0.06, 0.16);
-      add(pink, lp, g1, sub, sg, lfo);
+      add(conv, wetGain, pink, lp, dryG, sendG, sub, sg, lfo);
       [pink, sub, lfo].forEach((n) => (n as AudioScheduledSourceNode).start());
       break;
     }
@@ -352,6 +387,118 @@ function buildAmbient(ac: AudioContext, track: AmbientTrack): AmbientHandle | nu
       break;
     }
 
+    case "desert": {
+      // Sub-bass wind with slow LFO sweep
+      const windSub = osc(ac, "sine", 42);
+      const wsg = gain(ac, 0.22);
+      const windLfo = lfoTremolo(ac, wsg, 0.07, 0.06, 0.20);
+      windSub.connect(wsg); wsg.connect(master);
+      // Sand hiss: HPF white noise
+      const hiss = whiteNoise(ac);
+      const hpHiss = hpf(ac, 3800);
+      const hg = gain(ac, 0.055);
+      hiss.connect(hpHiss); hpHiss.connect(hg); hg.connect(master);
+      const gustLfo = lfoTremolo(ac, hg, 0.12, 0.03, 0.045);
+      // Low wind breath: BPF pink noise
+      const breath = pinkNoise(ac);
+      const bpBreath = bpf(ac, 180, 0.4);
+      const bg = gain(ac, 0.14);
+      breath.connect(bpBreath); bpBreath.connect(bg); bg.connect(master);
+      const breathLfo = lfoTremolo(ac, bg, 0.05, 0.04, 0.12);
+      add(windSub, wsg, windLfo, hiss, hpHiss, hg, gustLfo, breath, bpBreath, bg, breathLfo);
+      [windSub, hiss, breath, windLfo, gustLfo, breathLfo].forEach(
+        (n) => (n as AudioScheduledSourceNode).start(),
+      );
+      break;
+    }
+
+    case "cyberpunk_rain": {
+      // Rain: LPF white noise
+      const rain = whiteNoise(ac);
+      const lpRain = lpf(ac, 2200, 0.6);
+      const rg = gain(ac, 0.28);
+      rain.connect(lpRain); lpRain.connect(rg); rg.connect(master);
+      const rainLfo = lfoTremolo(ac, rg, 0.08, 0.06, 0.25);
+      // Distant bass drone: sawtooth through tight LPF
+      const bassDrone = osc(ac, "sawtooth", 55);
+      const lpBass = lpf(ac, 120, 1.2);
+      const bdg = gain(ac, 0.06);
+      bassDrone.connect(lpBass); lpBass.connect(bdg); bdg.connect(master);
+      // Traffic pulse: slow LFO on BPF pink noise
+      const traffic = pinkNoise(ac);
+      const bpTraffic = bpf(ac, 350, 0.3);
+      const tg = gain(ac, 0.08);
+      traffic.connect(bpTraffic); bpTraffic.connect(tg); tg.connect(master);
+      const trafficLfo = lfoTremolo(ac, tg, 0.18, 0.04, 0.07);
+      add(rain, lpRain, rg, rainLfo, bassDrone, lpBass, bdg, traffic, bpTraffic, tg, trafficLfo);
+      [rain, traffic, bassDrone, rainLfo, trafficLfo].forEach(
+        (n) => (n as AudioScheduledSourceNode).start(),
+      );
+      break;
+    }
+
+    case "space_station": {
+      // Electrical hum: 60 Hz + 120 Hz harmonic
+      const hum60 = osc(ac, "sine", 60);
+      const hg60 = gain(ac, 0.09);
+      hum60.connect(hg60); hg60.connect(master);
+      const hum120 = osc(ac, "sine", 120);
+      const hg120 = gain(ac, 0.03);
+      hum120.connect(hg120); hg120.connect(master);
+      // Ventilation: narrow BPF white noise
+      const vent = whiteNoise(ac);
+      const bpVent = bpf(ac, 820, 4.5);
+      const vg = gain(ac, 0.06);
+      vent.connect(bpVent); bpVent.connect(vg); vg.connect(master);
+      add(hum60, hg60, hum120, hg120, vent, bpVent, vg);
+      [hum60, hum120, vent].forEach((n) => (n as AudioScheduledSourceNode).start());
+      master.connect(ac.destination);
+      const ssHandle: AmbientHandle = { masterGain: master, nodes };
+      // Sparse metallic pings every 8–20 s
+      let pingTimer: ReturnType<typeof setTimeout> | null = null;
+      function schedulePing() {
+        pingTimer = setTimeout(() => {
+          if (_ambient !== ssHandle) return;
+          const pingFreqs = [880, 1040, 1200, 1480];
+          const freq = pingFreqs[Math.floor(Math.random() * pingFreqs.length)];
+          tone(ac, "sine", freq, 0.07, 0.005, 0.04, 0.2, 1.2);
+          schedulePing();
+        }, 8000 + Math.random() * 12000);
+      }
+      schedulePing();
+      ssHandle.cleanup = () => { if (pingTimer !== null) clearTimeout(pingTimer); };
+      return ssHandle;
+    }
+
+    case "cosmic_void": {
+      // Ultra-low sub-sine: felt more than heard
+      const sub = osc(ac, "sine", 28);
+      const sg = gain(ac, 0.30);
+      sub.connect(sg); sg.connect(master);
+      const subLfo = lfoTremolo(ac, sg, 0.025, 0.08, 0.26);
+      // Inharmonic shimmer
+      const shimmer = osc(ac, "sine", 680);
+      const smg = gain(ac, 0.018);
+      shimmer.connect(smg); smg.connect(master);
+      const shimLfo = lfoTremolo(ac, smg, 0.07, 0.012, 0.015);
+      add(sub, sg, subLfo, shimmer, smg, shimLfo);
+      [sub, shimmer, subLfo, shimLfo].forEach((n) => (n as AudioScheduledSourceNode).start());
+      master.connect(ac.destination);
+      const cvHandle: AmbientHandle = { masterGain: master, nodes };
+      // Periodic eerie ascending sweeps every 15–40 s
+      let sweepTimer: ReturnType<typeof setTimeout> | null = null;
+      function scheduleSweep() {
+        sweepTimer = setTimeout(() => {
+          if (_ambient !== cvHandle) return;
+          glide(ac, "sine", 220, 880, 0.04, 4.0);
+          scheduleSweep();
+        }, 15000 + Math.random() * 25000);
+      }
+      scheduleSweep();
+      cvHandle.cleanup = () => { if (sweepTimer !== null) clearTimeout(sweepTimer); };
+      return cvHandle;
+    }
+
     default:
       return null;
   }
@@ -386,7 +533,8 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
 
 export function synthStopAmbient(): void {
   if (!_ambient) return;
-  const { masterGain, nodes } = _ambient;
+  const { masterGain, nodes, cleanup } = _ambient;
+  cleanup?.();
   fadeAndStop(masterGain, 1.2, nodes);
   _ambient = null;
 }
@@ -702,12 +850,22 @@ export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
   const fn = CUE_FNS[cue];
   if (!fn) return;
 
+  // Collect oscillators created during the cue so we can apply pitch variation after.
+  const createdOscs: OscillatorNode[] = [];
+
   // Temporarily patch ac.destination for this cue so all internal
   // tone() / glide() / noiseBurst() calls route through master gain.
-  // We do this by calling each fn with a custom proxy context object.
+  // Also intercept createOscillator to track created nodes for pitch variation.
   const proxy = new Proxy(ac, {
     get(target, prop) {
       if (prop === "destination") return master;
+      if (prop === "createOscillator") {
+        return () => {
+          const o = target.createOscillator();
+          createdOscs.push(o);
+          return o;
+        };
+      }
       const v = target[prop as keyof AudioContext];
       return typeof v === "function" ? (v as Function).bind(target) : v;
     },
@@ -717,6 +875,15 @@ export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
     fn(proxy as AudioContext);
   } catch {
     fn(ac);
+  }
+
+  // Apply ±50 cents random pitch variation to all oscillators in this cue.
+  // setValueAtTime at currentTime overrides the initial .value assignment made
+  // during fn() while preserving any relative detune the cue already set.
+  const pitchOffset = (Math.random() * 2 - 1) * 50;
+  const t = ac.currentTime;
+  for (const o of createdOscs) {
+    o.detune.setValueAtTime(o.detune.value + pitchOffset, t);
   }
 
   // Clean up master gain node after 3 s (longest cue)

@@ -82,6 +82,26 @@ function mapAmbient(mood: string): string {
     night: "city_night",
     underground: "dungeon",
     sea: "ocean",
+    // World-specific tracks
+    desert: "desert",
+    sand: "desert",
+    wasteland: "desert",
+    arid: "desert",
+    space_station: "space_station",
+    station: "space_station",
+    starship: "space_station",
+    spaceship: "space_station",
+    "sci-fi": "space_station",
+    scifi: "space_station",
+    cyberpunk_rain: "cyberpunk_rain",
+    cyberpunk: "cyberpunk_rain",
+    rain: "cyberpunk_rain",
+    neon: "cyberpunk_rain",
+    cosmic_void: "cosmic_void",
+    cosmic: "cosmic_void",
+    void: "cosmic_void",
+    eldritch: "cosmic_void",
+    horror: "cosmic_void",
   };
   return MAP[mood.toLowerCase()] ?? "none";
 }

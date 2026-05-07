@@ -26,9 +26,14 @@ export function AmbientPlayer({
     if (!ambientEnabled || currentAmbient === "none") {
       stopAmbient();
     } else {
-      playAmbient(currentAmbient, ambientVolume);
+      // Start at 0; the volume effect below immediately ramps to effectiveVolume
+      // via a smooth GainNode ramp — no node graph restart needed for volume changes.
+      playAmbient(currentAmbient, 0);
     }
-  }, [currentAmbient, ambientEnabled, ambientVolume]);
+  // ambientVolume intentionally omitted: volume changes are handled by the
+  // setAmbientVolume effect below, not by restarting the audio graph.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAmbient, ambientEnabled]);
 
   useEffect(() => {
     setAmbientVolume(effectiveVolume);

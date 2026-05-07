@@ -1,6 +1,12 @@
 import type { AmbientTrack } from "@/types/audio";
 
 const KEYWORD_MAP: Array<{ keywords: string[]; track: AmbientTrack }> = [
+  // New world-specific tracks — checked first so they win over generic locations.
+  { keywords: ["void", "cosmic", "eldritch", "abyss of stars", "the black", "outer dark", "formless", "ancient one", "cosmic horror", "the deep dark"], track: "cosmic_void" },
+  { keywords: ["desert", "sand", "dune", "dunes", "oasis", "wasteland", "arid", "crimson wastes", "red sand", "sandstorm"], track: "desert" },
+  { keywords: ["space station", "station", "starship", "colony ship", "generation ship", "airlock", "reactor", "ship corridor", "ship bridge", "cryobay", "engineering bay", "spinhub", "long hall"], track: "space_station" },
+  { keywords: ["neon", "precinct", "promenade", "arcology", "megacity", "cyberpunk", "mire", "sub-city", "undercity", "rainy street", "rain slick", "rain-slick"], track: "cyberpunk_rain" },
+  // Generic location tracks
   { keywords: ["dungeon", "prison", "cell", "underground", "basement", "vault", "crypt", "tomb", "catacomb", "sewer"], track: "dungeon" },
   { keywords: ["cave", "cavern", "grotto", "pit", "abyss", "chasm", "mine", "shaft"], track: "cave" },
   { keywords: ["ocean", "sea", "coast", "shore", "beach", "harbour", "harbor", "port", "dock", "wharf", "bay", "cove", "ship", "vessel", "boat"], track: "ocean" },
