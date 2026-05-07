@@ -33,8 +33,11 @@ export default function DiscussionPage() {
 
   useEffect(() => {
     fetch("/api/discussion/threads")
-      .then((r) => r.json())
-      .then((data: ApiThread[]) => setThreads(data))
+      .then((r) => {
+        if (!r.ok) throw new Error(`threads request failed: ${r.status}`);
+        return r.json() as Promise<ApiThread[]>;
+      })
+      .then((data) => setThreads(data))
       .catch((err) => console.error("[discussion] failed to load threads:", err))
       .finally(() => setLoading(false));
   }, []);

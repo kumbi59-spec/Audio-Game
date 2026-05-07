@@ -118,7 +118,7 @@ function useLobbySocket(campaignId: string) {
 
     ws.onerror = () => {
       setStatus("error");
-      setError("Connection failed. The multiplayer lobby is not yet available in this region.");
+      setError("Could not reach the multiplayer lobby. Check your connection and try again.");
     };
 
     ws.onclose = () => {

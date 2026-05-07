@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createOptimisticTurn,
+  extractNarrationFromChoiceEvent,
   finalizeTurn,
   normalizeChoiceList,
   retryWithBackoff,
   rollbackTurn,
   sanitizeAction,
   selectChoice,
+  shouldPlaySoundCue,
 } from "./use-cases";
 
 describe("game domain use-cases", () => {
@@ -55,5 +57,21 @@ describe("game domain use-cases", () => {
 
   it("keeps de-dupe behavior", () => {
     expect(normalizeChoiceList(["Talk", "Attack", "Talk", "Run", "Attack"])).toEqual(["Talk", "Attack", "Run"]);
+  });
+
+  it("extracts narration and normalizes choices from choices_ready events", () => {
+    const result = extractNarrationFromChoiceEvent({
+      narration: "You step into the courtyard.",
+      choices: [" Run ", "Run", "Hide", " Hide "],
+    });
+    expect(result.narration).toBe("You step into the courtyard.");
+    expect(result.choices).toEqual(["Run", "Hide"]);
+  });
+
+  it("guards sound cues by enabled flag, event type, and cue presence", () => {
+    expect(shouldPlaySoundCue(true, "sound_cue", "discovery")).toBe(true);
+    expect(shouldPlaySoundCue(false, "sound_cue", "discovery")).toBe(false);
+    expect(shouldPlaySoundCue(true, "state_change", "discovery")).toBe(false);
+    expect(shouldPlaySoundCue(true, "sound_cue", null)).toBe(false);
   });
 });
