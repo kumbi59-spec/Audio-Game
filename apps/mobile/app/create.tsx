@@ -44,11 +44,13 @@ export default function CreateWorld(): JSX.Element {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [textInput, setTextInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const dotProgress = useRef(STEPS.map((_, i) => new Animated.Value(i === 0 ? 1 : 0))).current;
+  const micPulse = useRef(new Animated.Value(0)).current;
 
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
@@ -80,6 +82,22 @@ export default function CreateWorld(): JSX.Element {
       }).start();
     });
   }, [dotProgress, reduceMotion, stepIndex]);
+
+  // Mic pulse loop while listening
+  useEffect(() => {
+    if (!listening || reduceMotion) {
+      micPulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(micPulse, { toValue: 1, duration: 700, useNativeDriver: true }),
+        Animated.timing(micPulse, { toValue: 0, duration: 700, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [listening, micPulse, reduceMotion]);
 
   useEffect(() => {
     if (!step) return;
@@ -188,17 +206,22 @@ export default function CreateWorld(): JSX.Element {
   }, [importNotes]);
 
   const speakAnswer = useCallback(async () => {
+    setListening(true);
     void speakOnce("Listening.");
-    const transcript = await captureUtterance();
-    if (!transcript) return;
-    if (step?.kind === "choice") {
-      const matched = matchChoice(step, transcript);
-      if (matched) advance(matched);
-      else void speakOnce("I didn't catch that. Please pick one of the listed options.");
-      return;
+    try {
+      const transcript = await captureUtterance();
+      if (!transcript) return;
+      if (step?.kind === "choice") {
+        const matched = matchChoice(step, transcript);
+        if (matched) advance(matched);
+        else void speakOnce("I didn't catch that. Please pick one of the listed options.");
+        return;
+      }
+      setTextInput(transcript);
+      advance(transcript);
+    } finally {
+      setListening(false);
     }
-    setTextInput(transcript);
-    advance(transcript);
   }, [advance, step]);
 
   useVoiceCommands({
@@ -208,6 +231,15 @@ export default function CreateWorld(): JSX.Element {
     "repeat|read that again": () => { if (step) void speakOnce(step.prompt); },
     "speak|microphone|mic": () => { void speakAnswer(); },
   });
+
+  // Speak instructions when entering the mode-picker or import screens
+  useEffect(() => {
+    if (mode === "pick") {
+      void speakOnce("Create a new world. Choose Start from Scratch to answer ten questions, or Import Session Notes to paste old campaign text.");
+    } else if (mode === "import") {
+      void speakOnce("Import session notes. Paste your old campaign notes, then tap Extract Details.");
+    }
+  }, [mode]);
 
   // Mode picker — shown before the wizard starts.
   if (mode === "pick") {
@@ -439,13 +471,35 @@ export default function CreateWorld(): JSX.Element {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Speak my answer"
-          onPress={speakAnswer}
+          accessibilityLabel={listening ? "Listening — tap to cancel" : "Speak my answer"}
+          accessibilityState={{ busy: listening }}
+          onPress={() => { void speakAnswer(); }}
           disabled={busy}
-          style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed, pressed && styles.btnPressedTransform]}
+          style={({ pressed }) => [styles.navBtn, listening && styles.navBtnListening, pressed && styles.btnPressed, pressed && styles.btnPressedTransform]}
         >
           <View pointerEvents="none" style={styles.topEdgeHighlight} />
-          <Text style={styles.navBtnText}>Mic</Text>
+          <Animated.View
+            style={[
+              styles.micPulseRing,
+              {
+                opacity: micPulse.interpolate({ inputRange: [0, 1], outputRange: [0, 0.45] }),
+                transform: [{ scale: micPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.55] }) }],
+              },
+            ]}
+          />
+          <Text style={[styles.navBtnText, listening && styles.navBtnTextListening]}>
+            {listening ? "Listening…" : "Mic"}
+          </Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Re-read this step"
+          onPress={() => { if (step) void speakOnce(`${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`); }}
+          disabled={busy || listening}
+          style={({ pressed }) => [styles.navBtn, pressed && styles.btnPressed, pressed && styles.btnPressedTransform, (busy || listening) && styles.btnDisabled]}
+        >
+          <View pointerEvents="none" style={styles.topEdgeHighlight} />
+          <Text style={styles.navBtnText}>↻</Text>
         </Pressable>
         {step.kind === "freeform" && (
           <Pressable
@@ -474,6 +528,9 @@ export default function CreateWorld(): JSX.Element {
         {error && (
           <Text style={styles.error} accessibilityLiveRegion="assertive">{error}</Text>
         )}
+        <Text style={styles.voiceHint} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          Say: "mic" · "next" · "back" · "skip" · "repeat"
+        </Text>
       </View>
 
       <UpgradePrompt
@@ -624,6 +681,16 @@ const styles = StyleSheet.create({
   btnPressedTransform: { transform: [{ translateY: MOTION.press.translateY }, { scale: MOTION.press.scaleIn }] },
   btnDisabled: { opacity: 0.4 },
   error: { color: EQ.danger, fontWeight: "600" },
+  voiceHint: { ...TYPE.label, color: EQ.textFaint, marginTop: SPACE[2], textAlign: "center" },
+  navBtnListening: { borderColor: EQ.accent, backgroundColor: EQ.accentBg },
+  navBtnTextListening: { color: EQ.accent },
+  micPulseRing: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: R.lg,
+    backgroundColor: EQ.accent,
+  },
   topEdgeHighlight: {
     position: "absolute",
     top: 0,
