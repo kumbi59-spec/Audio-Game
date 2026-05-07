@@ -42,16 +42,19 @@ export async function GET(_req: Request, { params }: RouteContext) {
   let classes: Array<{ name: string; description: string }> | undefined;
   let backgrounds: Array<{ name: string; description: string }> | undefined;
   let rulesNotes: string | undefined;
+  let statRules: { perStatMin?: number; perStatMax?: number; totalPointPool?: number | null } | undefined;
   if (world.gameBible?.parsedData) {
     try {
       const bible = JSON.parse(world.gameBible.parsedData) as {
         classes?: Array<{ name: string; description: string }>;
         backgrounds?: Array<{ name: string; description: string }>;
         rulesNotes?: string;
+        statRules?: { perStatMin?: number; perStatMax?: number; totalPointPool?: number | null };
       };
       if (bible.classes?.length) classes = bible.classes;
       if (bible.backgrounds?.length) backgrounds = bible.backgrounds;
       if (bible.rulesNotes) rulesNotes = bible.rulesNotes;
+      if (bible.statRules && typeof bible.statRules === "object") statRules = bible.statRules;
     } catch {
       // parsedData malformed — skip mechanics
     }
@@ -69,6 +72,7 @@ export async function GET(_req: Request, { params }: RouteContext) {
     ...(classes && { classes }),
     ...(backgrounds && { backgrounds }),
     ...(rulesNotes && { rulesNotes }),
+    ...(statRules && { statRules }),
     locations: world.locations.map((loc) => ({
       id: loc.id,
       name: loc.name,

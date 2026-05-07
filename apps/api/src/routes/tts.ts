@@ -27,7 +27,14 @@ const QuerySchema = z.object({
   voiceId: z.string().default("21m00Tcm4TlvDq8ikWAM"),
   model: z.string().default("eleven_flash_v2_5"),
   voiceRole: z.enum(["narrator", "voice_a", "voice_b", "voice_c"]).optional(),
+  // Optional. ElevenLabs accepts 0.7–1.2; out-of-range values are clamped.
+  speed: z.coerce.number().min(0.5).max(2.0).optional(),
 });
+
+// ElevenLabs voice_settings.speed accepts 0.7–1.2. The mobile client should
+// realise faster/slower playback via the on-device player's rate control.
+const ELEVENLABS_SPEED_MIN = 0.7;
+const ELEVENLABS_SPEED_MAX = 1.2;
 
 /**
  * TTS proxy. The client never holds an ElevenLabs key; it requests
@@ -53,11 +60,15 @@ export async function registerTtsRoutes(app: FastifyInstance): Promise<void> {
       });
     }
 
-    const { text, model, voiceRole } = parsed.data;
+    const { text, model, voiceRole, speed } = parsed.data;
     const voiceId =
       voiceRole && parsed.data.voiceId === "21m00Tcm4TlvDq8ikWAM"
         ? resolvedVoiceId(voiceRole)
         : parsed.data.voiceId;
+    const voiceSettings: Record<string, number> = { stability: 0.4, similarity_boost: 0.7 };
+    if (typeof speed === "number") {
+      voiceSettings["speed"] = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, speed));
+    }
     const upstream = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/stream?output_format=mp3_44100_128`,
       {
@@ -69,7 +80,7 @@ export async function registerTtsRoutes(app: FastifyInstance): Promise<void> {
         body: JSON.stringify({
           text,
           model_id: model,
-          voice_settings: { stability: 0.4, similarity_boost: 0.7 },
+          voice_settings: voiceSettings,
         }),
       },
     );

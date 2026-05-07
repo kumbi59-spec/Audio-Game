@@ -16,6 +16,7 @@ interface EnqueuedClip {
   text: string;
   voiceId: string;
   voiceRole?: string;
+  speed: number;
   sound?: Audio.Sound;
   uri?: string;
 }
@@ -24,6 +25,7 @@ export class ElevenLabsNarrator {
   private queue: EnqueuedClip[] = [];
   private playing = false;
   private voiceId: string;
+  private rate = 1.0;
 
   constructor(voiceId = "21m00Tcm4TlvDq8ikWAM") {
     this.voiceId = voiceId;
@@ -33,10 +35,14 @@ export class ElevenLabsNarrator {
     this.voiceId = voiceId;
   }
 
+  setRate(rate: number): void {
+    this.rate = Math.max(0.5, Math.min(2.0, rate));
+  }
+
   speak(text: string, voiceRole?: string): void {
     const trimmed = text.trim();
     if (!trimmed) return;
-    this.queue.push({ text: trimmed, voiceId: this.voiceId, voiceRole });
+    this.queue.push({ text: trimmed, voiceId: this.voiceId, voiceRole, speed: this.rate });
     if (!this.playing) void this.drain();
   }
 
@@ -60,9 +66,13 @@ export class ElevenLabsNarrator {
       if (!clip) break;
       try {
         const uri = await this.fetchClip(clip);
+        // ElevenLabs handles speed in its 0.7–1.2 window; the rest is realised
+        // here via expo-av's rate control so the user's full 0.5–2.0 setting works.
+        const apiSpeed = Math.max(0.7, Math.min(1.2, clip.speed));
+        const playbackRate = clip.speed / apiSpeed;
         const { sound } = await Audio.Sound.createAsync(
           { uri },
-          { shouldPlay: true },
+          { shouldPlay: true, rate: playbackRate, shouldCorrectPitch: false },
         );
         await new Promise<void>((resolve) => {
           sound.setOnPlaybackStatusUpdate((status) => {
@@ -88,7 +98,9 @@ export class ElevenLabsNarrator {
     const voiceParam = clip.voiceRole
       ? `voiceRole=${encodeURIComponent(clip.voiceRole)}`
       : `voiceId=${encodeURIComponent(clip.voiceId)}`;
-    const url = `${apiBaseUrl()}/tts/stream?text=${encodeURIComponent(clip.text)}&${voiceParam}`;
+    const apiSpeed = Math.max(0.7, Math.min(1.2, clip.speed));
+    const speedParam = apiSpeed !== 1.0 ? `&speed=${apiSpeed}` : "";
+    const url = `${apiBaseUrl()}/tts/stream?text=${encodeURIComponent(clip.text)}&${voiceParam}${speedParam}`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new Error(`TTS proxy returned ${res.status}`);

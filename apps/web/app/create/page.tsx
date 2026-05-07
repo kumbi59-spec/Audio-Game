@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useGameStore } from "@/store/game-store";
@@ -9,6 +9,14 @@ import { CLASS_DESCRIPTIONS } from "@/types/character";
 import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
+import {
+  CORE_STAT_KEYS,
+  resolveStatRules,
+  sumCoreStats,
+  sumCustomStats,
+  type CoreStatKey,
+  type StatRules,
+} from "@/lib/character/stat-rules";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -105,9 +113,22 @@ function CreateCharacterPage() {
     narrate(`Character creation for ${world.name}. Step 1: Enter your character's name.`);
   }, [world, narrate]);
 
+  const worldDefinesClasses = Boolean(world?.classes && world.classes.length > 0);
+
+  const statRules: StatRules = useMemo(
+    () =>
+      resolveStatRules({
+        isPrebuilt: world?.isPrebuilt,
+        rulesNotes: world?.rulesNotes,
+        statRules: world?.statRules,
+        characterClass: worldDefinesClasses ? selectedClass : null,
+        worldDefinesClasses,
+      }),
+    [world?.isPrebuilt, world?.rulesNotes, world?.statRules, worldDefinesClasses, selectedClass],
+  );
+
   useEffect(() => {
     if (!world) return;
-    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
     const starting = worldDefinesClasses ? CLASS_DESCRIPTIONS[selectedClass].startingStats : CLASSLESS_STARTING_STATS;
     setCoreStatOverrides({ ...starting });
 
@@ -121,7 +142,44 @@ function CreateCharacterPage() {
     } else {
       setCustomStatOverrides({});
     }
-  }, [selectedClass, world]);
+  }, [selectedClass, world, worldDefinesClasses]);
+
+  const corePointsSpent = sumCoreStats(coreStatOverrides);
+  const corePointsBudget = statRules.totalPointPool;
+  const corePointsRemaining = corePointsBudget !== null ? corePointsBudget - corePointsSpent : null;
+
+  /**
+   * Clamp a candidate value into the per-stat range and ensure it doesn't push
+   * the total core-stat pool past the world's allowance. The pool is only
+   * enforced on the four core stats; custom stats use their own per-stat caps.
+   */
+  function clampCoreStat(key: CoreStatKey, candidate: number, current: number): number {
+    if (!Number.isFinite(candidate)) return current;
+    let next = Math.max(statRules.perStatMin, Math.min(statRules.perStatMax, Math.floor(candidate)));
+    if (corePointsBudget !== null) {
+      const otherCoreSum = CORE_STAT_KEYS.reduce(
+        (acc, k) => (k === key ? acc : acc + coreStatOverrides[k]),
+        0,
+      );
+      const maxAllowedByPool = corePointsBudget - otherCoreSum;
+      if (next > maxAllowedByPool) next = Math.max(statRules.perStatMin, maxAllowedByPool);
+    }
+    return next;
+  }
+
+  function clampCustomStat(candidate: number, current: number): number {
+    if (!Number.isFinite(candidate)) return current;
+    return Math.max(statRules.perStatMin, Math.min(statRules.perStatMax, Math.floor(candidate)));
+  }
+
+  /** True when the total core-stat pool currently exceeds the budget. Drives
+   *  the disabled-state of "Begin Adventure" so a player can't ship a build
+   *  that violates the world's rules. */
+  const overBudget = corePointsBudget !== null && corePointsSpent > corePointsBudget;
+  // Custom stats omitted from the over-budget check: they get per-stat caps
+  // only. Track their total so we can also surface it for transparency.
+  const customPointsSpent = sumCustomStats(customStatOverrides);
+  void customPointsSpent;
 
 
   function handleNameSubmit(e: React.FormEvent) {
@@ -487,8 +545,25 @@ function CreateCharacterPage() {
               </div>
             </div>
             <div className="surface-gradient inner-highlight mb-4 rounded-lg border border-border p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Customize Stat Points
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Customize Stat Points
+                </p>
+                {corePointsBudget !== null ? (
+                  <p
+                    className={`text-xs font-medium ${overBudget ? "text-red-500" : "text-muted-foreground"}`}
+                    aria-live="polite"
+                  >
+                    Points: {corePointsSpent} / {corePointsBudget}
+                    {corePointsRemaining !== null && corePointsRemaining > 0 && (
+                      <span className="ml-1 text-muted-foreground">({corePointsRemaining} remaining)</span>
+                    )}
+                  </p>
+                ) : null}
+              </div>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Each stat is capped at {statRules.perStatMax} (min {statRules.perStatMin}).
+                {corePointsBudget !== null && " Reallocate within the point pool — you can't max every stat."}
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {([
@@ -501,14 +576,14 @@ function CreateCharacterPage() {
                     {label}
                     <input
                       type="number"
-                      min={1}
-                      max={30}
+                      min={statRules.perStatMin}
+                      max={statRules.perStatMax}
                       value={coreStatOverrides[key]}
                       onChange={(e) => {
                         const next = Number.parseInt(e.target.value, 10);
                         setCoreStatOverrides((prev) => ({
                           ...prev,
-                          [key]: Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : prev[key],
+                          [key]: clampCoreStat(key, next, prev[key]),
                         }));
                       }}
                       className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -528,14 +603,14 @@ function CreateCharacterPage() {
                         {label}
                         <input
                           type="number"
-                          min={1}
-                          max={30}
+                          min={statRules.perStatMin}
+                          max={statRules.perStatMax}
                           value={value}
                           onChange={(e) => {
                             const next = Number.parseInt(e.target.value, 10);
                             setCustomStatOverrides((prev) => ({
                               ...prev,
-                              [label]: Number.isFinite(next) ? Math.max(1, Math.min(30, next)) : prev[label],
+                              [label]: clampCustomStat(next, prev[label] ?? statRules.perStatMin),
                             }));
                           }}
                           className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -563,10 +638,19 @@ function CreateCharacterPage() {
                 className="surface-gradient inner-highlight w-full rounded-lg border border-input px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
+            {overBudget && (
+              <p
+                className="mb-3 text-sm text-red-500"
+                role="alert"
+                aria-live="polite"
+              >
+                You&apos;ve spent more stat points than this world allows. Lower a stat before starting.
+              </p>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={() => handleStart({ skipBackstory: true })}
-                disabled={isStarting}
+                disabled={isStarting || overBudget}
                 aria-label="Begin adventure without writing a backstory"
                 className="surface-gradient inner-highlight flex-1 rounded-lg border border-border py-3 text-sm motion-cta hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
               >
@@ -574,7 +658,7 @@ function CreateCharacterPage() {
               </button>
               <button
                 onClick={() => handleStart()}
-                disabled={isStarting}
+                disabled={isStarting || overBudget}
                 aria-label={
                   backstory.trim()
                     ? "Begin adventure with the backstory you wrote"
