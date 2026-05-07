@@ -29,13 +29,16 @@ const CharacterSchema = z.object({
       id: z.string().min(1),
       name: z.string().min(1),
       description: z.string().default(""),
+      category: z.enum(["weapon", "armor", "consumable", "key", "misc"]).default("misc"),
       quantity: z.number(),
+      properties: z.record(z.unknown()).default({}),
     })
   ),
   quests: z.array(
     z.object({
       id: z.string().min(1),
       title: z.string().min(1),
+      description: z.string().default(""),
       status: z.enum(["active", "completed", "failed", "abandoned"]),
       objectives: z.array(
         z.object({
@@ -44,6 +47,7 @@ const CharacterSchema = z.object({
           completed: z.boolean(),
         })
       ),
+      reward: z.string().nullish(),
     })
   ),
   pronouns: z.string().nullish(),
@@ -63,17 +67,32 @@ const WorldSchema = z.object({
     z.object({
       id: z.string().min(1),
       name: z.string().min(1),
+      description: z.string().default(""),
       shortDesc: z.string(),
+      ambientSound: z.string().nullish(),
+      connectedTo: z.array(z.string()).default([]),
+      properties: z.record(z.unknown()).default({}),
     })
   ),
-  npcs: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })).default([]),
+  npcs: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      role: z.string().default(""),
+      personality: z.string().default(""),
+      voiceDescription: z.string().default(""),
+      relationship: z.enum(["friendly", "hostile", "neutral", "allied"]).default("neutral"),
+      isAlive: z.boolean().default(true),
+      locationId: z.string().nullish(),
+    })
+  ).default([]),
 });
 
 const ActionSchema = z.object({
   action: z.object({
     type: z.enum(["choice", "free_text", "voice_command", "meta"]),
     content: z.string().min(1).max(2000),
-    choiceIndex: z.number().nullish(),
+    choiceIndex: z.number().optional(),
   }),
   session: z.object({
     id: z.string(),
