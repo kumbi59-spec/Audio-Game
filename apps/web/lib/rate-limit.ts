@@ -54,16 +54,12 @@ class DbRateLimitStore implements RateLimitStore {
       cooldownUntil = new Date(currentNow.getTime() + rule.cooldownSeconds * 1000);
     }
 
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "cooldownUntil", "updatedAt")
-       VALUES ($1, $2, $3, $4, NOW())
-       ON CONFLICT ("key")
-       DO UPDATE SET "count" = EXCLUDED."count", "resetAt" = EXCLUDED."resetAt", "cooldownUntil" = EXCLUDED."cooldownUntil", "updatedAt" = NOW()`,
-      key,
-      nextCount,
-      resetAt,
-      cooldownUntil,
-    );
+    await prisma.$executeRaw`
+      INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "cooldownUntil", "updatedAt")
+      VALUES (${key}, ${nextCount}, ${resetAt}, ${cooldownUntil}, NOW())
+      ON CONFLICT ("key")
+      DO UPDATE SET "count" = EXCLUDED."count", "resetAt" = EXCLUDED."resetAt", "cooldownUntil" = EXCLUDED."cooldownUntil", "updatedAt" = NOW()
+    `;
 
     if (nextCount > rule.limit) {
       return { allowed: false, retryAfterSeconds: cooldownUntil ? secondsUntil(cooldownUntil) : secondsUntil(resetAt) };
@@ -73,10 +69,9 @@ class DbRateLimitStore implements RateLimitStore {
   }
 
   private async get(key: string): Promise<RateLimitRecord | null> {
-    const rows = await prisma.$queryRawUnsafe<Array<{ count: number; resetAt: Date; cooldownUntil: Date | null }>>(
-      `SELECT "count", "resetAt", "cooldownUntil" FROM "RateLimitBucket" WHERE "key" = $1 LIMIT 1`,
-      key,
-    );
+    const rows = await prisma.$queryRaw<Array<{ count: number; resetAt: Date; cooldownUntil: Date | null }>>`
+      SELECT "count", "resetAt", "cooldownUntil" FROM "RateLimitBucket" WHERE "key" = ${key} LIMIT 1
+    `;
     if (rows.length === 0) return null;
     return rows[0]!;
   }

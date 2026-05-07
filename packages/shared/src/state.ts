@@ -20,7 +20,7 @@ export type Quest = z.infer<typeof Quest>;
 
 export const Relationship = z.object({
   npc: z.string(),
-  standing: z.number().int(),
+  standing: z.number().int().min(-100).max(100),
   notes: z.string().optional(),
   last_interaction_turn: z.number().int().nonnegative().optional(),
 });

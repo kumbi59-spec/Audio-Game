@@ -142,7 +142,7 @@ function adjustRel(
       r === existing
         ? {
             ...r,
-            standing: r.standing + m.delta,
+            standing: Math.max(-100, Math.min(100, r.standing + m.delta)),
             notes: m.note ?? r.notes,
             last_interaction_turn: turnNumber,
           }
@@ -153,7 +153,7 @@ function adjustRel(
     ...rels,
     {
       npc: m.npc,
-      standing: m.delta,
+      standing: Math.max(-100, Math.min(100, m.delta)),
       notes: m.note,
       last_interaction_turn: turnNumber,
     },

@@ -10,8 +10,22 @@ import type { FastifyInstance } from "fastify";
  * falls back to the platform recognizer (Web Speech on web,
  * expo-speech-recognition on native, mock in tests).
  */
+
+// Per-IP last mint timestamp; prevents cost inflation from rapid key minting.
+const lastMintByIp = new Map<string, number>();
+const STT_MINT_COOLDOWN_MS = 60_000;
+
 export async function registerSttRoutes(app: FastifyInstance): Promise<void> {
   app.post("/stt/token", async (_req, reply) => {
+    const clientIp = _req.ip;
+    const now = Date.now();
+    const last = lastMintByIp.get(clientIp) ?? 0;
+    if (now - last < STT_MINT_COOLDOWN_MS) {
+      const retryAfterSeconds = Math.ceil((last + STT_MINT_COOLDOWN_MS - now) / 1000);
+      reply.header("Retry-After", String(retryAfterSeconds));
+      return reply.status(429).send({ error: "stt_rate_limited", retryAfterSeconds });
+    }
+    lastMintByIp.set(clientIp, now);
     const apiKey = process.env["DEEPGRAM_API_KEY"];
     const projectId = process.env["DEEPGRAM_PROJECT_ID"];
     if (!apiKey || !projectId) {
