@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-const consumeMock = vi.fn()
-  .mockResolvedValueOnce({ allowed: true, retryAfterSeconds: 0 })
-  .mockResolvedValueOnce({ allowed: false, retryAfterSeconds: 900 })
-  .mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
+const { consumeMock } = vi.hoisted(() => ({
+  consumeMock: vi.fn()
+    .mockResolvedValueOnce({ allowed: true, retryAfterSeconds: 0 })
+    .mockResolvedValueOnce({ allowed: false, retryAfterSeconds: 900 })
+    .mockResolvedValue({ allowed: true, retryAfterSeconds: 0 }),
+}));
 
 vi.mock("@/lib/rate-limit", () => ({
   getClientIp: () => "1.2.3.4",
