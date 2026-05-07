@@ -9,7 +9,7 @@ import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
-import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus } from "@/types/game";
+import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
 import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
 import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
@@ -30,6 +30,9 @@ export function useGameSession() {
     updateStat,
     applyInventoryMutation,
     applyQuestMutation,
+    unlockAchievement,
+    updateNpcRelationship,
+    addCodexEntry,
     updateLocation,
   } = useGameStore();
 
@@ -178,10 +181,58 @@ export function useGameSession() {
                     announce(levelUpMsg, "assertive");
                     speakText(levelUpMsg);
                     if (soundCuesEnabled) playSoundCue("level_up");
+                    addNarrationEntry({
+                      id: `levelup-${Date.now()}`,
+                      text: `⬆ ${levelUpMsg}`,
+                      type: "system",
+                      timestamp: new Date(),
+                    });
                   }
                 }
                 if (change.flags) {
                   updateFlags(change.flags as Record<string, unknown>);
+                  const flags = change.flags as Record<string, unknown>;
+                  if (typeof flags.last_skill_check === "string") {
+                    try {
+                      const sc = JSON.parse(flags.last_skill_check) as {
+                        stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
+                      };
+                      const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
+                      addNarrationEntry({
+                        id: `sc-${Date.now()}`,
+                        text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
+                        type: "system",
+                        timestamp: new Date(),
+                      });
+                    } catch { /* malformed flag — skip */ }
+                  }
+                }
+                if (Array.isArray(change.achievementUnlocks)) {
+                  for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
+                    const alreadyUnlocked = useGameStore.getState().session?.achievements?.some((a) => a.key === ach.key);
+                    if (alreadyUnlocked) continue;
+                    unlockAchievement({ ...ach, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
+                    const achMsg = `🏆 Achievement unlocked: ${ach.title} — ${ach.description}`;
+                    announce(achMsg, "assertive");
+                    speakText(achMsg);
+                    if (soundCuesEnabled) playSoundCue("discovery");
+                    addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
+                  }
+                }
+                if (Array.isArray(change.npcRelationshipChanges)) {
+                  for (const rel of change.npcRelationshipChanges as Array<{ npcId: string; name: string; standing: number; notes?: string }>) {
+                    updateNpcRelationship(rel);
+                  }
+                }
+                if (Array.isArray(change.codexEntries)) {
+                  for (const entry of change.codexEntries as CodexEntry[]) {
+                    if (useGameStore.getState().session?.codex?.some((c) => c.key === entry.key)) continue;
+                    addCodexEntry({ ...entry, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
+                    const loreMsg = `📖 Lore discovered: ${entry.title}`;
+                    announce(loreMsg, "polite");
+                    if (soundCuesEnabled) playSoundCue("discovery");
+                    addNarrationEntry({ id: `codex-${entry.key}-${Date.now()}`, text: loreMsg, type: "system", timestamp: new Date() });
+                  }
                 }
                 if (change.locationId) {
                   updateLocation(change.locationId as string);
@@ -345,7 +396,7 @@ export function useGameSession() {
     [
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
-      applyInventoryMutation, applyQuestMutation, updateLocation,
+      applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
       speakText, soundCuesEnabled, announce,
     ]
   );

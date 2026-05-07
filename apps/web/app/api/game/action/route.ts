@@ -112,6 +112,9 @@ const ActionSchema = z.object({
     narrationLog: z.array(z.unknown()).default([]),
     choices: z.array(z.string()).default([]),
     isGenerating: z.boolean().default(false),
+    achievements: z.array(z.unknown()).default([]),
+    relationships: z.array(z.unknown()).default([]),
+    codex: z.array(z.unknown()).default([]),
   }),
   character: CharacterSchema,
   world: WorldSchema,
@@ -221,6 +224,28 @@ export async function POST(req: NextRequest) {
 
             if (Object.keys(stateChanges).length > 0 || session.currentLocationId !== null) {
               const flagPatch = (stateChanges as { flags?: Record<string, unknown> }).flags;
+
+              // Merge new achievements/relationships/codex from this turn
+              const prevAch = body.session.achievements as unknown[];
+              const newAch = ((stateChanges as { achievementUnlocks?: unknown[] }).achievementUnlocks ?? []) as Array<{ key: string }>;
+              const mergedAch = [...prevAch, ...newAch.filter((a) => !prevAch.some((e) => (e as { key: string }).key === a.key))];
+
+              const prevRels = body.session.relationships as unknown[];
+              const relChanges = ((stateChanges as { npcRelationshipChanges?: unknown[] }).npcRelationshipChanges ?? []) as Array<{ npcId: string; name: string; standing: number; notes?: string }>;
+              const mergedRels = relChanges.reduce((acc: unknown[], rel) => {
+                const idx = acc.findIndex((r) => (r as { npcId: string }).npcId === rel.npcId);
+                if (idx >= 0) {
+                  const updated = [...acc];
+                  updated[idx] = { ...acc[idx] as object, standing: rel.standing, notes: rel.notes };
+                  return updated;
+                }
+                return [...acc, rel];
+              }, [...prevRels]);
+
+              const prevCodex = body.session.codex as unknown[];
+              const newCodex = ((stateChanges as { codexEntries?: unknown[] }).codexEntries ?? []) as Array<{ key: string }>;
+              const mergedCodex = [...prevCodex, ...newCodex.filter((c) => !prevCodex.some((e) => (e as { key: string }).key === c.key))];
+
               await updateStateInDb(dbSessionId, {
                 currentLocationId: (stateChanges as { locationId?: string }).locationId ?? session.currentLocationId,
                 timeOfDay: (stateChanges as { timeOfDay?: string }).timeOfDay ?? session.timeOfDay,
@@ -228,6 +253,9 @@ export async function POST(req: NextRequest) {
                 globalFlags: flagPatch
                   ? { ...session.globalFlags, ...flagPatch }
                   : undefined,
+                achievements: mergedAch,
+                relationships: mergedRels,
+                codex: mergedCodex,
               });
             }
 

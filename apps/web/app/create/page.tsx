@@ -197,6 +197,9 @@ function CreateCharacterPage() {
       narrationLog: [],
       choices: [],
       isGenerating: false,
+      achievements: [],
+      relationships: [],
+      codex: [],
     };
 
     setStoreWorld(world);

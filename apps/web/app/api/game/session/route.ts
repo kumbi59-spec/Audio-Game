@@ -112,6 +112,13 @@ export async function GET(req: NextRequest) {
     }
 
     const state = session.gameState;
+    const rawNpcStates: Record<string, unknown> = state?.npcStates ? JSON.parse(state.npcStates) : {};
+    const { _achievements, _relationships, _codex, ...npcStates } = rawNpcStates as {
+      _achievements?: unknown[];
+      _relationships?: unknown[];
+      _codex?: unknown[];
+      [key: string]: unknown;
+    };
     return NextResponse.json({
       session: {
         id: session.id,
@@ -123,8 +130,11 @@ export async function GET(req: NextRequest) {
         timeOfDay: state?.timeOfDay ?? "morning",
         weather: state?.weather ?? "clear",
         globalFlags: state?.globalFlags ? JSON.parse(state.globalFlags) : {},
-        npcStates: state?.npcStates ? JSON.parse(state.npcStates) : {},
+        npcStates,
         memorySummary: state?.memorySummary ?? "",
+        achievements: _achievements ?? [],
+        relationships: _relationships ?? [],
+        codex: _codex ?? [],
       },
       history: history.map((h) => ({ role: h.role, content: h.content })),
       world: session.world,

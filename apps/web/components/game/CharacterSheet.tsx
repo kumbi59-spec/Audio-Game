@@ -5,9 +5,13 @@ import { speak } from "@/lib/audio/tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import type { CharacterData } from "@/types/character";
+import type { AchievementUnlock, NpcRelationship, CodexEntry } from "@/types/game";
 
 interface CharacterSheetProps {
   character: CharacterData;
+  achievements?: AchievementUnlock[];
+  relationships?: NpcRelationship[];
+  codex?: CodexEntry[];
   onClose: () => void;
   initialTab?: Tab;
   activeTab?: Tab;
@@ -16,13 +20,16 @@ interface CharacterSheetProps {
   headingRef?: RefObject<HTMLSpanElement>;
 }
 
-type Tab = "stats" | "inventory" | "quests" | "bio";
+type Tab = "stats" | "inventory" | "quests" | "bio" | "achievements" | "people" | "lore";
 
 const TAB_LABELS: Record<Tab, string> = {
   stats: "Stats",
   inventory: "Inventory",
   quests: "Quests",
   bio: "Bio",
+  achievements: "Awards",
+  people: "People",
+  lore: "Lore",
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -457,8 +464,117 @@ function BioTab({ character }: { character: CharacterData }) {
   );
 }
 
+function PeopleTab({ relationships }: { relationships: NpcRelationship[] }) {
+  if (relationships.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="text-4xl opacity-20" aria-hidden="true">👥</span>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No NPCs encountered yet.</p>
+      </div>
+    );
+  }
+  const sorted = [...relationships].sort((a, b) => Math.abs(b.standing) - Math.abs(a.standing));
+  return (
+    <ul className="space-y-3" aria-label="NPC relationships">
+      {sorted.map((r) => {
+        const label =
+          r.standing >= 50 ? "Ally" :
+          r.standing >= 10 ? "Friendly" :
+          r.standing >= -9 ? "Neutral" :
+          r.standing >= -49 ? "Hostile" : "Enemy";
+        const color =
+          r.standing >= 50 ? "var(--success)" :
+          r.standing >= 10 ? "#86efac" :
+          r.standing >= -9 ? "var(--text-muted)" :
+          r.standing >= -49 ? "var(--warning)" : "var(--danger)";
+        const barWidth = `${Math.abs(r.standing)}%`;
+        return (
+          <li key={r.npcId} className="rounded-lg border p-3" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>{r.name}</span>
+              <span className="shrink-0 text-xs font-semibold" style={{ color }}>
+                {label} ({r.standing >= 0 ? "+" : ""}{r.standing})
+              </span>
+            </div>
+            <div
+              className="mt-2 h-1.5 w-full overflow-hidden rounded-full"
+              role="meter"
+              aria-label={`${r.name} standing: ${r.standing}`}
+              aria-valuenow={r.standing}
+              aria-valuemin={-100}
+              aria-valuemax={100}
+              style={{ backgroundColor: "var(--surface3)" }}
+            >
+              <div className="h-full rounded-full transition-all duration-500" style={{ width: barWidth, backgroundColor: color }} />
+            </div>
+            {r.notes && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{r.notes}</p>}
+            <p className="mt-0.5 text-xs" style={{ color: "var(--text-faint)" }}>Last seen turn {r.lastSeenTurn}</p>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function LoreTab({ codex }: { codex: CodexEntry[] }) {
+  if (codex.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="text-4xl opacity-20" aria-hidden="true">📖</span>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No lore discovered yet.</p>
+      </div>
+    );
+  }
+  const sorted = [...codex].sort((a, b) => b.unlockedAt - a.unlockedAt);
+  return (
+    <ul className="space-y-3" aria-label="Discovered lore">
+      {sorted.map((entry) => (
+        <li key={entry.key} className="rounded-lg border p-3" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{entry.title}</p>
+            <span className="shrink-0 text-xs" style={{ color: "var(--text-faint)" }}>Turn {entry.unlockedAt}</span>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{entry.body}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function AchievementsTab({ achievements }: { achievements: AchievementUnlock[] }) {
+  if (achievements.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <span className="text-4xl opacity-20" aria-hidden="true">🏆</span>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No achievements yet. Keep adventuring!</p>
+      </div>
+    );
+  }
+  return (
+    <ul className="space-y-3" aria-label="Unlocked achievements">
+      {achievements.map((a) => (
+        <li
+          key={a.key}
+          className="flex items-start gap-3 rounded-lg border p-3"
+          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}
+        >
+          <span className="mt-0.5 text-xl shrink-0" aria-hidden="true">🏆</span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{a.title}</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.description}</p>
+            <p className="mt-0.5 text-xs" style={{ color: "var(--text-faint)" }}>Turn {a.unlockedAt}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CharacterSheet({
   character,
+  achievements = [],
+  relationships = [],
+  codex = [],
   onClose,
   initialTab = "stats",
   activeTab,
@@ -634,7 +750,7 @@ export function CharacterSheet({
           aria-label="Character sheet sections"
           style={{ borderColor: "var(--border)" }}
         >
-          {(["stats", "inventory", "quests", "bio"] as Tab[]).map((t) => (
+          {(["stats", "inventory", "quests", "bio", "achievements", "people", "lore"] as Tab[]).map((t) => (
             <button
               key={t}
               role="tab"
@@ -656,6 +772,15 @@ export function CharacterSheet({
                   ({character.quests.filter((q) => q.status === "active").length})
                 </span>
               )}
+              {t === "achievements" && achievements.length > 0 && (
+                <span className="ml-1 opacity-70">({achievements.length})</span>
+              )}
+              {t === "people" && relationships.length > 0 && (
+                <span className="ml-1 opacity-70">({relationships.length})</span>
+              )}
+              {t === "lore" && codex.length > 0 && (
+                <span className="ml-1 opacity-70">({codex.length})</span>
+              )}
             </button>
           ))}
         </div>
@@ -671,6 +796,9 @@ export function CharacterSheet({
           {tab === "inventory" && <InventoryTab character={character} />}
           {tab === "quests" && <QuestsTab character={character} />}
           {tab === "bio" && <BioTab character={character} />}
+          {tab === "achievements" && <AchievementsTab achievements={achievements} />}
+          {tab === "people" && <PeopleTab relationships={relationships} />}
+          {tab === "lore" && <LoreTab codex={codex} />}
         </div>
 
         {/* Footer hint */}

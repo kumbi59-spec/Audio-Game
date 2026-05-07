@@ -6,12 +6,35 @@ export interface PlayerAction {
   choiceIndex?: number;
 }
 
+export interface AchievementUnlock {
+  key: string;
+  title: string;
+  description: string;
+  unlockedAt: number;
+}
+
+export interface NpcRelationship {
+  npcId: string;
+  name: string;
+  standing: number; // -100 (enemy) to +100 (ally), 0 = neutral
+  notes?: string;
+  lastSeenTurn: number;
+}
+
+export interface CodexEntry {
+  key: string;
+  title: string;
+  body: string;
+  unlockedAt: number;
+}
+
 export interface GMResponse {
   narration: string;
   choices: string[];
   soundCue?: string | null;
   stateChanges?: Partial<GameStateUpdate>;
   npcAction?: NPCAction | null;
+  skill_check?: { stat: string; dc: number; label: string } | null;
 }
 
 export interface ItemMutation {
@@ -45,6 +68,9 @@ export interface GameStateUpdate {
   npcStates?: Record<string, unknown>;
   inventoryChanges?: ItemMutation[];
   questChanges?: QuestMutation[];
+  achievementUnlocks?: AchievementUnlock[];
+  npcRelationshipChanges?: Array<{ npcId: string; name: string; standing: number; notes?: string }>;
+  codexEntries?: CodexEntry[];
   passiveBonuses?: PassiveBonus[];
   passiveBonusNarration?: string[];
 }
@@ -93,6 +119,9 @@ export interface InMemorySession {
   narrationLog: NarrationEntry[];
   choices: string[];
   isGenerating: boolean;
+  achievements: AchievementUnlock[];
+  relationships: NpcRelationship[];
+  codex: CodexEntry[];
 }
 
 export interface HistoryMessage {

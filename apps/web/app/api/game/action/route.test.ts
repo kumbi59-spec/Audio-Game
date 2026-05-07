@@ -43,6 +43,9 @@ const basePayload = {
     narrationLog: [],
     choices: [],
     isGenerating: false,
+    achievements: [],
+    relationships: [],
+    codex: [],
   },
   character: {
     id: "c1",
