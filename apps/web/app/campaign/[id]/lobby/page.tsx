@@ -27,6 +27,7 @@ function useLobbySocket(campaignId: string) {
   const [status, setStatus] = useState<LobbyStatus>("connecting");
   const [lobby, setLobby] = useState<LobbyState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const router = useRouter();
 
@@ -53,88 +54,117 @@ function useLobbySocket(campaignId: string) {
   useEffect(() => {
     if (!authSession?.user) return;
 
-    const apiBase = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:3001";
-    const wsUrl = apiBase.replace(/^http/, "ws") + `/ws/lobby/${campaignId}`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    let cancelled = false;
 
-    ws.onopen = () => {
-      const token = (authSession as { accessToken?: string }).accessToken ?? "";
-      const joinEvent: MultiplayerClientEvent = {
-        type: "lobby_join",
-        v: "v1",
-        campaignId,
-        authToken: token,
-        displayName: authSession.user?.name ?? "Player",
-      };
-      ws.send(JSON.stringify(joinEvent));
-    };
-
-    ws.onmessage = (ev) => {
-      let msg: MultiplayerServerEvent;
+    async function connect() {
+      // Fetch an HMAC-signed session token from the web API proxy (requires auth).
+      let token: string;
       try {
-        msg = JSON.parse(ev.data as string) as MultiplayerServerEvent;
+        const res = await fetch(
+          `/api/game/lobby-token?campaignId=${encodeURIComponent(campaignId)}`,
+        );
+        if (!res.ok) throw new Error(`Token fetch failed: ${res.status}`);
+        const data = (await res.json()) as { token: string };
+        token = data.token;
       } catch {
+        if (!cancelled) {
+          setStatus("error");
+          setError("Could not obtain lobby credentials. Please try again.");
+        }
         return;
       }
 
-      switch (msg.type) {
-        case "lobby_state":
-          setLobby({
-            participants: msg.participants,
-            maxPlayers: msg.maxPlayers,
-            hostUserId: msg.hostUserId,
-          });
-          setStatus("waiting");
-          break;
-        case "player_joined":
-          setLobby((prev) =>
-            prev
-              ? { ...prev, participants: [...prev.participants, msg.participant] }
-              : prev,
-          );
-          break;
-        case "player_left":
-          setLobby((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  participants: prev.participants.filter((p) => p.userId !== msg.userId),
-                }
-              : prev,
-          );
-          break;
-        case "lobby_ready":
-          setLobby((prev) =>
-            prev ? { ...prev, participants: msg.participants } : prev,
-          );
-          setStatus("starting");
-          break;
-        case "turn_request":
-          router.push(`/play?campaign=${encodeURIComponent(msg.campaignId)}`);
-          break;
-      }
-    };
+      if (cancelled) return;
 
-    ws.onerror = () => {
-      setStatus("error");
-      setError("Could not reach the multiplayer lobby. Check your connection and try again.");
-    };
+      const apiBase = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:3001";
+      const wsUrl = apiBase.replace(/^http/, "ws") + `/ws/lobby/${campaignId}`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onclose = () => {
-      if (status !== "starting" && status !== "error") {
-        setStatus("connecting");
-      }
-    };
+      ws.onopen = () => {
+        const joinEvent: MultiplayerClientEvent = {
+          type: "lobby_join",
+          v: "v1",
+          campaignId,
+          authToken: token,
+          displayName: authSession!.user?.name ?? "Player",
+        };
+        ws.send(JSON.stringify(joinEvent));
+      };
+
+      ws.onmessage = (ev) => {
+        let msg: MultiplayerServerEvent;
+        try {
+          msg = JSON.parse(ev.data as string) as MultiplayerServerEvent;
+        } catch {
+          return;
+        }
+
+        switch (msg.type) {
+          case "lobby_state":
+            // The server echoes myUserId only in the first lobby_state after joining.
+            if (msg.myUserId) setMyUserId(msg.myUserId);
+            setLobby({
+              participants: msg.participants,
+              maxPlayers: msg.maxPlayers,
+              hostUserId: msg.hostUserId,
+            });
+            setStatus("waiting");
+            break;
+          case "player_joined":
+            setLobby((prev) =>
+              prev
+                ? { ...prev, participants: [...prev.participants, msg.participant] }
+                : prev,
+            );
+            break;
+          case "player_left":
+            setLobby((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    participants: prev.participants.filter((p) => p.userId !== msg.userId),
+                  }
+                : prev,
+            );
+            break;
+          case "lobby_ready":
+            setLobby((prev) =>
+              prev ? { ...prev, participants: msg.participants } : prev,
+            );
+            setStatus("starting");
+            break;
+          case "turn_request":
+            router.push(`/play?campaign=${encodeURIComponent(msg.campaignId)}`);
+            break;
+        }
+      };
+
+      ws.onerror = () => {
+        if (!cancelled) {
+          setStatus("error");
+          setError("Could not reach the multiplayer lobby. Check your connection and try again.");
+        }
+      };
+
+      ws.onclose = () => {
+        if (!cancelled && status !== "starting" && status !== "error") {
+          setStatus("connecting");
+        }
+      };
+    }
+
+    void connect();
 
     return () => {
-      ws.close();
+      cancelled = true;
+      wsRef.current?.close();
       wsRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId, authSession]);
 
-  return { status, lobby, error, markReady, leave, currentUserId: authSession?.user?.email ?? "" };
+  return { status, lobby, error, markReady, leave, myUserId };
 }
 
 // ── Participant row ────────────────────────────────────────────────────────
@@ -198,10 +228,10 @@ function ParticipantRow({
 
 export default function LobbyPage() {
   const { id: campaignId } = useParams<{ id: string }>();
-  const { status, lobby, error, markReady, leave, currentUserId } =
+  const { status, lobby, error, markReady, leave, myUserId } =
     useLobbySocket(campaignId);
 
-  const me = lobby?.participants.find((p) => p.userId === currentUserId);
+  const me = myUserId ? lobby?.participants.find((p) => p.userId === myUserId) : undefined;
   const readyCount = lobby?.participants.filter((p) => p.ready).length ?? 0;
   const totalCount = lobby?.participants.length ?? 0;
   const allReady = totalCount > 0 && readyCount === totalCount;
@@ -253,7 +283,7 @@ export default function LobbyPage() {
                     key={p.userId}
                     participant={p}
                     isHost={p.userId === lobby.hostUserId}
-                    isYou={p.userId === currentUserId}
+                    isYou={p.userId === myUserId}
                   />
                 ))}
                 {/* Empty slots */}

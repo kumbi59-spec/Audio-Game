@@ -64,6 +64,14 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
     if (!summary) return reply.status(404).send({ error: "not_found" });
     return summary;
   });
+
+  // Issues a fresh session/lobby token for an existing campaign.
+  // The token is HMAC-bound to campaignId so it cannot be used to join a different lobby.
+  app.get<{ Params: { id: string } }>("/campaigns/:id/join-token", async (req, reply) => {
+    const summary = await getCampaignSummary(req.params.id);
+    if (!summary) return reply.status(404).send({ error: "not_found" });
+    return reply.send({ token: issueSessionToken(req.params.id) });
+  });
 }
 
 function startingStateForWorld(

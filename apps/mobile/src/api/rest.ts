@@ -159,6 +159,13 @@ export async function getWorldsAnalytics(worldIds: string[]): Promise<WorldAnaly
   return http<WorldAnalyticsSummary[]>(`/worlds/analytics?ids=${worldIds.map(encodeURIComponent).join(",")}`);
 }
 
+export async function getLobbyToken(campaignId: string): Promise<string> {
+  const data = await http<{ token: string }>(
+    `/campaigns/${encodeURIComponent(campaignId)}/join-token`,
+  );
+  return data.token;
+}
+
 export async function getWizardSuggestions(
   stepId: string,
   draft: Record<string, string>,
