@@ -9,7 +9,7 @@ import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
-import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition } from "@/types/game";
+import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus } from "@/types/game";
 import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
 import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
@@ -169,8 +169,8 @@ export function useGameSession() {
                 }
                 if (change.statDeltas && typeof change.statDeltas === "object") {
                   const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
-                  for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, number>)) {
-                    updateStat(stat, delta);
+                  for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, unknown>)) {
+                    if (typeof delta === "number" && Number.isFinite(delta)) updateStat(stat, delta);
                   }
                   const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
                   if (levelAfter > levelBefore) {
@@ -208,7 +208,7 @@ export function useGameSession() {
                   }
                 }
                 if (Array.isArray(change.passiveBonuses)) {
-                  updateFlags({ passiveBonuses: change.passiveBonuses as unknown });
+                  updateFlags({ passiveBonuses: change.passiveBonuses as PassiveBonus[] });
                 }
                 if (Array.isArray(change.passiveBonusNarration) && change.passiveBonusNarration.length > 0) {
                   addNarrationEntry({

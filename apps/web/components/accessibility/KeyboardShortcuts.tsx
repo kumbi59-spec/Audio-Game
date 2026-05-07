@@ -147,10 +147,10 @@ export function KeyboardShortcuts({
       }
     },
     [
-      isSpeaking, ttsSpeed, ambientEnabled, keyboardHelpOpen,
+      isSpeaking, ttsSpeed, ambientEnabled,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
-      setTTSSpeed, setAmbientEnabled, onToggleHelpManual,
+      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen,
     ]
   );
 

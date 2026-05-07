@@ -610,7 +610,7 @@ export function CharacterSheet({
             onClick={readSheetAloud}
             aria-label="Read character sheet aloud"
             title="Read aloud"
-            className="rounded-lg border px-2 py-1 text-xs hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2"
+            className="rounded-lg border px-2 py-1 text-xs hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
           >
             🔊
@@ -620,7 +620,7 @@ export function CharacterSheet({
             ref={closeRef}
             onClick={onClose}
             aria-label="Close character sheet (C or Escape)"
-            className="rounded-lg border px-2.5 py-1 text-xs font-semibold hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2"
+            className="rounded-lg border px-2.5 py-1 text-xs font-semibold hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
           >
             ✕
@@ -641,7 +641,7 @@ export function CharacterSheet({
               aria-selected={tab === t}
               aria-controls={`sheet-panel-${t}`}
               onClick={() => switchTab(t)}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2"
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{
                 backgroundColor: tab === t ? "var(--accent)" : "transparent",
                 color: tab === t ? "#ffffff" : "var(--text-muted)",
