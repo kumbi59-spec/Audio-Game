@@ -5,7 +5,7 @@ const baseSession: Session = {
   campaignId: "c1",
   worldId: "w1",
   bible: { version: 1, title: "Test World", style_mode: "cinematic", tone: { content_rating: "teen", forbidden_topics: [] }, rules: { hard_constraints: [] }, entities: [], timeline: [], character_creation: { origins: [], classes: [], stats: [], starting_items: [] }, win_states: [], fail_states: [] },
-  state: { scene: { name: "Prologue", summary: "" }, turn_number: 1, character: { name: "Hero", stats: {}, background: {} }, inventory: [], quests: [], relationships: [], codex: [], flags: {} },
+  state: { scene: { name: "Prologue", summary: "" }, turn_number: 1, character: { name: "Hero", stats: {}, background: {} }, inventory: [], quests: [], relationships: [], codex: [], achievements: [], flags: {} },
   lastPresentedChoices: [{ id: "a", label: "A" }],
 };
 

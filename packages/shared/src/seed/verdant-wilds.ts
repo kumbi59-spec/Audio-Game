@@ -122,6 +122,7 @@ export function verdantWildsStartingState(characterName = "Rowan"): CampaignStat
     quests: [],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: {},
   };
 }

@@ -92,6 +92,7 @@ function startingStateForWorld(
     quests: [],
     relationships: [],
     codex: [],
+    achievements: [],
     flags: {},
   };
 }
