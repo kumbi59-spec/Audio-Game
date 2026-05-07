@@ -6,12 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 import { SiteHeader } from "@/components/SiteHeader";
-
-const TIER_LABELS: Record<string, { label: string; color: string }> = {
-  free:         { label: "Free",        color: "#6b7280" },
-  storyteller:  { label: "Storyteller", color: "#7c3aed" },
-  creator:      { label: "Creator",     color: "#d97706" },
-};
+import { validatePasswordChange, tierDisplayInfo } from "@/src/domain/auth/use-cases";
 
 interface Profile {
   id: string;
@@ -81,12 +76,9 @@ export default function AccountPage() {
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
     setPwMsg(null);
-    if (newPw !== confirmPw) {
-      setPwMsg({ ok: false, text: "New passwords do not match." });
-      return;
-    }
-    if (newPw.length < 8) {
-      setPwMsg({ ok: false, text: "Password must be at least 8 characters." });
+    const pwValidation = validatePasswordChange(newPw, confirmPw);
+    if (!pwValidation.ok) {
+      setPwMsg({ ok: false, text: pwValidation.error });
       return;
     }
     setPwSaving(true);
@@ -147,7 +139,7 @@ export default function AccountPage() {
   if (status === "loading" || status === "unauthenticated") return null;
 
   const tier = profile?.tier ?? "free";
-  const tierInfo = TIER_LABELS[tier] ?? TIER_LABELS.free!;
+  const tierInfo = tierDisplayInfo(tier);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>

@@ -7,6 +7,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { SiteHeader } from "@/components/SiteHeader";
+import { resolveGenre } from "@/src/domain/world/use-cases";
 
 const GENRE_OPTIONS = [
   "Dark fantasy",
@@ -54,7 +55,7 @@ export default function QuickBuildPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const resolvedGenre = genre === "Other" ? customGenre.trim() : genre;
+  const resolvedGenre = resolveGenre(genre, customGenre);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

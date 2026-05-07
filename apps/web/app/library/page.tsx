@@ -7,6 +7,12 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { SiteHeader } from "@/components/SiteHeader";
+import {
+  sortWorldsByOrder,
+  filterWorldsByTab,
+  extractGenres,
+  filterWorldsByGenre,
+} from "@/src/domain/world/use-cases";
 
 type Tab = "official" | "community";
 
@@ -64,7 +70,7 @@ export default function LibraryPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((data: WorldItem[] | null) => {
         if (Array.isArray(data)) {
-          setWorlds(data.sort((a, b) => a.sortOrder - b.sortOrder));
+          setWorlds(sortWorldsByOrder(data));
         }
       })
       .catch(() => undefined)
@@ -77,16 +83,9 @@ export default function LibraryPage() {
     narrate(next === "official" ? "Official worlds" : "Community worlds");
   }
 
-  const tabWorlds = worlds.filter((w) =>
-    tab === "official" ? w.isPrebuilt : !w.isPrebuilt
-  );
-
-  const genres = ["All", ...Array.from(new Set(tabWorlds.map((w) => w.genre).filter(Boolean)))];
-
-  const visibleWorlds =
-    selectedGenre === "All"
-      ? tabWorlds
-      : tabWorlds.filter((w) => w.genre === selectedGenre);
+  const tabWorlds = filterWorldsByTab(worlds, tab);
+  const genres = ["All", ...extractGenres(tabWorlds)];
+  const visibleWorlds = filterWorldsByGenre(tabWorlds, selectedGenre);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>

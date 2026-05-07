@@ -10,6 +10,7 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 import type { TTSProviderType, TTSVoice } from "@/types/audio";
 import { SiteHeader } from "@/components/SiteHeader";
+import { friendlyTtsError, voicesForProvider } from "@/src/domain/voice/use-cases";
 
 const PREVIEW_TEXT =
   "The fog rolls in off the cliffs. Somewhere a bell tolls the watch change. Tonight, the city is yours.";
@@ -71,8 +72,8 @@ export default function VoiceSettingsPage() {
     return () => window.speechSynthesis.removeEventListener("voiceschanged", read);
   }, []);
 
-  const voicesForProvider: TTSVoice[] = useMemo(() => {
-    return store.ttsProvider === "elevenlabs" ? ELEVENLABS_PRESET_VOICES : browserVoices;
+  const availableVoices: TTSVoice[] = useMemo(() => {
+    return voicesForProvider(store.ttsProvider, ELEVENLABS_PRESET_VOICES, browserVoices);
   }, [store.ttsProvider, browserVoices]);
 
   // Auto-save when settings change (debounced via effect timer)
@@ -107,13 +108,6 @@ export default function VoiceSettingsPage() {
     };
   }
 
-  function friendlyError(err: unknown): string {
-    const msg = err instanceof Error ? err.message : "Preview failed";
-    if (msg.includes("not configured")) return "ElevenLabs is not configured on this server. Contact the site owner or switch to Browser narrator.";
-    if (msg.includes("detected_unusual_activity") || msg.includes("Free Tier usage disabled") || msg.includes("unusual activity")) return "ElevenLabs has disabled free-tier access from this server. A paid ElevenLabs plan is required.";
-    if (msg.includes("subscription_required") || msg.includes("free tier")) return "This ElevenLabs feature requires a paid plan.";
-    return msg;
-  }
 
   async function previewVoice(text: string, voiceId: string | undefined, slot: "narrator" | "character" | "A" | "B" | "C") {
     setPreviewingSlot(slot);
@@ -122,7 +116,7 @@ export default function VoiceSettingsPage() {
       stopSpeech();
       await speak(text, { voiceId: voiceId || undefined });
     } catch (err) {
-      setPreviewError(friendlyError(err));
+      setPreviewError(friendlyTtsError(err));
     } finally {
       setPreviewingSlot(null);
     }
@@ -135,7 +129,7 @@ export default function VoiceSettingsPage() {
       stopSpeech();
       await speak(PREVIEW_TEXT);
     } catch (err) {
-      setPreviewError(friendlyError(err));
+      setPreviewError(friendlyTtsError(err));
     } finally {
       setPreviewing(false);
     }
@@ -235,7 +229,7 @@ export default function VoiceSettingsPage() {
           <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
             Voice
           </h2>
-          {voicesForProvider.length === 0 ? (
+          {availableVoices.length === 0 ? (
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
               {store.ttsProvider === "browser"
                 ? "No browser voices found. Try Chrome, Edge, or Safari, or switch to ElevenLabs."
@@ -255,7 +249,7 @@ export default function VoiceSettingsPage() {
               }}
             >
               {store.ttsProvider === "browser" && <option value="">System default</option>}
-              {voicesForProvider.map((v) => (
+              {availableVoices.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>
@@ -288,7 +282,7 @@ export default function VoiceSettingsPage() {
                   style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)", color: "var(--text)", minHeight: 44 }}
                 >
                   <option value="">Same as narrator</option>
-                  {voicesForProvider.map((v) => (
+                  {availableVoices.map((v) => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
                 </select>
@@ -334,7 +328,7 @@ export default function VoiceSettingsPage() {
                         style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)", color: "var(--text)", minHeight: 44 }}
                       >
                         <option value="">Same as narrator</option>
-                        {voicesForProvider.map((v) => (
+                        {availableVoices.map((v) => (
                           <option key={v.id} value={v.id}>{v.name}</option>
                         ))}
                       </select>
