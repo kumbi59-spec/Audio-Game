@@ -84,6 +84,63 @@ export const ServerEvent = z.discriminatedUnion("type", [
 ]);
 export type ServerEvent = z.infer<typeof ServerEvent>;
 
+/**
+ * Lobby participant — sent as part of lobby_state updates.
+ * Multiplayer sessions begin in a lobby where all participants must signal
+ * readiness before the GM begins the first turn.
+ */
+export const LobbyParticipant = z.object({
+  userId: z.string(),
+  displayName: z.string(),
+  ready: z.boolean(),
+  joinedAt: z.string().datetime(),
+});
+export type LobbyParticipant = z.infer<typeof LobbyParticipant>;
+
+/**
+ * Extended server events for multiplayer sessions.
+ * These appear on the same WebSocket alongside the existing ServerEvent
+ * variants — the client discriminates on `type`.
+ */
+export const MultiplayerServerEvent = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("lobby_state"),
+    v: EventVersion,
+    campaignId: z.string(),
+    participants: z.array(LobbyParticipant),
+    maxPlayers: z.number().int().min(2).max(4),
+    hostUserId: z.string(),
+  }),
+  z.object({
+    type: z.literal("player_joined"),
+    v: EventVersion,
+    campaignId: z.string(),
+    participant: LobbyParticipant,
+  }),
+  z.object({
+    type: z.literal("player_left"),
+    v: EventVersion,
+    campaignId: z.string(),
+    userId: z.string(),
+    displayName: z.string(),
+  }),
+  z.object({
+    type: z.literal("lobby_ready"),
+    v: EventVersion,
+    campaignId: z.string(),
+    participants: z.array(LobbyParticipant),
+  }),
+  z.object({
+    type: z.literal("turn_request"),
+    v: EventVersion,
+    campaignId: z.string(),
+    requestingUserId: z.string(),
+    requestingDisplayName: z.string(),
+    turnId: z.string(),
+  }),
+]);
+export type MultiplayerServerEvent = z.infer<typeof MultiplayerServerEvent>;
+
 /** Client → server events. */
 export const ClientEvent = z.discriminatedUnion("type", [
   z.object({
@@ -115,3 +172,31 @@ export const ClientEvent = z.discriminatedUnion("type", [
   }),
 ]);
 export type ClientEvent = z.infer<typeof ClientEvent>;
+
+/** Multiplayer-specific client → server events. */
+export const MultiplayerClientEvent = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("lobby_join"),
+    v: EventVersion,
+    campaignId: z.string(),
+    authToken: z.string(),
+    displayName: z.string().min(1).max(32),
+  }),
+  z.object({
+    type: z.literal("lobby_ready"),
+    v: EventVersion,
+    campaignId: z.string(),
+    ready: z.boolean(),
+  }),
+  z.object({
+    type: z.literal("lobby_leave"),
+    v: EventVersion,
+    campaignId: z.string(),
+  }),
+  z.object({
+    type: z.literal("request_turn"),
+    v: EventVersion,
+    campaignId: z.string(),
+  }),
+]);
+export type MultiplayerClientEvent = z.infer<typeof MultiplayerClientEvent>;

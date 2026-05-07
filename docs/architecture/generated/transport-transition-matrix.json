@@ -15,6 +15,20 @@
   },
   {
     "from": "disconnected",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
+    "trigger": "lobby_all_ready",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "disconnected",
     "trigger": "player_input",
     "to": "awaiting_gm",
     "allowed": false,
@@ -99,6 +113,20 @@
   },
   {
     "from": "connected",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
+    "trigger": "lobby_all_ready",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "connected",
     "trigger": "player_input",
     "to": "awaiting_gm",
     "allowed": false,
@@ -168,6 +196,104 @@
     "reason": null
   },
   {
+    "from": "lobby",
+    "trigger": "socket_opened",
+    "to": "connected",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "lobby",
+    "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "lobby_all_ready",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "player_input",
+    "to": "awaiting_gm",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "lobby",
+    "trigger": "turn_completed",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "lobby",
+    "trigger": "turn_failed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "request_recap",
+    "to": "awaiting_recap",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "lobby",
+    "trigger": "recap_completed",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "recap_completed_to_turn_complete",
+    "to": "turn_complete",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "lobby",
+    "trigger": "pause",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "leave",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "socket_closed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "lobby",
+    "trigger": "join_failed",
+    "to": "closed",
+    "allowed": true,
+    "reason": null
+  },
+  {
     "from": "joined",
     "trigger": "socket_opened",
     "to": "connected",
@@ -177,6 +303,20 @@
   {
     "from": "joined",
     "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "joined",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "joined",
+    "trigger": "lobby_all_ready",
     "to": "joined",
     "allowed": true,
     "reason": null
@@ -261,6 +401,20 @@
   {
     "from": "awaiting_gm",
     "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_gm",
+    "trigger": "lobby_all_ready",
     "to": "joined",
     "allowed": true,
     "reason": null
@@ -345,6 +499,20 @@
   {
     "from": "awaiting_recap",
     "trigger": "join",
+    "to": "joined",
+    "allowed": true,
+    "reason": null
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "awaiting_recap",
+    "trigger": "lobby_all_ready",
     "to": "joined",
     "allowed": true,
     "reason": null
@@ -429,6 +597,20 @@
   {
     "from": "turn_complete",
     "trigger": "join",
+    "to": "joined",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "invalid_transition"
+  },
+  {
+    "from": "turn_complete",
+    "trigger": "lobby_all_ready",
     "to": "joined",
     "allowed": false,
     "reason": "invalid_transition"
@@ -513,6 +695,20 @@
   {
     "from": "closed",
     "trigger": "join",
+    "to": "joined",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "lobby_join",
+    "to": "lobby",
+    "allowed": false,
+    "reason": "already_terminal"
+  },
+  {
+    "from": "closed",
+    "trigger": "lobby_all_ready",
     "to": "joined",
     "allowed": false,
     "reason": "already_terminal"
