@@ -176,4 +176,3 @@ export default function ImportNotesPage() {
   );
 }
 
-export { SESSION_KEY as IMPORT_DRAFT_SESSION_KEY };
