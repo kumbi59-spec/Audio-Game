@@ -43,6 +43,12 @@ export type CriticalFactKind =
   | "loss"
   | "oath";
 
+export interface WorldAnalyticsSummary {
+  worldId: string;
+  sessionCount: number;
+  totalTurns: number;
+}
+
 export interface CriticalFactRecord {
   kind: CriticalFactKind;
   turnNumber: number;
@@ -69,6 +75,7 @@ export interface CampaignStore {
   }): Promise<StoredWorld>;
   getWorld(worldId: string): Promise<StoredWorld | null>;
   listWorlds(): Promise<Pick<StoredWorld, "worldId" | "kind" | "title" | "createdAt">[]>;
+  getWorldAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]>;
 
   seedCampaign(args: {
     campaignId: string;

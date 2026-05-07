@@ -140,6 +140,17 @@ export async function createWorldFromBible(bible: GameBible): Promise<WorldDetai
   });
 }
 
+export interface WorldAnalyticsSummary {
+  worldId: string;
+  sessionCount: number;
+  totalTurns: number;
+}
+
+export async function getWorldsAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
+  if (worldIds.length === 0) return [];
+  return http<WorldAnalyticsSummary[]>(`/worlds/analytics?ids=${worldIds.map(encodeURIComponent).join(",")}`);
+}
+
 export async function getWizardSuggestions(
   stepId: string,
   draft: Record<string, string>,

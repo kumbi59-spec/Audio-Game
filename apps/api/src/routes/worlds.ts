@@ -4,7 +4,7 @@ import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { GameBible } from "@audio-rpg/shared";
 import { ingestBibleFromText } from "@audio-rpg/gm-engine";
-import { getStore, getWorld, listWorlds, saveWorld } from "../state/store.js";
+import { getStore, getWorld, getWorldAnalytics, listWorlds, saveWorld } from "../state/store.js";
 import { runIngestModel } from "../ingest/runner.js";
 import { extractBibleText } from "../ingest/extract.js";
 import { embedWorldBible } from "../embeddings/runner.js";
@@ -156,6 +156,21 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get("/worlds", async () => listWorlds());
+
+  app.get<{ Querystring: { ids?: string } }>("/worlds/analytics", async (req, reply) => {
+    const raw = req.query.ids ?? "";
+    const worldIds = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (worldIds.length === 0) {
+      return reply.status(400).send({ error: "ids_required", message: "Provide ?ids=id1,id2" });
+    }
+    if (worldIds.length > 50) {
+      return reply.status(400).send({ error: "too_many_ids", message: "Maximum 50 world IDs per request" });
+    }
+    return getWorldAnalytics(worldIds);
+  });
 
   app.get<{ Params: { id: string } }>("/worlds/:id", async (req, reply) => {
     const w = await getWorld(req.params.id);

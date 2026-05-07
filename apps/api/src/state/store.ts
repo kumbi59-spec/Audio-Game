@@ -82,6 +82,10 @@ export async function listWorlds() {
   return getStore().listWorlds();
 }
 
+export async function getWorldAnalytics(worldIds: string[]) {
+  return getStore().getWorldAnalytics(worldIds);
+}
+
 export async function seedCampaign(args: {
   campaignId: string;
   worldId: string;
