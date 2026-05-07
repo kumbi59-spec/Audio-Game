@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 import { SiteHeader } from "@/components/SiteHeader";
 import { validatePasswordChange, tierDisplayInfo } from "@/src/domain/auth/use-cases";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface Profile {
   id: string;
@@ -39,6 +40,27 @@ export default function AccountPage() {
   const [packBuying, setPackBuying] = useState<string | null>(null);
   const [packError, setPackError] = useState<string | null>(null);
   const packPurchased = searchParams.get("pack_purchased") === "true";
+
+  const push = usePushNotifications();
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+
+  async function togglePush() {
+    setPushBusy(true);
+    setPushError(null);
+    try {
+      if (push.state === "granted") {
+        await push.unsubscribe();
+      } else {
+        const ok = await push.subscribe();
+        if (!ok) setPushError("Could not enable push notifications.");
+      }
+    } catch {
+      setPushError("Network error. Please try again.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/sign-in");
@@ -95,6 +117,8 @@ export default function AccountPage() {
       } else {
         setPwMsg({ ok: false, text: data.error ?? "Failed to change password." });
       }
+    } catch {
+      setPwMsg({ ok: false, text: "Network error. Please try again." });
     } finally {
       setPwSaving(false);
     }
@@ -115,6 +139,8 @@ export default function AccountPage() {
       } else {
         setPackError(data.error ?? "Could not start checkout.");
       }
+    } catch {
+      setPackError("Network error. Please try again.");
     } finally {
       setPackBuying(null);
     }
@@ -131,6 +157,8 @@ export default function AccountPage() {
       } else {
         setPortalError(data.error ?? "Could not open billing portal.");
       }
+    } catch {
+      setPortalError("Network error. Please try again.");
     } finally {
       setPortalLoading(false);
     }
@@ -349,6 +377,43 @@ export default function AccountPage() {
               <span style={{ color: "var(--text-muted)" }}>→</span>
             </Link>
           </div>
+        </section>
+
+        {/* Push notifications */}
+        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+          <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>Push notifications</h2>
+          <p className="mb-3 text-sm" style={{ color: "var(--text-muted)" }}>
+            Get notified when an invited multiplayer game is ready to start.
+          </p>
+          {push.state === "unsupported" && (
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Your browser does not support web push notifications.
+            </p>
+          )}
+          {push.state === "denied" && (
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+              Push notifications are blocked. Enable them from your browser settings to turn this on.
+            </p>
+          )}
+          {(push.state === "default" || push.state === "granted" || push.state === "loading") && (
+            <button
+              type="button"
+              onClick={() => void togglePush()}
+              disabled={pushBusy || push.state === "loading"}
+              className="rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50"
+              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              aria-pressed={push.state === "granted"}
+            >
+              {pushBusy
+                ? "Saving…"
+                : push.state === "granted"
+                  ? "Disable push notifications"
+                  : "Enable push notifications"}
+            </button>
+          )}
+          {pushError && (
+            <p role="alert" className="mt-2 text-sm" style={{ color: "var(--error, #dc2626)" }}>{pushError}</p>
+          )}
         </section>
 
         {/* Admin dashboard link */}
