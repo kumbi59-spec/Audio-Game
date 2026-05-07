@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   canPublishWorld,
+  extractGenres,
   filterCreatorWorlds,
+  filterWorldsByGenre,
+  filterWorldsByTab,
   formatTurnCount,
   mergeWorldAnalytics,
+  resolveGenre,
+  sortWorldsByOrder,
   worldHasActivity,
 } from "./use-cases";
 
@@ -46,5 +51,43 @@ describe("world domain use-cases", () => {
   it("formats turn counts with locale separators", () => {
     expect(formatTurnCount(1234)).toBe("1,234");
     expect(formatTurnCount(0)).toBe("0");
+  });
+
+  it("sortWorldsByOrder returns a new array in ascending order", () => {
+    const worlds = [{ sortOrder: 3 }, { sortOrder: 1 }, { sortOrder: 2 }];
+    const sorted = sortWorldsByOrder(worlds);
+    expect(sorted.map((w) => w.sortOrder)).toEqual([1, 2, 3]);
+    expect(sorted).not.toBe(worlds); // original is not mutated
+  });
+
+  it("filterWorldsByTab splits on isPrebuilt", () => {
+    const worlds = [
+      { isPrebuilt: true, name: "Official" },
+      { isPrebuilt: false, name: "Community" },
+    ];
+    expect(filterWorldsByTab(worlds, "official").map((w) => w.name)).toEqual(["Official"]);
+    expect(filterWorldsByTab(worlds, "community").map((w) => w.name)).toEqual(["Community"]);
+  });
+
+  it("extractGenres returns deduped non-empty genres", () => {
+    const worlds = [
+      { genre: "Fantasy" },
+      { genre: "Fantasy" },
+      { genre: "Sci-fi" },
+      { genre: undefined },
+    ];
+    expect(extractGenres(worlds)).toEqual(["Fantasy", "Sci-fi"]);
+  });
+
+  it("filterWorldsByGenre returns all on 'All', filters otherwise", () => {
+    const worlds = [{ genre: "Fantasy" }, { genre: "Sci-fi" }];
+    expect(filterWorldsByGenre(worlds, "All")).toHaveLength(2);
+    expect(filterWorldsByGenre(worlds, "Fantasy")).toEqual([{ genre: "Fantasy" }]);
+  });
+
+  it("resolveGenre uses customGenre only when genre is 'Other'", () => {
+    expect(resolveGenre("Fantasy", "Ignored")).toBe("Fantasy");
+    expect(resolveGenre("Other", "  Weird West  ")).toBe("Weird West");
+    expect(resolveGenre("Other", "")).toBe("");
   });
 });
