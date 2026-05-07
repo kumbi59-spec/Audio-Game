@@ -91,11 +91,14 @@ export default function WorldWizardPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fieldId: step.id, draft: draftSnapshot }),
     })
-      .then((r) => r.json())
-      .then((data: { suggestions?: string[] }) => {
+      .then((r) => {
+        if (!r.ok) throw new Error(`suggest failed: ${r.status}`);
+        return r.json() as Promise<{ suggestions?: string[] }>;
+      })
+      .then((data) => {
         if (!cancelled) setSuggestions(data.suggestions ?? []);
       })
-      .catch(() => undefined)
+      .catch((err) => { if (!cancelled) console.error("[wizard] suggest failed:", err); })
       .finally(() => { if (!cancelled) setLoadingSuggestions(false); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -10,7 +10,7 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
-import { createOptimisticTurn, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction } from "@/src/domain/game/use-cases";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
 import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
@@ -169,8 +169,11 @@ export function useGameSession() {
               if (eventType === "narration_chunk") {
                 narrationBuffer += data.text;
                 accumulatedNarration += data.text;
-              } else if (eventType === "sound_cue" && soundCuesEnabled) {
-                playSoundCue(data.cue as SoundCue);
+              } else if (eventType === "sound_cue") {
+                const cue = (data.cue as SoundCue | null) ?? null;
+                if (shouldPlaySoundCue(soundCuesEnabled, eventType, cue)) {
+                  playSoundCue(cue);
+                }
               } else if (eventType === "state_change") {
                 const change = data as Record<string, unknown>;
                 if (change.hp !== undefined && change.hp !== null) {
@@ -276,29 +279,28 @@ export function useGameSession() {
                   });
                 }
               } else if (eventType === "choices_ready") {
-                // Full response parsed — update choices and add narration entry
                 const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;
-                setChoices(gmResp.choices);
-                setLastNarration(gmResp.narration);
+                const { narration, choices } = extractNarrationFromChoiceEvent(gmResp);
+                setChoices(choices);
+                setLastNarration(narration);
 
                 const narEntry: NarrationEntry = {
                   id: (Date.now() + 1).toString(),
-                  text: gmResp.narration,
+                  text: narration,
                   type: "narration",
                   timestamp: new Date(),
                 };
                 addNarrationEntry(narEntry);
 
-                // Speak narration — multi-voice for Storyteller+, plain for free
                 if (entitlements.premiumTts && character) {
                   await speakNarrationMultiVoice(
-                    gmResp.narration,
+                    narration,
                     character.name,
                     npcVoiceMapRef.current,
                     abort.signal,
                   );
                 } else {
-                  const sentences = splitIntoSentences(gmResp.narration);
+                  const sentences = splitIntoSentences(narration);
                   for (const sentence of sentences) {
                     if (abort.signal.aborted) break;
                     await speakText(sentence);
