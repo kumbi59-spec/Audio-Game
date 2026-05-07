@@ -51,6 +51,10 @@ export type AmbientTrack =
   | "cave"
   | "throne_room"
   | "market"
+  | "desert"
+  | "space_station"
+  | "cyberpunk_rain"
+  | "cosmic_void"
   | "none";
 
 export interface AudioSettings {

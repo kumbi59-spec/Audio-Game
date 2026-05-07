@@ -44,10 +44,10 @@ Opening Scenario:
 The player wakes in their apartment above Vega's Place at 3:14 AM. There is an envelope under the door. Inside: a Helio-Vance security badge belonging to a Director-level executive who was reported missing six hours ago, and a hand-written note in Karthian script that says only "You owe me." The player's diagnostic system reports that they signed a contract last night they don't remember signing.
 
 Sound Design:
-- The Mire: rain_indoor or industrial ambient
-- The Promenade: city_night ambient
+- The Mire: cyberpunk_rain ambient (rain, bass drone, distant traffic under the slab)
+- The Promenade: cyberpunk_rain ambient (neon, rain on canopy, crowd noise)
 - Vega's Place: tavern (use a quiet variant) ambient
-- The Glass: silent_corp (no specific cue — eerie quiet)
+- The Glass: city_night ambient (sterile corporate quiet, low hum)
 - Precinct 4: city_day ambient`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/neon-precinct.svg",
@@ -68,7 +68,7 @@ Sound Design:
       description:
         "Twelve blocks of neon, food carts, and pedestrians under a transparent canopy that catches rain in great sheets and sends it spilling off the edges in waterfalls. Helio-Vance surveillance drones circle in lazy patterns above. Couriers in waterproof jackets cut between the crowds carrying packages no one will admit to ordering. Above it all, the Glass throws light back down like a second moon.",
       shortDesc: "A neon boulevard between the Mire and the corporate canopies",
-      ambientSound: "city_night",
+      ambientSound: "cyberpunk_rain",
       connectedTo: ["loc-vegas-place", "loc-precinct-4", "loc-glass-lobby"],
       properties: { danger: "medium", surveillance: "heavy" },
     },
@@ -78,7 +78,7 @@ Sound Design:
       description:
         "Old utility tunnels under the bottom slab of the city, half-flooded and lit only by salvaged emergency strips. The air is wet and tastes of rust. Subdwellers have made the tunnels home: hammocks slung between pipes, tarps stretched over standing water, a barber chair bolted to a service catwalk. People here speak quietly. Outsiders who don't get vouched for tend to be escorted back to the Promenade by people who know all the routes.",
       shortDesc: "Flooded utility tunnels in the Sub colonized by people the corps stopped tracking",
-      ambientSound: "cave",
+      ambientSound: "cyberpunk_rain",
       connectedTo: ["loc-vegas-place", "loc-archivist-clinic"],
       properties: { danger: "low_if_known", surveillance: "none" },
     },
@@ -98,7 +98,7 @@ Sound Design:
       description:
         "A cathedral-scale lobby of polished black stone and crystal. A holographic exhibit on Helio-Vance's medical breakthroughs cycles silently in the center. Receptionists with surgical smiles sit at desks that are entirely for show — visitors get vetted upstream by systems no one can see. Every footstep echoes. A guard near the express elevators tracks the player's path with eyes that don't quite focus the way real eyes do.",
       shortDesc: "The public-facing lobby of Helio-Vance's research arcology",
-      ambientSound: "silent_corp",
+      ambientSound: "city_night",
       connectedTo: ["loc-promenade"],
       properties: { danger: "high_if_hostile", helio_response_seconds: 40 },
     },

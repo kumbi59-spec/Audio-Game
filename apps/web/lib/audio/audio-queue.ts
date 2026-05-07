@@ -84,8 +84,15 @@ function delay(ms: number): Promise<void> {
 
 // Sentence splitter — used to stream Claude output sentence-by-sentence into TTS
 export function splitIntoSentences(text: string): string[] {
-  return text
+  // Protect common abbreviations from triggering false sentence splits.
+  // Replace their trailing period with a private-use sentinel character,
+  // split on sentence-ending punctuation, then restore the periods.
+  const ABBREV_RE =
+    /\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|vs|etc|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec|No|Vol|Dept|Corp|Inc|Ltd|LLC)\./gi;
+  const SENTINEL = "";
+  const protected_ = text.replace(ABBREV_RE, (_, abbr: string) => `${abbr}${SENTINEL}`);
+  return protected_
     .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
+    .map((s) => s.replace(new RegExp(SENTINEL, "g"), ".").trim())
     .filter((s) => s.length > 0);
 }
