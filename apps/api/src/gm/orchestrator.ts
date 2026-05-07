@@ -169,7 +169,16 @@ export function extractCriticalFacts(mutations: readonly StateMutation[], turnNu
     if (m.op === "relationship.adjust" && Math.abs(m.delta) >= 3) {
       const magnitude = Math.abs(m.delta);
       const direction = m.delta > 0 ? "POS" : "NEG";
-      facts.push(createCriticalFact(turnNumber, m.op, { text: `RELATIONSHIP_THRESHOLD|${m.npc}|${direction}|${magnitude}`, kind: "relationship", importance: magnitude >= 7 ? 0.91 : 0.77, entityRefs: [m.npc] }));
+      const noteFragment = m.note ? `|${m.note.slice(0, 60)}` : "";
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `RELATIONSHIP_THRESHOLD|${m.npc}|${direction}|${magnitude}${noteFragment}`, kind: "relationship", importance: magnitude >= 7 ? 0.91 : 0.77, entityRefs: [m.npc] }));
+    }
+    if (m.op === "quest.update" && m.done) {
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `QUEST_OBJECTIVE_DONE|${m.name}|${m.objective}`, kind: "quest", importance: 0.72, entityRefs: [m.name] }));
+    }
+    if (m.op === "stat.adjust" && Math.abs(m.delta) >= 5) {
+      const abs = Math.abs(m.delta);
+      const direction = m.delta > 0 ? "GAIN" : "LOSS";
+      facts.push(createCriticalFact(turnNumber, m.op, { text: `STAT_CHANGE|${m.stat}|${direction}|${abs}`, kind: "plot", importance: abs >= 15 ? 0.80 : abs >= 10 ? 0.70 : 0.60, entityRefs: [m.stat] }));
     }
   }
   return facts;

@@ -226,7 +226,7 @@ export class MemoryCampaignStore implements CampaignStore {
       async criticalFacts(campaignId: string, n: number) {
         const c = self.campaigns.get(campaignId);
         if (!c) return [];
-        return c.criticalFacts.slice(-n).map(({ turnNumber, text }) => ({ turnNumber, text }));
+        return c.criticalFacts.slice(-n).map(({ turnNumber, text, importance }) => ({ turnNumber, text, importance }));
       },
     };
   }

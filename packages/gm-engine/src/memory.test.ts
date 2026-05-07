@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildMemoryBundle, type MemoryStore } from "./memory.js";
+import { buildMemoryBundle, formatFactForPrompt, type MemoryStore } from "./memory.js";
 
 function makeStore(): MemoryStore {
   return {
@@ -16,7 +16,7 @@ function makeStore(): MemoryStore {
       Array.from({ length: k }, (_, i) => ({ categories: ["lore"], text: `bible-${i}`, score: 1 })),
     ),
     criticalFacts: vi.fn(async (_campaignId: string, n: number) =>
-      Array.from({ length: n }, (_, i) => ({ turnNumber: i + 1, text: `fact-${i}` })),
+      Array.from({ length: n }, (_, i) => ({ turnNumber: i + 1, text: `fact-${i}`, importance: 0.8 })),
     ),
   };
 }
@@ -237,5 +237,84 @@ describe("buildMemoryBundle", () => {
     });
 
     expect(second.criticalFacts.map((item) => item.text)).toContain(fact.text);
+  });
+
+  it("selects a high-importance fact over a low-importance one at the same index position", async () => {
+    const store: MemoryStore = {
+      ...makeStore(),
+      criticalFacts: vi.fn(async () => [
+        { turnNumber: 1, text: "low-importance-fact", importance: 0.5 },
+        { turnNumber: 2, text: "high-importance-fact", importance: 0.97 },
+      ]),
+      sceneSummaries: vi.fn(async () => [
+        { sceneNumber: 1, summary: "intro", keyEvents: [] },
+      ]),
+      recentTurns: vi.fn(async () => [
+        { turnNumber: 10, role: "player" as const, text: "recent turn" },
+      ]),
+      searchTurns: vi.fn(async () => []),
+      searchBible: vi.fn(async () => []),
+    };
+
+    const bundle = await buildMemoryBundle(store, {
+      campaignId: "importance-test",
+      worldId: "w",
+      query: "anything",
+      turnCount: 15,
+      budget: {
+        earlyGameMaxTurn: 6,
+        midGameMaxTurn: 20,
+        estimatedPromptTokens: 0,
+        maxPromptTokens: 8_000,
+        recentTurns: { early: 1, mid: 1, late: 1 },
+        retrievedTurns: { early: 0, mid: 0, late: 0 },
+        sceneSummaries: { early: 1, mid: 1, late: 1 },
+        bibleHits: { early: 0, mid: 0, late: 0 },
+        tokenThresholds: { warning: 0.75, critical: 0.9 },
+        reductionStep: 1,
+        minimums: { recentTurns: 1, retrievedTurns: 0, sceneSummaries: 1, bibleHits: 0 },
+        memoryScoring: {
+          ...scoring,
+          sourceMinimums: { criticalFacts: 1, sceneSummaries: 1 },
+        },
+      },
+    });
+
+    const criticalTexts = bundle.criticalFacts.map((f) => f.text);
+    expect(criticalTexts).toContain("high-importance-fact");
+  });
+});
+
+describe("formatFactForPrompt", () => {
+  it("converts pipe codes to human-readable strings", () => {
+    expect(formatFactForPrompt("QUEST_START|Find the Relic")).toBe('Quest started: "Find the Relic"');
+    expect(formatFactForPrompt("QUEST_COMPLETE|Dragon Slain")).toBe('Quest completed: "Dragon Slain"');
+    expect(formatFactForPrompt("QUEST_OBJECTIVE_DONE|Main Quest|Talk to Elder")).toBe(
+      'Quest objective completed: "Talk to Elder" (quest: "Main Quest")',
+    );
+    expect(formatFactForPrompt("SCENE_CHANGE|The Docks")).toBe('Scene changed to: "The Docks"');
+    expect(formatFactForPrompt("CODEX_UNLOCK|codex:gate|Gate Lore")).toBe('Codex unlocked: "Gate Lore"');
+    expect(formatFactForPrompt("FLAG_SET|boss_dead|true")).toBe("Flag set: boss_dead = true");
+    expect(formatFactForPrompt("CONDITION_STATE|injury_broken_arm|true")).toBe(
+      "Active condition: injury_broken_arm (true)",
+    );
+    expect(formatFactForPrompt("IRREVERSIBLE_LOSS|boss_dead_kraken")).toBe("Permanent loss: boss_dead_kraken");
+    expect(formatFactForPrompt("OATH_OR_DEBT_CREATED|oath_to_mara")).toBe("Active oath/debt: oath_to_mara");
+    expect(formatFactForPrompt("OATH_OR_DEBT_RESOLVED|oath_to_mara")).toBe("Oath/debt resolved: oath_to_mara");
+    expect(formatFactForPrompt("ITEM_GAIN|Iron Sword|x1")).toBe("Gained: Iron Sword ×1");
+    expect(formatFactForPrompt("ITEM_LOSS|Magic Tome|x2")).toBe("Lost: Magic Tome ×2");
+    expect(formatFactForPrompt("RELATIONSHIP_THRESHOLD|Vale|POS|5")).toBe(
+      "Relationship with Vale improved significantly (+5)",
+    );
+    expect(formatFactForPrompt("RELATIONSHIP_THRESHOLD|Mara|NEG|8|betrayed at the summit")).toBe(
+      "Relationship with Mara worsened significantly (−8); reason: betrayed at the summit",
+    );
+    expect(formatFactForPrompt("STAT_CHANGE|hp|LOSS|10")).toBe("Stat decreased: hp −10");
+    expect(formatFactForPrompt("STAT_CHANGE|strength|GAIN|5")).toBe("Stat increased: strength +5");
+  });
+
+  it("returns the original text for unknown codes", () => {
+    expect(formatFactForPrompt("UNKNOWN_CODE|some data")).toBe("UNKNOWN_CODE|some data");
+    expect(formatFactForPrompt("plain text with no pipes")).toBe("plain text with no pipes");
   });
 });
