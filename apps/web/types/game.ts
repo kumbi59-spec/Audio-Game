@@ -101,6 +101,7 @@ export interface HistoryMessage {
 }
 
 export type SoundCue =
+  // Client-side cues (triggered by game logic / state mutations)
   | "combat_start"
   | "combat_end"
   | "level_up"
@@ -119,4 +120,12 @@ export type SoundCue =
   | "death_nearby"
   | "success"
   | "error"
-  | "click";
+  | "click"
+  // GM-facing cues (sent by the AI via the shared schema)
+  | "tension_low"
+  | "tension_high"
+  | "danger"
+  | "failure"
+  | "scene_change"
+  | "save_complete"
+  | "choice_available";

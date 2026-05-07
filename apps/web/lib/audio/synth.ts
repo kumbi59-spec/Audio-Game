@@ -837,6 +837,104 @@ const CUE_FNS: Record<SoundCue, (ac: AudioContext) => void> = {
   click(ac) {
     noiseBurst(ac, 1500, 0.2, 0.04, "bandpass");
   },
+
+  // ── GM-facing cues (from shared schema) ──────────────────────────────────
+  tension_low(ac) {
+    // Slow, low thrum — atmosphere shifting
+    const o = osc(ac, "triangle", 80);
+    const g = gain(ac, 0);
+    const t = ac.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.10, t + 0.3);
+    g.gain.linearRampToValueAtTime(0, t + 1.8);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t); o.stop(t + 2.0);
+    noiseBurst(ac, 160, 0.05, 1.2, "lowpass");
+  },
+
+  tension_high(ac) {
+    // Urgent pulsing low pair — imminent threat
+    const o1 = osc(ac, "sawtooth", 58);
+    const g1 = gain(ac, 0);
+    const o2 = osc(ac, "sawtooth", 65);
+    const g2 = gain(ac, 0);
+    const t = ac.currentTime;
+    [g1, g2].forEach((g, i) => {
+      const start = t + i * 0.12;
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(0.16, start + 0.06);
+      g.gain.linearRampToValueAtTime(0, start + 0.9);
+    });
+    o1.connect(g1); g1.connect(ac.destination);
+    o2.connect(g2); g2.connect(ac.destination);
+    o1.start(t); o1.stop(t + 1.2);
+    o2.start(t + 0.12); o2.stop(t + 1.2);
+    noiseBurst(ac, 200, 0.12, 0.6, "lowpass");
+  },
+
+  danger(ac) {
+    // Alias for danger_near — low pulsing rumble
+    const o = osc(ac, "sine", 58);
+    const g = gain(ac, 0);
+    const lfo = osc(ac, "sine", 3.5);
+    const ld = gain(ac, 0.12);
+    g.gain.value = 0.14;
+    lfo.connect(ld); ld.connect(g.gain);
+    o.connect(g); g.connect(ac.destination);
+    const t = ac.currentTime;
+    g.gain.setValueAtTime(0.14, t);
+    g.gain.linearRampToValueAtTime(0, t + 1.5);
+    o.start(t); lfo.start(t);
+    o.stop(t + 1.6); lfo.stop(t + 1.6);
+  },
+
+  failure(ac) {
+    // Descending thud — weighted, final
+    const notes: [number, number][] = [[311, 0], [261.6, 0.18], [220, 0.38]];
+    notes.forEach(([freq, delay]) => {
+      const t = ac.currentTime + delay;
+      const o = osc(ac, "square", freq);
+      const g = gain(ac, 0);
+      o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.02);
+      g.gain.linearRampToValueAtTime(0, t + 0.36);
+      o.start(t); o.stop(t + 0.42);
+    });
+    noiseBurst(ac, 180, 0.14, 0.5, "lowpass");
+  },
+
+  scene_change(ac) {
+    // Soft neutral sweep — cinematic cut
+    glide(ac, "sine", 220, 440, 0.08, 0.6);
+    const t = ac.currentTime;
+    const o = osc(ac, "triangle", 329.6);
+    const g = gain(ac, 0);
+    o.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0, t + 0.25);
+    g.gain.linearRampToValueAtTime(0.10, t + 0.35);
+    g.gain.linearRampToValueAtTime(0, t + 0.75);
+    o.start(t + 0.25); o.stop(t + 0.8);
+  },
+
+  save_complete(ac) {
+    // Short confirmatory chime: G4→C5
+    tone(ac, "sine", 392, 0.14, 0.01, 0.04, 0.5, 0.25);
+    const t = ac.currentTime + 0.22;
+    const o = osc(ac, "sine", 523.3);
+    const g = gain(ac, 0);
+    o.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.02);
+    g.gain.linearRampToValueAtTime(0, t + 0.35);
+    o.start(t); o.stop(t + 0.4);
+  },
+
+  choice_available(ac) {
+    // Subtle upward tick — light notification
+    glide(ac, "sine", 660, 880, 0.10, 0.12);
+    noiseBurst(ac, 2000, 0.04, 0.08, "highpass");
+  },
 };
 
 export function synthPlayCue(cue: SoundCue, volume = 0.7): void {

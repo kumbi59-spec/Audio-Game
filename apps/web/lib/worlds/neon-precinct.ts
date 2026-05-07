@@ -68,7 +68,7 @@ Sound Design:
       description:
         "Twelve blocks of neon, food carts, and pedestrians under a transparent canopy that catches rain in great sheets and sends it spilling off the edges in waterfalls. Helio-Vance surveillance drones circle in lazy patterns above. Couriers in waterproof jackets cut between the crowds carrying packages no one will admit to ordering. Above it all, the Glass throws light back down like a second moon.",
       shortDesc: "A neon boulevard between the Mire and the corporate canopies",
-      ambientSound: "city_night",
+      ambientSound: "cyberpunk_rain",
       connectedTo: ["loc-vegas-place", "loc-precinct-4", "loc-glass-lobby"],
       properties: { danger: "medium", surveillance: "heavy" },
     },
