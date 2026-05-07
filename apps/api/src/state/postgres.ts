@@ -19,6 +19,7 @@ import type {
   StoredCampaign,
   StoredCampaignSummary,
   StoredWorld,
+  WorldAnalyticsSummary,
 } from "./types.js";
 
 /**
@@ -170,6 +171,31 @@ export class PostgresCampaignStore implements CampaignStore {
       kind: r.kind,
       title: r.title,
       createdAt: r.created_at.getTime(),
+    }));
+  }
+
+  async getWorldAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
+    if (worldIds.length === 0) return [];
+    await this.ready;
+    const { rows } = await this.pool.query<{
+      world_id: string;
+      session_count: string;
+      total_turns: string;
+    }>(
+      `SELECT c.world_id,
+              COUNT(DISTINCT c.campaign_id)::text AS session_count,
+              COUNT(t.id)::text                   AS total_turns
+         FROM campaigns c
+         LEFT JOIN turns t ON t.campaign_id = c.campaign_id
+        WHERE c.world_id = ANY($1::text[])
+        GROUP BY c.world_id`,
+      [worldIds],
+    );
+    const byId = new Map(rows.map((r) => [r.world_id, r]));
+    return worldIds.map((id) => ({
+      worldId: id,
+      sessionCount: Number(byId.get(id)?.session_count ?? 0),
+      totalTurns: Number(byId.get(id)?.total_turns ?? 0),
     }));
   }
 

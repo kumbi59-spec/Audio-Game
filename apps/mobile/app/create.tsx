@@ -22,18 +22,24 @@ import {
   type Draft,
   type WizardStep,
 } from "@/wizard/createWorldSteps";
-import { createCampaign, createWorldFromBible, getWizardSuggestions } from "@/api/rest";
+import { createCampaign, createWorldFromBible, getWizardSuggestions, importWorldFromNotes } from "@/api/rest";
 import { sessionConnection } from "@/session/connection";
 import { useSession } from "@/session/store";
 import { EQ, MOTION, R, SPACE, FS, TOUCH_MIN, TYPE } from "@/design/tokens";
 import { useCan } from "@/entitlements/store";
 import { UpgradePrompt } from "@/entitlements/UpgradePrompt";
 
+type WizardMode = "pick" | "fresh" | "import";
+
 export default function CreateWorld(): JSX.Element {
   const router = useRouter();
   const headingRef = useRef<Text>(null);
   const can = useCan();
   const [paywallVisible, setPaywallVisible] = useState(!can.worldWizard);
+  const [mode, setMode] = useState<WizardMode>("pick");
+  const [importNotes, setImportNotes] = useState("");
+  const [importBusy, setImportBusy] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [textInput, setTextInput] = useState("");
@@ -157,6 +163,30 @@ export default function CreateWorld(): JSX.Element {
     }
   }, [draft, router]);
 
+  const extractImportNotes = useCallback(async () => {
+    if (importNotes.trim().length < 20) {
+      setImportError("Please paste at least 20 characters of session notes.");
+      return;
+    }
+    setImportBusy(true);
+    setImportError(null);
+    try {
+      const extracted = await importWorldFromNotes(importNotes.trim());
+      const fieldCount = Object.keys(extracted).length;
+      if (fieldCount === 0) {
+        setImportError("No world details found. Add more context about the setting and characters.");
+        return;
+      }
+      setDraft((d) => ({ ...d, ...(extracted as Partial<Draft>) }));
+      void speakOnce(`Extracted ${fieldCount} field${fieldCount === 1 ? "" : "s"} from your notes. Starting the wizard.`);
+      setMode("fresh");
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : "Extraction failed. Please try again.");
+    } finally {
+      setImportBusy(false);
+    }
+  }, [importNotes]);
+
   const speakAnswer = useCallback(async () => {
     void speakOnce("Listening.");
     const transcript = await captureUtterance();
@@ -178,6 +208,101 @@ export default function CreateWorld(): JSX.Element {
     "repeat|read that again": () => { if (step) void speakOnce(step.prompt); },
     "speak|microphone|mic": () => { void speakAnswer(); },
   });
+
+  // Mode picker — shown before the wizard starts.
+  if (mode === "pick") {
+    return (
+      <ScrollView style={styles.root} contentContainerStyle={styles.container}>
+        <Text ref={headingRef} role="heading" aria-level={1} style={styles.h1}>
+          Create World
+        </Text>
+        <Text style={styles.subtitle}>How do you want to build your world?</Text>
+        <View style={styles.modeList}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Start from scratch with the wizard"
+            onPress={() => setMode("fresh")}
+            style={({ pressed }) => [styles.modeCard, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={styles.modeTitle}>Start from Scratch</Text>
+            <Text style={styles.modeBody}>Answer 10 spoken questions and Claude fills in the rest.</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Import from existing campaign notes"
+            onPress={() => setMode("import")}
+            style={({ pressed }) => [styles.modeCard, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={styles.modeTitle}>Import Session Notes</Text>
+            <Text style={styles.modeBody}>Paste your old campaign notes and Claude extracts the world details to pre-fill the wizard.</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cancel"
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.cancelBtn, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.cancelBtnText}>Cancel</Text>
+        </Pressable>
+        <UpgradePrompt
+          visible={paywallVisible}
+          requiredTier="creator"
+          featureName="World Builder Wizard"
+          onDismiss={() => { setPaywallVisible(false); router.back(); }}
+        />
+      </ScrollView>
+    );
+  }
+
+  // Import notes screen.
+  if (mode === "import") {
+    return (
+      <ScrollView style={styles.root} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Text role="heading" aria-level={1} style={styles.h1}>Import Notes</Text>
+        <Text style={styles.subtitle}>
+          Paste your old campaign notes. Claude will extract setting, tone, and world rules to pre-fill the wizard.
+        </Text>
+        <TextInput
+          accessibilityLabel="Campaign notes"
+          accessibilityHint="Paste session transcripts, world descriptions, or campaign summaries"
+          style={[styles.input, styles.importInput]}
+          value={importNotes}
+          onChangeText={setImportNotes}
+          multiline
+          placeholder="Paste campaign notes, session transcripts, or world descriptions here…"
+          placeholderTextColor={EQ.textFaint}
+          editable={!importBusy}
+        />
+        {importError && (
+          <Text style={styles.error} accessibilityLiveRegion="assertive">{importError}</Text>
+        )}
+        <View style={styles.importActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={importBusy ? "Extracting…" : "Extract and start wizard"}
+            onPress={() => { void extractImportNotes(); }}
+            disabled={importBusy}
+            style={({ pressed }) => [styles.primaryBtn, pressed && { opacity: 0.7 }, importBusy && styles.btnDisabled]}
+          >
+            {importBusy
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={styles.primaryBtnText}>Extract Details</Text>
+            }
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to mode selection"
+            onPress={() => setMode("pick")}
+            disabled={importBusy}
+            style={({ pressed }) => [styles.navBtn, pressed && { opacity: 0.7 }]}
+          >
+            <Text style={styles.navBtnText}>Back</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  }
 
   if (!step) return <View />;
 
@@ -508,4 +633,29 @@ const styles = StyleSheet.create({
     backgroundColor: EQ.border2,
     opacity: 0.9,
   },
+  // Mode picker
+  subtitle: { fontSize: FS.sm, color: EQ.textMuted },
+  modeList: { gap: SPACE[3] },
+  modeCard: {
+    borderRadius: R["2xl"],
+    borderWidth: 1,
+    borderColor: EQ.border,
+    backgroundColor: EQ.surface2,
+    padding: SPACE[4],
+    gap: SPACE[2],
+    minHeight: TOUCH_MIN + 24,
+  },
+  modeTitle: { fontSize: FS.base, fontWeight: "700", color: EQ.text },
+  modeBody: { fontSize: FS.sm, color: EQ.textMuted },
+  cancelBtn: {
+    alignSelf: "center",
+    paddingHorizontal: SPACE[4],
+    paddingVertical: SPACE[3],
+    minHeight: TOUCH_MIN,
+    justifyContent: "center",
+  },
+  cancelBtnText: { fontSize: FS.sm, color: EQ.textMuted },
+  // Import notes screen
+  importInput: { minHeight: 220, textAlignVertical: "top" },
+  importActions: { flexDirection: "row", gap: SPACE[3] },
 });

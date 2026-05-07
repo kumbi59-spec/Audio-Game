@@ -10,6 +10,7 @@ import type {
   StoredCampaign,
   StoredCampaignSummary,
   StoredWorld,
+  WorldAnalyticsSummary,
 } from "./types.js";
 
 interface MemCampaign extends StoredCampaign {
@@ -68,6 +69,10 @@ export class MemoryCampaignStore implements CampaignStore {
     return Array.from(this.worlds.values())
       .map(({ worldId, kind, title, createdAt }) => ({ worldId, kind, title, createdAt }))
       .sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  async getWorldAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
+    return worldIds.map((id) => ({ worldId: id, sessionCount: 0, totalTurns: 0 }));
   }
 
   async seedCampaign(args: {

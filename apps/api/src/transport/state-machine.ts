@@ -43,6 +43,8 @@ export type TransportTransitionResult = TransportTransitionAllowed | TransportTr
 const transitionsByEvent: Record<SessionTrigger, SessionState> = {
   socket_opened: "connected",
   join: "joined",
+  lobby_join: "lobby",
+  lobby_all_ready: "joined",
   player_input: "awaiting_gm",
   turn_completed: "turn_complete",
   turn_failed: "joined",
@@ -57,7 +59,8 @@ const transitionsByEvent: Record<SessionTrigger, SessionState> = {
 
 const allowedTransitions: Record<SessionState, ReadonlySet<SessionState>> = {
   disconnected: new Set(["connected"]),
-  connected: new Set(["joined", "closed"]),
+  connected: new Set(["lobby", "joined", "closed"]),
+  lobby: new Set(["joined", "closed"]),
   joined: new Set(["awaiting_gm", "awaiting_recap", "closed"]),
   awaiting_gm: new Set(["turn_complete", "joined", "closed"]),
   awaiting_recap: new Set(["joined", "turn_complete", "closed"]),

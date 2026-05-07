@@ -4,12 +4,31 @@ import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { GameBible } from "@audio-rpg/shared";
 import { ingestBibleFromText } from "@audio-rpg/gm-engine";
-import { getStore, getWorld, listWorlds, saveWorld } from "../state/store.js";
+import { getStore, getWorld, getWorldAnalytics, listWorlds, saveWorld } from "../state/store.js";
 import { runIngestModel } from "../ingest/runner.js";
 import { extractBibleText } from "../ingest/extract.js";
 import { embedWorldBible } from "../embeddings/runner.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
 import { requireTier } from "../auth/entitlements.js";
+
+const IMPORT_NOTES_PROMPT = `You are a game master assistant. Extract structured world-building information from the provided tabletop campaign session notes.
+
+Return a JSON object with ONLY the fields you can confidently extract. Omit fields you cannot determine.
+
+Fields (all optional):
+- title: string — world or campaign name (2-5 words)
+- pitch: string — one-sentence premise
+- genre: string — genre label (e.g. "dark fantasy")
+- setting: string — where and when (5-15 words)
+- toneVoice: string — narrator tone in three words
+- hardConstraint: string — one hard rule the GM must never break
+- startingScenario: string — 1-2 sentence opening scene
+
+Reply with ONLY valid JSON, no markdown fences.`;
+
+const ImportNotesBody = z.object({
+  notes: z.string().min(20).max(40_000),
+});
 
 /**
  * Kicks the embedding pipeline in the background. Never throws into the
@@ -155,7 +174,52 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
+  app.post("/worlds/import-notes", async (req, reply) => {
+    const body = ImportNotesBody.safeParse(req.body);
+    if (!body.success) {
+      return reply.status(400).send({ error: body.error.flatten() });
+    }
+    try {
+      const raw = await runIngestModel({
+        system: IMPORT_NOTES_PROMPT,
+        user: `--- SESSION NOTES ---\n${body.data.notes.slice(0, 12_000)}`,
+      });
+      let extracted: Record<string, string>;
+      try {
+        extracted = JSON.parse(raw.trim()) as Record<string, string>;
+      } catch {
+        return reply.status(502).send({ error: "AI returned non-JSON response" });
+      }
+      const allowed = new Set(["title", "pitch", "genre", "setting", "toneVoice", "hardConstraint", "startingScenario"]);
+      const draft: Record<string, string> = {};
+      for (const [k, v] of Object.entries(extracted)) {
+        if (allowed.has(k) && typeof v === "string" && v.trim()) {
+          draft[k] = v.trim().slice(0, 500);
+        }
+      }
+      return reply.send({ draft });
+    } catch (err) {
+      app.log.error({ err }, "import-notes extraction failed");
+      return reply.status(500).send({ error: "Extraction failed. Please try again." });
+    }
+  });
+
   app.get("/worlds", async () => listWorlds());
+
+  app.get<{ Querystring: { ids?: string } }>("/worlds/analytics", async (req, reply) => {
+    const raw = req.query.ids ?? "";
+    const worldIds = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (worldIds.length === 0) {
+      return reply.status(400).send({ error: "ids_required", message: "Provide ?ids=id1,id2" });
+    }
+    if (worldIds.length > 50) {
+      return reply.status(400).send({ error: "too_many_ids", message: "Maximum 50 world IDs per request" });
+    }
+    return getWorldAnalytics(worldIds);
+  });
 
   app.get<{ Params: { id: string } }>("/worlds/:id", async (req, reply) => {
     const w = await getWorld(req.params.id);

@@ -138,6 +138,34 @@ export default function NewWorldPage() {
             </div>
           </Link>
 
+          {/* ── Import from Session Notes ───────────────────────────────── */}
+          <Link
+            href="/worlds/new/import"
+            aria-label="Import from session notes — paste old campaign notes and Claude extracts your world."
+            className="block rounded-2xl border p-6 transition-opacity hover:opacity-90"
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--surface)",
+            }}
+          >
+            <div className="flex items-start gap-4">
+              <span className="text-3xl" aria-hidden="true">📋</span>
+              <div className="flex-1">
+                <h2 className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                  Import from Session Notes
+                </h2>
+                <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+                  Paste your old campaign notes — handwritten transcripts, session summaries, or world descriptions. Claude converts them into a Game Bible.
+                </p>
+                <ul className="mt-3 space-y-1 text-xs" style={{ color: "var(--text-faint)" }}>
+                  <li>✓ Works with any text format</li>
+                  <li>✓ Pre-fills wizard with extracted details</li>
+                  <li>✓ You review every field before saving</li>
+                </ul>
+              </div>
+            </div>
+          </Link>
+
           {/* ── Upload a Game Bible ──────────────────────────────────────── */}
           <Link
             href="/worlds/new/upload"

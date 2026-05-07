@@ -1,6 +1,7 @@
 export const SessionStates = [
   "disconnected",
   "connected",
+  "lobby",
   "joined",
   "awaiting_gm",
   "awaiting_recap",
@@ -13,6 +14,8 @@ export type SessionState = (typeof SessionStates)[number];
 export const SessionTriggers = [
   "socket_opened",
   "join",
+  "lobby_join",
+  "lobby_all_ready",
   "player_input",
   "turn_completed",
   "turn_failed",
@@ -54,7 +57,8 @@ export type TransitionResult = TransitionSuccess | TransitionFailure;
 
 const allowed: Record<SessionState, ReadonlyArray<SessionState>> = {
   disconnected: ["connected"],
-  connected: ["joined", "closed"],
+  connected: ["lobby", "joined", "closed"],
+  lobby: ["joined", "closed"],
   joined: ["awaiting_gm", "awaiting_recap", "closed"],
   awaiting_gm: ["turn_complete", "joined", "closed"],
   awaiting_recap: ["joined", "turn_complete", "closed"],
@@ -65,6 +69,8 @@ const allowed: Record<SessionState, ReadonlyArray<SessionState>> = {
 const transitionsByTrigger: Record<SessionTrigger, SessionState> = {
   socket_opened: "connected",
   join: "joined",
+  lobby_join: "lobby",
+  lobby_all_ready: "joined",
   player_input: "awaiting_gm",
   turn_completed: "turn_complete",
   turn_failed: "joined",
