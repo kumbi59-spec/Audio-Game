@@ -175,8 +175,9 @@ export default function LibraryPage() {
                       <p className="text-sm" style={{ color: "var(--text)" }}>{save.world.name}</p>
                       <p className="text-xs" style={{ color: "var(--text-muted)" }}>Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
+                      <button onClick={() => { loadSavedCampaign(save.id); router.push(`/campaign/${encodeURIComponent(save.id)}/lobby`); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }} aria-label={`Start multiplayer lobby for ${save.world.name}`}>Multiplayer</button>
                       <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Share</button>
                       <button onClick={() => deleteSavedCampaign(save.id)} className="min-h-[44px] rounded border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400" style={{ borderColor: 'var(--border)' }}>Delete</button>
                     </div>

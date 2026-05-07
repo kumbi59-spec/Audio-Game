@@ -73,7 +73,11 @@ function CreateCharacterPage() {
   const [backstory, setBackstory] = useState("");
   const [isStarting, setIsStarting] = useState(false);
   const [coreStatOverrides, setCoreStatOverrides] = useState(CLASS_DESCRIPTIONS[selectedClass].startingStats);
+  const [draftCoreStats, setDraftCoreStats] = useState<Record<CoreStatKey, string>>(
+    () => Object.fromEntries(CORE_STAT_KEYS.map((k) => [k, String(CLASS_DESCRIPTIONS[selectedClass].startingStats[k])])) as Record<CoreStatKey, string>,
+  );
   const [customStatOverrides, setCustomStatOverrides] = useState<Record<string, number>>({});
+  const [draftCustomStats, setDraftCustomStats] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const prebuiltWorld = PREBUILT_WORLDS.find((w) => w.id === worldId);
@@ -131,6 +135,9 @@ function CreateCharacterPage() {
     if (!world) return;
     const starting = worldDefinesClasses ? CLASS_DESCRIPTIONS[selectedClass].startingStats : CLASSLESS_STARTING_STATS;
     setCoreStatOverrides({ ...starting });
+    setDraftCoreStats(
+      Object.fromEntries(CORE_STAT_KEYS.map((k) => [k, String(starting[k])])) as Record<CoreStatKey, string>,
+    );
 
     const customNames = parseCustomStatNames(world.rulesNotes);
     if (customNames.length > 0) {
@@ -139,8 +146,14 @@ function CreateCharacterPage() {
         for (const name of customNames) next[name] = prev[name] ?? 10;
         return next;
       });
+      setDraftCustomStats((prev) => {
+        const next: Record<string, string> = {};
+        for (const name of customNames) next[name] = String(prev[name] ?? 10);
+        return next;
+      });
     } else {
       setCustomStatOverrides({});
+      setDraftCustomStats({});
     }
   }, [selectedClass, world, worldDefinesClasses]);
 
@@ -576,15 +589,17 @@ function CreateCharacterPage() {
                     {label}
                     <input
                       type="number"
+                      inputMode="numeric"
                       min={statRules.perStatMin}
                       max={statRules.perStatMax}
-                      value={coreStatOverrides[key]}
-                      onChange={(e) => {
-                        const next = Number.parseInt(e.target.value, 10);
-                        setCoreStatOverrides((prev) => ({
-                          ...prev,
-                          [key]: clampCoreStat(key, next, prev[key]),
-                        }));
+                      value={draftCoreStats[key]}
+                      onChange={(e) =>
+                        setDraftCoreStats((prev) => ({ ...prev, [key]: e.target.value }))
+                      }
+                      onBlur={(e) => {
+                        const clamped = clampCoreStat(key, Number.parseInt(e.target.value, 10), coreStatOverrides[key]);
+                        setCoreStatOverrides((prev) => ({ ...prev, [key]: clamped }));
+                        setDraftCoreStats((prev) => ({ ...prev, [key]: String(clamped) }));
                       }}
                       className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     />
@@ -598,20 +613,22 @@ function CreateCharacterPage() {
                     World-defined Stats
                   </p>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {Object.entries(customStatOverrides).map(([label, value]) => (
+                    {Object.entries(customStatOverrides).map(([label]) => (
                       <label key={label} className="text-xs text-muted-foreground">
                         {label}
                         <input
                           type="number"
+                          inputMode="numeric"
                           min={statRules.perStatMin}
                           max={statRules.perStatMax}
-                          value={value}
-                          onChange={(e) => {
-                            const next = Number.parseInt(e.target.value, 10);
-                            setCustomStatOverrides((prev) => ({
-                              ...prev,
-                              [label]: clampCustomStat(next, prev[label] ?? statRules.perStatMin),
-                            }));
+                          value={draftCustomStats[label] ?? String(customStatOverrides[label] ?? statRules.perStatMin)}
+                          onChange={(e) =>
+                            setDraftCustomStats((prev) => ({ ...prev, [label]: e.target.value }))
+                          }
+                          onBlur={(e) => {
+                            const clamped = clampCustomStat(Number.parseInt(e.target.value, 10), customStatOverrides[label] ?? statRules.perStatMin);
+                            setCustomStatOverrides((prev) => ({ ...prev, [label]: clamped }));
+                            setDraftCustomStats((prev) => ({ ...prev, [label]: String(clamped) }));
                           }}
                           className="surface-gradient inner-highlight mt-1 w-full rounded border border-input px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         />
