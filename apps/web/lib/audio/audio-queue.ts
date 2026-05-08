@@ -13,13 +13,17 @@ export class AudioQueue {
   private queue: AudioQueueEntry[] = [];
   private processing = false;
   private stopped = false;
+  // Bumped on every stop() so any in-flight process() loop can detect that
+  // its generation has been superseded and bail out without racing a newer
+  // loop on this.queue.shift().
+  private generation = 0;
 
   constructor(private options: AudioQueueOptions = {}) {}
 
   enqueue(entry: Omit<AudioQueueEntry, "id">): void {
     this.queue.push({ ...entry, id: crypto.randomUUID() });
     if (!this.processing && !this.stopped) {
-      this.process();
+      void this.process();
     }
   }
 
@@ -34,14 +38,17 @@ export class AudioQueue {
   stop(): void {
     this.stopped = true;
     this.queue = [];
-    this.processing = false;
+    this.generation++;
+    // Don't touch processing here; the in-flight loop will observe the
+    // generation bump on its next iteration and exit cleanly.
     stopSpeech();
   }
 
   resume(): void {
+    if (!this.stopped) return;
     this.stopped = false;
     if (!this.processing && this.queue.length > 0) {
-      this.process();
+      void this.process();
     }
   }
 
@@ -56,24 +63,30 @@ export class AudioQueue {
   private async process(): Promise<void> {
     if (this.processing || this.stopped) return;
     this.processing = true;
+    const gen = this.generation;
 
-    while (this.queue.length > 0 && !this.stopped) {
-      const entry = this.queue.shift()!;
-      this.options.onEntry?.(entry);
+    try {
+      while (this.queue.length > 0 && !this.stopped && gen === this.generation) {
+        const entry = this.queue.shift()!;
+        this.options.onEntry?.(entry);
 
-      if (entry.type === "tts" && entry.text) {
-        await speak(entry.text, this.options.ttsOptions);
-      } else if (entry.type === "sound_cue" && entry.file) {
-        playSoundCue(entry.file as SoundCue);
-        await delay(400);
-      } else if (entry.type === "pause" && entry.duration) {
-        await delay(entry.duration);
+        if (entry.type === "tts" && entry.text) {
+          await speak(entry.text, this.options.ttsOptions);
+        } else if (entry.type === "sound_cue" && entry.file) {
+          playSoundCue(entry.file as SoundCue);
+          await delay(400);
+        } else if (entry.type === "pause" && entry.duration) {
+          await delay(entry.duration);
+        }
       }
-    }
-
-    this.processing = false;
-    if (!this.stopped) {
-      this.options.onComplete?.();
+    } finally {
+      // Only release the processing flag if we're still the active generation.
+      // If stop() bumped gen mid-loop, a subsequent resume() may have already
+      // started a fresh process() that owns the flag now.
+      if (gen === this.generation) {
+        this.processing = false;
+        if (!this.stopped) this.options.onComplete?.();
+      }
     }
   }
 }
