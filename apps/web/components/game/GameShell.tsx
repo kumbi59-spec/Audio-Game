@@ -206,9 +206,29 @@ export function GameShell() {
 
   const hasChoices = session.choices.length > 0;
   const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 11 === 0;
-  const degradedMessage = [...session.narrationLog]
-    .reverse()
-    .find((e) => e.type === "system" && /fallback|unstable|degraded/i.test(e.text))?.text;
+  // Show the degraded banner only when the most recent degraded-mode system
+  // entry is more recent than the most recent successful narration. Without
+  // this guard the banner stuck around forever — the matched system message
+  // lives in narrationLog permanently, so the previous "find latest match"
+  // approach always returned a hit even after the next turn succeeded.
+  const degradedRegex = /fallback|unstable|degraded/i;
+  const lastDegradedIdx = (() => {
+    for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
+      const e = session.narrationLog[i];
+      if (e?.type === "system" && degradedRegex.test(e.text)) return i;
+    }
+    return -1;
+  })();
+  const lastNarrationIdx = (() => {
+    for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
+      if (session.narrationLog[i]?.type === "narration") return i;
+    }
+    return -1;
+  })();
+  const degradedMessage =
+    lastDegradedIdx >= 0 && lastDegradedIdx > lastNarrationIdx
+      ? session.narrationLog[lastDegradedIdx]?.text
+      : undefined;
 
   return (
     <>
