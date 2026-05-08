@@ -54,6 +54,8 @@ The web service's `NEXTAUTH_URL` should match its Render URL (e.g. `https://echo
 
 For the multiplayer lobby to work in production, set `NEXT_PUBLIC_API_URL` on the web service to the api service's public URL (e.g. `https://echoquest-api.onrender.com`). The browser opens `/ws/lobby/:campaignId` against this host, so it must be reachable over HTTPS/WSS.
 
+Also set `SESSION_SIGNING_KEY` to the **same** value on both `echoquest-web` and `echoquest-api`. The web service mints HMAC-signed lobby tokens and the api verifies them; mismatched keys produce an "Invalid auth token" error in the lobby. Generate one 32-byte random value (e.g. `openssl rand -base64 32`) and paste it into both services.
+
 ## 4. Seed the admin account
 
 Once the web service is live and the database is migrated, open Render → echoquest-web → Shell and run:
