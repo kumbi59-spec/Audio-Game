@@ -7,6 +7,20 @@ const TTS_PROXY = "/api/game/tts";
 const ELEVENLABS_SPEED_MIN = 0.7;
 const ELEVENLABS_SPEED_MAX = 1.2;
 
+/**
+ * Returns true when the runtime can attach a MediaSource to an HTMLAudioElement
+ * and feed it audio/mpeg chunks. Lets us stream ElevenLabs output and start
+ * playback before the full clip is buffered. Safari iOS notably returns false
+ * here — its audio element only accepts MSE for HLS, not raw audio/mpeg.
+ */
+function supportsMseMpeg(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof MediaSource !== "undefined" &&
+    MediaSource.isTypeSupported("audio/mpeg")
+  );
+}
+
 export class ElevenLabsTTS implements TTSProvider {
   private audio: HTMLAudioElement | null = null;
   private _speaking = false;
@@ -58,25 +72,146 @@ export class ElevenLabsTTS implements TTSProvider {
       throw new Error(data?.message ?? (errorCode || `ElevenLabs error ${res.status}`));
     }
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
+    if (!res.body) {
+      this._speaking = false;
+      throw new Error("ElevenLabs returned an empty body");
+    }
+
+    const audio = new Audio();
+    audio.volume = options.volume ?? 1.0;
+    audio.playbackRate = playbackCompensation;
+    // When playbackRate ≠ 1, the browser otherwise resamples naively and the
+    // voice sounds chipmunked (>1) or underwater (<1). preservesPitch keeps
+    // the voice on-pitch while still changing tempo. Older Safari/Firefox
+    // shipped vendor-prefixed names — set them too for back-compat.
+    audio.preservesPitch = true;
+    const audioWithVendorPrefixes = audio as HTMLAudioElement & {
+      mozPreservesPitch?: boolean;
+      webkitPreservesPitch?: boolean;
+    };
+    audioWithVendorPrefixes.mozPreservesPitch = true;
+    audioWithVendorPrefixes.webkitPreservesPitch = true;
+
+    this.audio = audio;
+    this._speaking = true;
+
+    if (supportsMseMpeg()) {
+      return this.streamViaMse(audio, res.body, options);
+    }
+    return this.playViaBlob(audio, res, options);
+  }
+
+  /**
+   * Pipe a streaming Response body into a MediaSource so the audio element
+   * can start playback before the full clip downloads. Used everywhere except
+   * iOS Safari (see supportsMseMpeg).
+   */
+  private streamViaMse(
+    audio: HTMLAudioElement,
+    body: ReadableStream<Uint8Array>,
+    options: TTSOptions,
+  ): Promise<void> {
+    const mediaSource = new MediaSource();
+    const url = URL.createObjectURL(mediaSource);
+    audio.src = url;
 
     return new Promise((resolve, reject) => {
-      const audio = new Audio(url);
-      audio.volume = options.volume ?? 1.0;
-      audio.playbackRate = playbackCompensation;
-      // When playbackRate ≠ 1, the browser otherwise resamples naively and the
-      // voice sounds chipmunked (>1) or underwater (<1). preservesPitch keeps
-      // the voice on-pitch while still changing tempo. Older Safari/Firefox
-      // shipped vendor-prefixed names — set them too for back-compat.
-      audio.preservesPitch = true;
-      const audioWithVendorPrefixes = audio as HTMLAudioElement & {
-        mozPreservesPitch?: boolean;
-        webkitPreservesPitch?: boolean;
+      let revoked = false;
+      const revoke = () => {
+        if (revoked) return;
+        revoked = true;
+        URL.revokeObjectURL(url);
       };
-      audioWithVendorPrefixes.mozPreservesPitch = true;
-      audioWithVendorPrefixes.webkitPreservesPitch = true;
 
+      audio.onended = () => {
+        this._speaking = false;
+        this._paused = false;
+        revoke();
+        options.onEnd?.();
+        resolve();
+      };
+      audio.onerror = () => {
+        this._speaking = false;
+        revoke();
+        reject(new Error("Audio playback failed"));
+      };
+
+      mediaSource.addEventListener("sourceopen", async () => {
+        let sb: SourceBuffer;
+        try {
+          sb = mediaSource.addSourceBuffer("audio/mpeg");
+        } catch (err) {
+          this._speaking = false;
+          revoke();
+          reject(err instanceof Error ? err : new Error("addSourceBuffer failed"));
+          return;
+        }
+
+        const reader = body.getReader();
+        const appendChunk = (chunk: Uint8Array) =>
+          new Promise<void>((res, rej) => {
+            const onUpdate = () => {
+              sb.removeEventListener("updateend", onUpdate);
+              sb.removeEventListener("error", onError);
+              res();
+            };
+            const onError = () => {
+              sb.removeEventListener("updateend", onUpdate);
+              sb.removeEventListener("error", onError);
+              rej(new Error("SourceBuffer append failed"));
+            };
+            sb.addEventListener("updateend", onUpdate, { once: true });
+            sb.addEventListener("error", onError, { once: true });
+            try {
+              sb.appendBuffer(chunk);
+            } catch (err) {
+              rej(err instanceof Error ? err : new Error("appendBuffer threw"));
+            }
+          });
+
+        try {
+          let started = false;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) await appendChunk(value);
+            // Kick off playback after the first chunk lands so the user hears
+            // audio as quickly as possible. Subsequent chunks just extend the
+            // SourceBuffer the audio element is already reading from.
+            if (!started) {
+              started = true;
+              audio.play().catch((err: unknown) => {
+                this._speaking = false;
+                revoke();
+                reject(err);
+              });
+            }
+          }
+          if (mediaSource.readyState === "open") mediaSource.endOfStream();
+        } catch (err) {
+          this._speaking = false;
+          revoke();
+          reject(err instanceof Error ? err : new Error("Streaming failed"));
+        }
+      });
+    });
+  }
+
+  /**
+   * Fallback for runtimes that can't attach a MediaSource to an audio
+   * element for audio/mpeg (notably iOS Safari): buffer the whole response
+   * into a Blob and play it as a normal blob URL.
+   */
+  private async playViaBlob(
+    audio: HTMLAudioElement,
+    res: Response,
+    options: TTSOptions,
+  ): Promise<void> {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    audio.src = url;
+
+    return new Promise((resolve, reject) => {
       audio.onended = () => {
         this._speaking = false;
         this._paused = false;
@@ -84,15 +219,11 @@ export class ElevenLabsTTS implements TTSProvider {
         options.onEnd?.();
         resolve();
       };
-
       audio.onerror = () => {
         this._speaking = false;
         URL.revokeObjectURL(url);
         reject(new Error("Audio playback failed"));
       };
-
-      this.audio = audio;
-      this._speaking = true;
       audio.play().catch((err: unknown) => {
         this._speaking = false;
         URL.revokeObjectURL(url);

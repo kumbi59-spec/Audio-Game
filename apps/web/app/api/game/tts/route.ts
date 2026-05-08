@@ -85,8 +85,12 @@ export async function POST(req: NextRequest) {
 
   const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, body.speed));
 
+  // Use the /stream endpoint so the upstream returns chunked audio as it
+  // synthesises. We pipe that body straight to the client, which can start
+  // playback before the full clip is buffered — TTFA drops from
+  // O(synthesis time) to O(network round-trip).
   const res = await fetch(
-    `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}`,
+    `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}/stream`,
     {
       method: "POST",
       headers: {
@@ -138,15 +142,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 
-  const audioBuffer = await res.arrayBuffer();
+  if (!res.body) {
+    return NextResponse.json({ error: "ElevenLabs returned no body" }, { status: 502 });
+  }
 
-  // Credit usage asynchronously — don't block the audio response
+  // Credit usage asynchronously — don't block the audio response. Recording
+  // happens before the body has been fully consumed by the client, but that's
+  // fine: characters were submitted upstream, so the user owes them whether
+  // or not the client finishes downloading.
   void recordTtsChars(session.user.id, body.text.length);
 
-  return new Response(audioBuffer, {
+  // Stream the upstream body straight through. Next.js will forward it to
+  // the client as it arrives.
+  return new Response(res.body, {
     headers: {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "no-store",
+      // Hint to the browser that ranged requests aren't supported on this
+      // ephemeral stream — avoids the audio element re-issuing a Range
+      // request mid-playback.
+      "Accept-Ranges": "none",
     },
   });
 }
