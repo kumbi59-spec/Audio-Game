@@ -64,6 +64,16 @@ export default async function CampaignDetailPage({ params }: Props) {
             </Link>
           </div>
         </section>
+
+        {campaign.slug === "accessible-dd-alternative" && (
+          <p className="mt-6 text-sm" style={{ color: "var(--text-muted)" }}>
+            Looking for a broader comparison? Read{" "}
+            <Link href="/seo/accessible-dnd-alternative" className="hover:underline" style={{ color: "var(--accent)" }}>
+              EchoQuest as an accessible D&amp;D alternative
+            </Link>{" "}
+            for how the platform compares to traditional tabletop play.
+          </p>
+        )}
       </main>
     </div>
   );
