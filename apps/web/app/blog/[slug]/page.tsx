@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   } catch (err) { console.error("[blog] DB query failed:", err); }
   if (!post) return { title: "Not Found" };
   const canonical = `${SITE_URL}/blog/${post.slug}`;
+  const ogImage = `${canonical}/opengraph-image`;
   return {
     title: post.title,
     description: post.excerpt,
@@ -55,11 +56,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       modifiedTime: post.updatedAt.toISOString(),
       authors: post.author.name ? [post.author.name] : undefined,
       siteName: "EchoQuest Blog",
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
+      images: [ogImage],
     },
   };
 }

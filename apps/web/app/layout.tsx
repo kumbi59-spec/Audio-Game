@@ -40,6 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "EchoQuest",
+    locale: "en_US",
     title: "EchoQuest — Narrated AI RPG Adventures",
     description:
       "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible for blind and visually impaired players. Free to start.",
@@ -48,6 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@echoquestapp",
+    creator: "@echoquestapp",
     title: "EchoQuest — Narrated AI RPG Adventures",
     description:
       "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible. Free to start.",
