@@ -15,6 +15,7 @@ import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts"
 import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
@@ -45,6 +46,8 @@ export function GameShell() {
     reducedMotion,
     audioOnlyMode,
   } = useAccessibilityStore();
+  const { announce } = useAnnouncer();
+  const [helpHintVisible, setHelpHintVisible] = useState(false);
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
@@ -104,10 +107,19 @@ export function GameShell() {
     }
   }, [session, speakText]);
 
+  // First-time players: a non-blocking hint announces help availability and
+  // shows a dismissable toast. Previously this auto-opened the modal, which
+  // forced every new user to dismiss a dialog before they could start playing.
   useEffect(() => {
     if (!session || operationsManualSeen) return;
-    openOperationsManual();
-  }, [session, operationsManualSeen, openOperationsManual]);
+    setHelpHintVisible(true);
+    announce("Press H or use the Help button at any time to open the Operations Manual.", "polite");
+  }, [session, operationsManualSeen, announce]);
+
+  const dismissHelpHint = useCallback(() => {
+    setHelpHintVisible(false);
+    if (!operationsManualSeen) markOperationsManualSeen();
+  }, [operationsManualSeen, markOperationsManualSeen]);
 
   const currentLocationId = session?.currentLocationId ?? null;
 
@@ -140,6 +152,9 @@ export function GameShell() {
   }, [closeOperationsManual, operationsManualSeen, markOperationsManualSeen]);
 
   const handleToggleOperationsManual = useCallback(() => {
+    // Opening the manual implicitly dismisses the help toast — the user has
+    // discovered the feature one way or another.
+    setHelpHintVisible(false);
     if (operationsManualOpen) {
       handleCloseOperationsManual();
       return;
@@ -365,6 +380,27 @@ export function GameShell() {
             disabled={session.isGenerating}
           />
         </div>
+
+        {helpHintVisible && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-4 mb-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <span>
+              Tip: press <kbd className="rounded bg-background/50 px-1.5 py-0.5 font-mono">H</kbd>
+              {" "}or the Help button for keyboard shortcuts and gameplay tips.
+            </span>
+            <button
+              type="button"
+              onClick={dismissHelpHint}
+              aria-label="Dismiss help tip"
+              className="rounded text-muted-foreground hover:text-foreground focus-ring"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Ad banner — free tier only */}
         <AdBanner visible={shouldShowAdBanner} />
