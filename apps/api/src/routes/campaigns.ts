@@ -65,11 +65,12 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
     return summary;
   });
 
-  // Issues a fresh session/lobby token for an existing campaign.
-  // The token is HMAC-bound to campaignId so it cannot be used to join a different lobby.
+  // Issues a fresh HMAC-signed lobby token for any campaignId.
+  // The token is cryptographically bound to the campaignId so it cannot authorize
+  // a connection to a different lobby. No campaign pre-existence check is needed:
+  // the lobby is a pre-game gathering point and its in-memory room is created on
+  // first join, independent of whether campaign state exists in the store.
   app.get<{ Params: { id: string } }>("/campaigns/:id/join-token", async (req, reply) => {
-    const summary = await getCampaignSummary(req.params.id);
-    if (!summary) return reply.status(404).send({ error: "not_found" });
     return reply.send({ token: issueSessionToken(req.params.id) });
   });
 }
