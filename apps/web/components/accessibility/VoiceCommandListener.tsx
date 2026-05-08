@@ -83,6 +83,11 @@ function parseVoiceInput(transcript: string): { type: "choice" | "meta" | "actio
   return { type: "action", value: transcript.trim() };
 }
 
+// Auto-send delay for free-text voice actions. Long enough that a player
+// who heard a misrecognised word ("attack the lizard" instead of "wizard")
+// can hit Cancel; short enough not to feel sluggish for clean transcripts.
+const FREE_TEXT_CONFIRM_MS = 3500;
+
 export function VoiceCommandListener({
   onAction,
   onChoiceSelect,
@@ -92,6 +97,11 @@ export function VoiceCommandListener({
   const { announce, announceError } = useAnnouncer();
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
+  // Pending free-text action awaiting user confirmation. Choice and meta
+  // commands still fire immediately — they're short and unambiguous, so the
+  // confirmation friction isn't worth it there.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const SpeechRecognitionClass = getSpeechRecognition();
 
@@ -99,6 +109,21 @@ export function VoiceCommandListener({
     recognitionRef.current?.stop();
     setListening(false);
   }, []);
+
+  const clearPending = useCallback(() => {
+    if (pendingTimerRef.current !== null) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
+    }
+    setPendingAction(null);
+  }, []);
+
+  const sendPending = useCallback(() => {
+    if (!pendingAction) return;
+    const text = pendingAction;
+    clearPending();
+    onAction(text);
+  }, [pendingAction, clearPending, onAction]);
 
   const startListening = useCallback(() => {
     if (!SpeechRecognitionClass) {
@@ -137,8 +162,20 @@ export function VoiceCommandListener({
         } else if (parsed.type === "meta" && onMeta) {
           onMeta(parsed.value as string);
         } else {
-          announce(`Action: ${parsed.value}`);
-          onAction(parsed.value as string);
+          // Free-text action: stage for confirmation rather than firing
+          // immediately, so a misrecognised transcript doesn't waste an
+          // AI turn. Auto-sends after FREE_TEXT_CONFIRM_MS unless cancelled.
+          const value = parsed.value as string;
+          announce(`Heard: ${value}. Sending in ${Math.round(FREE_TEXT_CONFIRM_MS / 1000)} seconds. Say cancel or press cancel to stop.`);
+          setPendingAction(value);
+          if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+          pendingTimerRef.current = setTimeout(() => {
+            pendingTimerRef.current = null;
+            setPendingAction((current) => {
+              if (current) onAction(current);
+              return null;
+            });
+          }, FREE_TEXT_CONFIRM_MS);
         }
       }
     };
@@ -159,6 +196,19 @@ export function VoiceCommandListener({
   useEffect(() => {
     if (!isActive && listening) stopListening();
   }, [isActive, listening, stopListening]);
+
+  // If the page becomes inactive (e.g. turn in flight) while a confirmation is
+  // pending, cancel it — we don't want an auto-send to land on a stale frame.
+  useEffect(() => {
+    if (!isActive && pendingAction) clearPending();
+  }, [isActive, pendingAction, clearPending]);
+
+  // Cleanup any pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -183,6 +233,39 @@ export function VoiceCommandListener({
         >
           {transcript || "Listening…"}
         </p>
+      )}
+      {pendingAction && (
+        <div
+          role="alertdialog"
+          aria-label="Confirm voice action"
+          className="flex max-w-xs flex-col items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-center"
+        >
+          <p className="text-sm font-medium text-amber-200">
+            Heard: <span className="italic">&ldquo;{pendingAction}&rdquo;</span>
+          </p>
+          <p className="text-xs text-amber-200/70">
+            Sending automatically — press Cancel to stop.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={sendPending}
+              aria-label="Send voice action now"
+              className="rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Send
+            </button>
+            <button
+              onClick={() => {
+                clearPending();
+                announce("Voice action cancelled.");
+              }}
+              aria-label="Cancel voice action"
+              className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
