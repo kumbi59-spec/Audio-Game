@@ -13,14 +13,16 @@ export async function GET(req: NextRequest) {
   }
 
   const apiBase = process.env["API_URL"] ?? "http://localhost:3001";
-  const upstream = await fetch(
-    `${apiBase}/campaigns/${encodeURIComponent(campaignId)}/join-token`,
-  );
+  let upstream: Response;
+  try {
+    upstream = await fetch(
+      `${apiBase}/campaigns/${encodeURIComponent(campaignId)}/join-token`,
+    );
+  } catch {
+    return NextResponse.json({ error: "API server unreachable" }, { status: 502 });
+  }
 
   if (!upstream.ok) {
-    if (upstream.status === 404) {
-      return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
-    }
     return NextResponse.json({ error: "Failed to issue lobby token" }, { status: 502 });
   }
 
