@@ -15,7 +15,11 @@ export function AmbientPlayer({
   isNarratorSpeaking = false,
   isNarratorLoading = false,
 }: AmbientPlayerProps) {
-  const { currentAmbient, ambientEnabled, ambientVolume } = useAudioStore();
+  // Subscribe to master `volume` too: setAmbientVolume() multiplies its arg
+  // by the master, so the volume effect below must re-fire whenever the
+  // master changes — otherwise muting the master leaves the ambient bed
+  // playing at its previous absolute level until ambientVolume itself changes.
+  const { currentAmbient, ambientEnabled, ambientVolume, volume } = useAudioStore();
   const effectiveVolume = isNarratorSpeaking
     ? ambientVolume * NARRATOR_DUCKING_FACTOR
     : isNarratorLoading
@@ -37,7 +41,7 @@ export function AmbientPlayer({
 
   useEffect(() => {
     setAmbientVolume(effectiveVolume);
-  }, [effectiveVolume]);
+  }, [effectiveVolume, volume]);
 
   // Cleanup on unmount
   useEffect(() => {
