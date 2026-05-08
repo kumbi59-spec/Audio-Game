@@ -8,7 +8,12 @@ const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
 export const metadata: Metadata = {
   title: "Blog",
   description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
-  alternates: { canonical: `${SITE_URL}/blog` },
+  alternates: {
+    canonical: `${SITE_URL}/blog`,
+    types: {
+      "application/rss+xml": [{ url: `${SITE_URL}/blog/feed.xml`, title: "EchoQuest Blog RSS" }],
+    },
+  },
   openGraph: {
     title: "EchoQuest Blog",
     description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",

@@ -39,8 +39,8 @@ export const SEO_CAMPAIGNS: SeoCampaign[] = [
     slug: "accessible-dd-alternative",
     name: "EchoQuest Intro Campaign",
     genre: "fantasy",
-    intentKeyword: "accessible D&D alternative",
-    hook: "Play a fully narrated tabletop-style campaign with keyboard, voice, or screen reader.",
+    intentKeyword: "narrated fantasy starter campaign",
+    hook: "A short fantasy campaign designed to be the first thing a new EchoQuest player runs — three nights in a rain-soaked village where the trees move against the wind.",
     transcript: [
       "GM: Rain taps your shield as the village bell rings. Three people are shouting your name at once.",
       "You: 'Read each voice in order, then ask who saw the lights in the woods.'",
