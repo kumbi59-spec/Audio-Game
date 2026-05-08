@@ -63,13 +63,25 @@ function useLobbySocket(campaignId: string) {
         const res = await fetch(
           `/api/game/lobby-token?campaignId=${encodeURIComponent(campaignId)}`,
         );
-        if (!res.ok) throw new Error(`Token fetch failed: ${res.status}`);
+        if (!res.ok) {
+          // Surface the server's reason (e.g. SESSION_SIGNING_KEY unset → 503)
+          // so a misconfiguration is debuggable from the UI alone.
+          let reason = `${res.status}`;
+          try {
+            const body = (await res.json()) as { error?: string };
+            if (body.error) reason = body.error;
+          } catch {
+            // body wasn't JSON; keep the status code
+          }
+          throw new Error(reason);
+        }
         const data = (await res.json()) as { token: string };
         token = data.token;
-      } catch {
+      } catch (err) {
         if (!cancelled) {
           setStatus("error");
-          setError("Could not obtain lobby credentials. Please try again.");
+          const detail = err instanceof Error ? err.message : "unknown error";
+          setError(`Could not obtain lobby credentials: ${detail}`);
         }
         return;
       }

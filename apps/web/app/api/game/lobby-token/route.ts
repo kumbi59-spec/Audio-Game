@@ -22,6 +22,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
 
+  // The api server uses its own SESSION_SIGNING_KEY to verify these tokens.
+  // If the web service falls back to the dev default in production, every
+  // token will be rejected with "Invalid auth token" — fail loudly here
+  // instead of issuing a token the api will refuse.
+  if (process.env.NODE_ENV === "production" && !process.env["SESSION_SIGNING_KEY"]) {
+    return NextResponse.json(
+      { error: "Multiplayer is not configured: SESSION_SIGNING_KEY is unset on the web service." },
+      { status: 503 },
+    );
+  }
+
   const campaignId = req.nextUrl.searchParams.get("campaignId");
   if (!campaignId) {
     return NextResponse.json({ error: "campaignId is required" }, { status: 400 });

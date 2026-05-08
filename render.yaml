@@ -38,6 +38,8 @@ services:
         generateValue: true   # NextAuth v5 reads AUTH_SECRET; Render auto-generates on first deploy
       - key: NEXTAUTH_SECRET
         generateValue: true   # Legacy alias — kept so existing deploys with NEXTAUTH_SECRET still work
+      - key: SESSION_SIGNING_KEY
+        sync: false           # MUST match echoquest-api's SESSION_SIGNING_KEY exactly. Both services HMAC-sign and verify lobby tokens with this key; if they differ, the api rejects every token with "Invalid auth token". Generate one 32-byte random value (e.g. `openssl rand -base64 32`) and paste the same value into both services.
       - key: DATABASE_URL
         sync: false           # Supabase session-mode pooler URL — see DEPLOY.md for the correct format
       - key: ANTHROPIC_API_KEY
@@ -103,7 +105,7 @@ services:
       - key: PORT
         value: "4000"
       - key: SESSION_SIGNING_KEY
-        generateValue: true
+        sync: false           # MUST match echoquest-web's SESSION_SIGNING_KEY exactly — see the note on the web service above.
       - key: ALLOWED_ORIGINS
         sync: false           # Comma-separated list of allowed web origins for the multiplayer lobby WebSocket, e.g. https://echoquest-web.onrender.com,https://echoquest.us
       - key: DATABASE_URL
