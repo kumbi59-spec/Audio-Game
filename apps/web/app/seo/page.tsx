@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+
 export const metadata: Metadata = {
   title: "Accessible Audio RPG Guides",
   description: "Long-tail landing pages for accessible audio RPG and AI voice adventure intent.",
+  alternates: { canonical: `${SITE_URL}/seo` },
 };
 
 const pages = [

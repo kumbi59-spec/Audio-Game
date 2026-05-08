@@ -58,7 +58,8 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
-  alternates: { canonical: SITE_URL },
+  // Canonical is set per-page (or per-route layout for client-component pages)
+  // so we don't blanket-canonicalize every URL to the site root.
 };
 
 export const viewport: Viewport = {
