@@ -107,6 +107,63 @@ const jsonLd = {
       name: "EchoQuest",
       publisher: { "@id": "https://echoquest.app/#organization" },
     },
+    {
+      "@type": "HowTo",
+      "@id": "https://echoquest.app/#howto",
+      name: "How to play EchoQuest",
+      description:
+        "Start an AI-narrated tabletop RPG adventure in three steps. Works with keyboard, voice, and screen readers.",
+      totalTime: "PT2M",
+      step: HOW_IT_WORKS.map((h, i) => ({
+        "@type": "HowToStep",
+        position: i + 1,
+        name: h.title,
+        text: h.body,
+        url: `https://echoquest.app/#how-it-works`,
+      })),
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://echoquest.app/#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Is EchoQuest free?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text:
+              "Yes. The Free tier includes three official campaigns, browser text-to-speech, 60 AI turns per day, and full keyboard and screen-reader support. Premium plans (Storyteller from $15/month) unlock unlimited campaigns, ElevenLabs narration, unlimited saves, and uploading your own Game Bible.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Does EchoQuest work with screen readers?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text:
+              "Yes. EchoQuest is tested on every release with NVDA, JAWS, VoiceOver, and TalkBack. Every menu is keyboard-accessible, every scene is narrated, and live regions handle non-TTS announcements. Core accessibility features are never paywalled.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I bring my own setting or rules?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text:
+              "On the Storyteller tier and above, you can upload a PDF of your own setting or campaign and start playing it immediately. The AI Game Master uses your document as its source of truth.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What AI powers the Game Master?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text:
+              "EchoQuest uses Anthropic's Claude AI as its Game Master. Your session conversations are not used to train any AI model and are not shared with third parties for ad targeting.",
+          },
+        },
+      ],
+    },
   ],
 };
 

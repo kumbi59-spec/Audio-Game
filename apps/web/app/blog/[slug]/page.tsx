@@ -80,22 +80,34 @@ export default async function BlogPostPage({ params }: Props) {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.excerpt,
-    url: `${SITE_URL}/blog/${post.slug}`,
-    datePublished: post.publishedAt.toISOString(),
-    dateModified: post.updatedAt.toISOString(),
-    author: {
-      "@type": "Person",
-      name: post.author.name ?? "EchoQuest Team",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "EchoQuest",
-      url: SITE_URL,
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        headline: post.title,
+        description: post.excerpt,
+        url: `${SITE_URL}/blog/${post.slug}`,
+        datePublished: post.publishedAt.toISOString(),
+        dateModified: post.updatedAt.toISOString(),
+        author: {
+          "@type": "Person",
+          name: post.author.name ?? "EchoQuest Team",
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "EchoQuest",
+          url: SITE_URL,
+        },
+        mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+          { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+        ],
+      },
+    ],
   };
 
   return (

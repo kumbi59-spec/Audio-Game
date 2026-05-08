@@ -35,8 +35,22 @@ export default async function CampaignDetailPage({ params }: Props) {
   const campaign = getSeoCampaign(slug);
   if (!campaign) notFound();
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Campaigns", item: `${SITE_URL}/campaigns` },
+      { "@type": "ListItem", position: 3, name: campaign.name, item: `${SITE_URL}/campaigns/${campaign.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
         <p className="text-sm" style={{ color: "var(--accent)" }}>{campaign.intentKeyword}</p>

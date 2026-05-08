@@ -18,9 +18,28 @@ export const metadata: Metadata = {
   },
 };
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE_URL}/seo` },
+    {
+      "@type": "ListItem",
+      position: 3,
+      name: "Accessible D&D alternative",
+      item: `${SITE_URL}/seo/accessible-dnd-alternative`,
+    },
+  ],
+};
+
 export default function Page() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
         <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>
