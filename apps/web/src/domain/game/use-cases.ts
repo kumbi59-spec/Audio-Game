@@ -102,9 +102,33 @@ export async function retryWithBackoff<T>(fn: () => Promise<T>, maxAttempts = 2,
   throw lastError;
 }
 
+/**
+ * Maximum length of player input we'll forward to the GM. The server-side
+ * Zod schema in /api/game/action enforces 2000 chars; we trim earlier here
+ * so paste-bombs are caught before they leave the client (cheaper feedback,
+ * less UI lag). Keep in sync with the server cap.
+ */
+const MAX_ACTION_CHARS = 2000;
+
+// C0 control characters (except TAB \x09, LF \x0A, CR \x0D) plus DEL \x7F.
+// Some recogniser / keyboard combinations emit stray control bytes that
+// confuse the LLM tokeniser without adding meaning. Whitespace is then
+// collapsed to single spaces so the surviving TAB/LF/CRs aren't repeated.
+const CONTROL_CHAR_RE = new RegExp(
+  "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]",
+  "g",
+);
+
+
 export function sanitizeAction(action: PlayerAction): PlayerAction | null {
-  const content = action.content.trim();
+  let content = action.content
+    .replace(CONTROL_CHAR_RE, "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!content) return null;
+  if (content.length > MAX_ACTION_CHARS) {
+    content = content.slice(0, MAX_ACTION_CHARS);
+  }
   if (action.type === "choice" && typeof action.choiceIndex === "number" && action.choiceIndex < 0) {
     return null;
   }
