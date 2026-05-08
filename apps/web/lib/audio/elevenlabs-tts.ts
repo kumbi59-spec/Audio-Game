@@ -65,6 +65,17 @@ export class ElevenLabsTTS implements TTSProvider {
       const audio = new Audio(url);
       audio.volume = options.volume ?? 1.0;
       audio.playbackRate = playbackCompensation;
+      // When playbackRate ≠ 1, the browser otherwise resamples naively and the
+      // voice sounds chipmunked (>1) or underwater (<1). preservesPitch keeps
+      // the voice on-pitch while still changing tempo. Older Safari/Firefox
+      // shipped vendor-prefixed names — set them too for back-compat.
+      audio.preservesPitch = true;
+      const audioWithVendorPrefixes = audio as HTMLAudioElement & {
+        mozPreservesPitch?: boolean;
+        webkitPreservesPitch?: boolean;
+      };
+      audioWithVendorPrefixes.mozPreservesPitch = true;
+      audioWithVendorPrefixes.webkitPreservesPitch = true;
 
       audio.onended = () => {
         this._speaking = false;
