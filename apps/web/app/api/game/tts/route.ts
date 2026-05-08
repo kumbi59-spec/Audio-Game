@@ -16,6 +16,29 @@ const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 const ELEVENLABS_SPEED_MIN = 0.7;
 const ELEVENLABS_SPEED_MAX = 1.2;
 
+// Voice-shape parameters. Defaults are tuned for long-form narration:
+// - Lower stability (0.35) gives the model more emotional range across a
+//   paragraph — preferable to the 0.5 "balanced" preset for storytelling.
+// - similarity_boost stays high so the chosen voice still sounds like itself.
+// - style adds a touch of expressiveness without flipping into theatrical.
+// All three are overridable via env so production can tune without a redeploy.
+const ELEVENLABS_STABILITY = clampUnit(
+  Number(process.env["ELEVENLABS_STABILITY"] ?? 0.35),
+);
+const ELEVENLABS_SIMILARITY = clampUnit(
+  Number(process.env["ELEVENLABS_SIMILARITY_BOOST"] ?? 0.75),
+);
+const ELEVENLABS_STYLE = clampUnit(
+  Number(process.env["ELEVENLABS_STYLE"] ?? 0.15),
+);
+const ELEVENLABS_USE_SPEAKER_BOOST =
+  process.env["ELEVENLABS_USE_SPEAKER_BOOST"] !== "false";
+
+function clampUnit(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(1, n));
+}
+
 // Monthly ElevenLabs character caps by tier. null = unlimited.
 // Defaults are tuned to keep healthy margins; override per deployment with env vars.
 const TTS_CHAR_CAPS: Record<string, number | null> = {
@@ -102,8 +125,10 @@ export async function POST(req: NextRequest) {
         text: body.text,
         model_id: "eleven_turbo_v2_5",
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
+          stability: ELEVENLABS_STABILITY,
+          similarity_boost: ELEVENLABS_SIMILARITY,
+          style: ELEVENLABS_STYLE,
+          use_speaker_boost: ELEVENLABS_USE_SPEAKER_BOOST,
           speed: apiSpeed,
         },
       }),
