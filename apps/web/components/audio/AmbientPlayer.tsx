@@ -4,6 +4,11 @@ import { useEffect } from "react";
 import { useAudioStore } from "@/store/audio-store";
 import { playAmbient, stopAmbient, setAmbientVolume } from "@/lib/audio/sound-cues";
 
+// Module-level so the timeout survives a brief unmount/remount of any
+// AmbientPlayer instance. A pending stop is cancelled by the next mount.
+let pendingStopTimer: ReturnType<typeof setTimeout> | null = null;
+const UNMOUNT_GRACE_MS = 200;
+
 interface AmbientPlayerProps {
   isNarratorSpeaking?: boolean;
   isNarratorLoading?: boolean;
@@ -43,9 +48,20 @@ export function AmbientPlayer({
     setAmbientVolume(effectiveVolume);
   }, [effectiveVolume, volume]);
 
-  // Cleanup on unmount
+  // Mount cancels any in-flight stop scheduled by a sibling/predecessor
+  // unmount, so transient remounts (React StrictMode double-invoke,
+  // Suspense, parent tree swaps) don't fade the bed in/out.
   useEffect(() => {
-    return () => stopAmbient();
+    if (pendingStopTimer !== null) {
+      clearTimeout(pendingStopTimer);
+      pendingStopTimer = null;
+    }
+    return () => {
+      pendingStopTimer = setTimeout(() => {
+        stopAmbient();
+        pendingStopTimer = null;
+      }, UNMOUNT_GRACE_MS);
+    };
   }, []);
 
   return null;
