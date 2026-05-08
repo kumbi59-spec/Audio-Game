@@ -82,13 +82,22 @@ function useLobbySocket(campaignId: string, displayName: string) {
       };
 
       ws.onmessage = (ev) => {
-        let msg: MultiplayerServerEvent;
+        let raw: { type: string; message?: string };
         try {
-          msg = JSON.parse(typeof ev.data === "string" ? ev.data : "") as MultiplayerServerEvent;
+          raw = JSON.parse(typeof ev.data === "string" ? ev.data : "") as { type: string; message?: string };
         } catch {
           return;
         }
 
+        if (raw.type === "error") {
+          if (!cancelled) {
+            setStatus("error");
+            setError(raw.message ?? "An error occurred. Please try again.");
+          }
+          return;
+        }
+
+        const msg = raw as unknown as MultiplayerServerEvent;
         switch (msg.type) {
           case "lobby_state":
             if (msg.myUserId) setMyUserId(msg.myUserId);
@@ -133,6 +142,12 @@ function useLobbySocket(campaignId: string, displayName: string) {
         if (!cancelled) {
           setStatus("error");
           setError("Could not reach the multiplayer lobby. Check your connection.");
+        }
+      };
+
+      ws.onclose = () => {
+        if (!cancelled) {
+          setStatus((curr) => (curr === "starting" || curr === "error" ? curr : "connecting"));
         }
       };
     }

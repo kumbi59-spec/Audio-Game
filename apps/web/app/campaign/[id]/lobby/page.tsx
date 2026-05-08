@@ -93,13 +93,22 @@ function useLobbySocket(campaignId: string) {
       };
 
       ws.onmessage = (ev) => {
-        let msg: MultiplayerServerEvent;
+        let raw: { type: string; message?: string };
         try {
-          msg = JSON.parse(ev.data as string) as MultiplayerServerEvent;
+          raw = JSON.parse(ev.data as string) as { type: string; message?: string };
         } catch {
           return;
         }
 
+        if (raw.type === "error") {
+          if (!cancelled) {
+            setStatus("error");
+            setError(raw.message ?? "An error occurred. Please try again.");
+          }
+          return;
+        }
+
+        const msg = raw as unknown as MultiplayerServerEvent;
         switch (msg.type) {
           case "lobby_state":
             // The server echoes myUserId only in the first lobby_state after joining.
@@ -148,8 +157,8 @@ function useLobbySocket(campaignId: string) {
       };
 
       ws.onclose = () => {
-        if (!cancelled && status !== "starting" && status !== "error") {
-          setStatus("connecting");
+        if (!cancelled) {
+          setStatus((curr) => (curr === "starting" || curr === "error" ? curr : "connecting"));
         }
       };
     }
