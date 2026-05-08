@@ -103,11 +103,38 @@ export const useGameStore = create<GameStore>()(
           if ((knownStats as readonly string[]).includes(statName)) {
             const key = statName as KnownStat;
             const current = state.character.stats[key] ?? 0;
+            const newStats = { ...state.character.stats, [key]: Math.max(0, current + delta) };
+
+            // Auto-level on XP gain. Mirrors packages/gm-engine/src/reducer.ts:
+            //   threshold = level² × 100
+            //   per level: +5 maxHp, +5 hp (capped at new maxHp)
+            //   odd levels: +1 STR, +1 DEX
+            //   even levels: +1 INT, +1 CHA
+            // The reducer keeps applying levels in a loop while XP exceeds the
+            // threshold, so a large XP grant can cross multiple levels in one
+            // turn. The GM's prompt also says "the system handles leveling
+            // automatically" — this is what makes that true on the web side.
+            if (key === "experience") {
+              while (true) {
+                const lvl = newStats.level ?? 1;
+                const threshold = lvl * lvl * 100;
+                if ((newStats.experience ?? 0) < threshold) break;
+                const next = lvl + 1;
+                newStats.level = next;
+                newStats.maxHp = (newStats.maxHp ?? 10) + 5;
+                newStats.hp = Math.min((newStats.hp ?? 0) + 5, newStats.maxHp);
+                if (next % 2 !== 0) {
+                  newStats.strength = (newStats.strength ?? 10) + 1;
+                  newStats.dexterity = (newStats.dexterity ?? 10) + 1;
+                } else {
+                  newStats.intelligence = (newStats.intelligence ?? 10) + 1;
+                  newStats.charisma = (newStats.charisma ?? 10) + 1;
+                }
+              }
+            }
+
             return {
-              character: {
-                ...state.character,
-                stats: { ...state.character.stats, [key]: Math.max(0, current + delta) },
-              },
+              character: { ...state.character, stats: newStats },
             };
           }
           const current = state.character.customStats?.[statName] ?? 0;
