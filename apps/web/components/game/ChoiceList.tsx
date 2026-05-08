@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 
 interface ChoiceListProps {
@@ -12,10 +12,16 @@ interface ChoiceListProps {
 export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListProps) {
   const { announce } = useAnnouncer();
   const listRef = useRef<HTMLOListElement>(null);
+  // Local lock to disable the buttons synchronously on click. The parent's
+  // `disabled` prop comes from session.isGenerating which only flips after the
+  // store update lands, so a fast double-tap could fire onSelect twice in the
+  // same render cycle. Reset whenever the choice set changes.
+  const [submittedIdx, setSubmittedIdx] = useState<number | null>(null);
 
   // Announce when new choices appear
   useEffect(() => {
     if (choices.length > 0) {
+      setSubmittedIdx(null);
       const summary = `${choices.length} options available: ${choices.map((c, i) => `${i + 1}, ${c}`).join(". ")}`;
       announce(summary);
       // Move focus to the first choice
@@ -23,6 +29,12 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
       firstBtn?.focus();
     }
   }, [choices, announce]);
+
+  function handleSelect(i: number, choice: string) {
+    if (disabled || submittedIdx !== null) return;
+    setSubmittedIdx(i);
+    onSelect(i, choice);
+  }
 
   if (choices.length === 0) return null;
 
@@ -33,9 +45,10 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
         {choices.map((choice, i) => (
           <li key={i}>
             <button
-              onClick={() => onSelect(i, choice)}
-              disabled={disabled}
+              onClick={() => handleSelect(i, choice)}
+              disabled={disabled || submittedIdx !== null}
               aria-label={`Option ${i + 1}: ${choice}`}
+              aria-busy={submittedIdx === i}
               className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
             >
               <span
