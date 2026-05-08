@@ -76,7 +76,21 @@ function useLobbySocket(campaignId: string) {
 
       if (cancelled) return;
 
-      const apiBase = process.env["NEXT_PUBLIC_API_URL"] ?? "http://localhost:4000";
+      const configuredBase = process.env["NEXT_PUBLIC_API_URL"];
+      const onLocalhost =
+        typeof window !== "undefined" &&
+        /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+      // In a deployed (non-localhost) browser, refusing to fall back to
+      // localhost is what turns "Could not reach the multiplayer lobby" from
+      // a mystery into an actionable config error.
+      if (!configuredBase && !onLocalhost) {
+        setStatus("error");
+        setError(
+          "Multiplayer is not configured for this deployment (NEXT_PUBLIC_API_URL is unset).",
+        );
+        return;
+      }
+      const apiBase = configuredBase ?? "http://localhost:4000";
       const wsUrl = apiBase.replace(/^http/, "ws") + `/ws/lobby/${campaignId}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -152,7 +166,9 @@ function useLobbySocket(campaignId: string) {
       ws.onerror = () => {
         if (!cancelled) {
           setStatus("error");
-          setError("Could not reach the multiplayer lobby. Check your connection and try again.");
+          setError(
+            `Could not reach the multiplayer lobby at ${wsUrl}. Check your connection and try again.`,
+          );
         }
       };
 

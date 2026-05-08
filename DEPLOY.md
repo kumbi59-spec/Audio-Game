@@ -50,7 +50,9 @@ Commit the generated `prisma/migrations/` directory. Render's build step will ru
 4. For each service, open Environment → fill the secrets marked `sync: false` in `render.yaml`. Use the values from `.env.production.example` as a checklist.
 5. After secrets are in place, click **Manual Deploy → Deploy latest commit** on each service.
 
-The web service's `NEXTAUTH_URL` should match its Render URL (e.g. `https://echoquest-web.onrender.com`). The api's `ALLOWED_ORIGINS` should list the same web URL.
+The web service's `NEXTAUTH_URL` should match its Render URL (e.g. `https://echoquest-web.onrender.com`). The api's `ALLOWED_ORIGINS` should list the same web URL — include the apex/custom domain too (e.g. `https://echoquest.us`) once it's wired up, otherwise the multiplayer lobby's WebSocket upgrade is rejected by CORS.
+
+For the multiplayer lobby to work in production, set `NEXT_PUBLIC_API_URL` on the web service to the api service's public URL (e.g. `https://echoquest-api.onrender.com`). The browser opens `/ws/lobby/:campaignId` against this host, so it must be reachable over HTTPS/WSS.
 
 ## 4. Seed the admin account
 
@@ -72,7 +74,7 @@ Make sure `ADMIN_EMAILS` (set in the Render dashboard) also contains that email 
 
 ## 6. Domains, email, push
 
-- **Custom domain** — Render → Settings → Custom Domains. Update `NEXTAUTH_URL` and `ALLOWED_ORIGINS` to match.
+- **Custom domain** — Render → Settings → Custom Domains. Update `NEXTAUTH_URL` and `ALLOWED_ORIGINS` to match. If the api also has a custom domain, update `NEXT_PUBLIC_API_URL` on the web service so the multiplayer lobby's WebSocket targets the new hostname.
 - **Resend** — verify your sending domain (SPF + DKIM DNS records). Set `RESEND_FROM=EchoQuest <noreply@yourdomain.com>`.
 - **Web push** — locally run `npx web-push generate-vapid-keys`, paste both halves into Render. The public key also needs `NEXT_PUBLIC_` prefix so the browser bundle picks it up.
 
