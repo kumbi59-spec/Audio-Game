@@ -5,7 +5,6 @@ import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { splitIntoSentences } from "@/lib/audio/audio-queue";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
@@ -300,10 +299,12 @@ export function useGameSession() {
                     abort.signal,
                   );
                 } else {
-                  const sentences = splitIntoSentences(narration);
-                  for (const sentence of sentences) {
-                    if (abort.signal.aborted) break;
-                    await speakText(sentence);
+                  // Browser TTS keepalive (browser-tts.ts) keeps the engine
+                  // alive across the full narration, so we no longer need to
+                  // chunk per sentence — chunking introduced an audible gap
+                  // between sentences where the synthesis engine restarted.
+                  if (!abort.signal.aborted) {
+                    await speakText(narration);
                   }
                 }
               } else if (eventType === "error") {

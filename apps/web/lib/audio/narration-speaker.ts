@@ -1,5 +1,4 @@
 import { speak } from "./tts-provider";
-import { splitIntoSentences } from "./audio-queue";
 import { useAudioStore } from "@/store/audio-store";
 
 /**
@@ -117,15 +116,18 @@ export async function speakNarrationMultiVoice(
     return ttsVoiceId || undefined;
   }
 
+  // Speak each speaker-segment as one TTS request rather than one per
+  // sentence. Each ElevenLabs sentence-call would cost a full HTTP round
+  // trip; coalescing same-voice text into one call cuts the round-trip
+  // count from O(sentences) to O(voice changes). Combined with the
+  // streaming response on the provider side, multi-sentence segments now
+  // play essentially gaplessly.
+  //
+  // Interruption still works: the audio queue calls stopSpeech() which
+  // tears down the in-flight audio element mid-utterance.
   for (const seg of segments) {
     if (signal.aborted) break;
-
     const voiceId = voiceForSegment(seg);
-    const sentences = splitIntoSentences(seg.text);
-
-    for (const sentence of sentences) {
-      if (signal.aborted) break;
-      await speakFn(sentence, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId });
-    }
+    await speakFn(seg.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId });
   }
 }
