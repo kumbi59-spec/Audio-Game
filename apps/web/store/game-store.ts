@@ -31,6 +31,7 @@ interface GameStore {
   updateNpcRelationship: (change: { npcId: string; name: string; standing: number; notes?: string }) => void;
   addCodexEntry: (entry: CodexEntry) => void;
   updateLocation: (locationId: string) => void;
+  setMemorySummary: (summary: string) => void;
   clearSession: () => void;
   saveCurrentCampaign: () => void;
   loadSavedCampaign: (id: string) => void;
@@ -240,6 +241,11 @@ export const useGameStore = create<GameStore>()(
       updateLocation: (locationId) =>
         set((state) => ({
           session: state.session ? { ...state.session, currentLocationId: locationId } : null,
+        })),
+
+      setMemorySummary: (summary) =>
+        set((state) => ({
+          session: state.session ? { ...state.session, memorySummary: summary } : null,
         })),
 
       clearSession: () =>

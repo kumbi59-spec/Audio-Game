@@ -33,6 +33,7 @@ export function useGameSession() {
     updateNpcRelationship,
     addCodexEntry,
     updateLocation,
+    setMemorySummary,
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
@@ -315,6 +316,14 @@ export function useGameSession() {
                     await speakText(narration);
                   }
                 }
+              } else if (eventType === "memory_summary") {
+                // Server compacted older history into a memory summary; persist
+                // it so subsequent turns send the compacted form rather than
+                // re-sending the long uncompacted history.
+                const summaryData = data as { summary?: unknown };
+                if (typeof summaryData.summary === "string") {
+                  setMemorySummary(summaryData.summary);
+                }
               } else if (eventType === "error") {
                 receivedStreamError = true;
                 const errorMessage = data?.message ?? "Narrator degraded mode is active.";
@@ -409,7 +418,7 @@ export function useGameSession() {
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
-      speakText, soundCuesEnabled, announce,
+      setMemorySummary, speakText, soundCuesEnabled, announce,
     ]
   );
 
