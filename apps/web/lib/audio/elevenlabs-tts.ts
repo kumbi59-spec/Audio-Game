@@ -21,6 +21,33 @@ function supportsMseMpeg(): boolean {
   );
 }
 
+/**
+ * Fetch wrapper that retries once on transient failures (network errors,
+ * 502/503/504). Doesn't retry on 4xx client errors or the cap-reached
+ * sentinel — those are deterministic and need different handling upstream.
+ */
+async function fetchWithRetry(input: RequestInfo, init: RequestInit): Promise<Response> {
+  const attempt = async (): Promise<Response> => {
+    return fetch(input, init);
+  };
+  try {
+    const res = await attempt();
+    if (res.status >= 502 && res.status <= 504) {
+      await new Promise((r) => setTimeout(r, 250));
+      return attempt();
+    }
+    return res;
+  } catch (err) {
+    // Network-level failure (DNS, offline, aborted by browser, etc.)
+    await new Promise((r) => setTimeout(r, 250));
+    try {
+      return await attempt();
+    } catch {
+      throw err;
+    }
+  }
+}
+
 export class ElevenLabsTTS implements TTSProvider {
   private audio: HTMLAudioElement | null = null;
   private _speaking = false;
@@ -51,7 +78,7 @@ export class ElevenLabsTTS implements TTSProvider {
     // compute the exact playbackRate compensation the client should apply.
     const playbackCompensation = requestedRate / apiSpeed;
 
-    const res = await fetch(TTS_PROXY, {
+    const res = await fetchWithRetry(TTS_PROXY, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
