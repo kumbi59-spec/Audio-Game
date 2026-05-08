@@ -1,6 +1,7 @@
 import type { TTSOptions, TTSVoice, TTSProvider } from "@/types/audio";
+import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "./voices-catalog";
 
-const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Rachel
+const DEFAULT_VOICE_ID = DEFAULT_ELEVENLABS_VOICE_ID;
 const TTS_PROXY = "/api/game/tts";
 // Mirror of the server-side clamp: ElevenLabs rejects voice_settings.speed
 // outside this range. Speeds beyond it are realised via playbackRate.
@@ -58,14 +59,7 @@ export class ElevenLabsTTS implements TTSProvider {
   }
 
   getVoices(): TTSVoice[] {
-    return [
-      { id: "21m00Tcm4TlvDq8ikWAM", name: "Rachel", lang: "en-US", provider: "elevenlabs" },
-      { id: "AZnzlk1XvdvUeBnXmlld", name: "Domi", lang: "en-US", provider: "elevenlabs" },
-      { id: "EXAVITQu4vr4xnSDxMaL", name: "Bella", lang: "en-US", provider: "elevenlabs" },
-      { id: "ErXwobaYiN019PkySvjV", name: "Antoni", lang: "en-US", provider: "elevenlabs" },
-      { id: "MF3mGyEYCl7XYWbV9V6O", name: "Elli", lang: "en-US", provider: "elevenlabs" },
-      { id: "TxGEqnHWrfWFTfGW9XjX", name: "Josh", lang: "en-US", provider: "elevenlabs" },
-    ];
+    return ELEVENLABS_PRESET_VOICES;
   }
 
   async speak(text: string, options: TTSOptions = {}): Promise<void> {
