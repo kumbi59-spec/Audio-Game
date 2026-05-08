@@ -11,6 +11,15 @@ interface GameStore {
   world: WorldData | null;
   /** DB-persisted session ID (null when running in-memory only) */
   dbSessionId: string | null;
+  /**
+   * Snapshot of (character, session) immediately before the most recent
+   * completed turn. Captured by useGameSession on successful turn finalize
+   * and consumed by undoLastTurn(). Single-step only — null when no undo
+   * is available (start of session, after an undo, or after clearSession).
+   * Not persisted: undo is a same-tab convenience; resuming a saved session
+   * starts with no undo target.
+   */
+  previousTurn: { character: CharacterData; session: InMemorySession } | null;
   savedCampaigns: Array<{ id: string; savedAt: number; session: InMemorySession; character: CharacterData; world: WorldData; dbSessionId: string | null }>;
 
   setSession: (session: InMemorySession) => void;
@@ -32,6 +41,8 @@ interface GameStore {
   addCodexEntry: (entry: CodexEntry) => void;
   updateLocation: (locationId: string) => void;
   setMemorySummary: (summary: string) => void;
+  capturePreTurn: (snapshot: { character: CharacterData; session: InMemorySession }) => void;
+  undoLastTurn: () => boolean;
   clearSession: () => void;
   saveCurrentCampaign: () => void;
   loadSavedCampaign: (id: string) => void;
@@ -45,6 +56,7 @@ export const useGameStore = create<GameStore>()(
       character: null,
       world: null,
       dbSessionId: null,
+      previousTurn: null,
       savedCampaigns: [],
 
       setSession: (session) => set({ session }),
@@ -275,8 +287,21 @@ export const useGameStore = create<GameStore>()(
           session: state.session ? { ...state.session, memorySummary: summary } : null,
         })),
 
+      capturePreTurn: (snapshot) => set({ previousTurn: snapshot }),
+
+      undoLastTurn: () => {
+        const { previousTurn } = useGameStore.getState();
+        if (!previousTurn) return false;
+        useGameStore.setState({
+          character: previousTurn.character,
+          session: previousTurn.session,
+          previousTurn: null,
+        });
+        return true;
+      },
+
       clearSession: () =>
-        set({ session: null, character: null, world: null, dbSessionId: null }),
+        set({ session: null, character: null, world: null, dbSessionId: null, previousTurn: null }),
       saveCurrentCampaign: () => set((state) => {
         if (!state.session || !state.character || !state.world) return {};
         const id = `${state.world.id}:${state.session.id}`;

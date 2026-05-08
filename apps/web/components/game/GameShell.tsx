@@ -31,6 +31,8 @@ export function GameShell() {
     speakText,
     sceneTransitionHint,
     clearSceneTransitionHint,
+    canUndo,
+    undoLastTurn,
   } =
     useGameSession();
   const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
@@ -231,6 +233,7 @@ export function GameShell() {
         onToggleInventory={() => handleOpenSheetTab("inventory")}
         onToggleQuestLog={() => handleOpenSheetTab("quests")}
         onToggleHelpManual={handleToggleOperationsManual}
+        onUndo={canUndo ? undoLastTurn : undefined}
         isSpeaking={speaking}
       />
       <OperationsManual
@@ -443,6 +446,14 @@ export function GameShell() {
               Recap
             </button>
             <button
+              onClick={undoLastTurn}
+              disabled={!canUndo}
+              aria-label="Undo last turn (U)"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
+            >
+              Undo
+            </button>
+            <button
               onClick={shareRecap}
               aria-label="Share your session recap"
               className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
@@ -463,6 +474,9 @@ export function GameShell() {
                 </button>
                 <button onClick={replayLast} aria-label="Replay last narration" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Recap
+                </button>
+                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
+                  Undo
                 </button>
                 <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Share Recap

@@ -20,6 +20,7 @@ export const SHORTCUT_HELP = [
   { key: "Q", description: "Toggle quest log" },
   { key: "L", description: "Read current location" },
   { key: "S", description: "Read character status" },
+  { key: "U", description: "Undo last turn" },
   { key: "Escape", description: "Close open panel / cancel input" },
 ];
 
@@ -34,6 +35,7 @@ interface KeyboardShortcutsProps {
   onReadLocation?: () => void;
   onReadStatus?: () => void;
   onToggleHelpManual?: () => void;
+  onUndo?: () => void;
   isSpeaking?: boolean;
 }
 
@@ -48,6 +50,7 @@ export function KeyboardShortcuts({
   onReadLocation,
   onReadStatus,
   onToggleHelpManual,
+  onUndo,
   isSpeaking = false,
 }: KeyboardShortcutsProps) {
   const { keyboardHelpOpen, setKeyboardHelpOpen } = useAccessibilityStore();
@@ -139,6 +142,11 @@ export function KeyboardShortcuts({
           e.preventDefault();
           onReadStatus?.();
           break;
+        case "u":
+        case "U":
+          e.preventDefault();
+          onUndo?.();
+          break;
         default:
           if (e.key >= "1" && e.key <= "9") {
             e.preventDefault();
@@ -150,7 +158,7 @@ export function KeyboardShortcuts({
       isSpeaking, ttsSpeed, ambientEnabled,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
-      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen,
+      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen, onUndo,
     ]
   );
 

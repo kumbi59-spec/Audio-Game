@@ -52,6 +52,7 @@ export function useGameSession() {
     addCodexEntry,
     updateLocation,
     setMemorySummary,
+    capturePreTurn,
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
@@ -424,6 +425,13 @@ export function useGameSession() {
             : null,
         }));
 
+        // Capture the pre-turn snapshot as the undo target. Only on successful
+        // completion — if the turn errored we already rolled back to this same
+        // snapshot, so making it the undo target would be a no-op.
+        if (preTurnCharacter && preTurnSession) {
+          capturePreTurn({ character: preTurnCharacter, session: preTurnSession });
+        }
+
         incrementTurnCount();
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -447,9 +455,19 @@ export function useGameSession() {
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
-      setMemorySummary, speakText, soundCuesEnabled, announce,
+      setMemorySummary, capturePreTurn, speakText, soundCuesEnabled, announce,
     ]
   );
+
+  const previousTurn = useGameStore((s) => s.previousTurn);
+  const undoLastTurn = useCallback(() => {
+    // Stop any in-flight TTS before snapping back so the user doesn't hear a
+    // sentence from the now-stale state continuing over the restored scene.
+    stopSpeech();
+    const ok = useGameStore.getState().undoLastTurn();
+    announce(ok ? "Last turn undone." : "Nothing to undo.", "polite");
+    return ok;
+  }, [announce]);
 
   return {
     session,
@@ -461,5 +479,7 @@ export function useGameSession() {
     lastNarration,
     sceneTransitionHint,
     clearSceneTransitionHint: () => setSceneTransitionHint(null),
+    canUndo: previousTurn !== null && !session?.isGenerating,
+    undoLastTurn,
   };
 }
