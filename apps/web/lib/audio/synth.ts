@@ -944,6 +944,28 @@ const CUE_FNS: Record<SoundCue, (ac: AudioContext) => void> = {
 const _lastPlayedAt: Partial<Record<SoundCue, number>> = {};
 const CUE_MIN_INTERVAL_MS = 80;
 
+// Sidechain ambient under the cue so the cue doesn't get swallowed by the
+// bed. Drops to CUE_DUCK_FACTOR of current volume for CUE_DUCK_MS, then
+// ramps back up. Numbers chosen to be unobtrusive but audibly clear the
+// foreground for short cues like clicks and longer ones like quest_complete.
+const CUE_DUCK_FACTOR = 0.35;
+const CUE_DUCK_MS = 600;
+
+function duckAmbientUnderCue(): void {
+  if (!_ambient || !_ctx) return;
+  const ac = _ctx;
+  const t = ac.currentTime;
+  const target = _ambient.masterGain;
+  const original = target.gain.value;
+  // Cancel any in-flight ramp so we don't stack ducks. setValueAtTime then
+  // ramp down → hold → ramp back up to the value the bed had before duck.
+  target.gain.cancelScheduledValues(t);
+  target.gain.setValueAtTime(original, t);
+  target.gain.linearRampToValueAtTime(original * CUE_DUCK_FACTOR, t + 0.05);
+  target.gain.setValueAtTime(original * CUE_DUCK_FACTOR, t + (CUE_DUCK_MS - 200) / 1000);
+  target.gain.linearRampToValueAtTime(original, t + CUE_DUCK_MS / 1000);
+}
+
 export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
   if (typeof window === "undefined") return;
   const now = performance.now();
@@ -951,6 +973,7 @@ export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
   if (now - last < CUE_MIN_INTERVAL_MS) return;
   _lastPlayedAt[cue] = now;
   const ac = ctx();
+  duckAmbientUnderCue();
 
   // Route all cue output through a master gain so we can honour volume
   const master = gain(ac, volume);
