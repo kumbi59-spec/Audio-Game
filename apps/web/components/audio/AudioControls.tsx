@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useAudioStore } from "@/store/audio-store";
-import { useEntitlementsStore } from "@/store/entitlements-store";
 import { pauseSpeech, resumeSpeech, stopSpeech, isSpeaking, isPaused, getVoices } from "@/lib/audio/tts-provider";
 import type { TTSVoice } from "@/types/audio";
 
@@ -15,21 +14,20 @@ interface AudioControlsProps {
 export function AudioControls({ onReplayLast, id = "audio-controls", disableReplay = false }: AudioControlsProps) {
   const {
     ttsSpeed,
+    ttsPitch,
     ttsVoiceId,
     volume,
     ambientEnabled,
     ambientVolume,
     soundCuesEnabled,
     setTTSSpeed,
+    setTTSPitch,
     setTTSVoiceId,
     setVolume,
     setAmbientEnabled,
     setAmbientVolume,
     setSoundCuesEnabled,
   } = useAudioStore();
-
-  const { entitlements } = useEntitlementsStore();
-  const isPremium = entitlements.premiumTts;
 
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -130,6 +128,22 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           </label>
 
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span id="pitch-label">Pitch</span>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.1}
+              value={ttsPitch}
+              onChange={(e) => setTTSPitch(parseFloat(e.target.value))}
+              aria-labelledby="pitch-label"
+              aria-valuetext={`${ttsPitch.toFixed(1)}`}
+              className="w-full accent-primary"
+            />
+            <span aria-hidden="true">{ttsPitch.toFixed(1)}</span>
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
             <span id="vol-label">Volume</span>
             <input
               type="range"
@@ -144,8 +158,8 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
             />
           </label>
 
-          {/* Voice selector — premium only */}
-          {isPremium && voices.length > 0 && (
+          {/* Voice selector — works on browser TTS too (system voices) */}
+          {voices.length > 0 && (
             <label className="flex items-center gap-2 text-sm text-muted-foreground sm:col-span-2">
               <span>Voice</span>
               <select

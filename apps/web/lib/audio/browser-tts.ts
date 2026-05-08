@@ -1,9 +1,18 @@
 import type { TTSOptions, TTSVoice, TTSProvider } from "@/types/audio";
 
+// Chrome's speechSynthesis.cancel() is asynchronous; calling speak() in the
+// same tick drops the new utterance ~10% of the time. Wait one tick first.
+const CANCEL_GRACE_MS = 50;
+
+// Chrome stops speaking after ~15s of continuous output (long-utterance bug).
+// Pinging pause/resume below the threshold keeps the engine alive.
+const KEEPALIVE_INTERVAL_MS = 10_000;
+
 export class BrowserTTS implements TTSProvider {
   private utterance: SpeechSynthesisUtterance | null = null;
   private _speaking = false;
   private _paused = false;
+  private keepaliveTimer: ReturnType<typeof setInterval> | null = null;
 
   isSupported(): boolean {
     return typeof window !== "undefined" && "speechSynthesis" in window;
@@ -22,6 +31,9 @@ export class BrowserTTS implements TTSProvider {
   async speak(text: string, options: TTSOptions = {}): Promise<void> {
     if (!this.isSupported()) return;
     this.stop();
+    // Give Chrome's async cancel() a tick to settle before queueing the next
+    // utterance, otherwise the speak() call is occasionally dropped.
+    await new Promise((r) => setTimeout(r, CANCEL_GRACE_MS));
 
     return new Promise((resolve) => {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -40,16 +52,23 @@ export class BrowserTTS implements TTSProvider {
           options.onBoundary!(e.charIndex, e.charLength ?? 1);
       }
 
-      utterance.onend = () => {
+      const cleanup = () => {
         this._speaking = false;
         this._paused = false;
+        if (this.keepaliveTimer !== null) {
+          clearInterval(this.keepaliveTimer);
+          this.keepaliveTimer = null;
+        }
+      };
+
+      utterance.onend = () => {
+        cleanup();
         options.onEnd?.();
         resolve();
       };
 
       utterance.onerror = () => {
-        this._speaking = false;
-        this._paused = false;
+        cleanup();
         resolve();
       };
 
@@ -57,9 +76,20 @@ export class BrowserTTS implements TTSProvider {
       this._speaking = true;
       this._paused = false;
 
-      // Chrome bug: cancel first to ensure fresh state
-      window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
+
+      // Long-utterance keepalive — pause/resume below Chrome's 15s cutoff
+      // keeps the synthesis engine running. Cheap enough to leave on for
+      // every utterance.
+      this.keepaliveTimer = setInterval(() => {
+        if (!this._speaking || this._paused) return;
+        try {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        } catch {
+          // Some embedded browsers throw on pause/resume — ignore.
+        }
+      }, KEEPALIVE_INTERVAL_MS);
     });
   }
 
@@ -69,6 +99,10 @@ export class BrowserTTS implements TTSProvider {
     this._speaking = false;
     this._paused = false;
     this.utterance = null;
+    if (this.keepaliveTimer !== null) {
+      clearInterval(this.keepaliveTimer);
+      this.keepaliveTimer = null;
+    }
   }
 
   pause(): void {

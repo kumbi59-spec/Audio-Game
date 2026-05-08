@@ -5,6 +5,17 @@ import { useAudioStore } from "@/store/audio-store";
 
 const instances: Partial<Record<TTSProviderType, ITTSProvider>> = {};
 
+/**
+ * Apply the same perceptual (squared) curve to the master volume that
+ * sound-cues.ts uses, so narration loudness scales evenly with ambient
+ * and cues across the slider's range. Anchored at 0 and 1.
+ */
+function curvedVolume(linear: number): number {
+  if (linear <= 0) return 0;
+  if (linear >= 1) return 1;
+  return linear * linear;
+}
+
 function instanceFor(type: TTSProviderType): ITTSProvider {
   if (!instances[type]) {
     instances[type] = type === "elevenlabs" ? new ElevenLabsTTS() : new BrowserTTS();
@@ -27,7 +38,7 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
   const resolvedOpts: TTSOptions = {
     rate: options.rate ?? state.ttsSpeed,
     pitch: options.pitch ?? state.ttsPitch,
-    volume: options.volume ?? state.volume,
+    volume: options.volume ?? curvedVolume(state.volume),
     voiceId: options.voiceId ?? state.ttsVoiceId,
     ...(options.onEnd ? { onEnd: options.onEnd } : {}),
     ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),
@@ -55,7 +66,7 @@ export async function speakPreview(text: string, options: TTSOptions = {}): Prom
   const resolvedOpts: TTSOptions = {
     rate: options.rate ?? state.ttsSpeed,
     pitch: options.pitch ?? state.ttsPitch,
-    volume: options.volume ?? state.volume,
+    volume: options.volume ?? curvedVolume(state.volume),
     voiceId: options.voiceId ?? state.ttsVoiceId,
     ...(options.onEnd ? { onEnd: options.onEnd } : {}),
     ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),

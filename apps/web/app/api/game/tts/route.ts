@@ -16,6 +16,29 @@ const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 const ELEVENLABS_SPEED_MIN = 0.7;
 const ELEVENLABS_SPEED_MAX = 1.2;
 
+// Voice-shape parameters. Defaults are tuned for long-form narration:
+// - Lower stability (0.35) gives the model more emotional range across a
+//   paragraph — preferable to the 0.5 "balanced" preset for storytelling.
+// - similarity_boost stays high so the chosen voice still sounds like itself.
+// - style adds a touch of expressiveness without flipping into theatrical.
+// All three are overridable via env so production can tune without a redeploy.
+const ELEVENLABS_STABILITY = clampUnit(
+  Number(process.env["ELEVENLABS_STABILITY"] ?? 0.35),
+);
+const ELEVENLABS_SIMILARITY = clampUnit(
+  Number(process.env["ELEVENLABS_SIMILARITY_BOOST"] ?? 0.75),
+);
+const ELEVENLABS_STYLE = clampUnit(
+  Number(process.env["ELEVENLABS_STYLE"] ?? 0.15),
+);
+const ELEVENLABS_USE_SPEAKER_BOOST =
+  process.env["ELEVENLABS_USE_SPEAKER_BOOST"] !== "false";
+
+function clampUnit(n: number): number {
+  if (Number.isNaN(n)) return 0;
+  return Math.max(0, Math.min(1, n));
+}
+
 // Monthly ElevenLabs character caps by tier. null = unlimited.
 // Defaults are tuned to keep healthy margins; override per deployment with env vars.
 const TTS_CHAR_CAPS: Record<string, number | null> = {
@@ -85,8 +108,12 @@ export async function POST(req: NextRequest) {
 
   const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, body.speed));
 
+  // Use the /stream endpoint so the upstream returns chunked audio as it
+  // synthesises. We pipe that body straight to the client, which can start
+  // playback before the full clip is buffered — TTFA drops from
+  // O(synthesis time) to O(network round-trip).
   const res = await fetch(
-    `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}`,
+    `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}/stream`,
     {
       method: "POST",
       headers: {
@@ -98,8 +125,10 @@ export async function POST(req: NextRequest) {
         text: body.text,
         model_id: "eleven_turbo_v2_5",
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
+          stability: ELEVENLABS_STABILITY,
+          similarity_boost: ELEVENLABS_SIMILARITY,
+          style: ELEVENLABS_STYLE,
+          use_speaker_boost: ELEVENLABS_USE_SPEAKER_BOOST,
           speed: apiSpeed,
         },
       }),
@@ -138,15 +167,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 
-  const audioBuffer = await res.arrayBuffer();
+  if (!res.body) {
+    return NextResponse.json({ error: "ElevenLabs returned no body" }, { status: 502 });
+  }
 
-  // Credit usage asynchronously — don't block the audio response
+  // Credit usage asynchronously — don't block the audio response. Recording
+  // happens before the body has been fully consumed by the client, but that's
+  // fine: characters were submitted upstream, so the user owes them whether
+  // or not the client finishes downloading.
   void recordTtsChars(session.user.id, body.text.length);
 
-  return new Response(audioBuffer, {
+  // Stream the upstream body straight through. Next.js will forward it to
+  // the client as it arrives.
+  return new Response(res.body, {
     headers: {
       "Content-Type": "audio/mpeg",
       "Cache-Control": "no-store",
+      // Hint to the browser that ranged requests aren't supported on this
+      // ephemeral stream — avoids the audio element re-issuing a Range
+      // request mid-playback.
+      "Accept-Ranges": "none",
     },
   });
 }
