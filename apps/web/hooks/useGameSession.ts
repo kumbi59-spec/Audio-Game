@@ -9,8 +9,8 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
-import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
-import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
+import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
@@ -87,6 +87,14 @@ export function useGameSession() {
 
       // Stop any current TTS
       stopSpeech();
+
+      // Full pre-turn snapshot. The optimistic narrative-only rollback below
+      // misses character + session-side mutations (HP, XP, inventory, quests,
+      // flags, relationships, codex, achievements, location) that fire from
+      // mid-stream state_change events. If the stream errors after some have
+      // landed, we'd otherwise leak partial state into the next turn.
+      const preTurnCharacter = useGameStore.getState().character;
+      const preTurnSession = useGameStore.getState().session;
 
       const optimistic = createOptimisticTurn(
         {
@@ -330,21 +338,18 @@ export function useGameSession() {
         }
 
         if (receivedStreamError) {
-          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
-          const reconciled = reconcileOptimisticState({
-            optimistic: rolled,
-            server: rolled,
-            clientRevision: (session as { revision?: number }).revision,
-            serverRevision: (session as { revision?: number }).revision,
-          });
-
-          useGameStore.setState((s) => ({
-            session: s.session
+          // Full rollback: restore the pre-turn character + session and only
+          // re-apply the player-action narration entry + the (system) error
+          // message. Any mid-stream state mutations are discarded.
+          useGameStore.setState({
+            character: preTurnCharacter,
+            session: preTurnSession
               ? {
-                ...s.session,
+                ...preTurnSession,
                 narrationLog: streamErrorMessage
                   ? [
-                    ...reconciled.state.narrationLog,
+                    ...preTurnSession.narrationLog,
+                    optimistic.playerEntry,
                     {
                       id: (Date.now() + 4).toString(),
                       text: streamErrorMessage,
@@ -352,13 +357,13 @@ export function useGameSession() {
                       timestamp: new Date(),
                     },
                   ]
-                  : reconciled.state.narrationLog,
-                isGenerating: reconciled.state.isGenerating,
-                history: reconciled.state.history,
-                choices: reconciled.state.choices,
+                  : [...preTurnSession.narrationLog, optimistic.playerEntry],
+                isGenerating: false,
+                choices: preTurnSession.choices,
+                history: preTurnSession.history,
               }
               : null,
-          }));
+          });
           return;
         }
 
@@ -385,18 +390,15 @@ export function useGameSession() {
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           console.error("Game session error:", err);
-          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
-          const reconciled = reconcileOptimisticState({
-            optimistic: rolled,
-            server: rolled,
-            clientRevision: (session as { revision?: number }).revision,
-            serverRevision: (session as { revision?: number }).revision,
-          });
-          useGameStore.setState((s) => ({
-            session: s.session
-              ? { ...s.session, narrationLog: reconciled.state.narrationLog, isGenerating: reconciled.state.isGenerating, history: reconciled.state.history, choices: reconciled.state.choices }
+          // Full rollback to the pre-turn snapshot — same reasoning as the
+          // stream-error path above. The optimistic player_action entry is
+          // dropped entirely on a hard failure since the action never landed.
+          useGameStore.setState({
+            character: preTurnCharacter,
+            session: preTurnSession
+              ? { ...preTurnSession, isGenerating: false }
               : null,
-          }));
+          });
         }
       } finally {
         inFlightRef.current = false;
