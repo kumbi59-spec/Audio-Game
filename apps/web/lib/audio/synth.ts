@@ -937,8 +937,19 @@ const CUE_FNS: Record<SoundCue, (ac: AudioContext) => void> = {
   },
 };
 
+// Per-cue last-played timestamps (ms since epoch). A second invocation of
+// the same cue inside CUE_MIN_INTERVAL_MS is dropped — prevents two clicks,
+// two door_opens, etc. from stacking on top of each other when callers
+// fire rapidly.
+const _lastPlayedAt: Partial<Record<SoundCue, number>> = {};
+const CUE_MIN_INTERVAL_MS = 80;
+
 export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
   if (typeof window === "undefined") return;
+  const now = performance.now();
+  const last = _lastPlayedAt[cue] ?? 0;
+  if (now - last < CUE_MIN_INTERVAL_MS) return;
+  _lastPlayedAt[cue] = now;
   const ac = ctx();
 
   // Route all cue output through a master gain so we can honour volume
