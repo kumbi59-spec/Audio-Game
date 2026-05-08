@@ -55,6 +55,9 @@ export type AmbientTrack =
   | "space_station"
   | "cyberpunk_rain"
   | "cosmic_void"
+  | "forge"
+  | "storm"
+  | "underwater"
   | "none";
 
 export interface AudioSettings {

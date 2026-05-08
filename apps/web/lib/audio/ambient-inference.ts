@@ -6,6 +6,10 @@ const KEYWORD_MAP: Array<{ keywords: string[]; track: AmbientTrack }> = [
   { keywords: ["desert", "sand", "dune", "dunes", "oasis", "wasteland", "arid", "crimson wastes", "red sand", "sandstorm"], track: "desert" },
   { keywords: ["space station", "station", "starship", "colony ship", "generation ship", "airlock", "reactor", "ship corridor", "ship bridge", "cryobay", "engineering bay", "spinhub", "long hall"], track: "space_station" },
   { keywords: ["neon", "precinct", "promenade", "arcology", "megacity", "cyberpunk", "mire", "sub-city", "undercity", "rainy street", "rain slick", "rain-slick"], track: "cyberpunk_rain" },
+  // New atmosphere tracks
+  { keywords: ["forge", "smithy", "blacksmith", "anvil", "furnace", "kiln", "foundry", "bellows"], track: "forge" },
+  { keywords: ["storm", "thunderstorm", "tempest", "downpour", "rainfall", "heavy rain", "thunder", "lightning"], track: "storm" },
+  { keywords: ["underwater", "submerged", "sunken", "drowned", "abyssal depths", "kelp", "reef", "lagoon"], track: "underwater" },
   // Generic location tracks
   { keywords: ["dungeon", "prison", "cell", "underground", "basement", "vault", "crypt", "tomb", "catacomb", "sewer"], track: "dungeon" },
   { keywords: ["cave", "cavern", "grotto", "pit", "abyss", "chasm", "mine", "shaft"], track: "cave" },

@@ -470,6 +470,92 @@ function buildAmbient(ac: AudioContext, track: AmbientTrack): AmbientHandle | nu
       return ssHandle;
     }
 
+    case "forge": {
+      // Hot crackle + low rumbling roar — forge fire / blacksmith.
+      // Crackle: HPF white noise, rapid LFO simulates pops.
+      const crackle = whiteNoise(ac);
+      const hpCrackle = hpf(ac, 2400);
+      const cg = gain(ac, 0.07);
+      crackle.connect(hpCrackle); hpCrackle.connect(cg); cg.connect(master);
+      const crackleLfo = lfoTremolo(ac, cg, 7, 0.05, 0.07);
+      // Roar: LPF pink noise, slow tremolo
+      const roar = pinkNoise(ac);
+      const lpRoar = lpf(ac, 320, 0.7);
+      const rg = gain(ac, 0.22);
+      roar.connect(lpRoar); lpRoar.connect(rg); rg.connect(master);
+      const roarLfo = lfoTremolo(ac, rg, 0.18, 0.06, 0.22);
+      // Heat hum
+      const hum = osc(ac, "sine", 95);
+      const hg = gain(ac, 0.05);
+      hum.connect(hg); hg.connect(master);
+      add(crackle, hpCrackle, cg, crackleLfo, roar, lpRoar, rg, roarLfo, hum, hg);
+      [crackle, roar, hum, crackleLfo, roarLfo].forEach((n) => (n as AudioScheduledSourceNode).start());
+      break;
+    }
+
+    case "storm": {
+      // Rural thunderstorm: heavy rain bed + distant thunder rumble.
+      // Rain bed: LPF white noise (warmer than cyberpunk_rain's brighter mix).
+      const rain = whiteNoise(ac);
+      const lpRain = lpf(ac, 1800, 0.5);
+      const rg = gain(ac, 0.3);
+      rain.connect(lpRain); lpRain.connect(rg); rg.connect(master);
+      const rainLfo = lfoTremolo(ac, rg, 0.05, 0.05, 0.3);
+      // Sub rumble: low sine with very slow LFO — simulates distant thunder
+      // without scheduling discrete strikes.
+      const thunder = osc(ac, "sine", 42);
+      const tg = gain(ac, 0.18);
+      thunder.connect(tg); tg.connect(master);
+      const thunderLfo = lfoTremolo(ac, tg, 0.04, 0.10, 0.16);
+      // Mid wind layer
+      const wind = pinkNoise(ac);
+      const bpWind = bpf(ac, 220, 0.5);
+      const wg = gain(ac, 0.12);
+      wind.connect(bpWind); bpWind.connect(wg); wg.connect(master);
+      add(rain, lpRain, rg, rainLfo, thunder, tg, thunderLfo, wind, bpWind, wg);
+      [rain, thunder, wind, rainLfo, thunderLfo].forEach((n) => (n as AudioScheduledSourceNode).start());
+      break;
+    }
+
+    case "underwater": {
+      // Muffled, low-passed hum with slow bubble pings.
+      const conv = makeReverb(ac, 4.0, 1.5);
+      conv.connect(master);
+      const wetGain = gain(ac, 0.55);
+      wetGain.connect(conv);
+
+      const pink = pinkNoise(ac);
+      const lp = lpf(ac, 280, 0.9);
+      const dryG = gain(ac, 0.12);
+      pink.connect(lp); lp.connect(dryG); dryG.connect(master);
+      const sendG = gain(ac, 0.1);
+      lp.connect(sendG); sendG.connect(wetGain);
+
+      // Slow swell drone
+      const drone = osc(ac, "sine", 75);
+      const dg = gain(ac, 0.18);
+      const droneLfo = lfoTremolo(ac, dg, 0.06, 0.08, 0.16);
+      drone.connect(dg); dg.connect(master);
+
+      add(conv, wetGain, pink, lp, dryG, sendG, drone, dg, droneLfo);
+      [pink, drone, droneLfo].forEach((n) => (n as AudioScheduledSourceNode).start());
+      master.connect(ac.destination);
+      const uwHandle: AmbientHandle = { masterGain: master, nodes };
+
+      // Sparse bubble pings every 4–10s
+      let bubbleTimer: ReturnType<typeof setTimeout> | null = null;
+      function scheduleBubble() {
+        bubbleTimer = setTimeout(() => {
+          if (_ambient !== uwHandle) return;
+          glide(ac, "sine", 380 + Math.random() * 320, 720 + Math.random() * 200, 0.04, 0.5);
+          scheduleBubble();
+        }, 4000 + Math.random() * 6000);
+      }
+      scheduleBubble();
+      uwHandle.cleanup = () => { if (bubbleTimer !== null) clearTimeout(bubbleTimer); };
+      return uwHandle;
+    }
+
     case "cosmic_void": {
       // Ultra-low sub-sine: felt more than heard
       const sub = osc(ac, "sine", 28);
