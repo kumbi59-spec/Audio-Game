@@ -13,6 +13,24 @@ import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, re
 import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import type { InMemorySession } from "@/types/game";
+
+// Mirrors the server-side window in lib/ai/memory/context-window.ts: keep the
+// most recent ~40k chars of history. The server trims again on receipt; this
+// just keeps us from uploading 100s of KB on long sessions.
+const HISTORY_TRIM_CHARS = 40_000 * 4;
+
+function trimSessionHistory(session: InMemorySession): InMemorySession {
+  const history = session.history ?? [];
+  let totalChars = history.reduce((sum, m) => sum + m.content.length, 0);
+  if (totalChars <= HISTORY_TRIM_CHARS) return session;
+  const trimmed = [...history];
+  while (totalChars > HISTORY_TRIM_CHARS && trimmed.length > 2) {
+    const removed = trimmed.shift();
+    if (removed) totalChars -= removed.content.length;
+  }
+  return { ...session, history: trimmed };
+}
 
 export function useGameSession() {
   const {
@@ -126,7 +144,18 @@ export function useGameSession() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               signal,
-              body: JSON.stringify({ action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, dbSessionId: reqDbSessionId }),
+              body: JSON.stringify({
+                action: reqAction,
+                // The server (lib/ai/memory/context-window.ts) keeps the most
+                // recent ~40k chars of history anyway. Sending the full
+                // unbounded log every turn just wastes bandwidth and grows
+                // proportionally to session length. Trim history client-side
+                // to the same window before posting.
+                session: trimSessionHistory(reqSession),
+                character: reqCharacter,
+                world: reqWorld,
+                dbSessionId: reqDbSessionId,
+              }),
             }),
         };
 
