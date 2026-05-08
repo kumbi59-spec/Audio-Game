@@ -120,11 +120,6 @@ export default function LandingPage() {
         url: "https://echoquest.app",
         name: "EchoQuest",
         publisher: { "@id": "https://echoquest.app/#organization" },
-        potentialAction: {
-          "@type": "SearchAction",
-          target: { "@type": "EntryPoint", urlTemplate: "https://echoquest.app/library" },
-          "query-input": "required name=search_term_string",
-        },
       },
     ],
   };
