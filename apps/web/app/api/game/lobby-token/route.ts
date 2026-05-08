@@ -5,8 +5,9 @@ import { auth } from "@/auth";
 // Issues an HMAC-signed lobby token identical in format to the one the API
 // backend produces. Both apps share SESSION_SIGNING_KEY so the backend's
 // verifySessionToken() will accept tokens minted here. Generating the token
-// server-side in the web app avoids a round-trip to the API server and means
-// the lobby works even when API_URL is not configured in the web environment.
+// server-side in the web app avoids a round-trip to the API for credentials.
+// The lobby still requires NEXT_PUBLIC_API_URL on the web service so the
+// browser can open the /ws/lobby/:campaignId WebSocket on the API host.
 function issueSessionToken(campaignId: string): string {
   const key = process.env["SESSION_SIGNING_KEY"] ?? "dev-insecure-change-me";
   const nonce = randomBytes(9).toString("base64url");

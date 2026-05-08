@@ -81,6 +81,8 @@ services:
         sync: false
       - key: VAPID_SUBJECT
         sync: false
+      - key: NEXT_PUBLIC_API_URL
+        sync: false           # Public URL of the echoquest-api service, e.g. https://echoquest-api.onrender.com — required for the multiplayer lobby WebSocket
 
   - type: web
     name: echoquest-api
@@ -103,7 +105,7 @@ services:
       - key: SESSION_SIGNING_KEY
         generateValue: true
       - key: ALLOWED_ORIGINS
-        sync: false           # e.g. https://echoquest-web.onrender.com
+        sync: false           # Comma-separated list of allowed web origins for the multiplayer lobby WebSocket, e.g. https://echoquest-web.onrender.com,https://echoquest.us
       - key: DATABASE_URL
         sync: false           # Supabase direct connection string (port 5432) for vector queries
       - key: REDIS_URL
