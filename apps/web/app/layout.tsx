@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
@@ -78,14 +77,16 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
+      <head>
         {ADSENSE_PUB_ID && (
-          <Script
+          <script
+            async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUB_ID}`}
             crossOrigin="anonymous"
-            strategy="lazyOnload"
           />
         )}
+      </head>
+      <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <Suspense>
           <GoogleAnalytics />
         </Suspense>
