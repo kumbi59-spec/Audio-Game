@@ -7,11 +7,12 @@
  * fall back to OSV-Scanner against the lockfile. Fails closed on UNKNOWN.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const repoRoot = resolve(new URL(".", import.meta.url).pathname, "..");
 const lockfile = resolve(repoRoot, "pnpm-lock.yaml");
+const waiversFile = resolve(repoRoot, "security-release-waivers.json");
 
 function fail(message) {
   console.error(`RELEASE_GATED: ${message}`);
@@ -203,9 +204,27 @@ function runPnpmAudit() {
   const v = payload?.metadata?.vulnerabilities;
   if (!v) return { ran: true, ok: false, reason: "pnpm audit response missing vulnerability metadata" };
 
+  const findings = Object.entries(payload?.vulnerabilities ?? {}).map(([name, item]) => ({
+    name,
+    severity: String(item?.severity || "unknown").toLowerCase(),
+    via: (item?.via ?? []).map((entry) => {
+      if (typeof entry === "string") return { source: entry };
+      return {
+        source: entry?.source,
+        title: entry?.title,
+        url: entry?.url,
+        severity: entry?.severity,
+      };
+    }),
+    fixAvailable: item?.fixAvailable,
+    range: item?.range,
+    nodes: item?.nodes ?? [],
+  }));
+
   return {
     ran: true,
     ok: true,
+    findings,
     counts: {
       critical: Number(v.critical || 0),
       high: Number(v.high || 0),
@@ -214,6 +233,50 @@ function runPnpmAudit() {
       unknown: 0,
     },
   };
+}
+
+function loadWaivers() {
+  if (!existsSync(waiversFile)) return { packageNames: new Set(), advisoryUrls: new Set() };
+  try {
+    const raw = JSON.parse(readFileSync(waiversFile, "utf8"));
+    return {
+      packageNames: new Set((raw?.packageNames ?? []).map((v) => String(v))),
+      advisoryUrls: new Set((raw?.advisoryUrls ?? []).map((v) => String(v))),
+    };
+  } catch (e) {
+    fail(`invalid waivers file ${waiversFile}: ${e.message}`);
+  }
+}
+
+function applyWaiversToFindings(findings, waivers) {
+  const active = [];
+  const waived = [];
+  for (const f of findings) {
+    const byPkg = waivers.packageNames.has(f.name);
+    const byUrl = f.via.some((v) => v?.url && waivers.advisoryUrls.has(v.url));
+    if (byPkg || byUrl) waived.push(f);
+    else active.push(f);
+  }
+  return { active, waived };
+}
+
+function countsFromFindings(findings) {
+  const counts = { critical: 0, high: 0, moderate: 0, low: 0, unknown: 0 };
+  for (const f of findings) {
+    if (f.severity in counts) counts[f.severity] += 1;
+    else counts.unknown += 1;
+  }
+  return counts;
+}
+
+function printFindings(label, findings) {
+  if (!findings?.length) return;
+  console.log(`${label} findings:`);
+  for (const f of findings) {
+    const via = f.via.find((v) => v?.url) ?? f.via[0] ?? {};
+    const ref = via.url || via.title || via.source || "n/a";
+    console.log(` - ${f.severity.toUpperCase()} ${f.name} (${f.range || "unknown range"}) -> ${ref}`);
+  }
 }
 
 // ───────────────────────────── decision ────────────────────────────────
@@ -237,7 +300,14 @@ function evaluate(source, counts) {
 // ───────────────────────────── main ────────────────────────────────────
 const audit = runPnpmAudit();
 if (audit.ok) {
-  evaluate("pnpm-audit", audit.counts);
+  const waivers = loadWaivers();
+  const { active, waived } = applyWaiversToFindings(audit.findings ?? [], waivers);
+  if (waived.length) {
+    printFindings("Waived", waived);
+  }
+  const counts = countsFromFindings(active);
+  printFindings("Active", active.filter((f) => ["critical", "high"].includes(f.severity)));
+  evaluate("pnpm-audit", counts);
 }
 
 if (!audit.ok) {
