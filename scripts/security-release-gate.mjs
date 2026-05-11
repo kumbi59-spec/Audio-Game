@@ -2,9 +2,9 @@
 /**
  * Release-time dependency audit gate.
  *
- * Strategy: prefer OSV-Scanner (queries osv.dev, doesn't depend on the
- * npm registry's audit endpoint), fall back to `pnpm audit --prod` if
- * the scanner isn't installed. Fails closed on UNKNOWN.
+ * Strategy: gate on `pnpm audit --prod` first so release blocking reflects
+ * production/runtime dependency risk. If registry audit is unavailable,
+ * fall back to OSV-Scanner against the lockfile. Fails closed on UNKNOWN.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -235,17 +235,21 @@ function evaluate(source, counts) {
 }
 
 // ───────────────────────────── main ────────────────────────────────────
+const audit = runPnpmAudit();
+if (audit.ok) {
+  evaluate("pnpm-audit", audit.counts);
+}
+
+if (!audit.ok) {
+  console.warn(`pnpm audit could not produce a result (${audit.reason}); falling back to osv-scanner.`);
+}
+
 const osv = runOsvScanner();
 if (osv.ran && osv.ok) {
   evaluate("osv-scanner", osv.counts);
 }
 if (osv.ran && !osv.ok) {
-  console.warn(`osv-scanner could not produce a result (${osv.reason}); falling back to pnpm audit.`);
-}
-
-const audit = runPnpmAudit();
-if (audit.ok) {
-  evaluate("pnpm-audit", audit.counts);
+  console.warn(`osv-scanner could not produce a result (${osv.reason}).`);
 }
 
 fail(
