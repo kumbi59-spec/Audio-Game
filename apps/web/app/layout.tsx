@@ -12,7 +12,6 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { auth } from "@/auth";
 
-const ADSENSE_PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"] ?? "ca-pub-9267788778991046";
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
 
 export const metadata: Metadata = {
@@ -79,13 +78,12 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
-        {ADSENSE_PUB_ID && (
-          <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUB_ID}`}
-            crossOrigin="anonymous"
-            strategy="lazyOnload"
-          />
-        )}
+        <Script
+          id="adsense-loader"
+          strategy="beforeInteractive"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9267788778991046"
+          crossOrigin="anonymous"
+        />
         <Suspense>
           <GoogleAnalytics />
         </Suspense>
