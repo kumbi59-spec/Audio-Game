@@ -280,9 +280,13 @@ export default function LandingPage() {
                 <strong style={{ color: "var(--text)" }}>always free</strong> — never paywalled.
               </p>
               <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
-                <a href="/settings/voice" className="font-semibold hover:underline" style={{ color: "var(--accent)" }}>
-                  Customize the narrator voice →
-                </a>
+                <Link
+                  href="/seo/play-audio-rpg-with-screen-reader"
+                  className="font-semibold hover:underline"
+                  style={{ color: "var(--accent)" }}
+                >
+                  Read the screen-reader walkthrough →
+                </Link>
               </p>
             </div>
           </section>
@@ -361,11 +365,11 @@ export default function LandingPage() {
                   Explore forkable worlds
                 </Link>
                 <Link
-                  href="/my-worlds"
+                  href="/blog"
                   className="rounded-lg border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-80"
                   style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
                 >
-                  Nominate your world
+                  Read recent dispatches
                 </Link>
               </div>
             </div>
@@ -388,12 +392,14 @@ export default function LandingPage() {
 
         <footer className="px-6 py-6 text-center text-xs" style={{ color: "var(--text-subtle, var(--text-muted))", borderTop: "1px solid var(--border)" }}>
           <p className="mb-2">EchoQuest — Powered by Claude AI · Audio-first interactive storytelling</p>
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/about" className="hover:underline">About</Link>
             <Link href="/library" className="hover:underline">Library</Link>
             <Link href="/blog" className="hover:underline">Blog</Link>
             <Link href="/auth/sign-in" className="hover:underline">Sign in</Link>
             <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/contact-us" className="hover:underline">Support</Link>
+            <Link href="/terms" className="hover:underline">Terms</Link>
+            <Link href="/contact-us" className="hover:underline">Contact</Link>
           </div>
         </footer>
       </div>
