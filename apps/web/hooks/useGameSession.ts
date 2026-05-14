@@ -60,6 +60,10 @@ export function useGameSession() {
   const { announce } = useAnnouncer();
   // Per-session NPC name → voice slot map (A/B/C), reset when session changes
   const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
+  // Last-rendered skill_check signature, used to dedupe the dice-result system
+  // entry. The GM doesn't clear flags.last_skill_check between turns, so the
+  // same flag value can arrive on multiple subsequent state_change events.
+  const lastRenderedSkillCheckRef = useRef<string | null>(null);
   const [lastNarration, setLastNarration] = useState("");
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -68,6 +72,7 @@ export function useGameSession() {
   // Reset the NPC voice map whenever a new session starts
   useEffect(() => {
     npcVoiceMapRef.current = new Map();
+    lastRenderedSkillCheckRef.current = null;
   }, [session?.id]);
 
   useEffect(() => {
@@ -238,21 +243,6 @@ export function useGameSession() {
                 }
                 if (change.flags) {
                   updateFlags(change.flags as Record<string, unknown>);
-                  const flags = change.flags as Record<string, unknown>;
-                  if (typeof flags.last_skill_check === "string") {
-                    try {
-                      const sc = JSON.parse(flags.last_skill_check) as {
-                        stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
-                      };
-                      const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
-                      addNarrationEntry({
-                        id: `sc-${Date.now()}`,
-                        text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
-                        type: "system",
-                        timestamp: new Date(),
-                      });
-                    } catch { /* malformed flag — skip */ }
-                  }
                 }
                 if (Array.isArray(change.achievementUnlocks)) {
                   for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
@@ -329,6 +319,32 @@ export function useGameSession() {
                   timestamp: new Date(),
                 };
                 addNarrationEntry(narEntry);
+
+                // Skill check resolution arrives as flags.last_skill_check on
+                // this turn's state_change. We render the result entry AFTER
+                // the narration that introduces the check so the order in the
+                // log reads naturally — narration setup, then dice outcome —
+                // instead of dice-result-then-the-setup-it-resolved.
+                const flags = useGameStore.getState().session?.globalFlags as Record<string, unknown> | undefined;
+                if (
+                  flags &&
+                  typeof flags.last_skill_check === "string" &&
+                  flags.last_skill_check !== lastRenderedSkillCheckRef.current
+                ) {
+                  try {
+                    const sc = JSON.parse(flags.last_skill_check) as {
+                      stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
+                    };
+                    const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
+                    addNarrationEntry({
+                      id: `sc-${Date.now()}`,
+                      text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
+                      type: "system",
+                      timestamp: new Date(),
+                    });
+                    lastRenderedSkillCheckRef.current = flags.last_skill_check;
+                  } catch { /* malformed flag — skip */ }
+                }
 
                 if (entitlements.premiumTts && character) {
                   await speakNarrationMultiVoice(
