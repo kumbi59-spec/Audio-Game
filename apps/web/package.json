@@ -14,7 +14,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:admin": "tsx prisma/seed-admin.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "audio:list-missing": "node scripts/list-missing-audio-assets.mjs",
+    "audio:export-prompts": "node scripts/export-audio-prompts.mjs"
   },
   "dependencies": {
     "@audio-rpg/shared": "workspace:*",
