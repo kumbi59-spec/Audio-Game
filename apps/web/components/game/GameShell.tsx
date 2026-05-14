@@ -15,6 +15,8 @@ import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts"
 import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
 import { useGameSession } from "@/hooks/useGameSession";
+import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
+import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
@@ -28,9 +30,12 @@ export function GameShell() {
     world,
     submitAction,
     replayLast,
+    recapRecentTurns,
     speakText,
     sceneTransitionHint,
     clearSceneTransitionHint,
+    canUndo,
+    undoLastTurn,
   } =
     useGameSession();
   const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
@@ -43,6 +48,10 @@ export function GameShell() {
     reducedMotion,
     audioOnlyMode,
   } = useAccessibilityStore();
+  const { announce } = useAnnouncer();
+  const saveCurrentCampaign = useGameStore((s) => s.saveCurrentCampaign);
+  const [helpHintVisible, setHelpHintVisible] = useState(false);
+  const lastAutoSaveTurnRef = useRef<number>(-1);
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
@@ -102,10 +111,41 @@ export function GameShell() {
     }
   }, [session, speakText]);
 
+  // First-time players: a non-blocking hint announces help availability and
+  // shows a dismissable toast. Previously this auto-opened the modal, which
+  // forced every new user to dismiss a dialog before they could start playing.
   useEffect(() => {
     if (!session || operationsManualSeen) return;
-    openOperationsManual();
-  }, [session, operationsManualSeen, openOperationsManual]);
+    setHelpHintVisible(true);
+    announce("Press H or use the Help button at any time to open the Operations Manual.", "polite");
+  }, [session, operationsManualSeen, announce]);
+
+  // Auto-save every AUTO_SAVE_INTERVAL turns. Tracks last-saved turn in a
+  // ref so a turn count change in either direction (undo can decrease it
+  // back to a multiple) doesn't double-save.
+  const AUTO_SAVE_INTERVAL = 5;
+  useEffect(() => {
+    if (!session) return;
+    const turn = session.turnCount;
+    if (turn === 0) return;
+    if (turn === lastAutoSaveTurnRef.current) return;
+    if (turn % AUTO_SAVE_INTERVAL !== 0) return;
+    lastAutoSaveTurnRef.current = turn;
+    saveCurrentCampaign();
+    announce(`Auto-saved at turn ${turn}.`, "polite");
+  }, [session, saveCurrentCampaign, announce]);
+
+  const handleManualSave = useCallback(() => {
+    if (!session) return;
+    saveCurrentCampaign();
+    lastAutoSaveTurnRef.current = session.turnCount;
+    announce(`Saved at turn ${session.turnCount}.`, "polite");
+  }, [session, saveCurrentCampaign, announce]);
+
+  const dismissHelpHint = useCallback(() => {
+    setHelpHintVisible(false);
+    if (!operationsManualSeen) markOperationsManualSeen();
+  }, [operationsManualSeen, markOperationsManualSeen]);
 
   const currentLocationId = session?.currentLocationId ?? null;
 
@@ -138,6 +178,9 @@ export function GameShell() {
   }, [closeOperationsManual, operationsManualSeen, markOperationsManualSeen]);
 
   const handleToggleOperationsManual = useCallback(() => {
+    // Opening the manual implicitly dismisses the help toast — the user has
+    // discovered the feature one way or another.
+    setHelpHintVisible(false);
     if (operationsManualOpen) {
       handleCloseOperationsManual();
       return;
@@ -204,9 +247,29 @@ export function GameShell() {
 
   const hasChoices = session.choices.length > 0;
   const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 11 === 0;
-  const degradedMessage = [...session.narrationLog]
-    .reverse()
-    .find((e) => e.type === "system" && /fallback|unstable|degraded/i.test(e.text))?.text;
+  // Show the degraded banner only when the most recent degraded-mode system
+  // entry is more recent than the most recent successful narration. Without
+  // this guard the banner stuck around forever — the matched system message
+  // lives in narrationLog permanently, so the previous "find latest match"
+  // approach always returned a hit even after the next turn succeeded.
+  const degradedRegex = /fallback|unstable|degraded/i;
+  const lastDegradedIdx = (() => {
+    for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
+      const e = session.narrationLog[i];
+      if (e?.type === "system" && degradedRegex.test(e.text)) return i;
+    }
+    return -1;
+  })();
+  const lastNarrationIdx = (() => {
+    for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
+      if (session.narrationLog[i]?.type === "narration") return i;
+    }
+    return -1;
+  })();
+  const degradedMessage =
+    lastDegradedIdx >= 0 && lastDegradedIdx > lastNarrationIdx
+      ? session.narrationLog[lastDegradedIdx]?.text
+      : undefined;
 
   return (
     <>
@@ -231,6 +294,7 @@ export function GameShell() {
         onToggleInventory={() => handleOpenSheetTab("inventory")}
         onToggleQuestLog={() => handleOpenSheetTab("quests")}
         onToggleHelpManual={handleToggleOperationsManual}
+        onUndo={canUndo ? undoLastTurn : undefined}
         isSpeaking={speaking}
       />
       <OperationsManual
@@ -343,6 +407,27 @@ export function GameShell() {
           />
         </div>
 
+        {helpHintVisible && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-4 mb-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <span>
+              Tip: press <kbd className="rounded bg-background/50 px-1.5 py-0.5 font-mono">H</kbd>
+              {" "}or the Help button for keyboard shortcuts and gameplay tips.
+            </span>
+            <button
+              type="button"
+              onClick={dismissHelpHint}
+              aria-label="Dismiss help tip"
+              className="rounded text-muted-foreground hover:text-foreground focus-ring"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Ad banner — free tier only */}
         <AdBanner visible={shouldShowAdBanner} />
 
@@ -436,11 +521,26 @@ export function GameShell() {
               )}
             </button>
             <button
-              onClick={replayLast}
-              aria-label="Replay last narration (R)"
+              onClick={() => recapRecentTurns(3)}
+              aria-label="Catch up — recap the last 3 scenes"
               className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Recap
+            </button>
+            <button
+              onClick={undoLastTurn}
+              disabled={!canUndo}
+              aria-label="Undo last turn (U)"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
+            >
+              Undo
+            </button>
+            <button
+              onClick={handleManualSave}
+              aria-label="Save current campaign"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+            >
+              Save
             </button>
             <button
               onClick={shareRecap}
@@ -461,8 +561,14 @@ export function GameShell() {
                 <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Quest Book {activeQuestCount > 0 && `(${activeQuestCount})`}
                 </button>
-                <button onClick={replayLast} aria-label="Replay last narration" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Recap
+                </button>
+                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
+                  Undo
+                </button>
+                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Save
                 </button>
                 <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Share Recap

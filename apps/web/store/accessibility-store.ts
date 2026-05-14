@@ -10,6 +10,14 @@ interface AccessibilityStore {
   operationsManualSeen: boolean;
   operationsManualOpen: boolean;
   lastAnnouncement: string;
+  /**
+   * Where to land focus after a turn finalises:
+   *   "choices" — first choice button (default; best for screen-reader users
+   *               navigating the choice list).
+   *   "input"   — the action text input (best for players who mostly type
+   *               freeform actions; saves a Tab from choices back to input).
+   */
+  focusAfterTurn: "choices" | "input";
 
   setHighContrast: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
@@ -19,6 +27,7 @@ interface AccessibilityStore {
   openOperationsManual: () => void;
   closeOperationsManual: () => void;
   markOperationsManualSeen: () => void;
+  setFocusAfterTurn: (value: "choices" | "input") => void;
   announce: (message: string) => void;
 }
 
@@ -33,6 +42,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       operationsManualSeen: false,
       operationsManualOpen: false,
       lastAnnouncement: "",
+      focusAfterTurn: "choices",
 
       setHighContrast: (value) => set({ highContrast: value }),
       setReducedMotion: (value) => set({ reducedMotion: value }),
@@ -42,6 +52,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       openOperationsManual: () => set({ operationsManualOpen: true }),
       closeOperationsManual: () => set({ operationsManualOpen: false }),
       markOperationsManualSeen: () => set({ operationsManualSeen: true }),
+      setFocusAfterTurn: (value) => set({ focusAfterTurn: value }),
       announce: (message) => set({ lastAnnouncement: message }),
     }),
     { name: "audio-game-a11y" }

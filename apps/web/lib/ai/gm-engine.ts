@@ -241,7 +241,13 @@ export async function* streamGMTurn(
     const mergedStateChanges: Record<string, unknown> = {
       ...(gmResponse.stateChanges ?? {}),
       passiveBonuses: passive.bonuses,
-      passiveBonusNarration: passive.narration,
+      // Only surface passive bonuses to the player when a skill_check is
+      // actually being resolved this turn — otherwise every "I attack"
+      // turn dumps a "STR granted +X on melee_attack" line into the log
+      // even when no roll happens.
+      ...(gmResponse.skill_check && passive.narration.length > 0
+        ? { passiveBonusNarration: passive.narration }
+        : {}),
     };
 
     if (gmResponse.skill_check) {

@@ -9,10 +9,28 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
-import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, rollbackTurn, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
-import { advanceSession, reconcileOptimisticState, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
+import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import type { InMemorySession } from "@/types/game";
+
+// Mirrors the server-side window in lib/ai/memory/context-window.ts: keep the
+// most recent ~40k chars of history. The server trims again on receipt; this
+// just keeps us from uploading 100s of KB on long sessions.
+const HISTORY_TRIM_CHARS = 40_000 * 4;
+
+function trimSessionHistory(session: InMemorySession): InMemorySession {
+  const history = session.history ?? [];
+  let totalChars = history.reduce((sum, m) => sum + m.content.length, 0);
+  if (totalChars <= HISTORY_TRIM_CHARS) return session;
+  const trimmed = [...history];
+  while (totalChars > HISTORY_TRIM_CHARS && trimmed.length > 2) {
+    const removed = trimmed.shift();
+    if (removed) totalChars -= removed.content.length;
+  }
+  return { ...session, history: trimmed };
+}
 
 export function useGameSession() {
   const {
@@ -33,13 +51,19 @@ export function useGameSession() {
     updateNpcRelationship,
     addCodexEntry,
     updateLocation,
+    setMemorySummary,
+    capturePreTurn,
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
-  const { entitlements } = useEntitlementsStore();
+  const { entitlements, setEntitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
   // Per-session NPC name → voice slot map (A/B/C), reset when session changes
   const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
+  // Last-rendered skill_check signature, used to dedupe the dice-result system
+  // entry. The GM doesn't clear flags.last_skill_check between turns, so the
+  // same flag value can arrive on multiple subsequent state_change events.
+  const lastRenderedSkillCheckRef = useRef<string | null>(null);
   const [lastNarration, setLastNarration] = useState("");
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -48,6 +72,7 @@ export function useGameSession() {
   // Reset the NPC voice map whenever a new session starts
   useEffect(() => {
     npcVoiceMapRef.current = new Map();
+    lastRenderedSkillCheckRef.current = null;
   }, [session?.id]);
 
   useEffect(() => {
@@ -62,6 +87,25 @@ export function useGameSession() {
     stopSpeech();
     speak(lastNarration, { rate: ttsSpeed, pitch: ttsPitch, volume });
   }, [lastNarration, ttsSpeed, ttsPitch, volume]);
+
+  /**
+   * Concatenate the last RECAP_TURNS narration entries and speak them as one
+   * "what happened?" catch-up. Useful after a session gap where replay-last
+   * isn't enough context. Falls back to replay-last when only one narration
+   * exists.
+   */
+  const recapRecentTurns = useCallback(
+    (turns = 3) => {
+      const log = session?.narrationLog ?? [];
+      const narrations = log.filter((e) => e.type === "narration").slice(-turns);
+      if (narrations.length === 0) return;
+      stopSpeech();
+      const intro = narrations.length > 1 ? `Recap of the last ${narrations.length} scenes. ` : "";
+      const text = intro + narrations.map((n) => n.text).join(" ");
+      speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
+    },
+    [session, ttsSpeed, ttsPitch, volume],
+  );
 
   const speakText = useCallback(
     (text: string) => {
@@ -87,6 +131,14 @@ export function useGameSession() {
 
       // Stop any current TTS
       stopSpeech();
+
+      // Full pre-turn snapshot. The optimistic narrative-only rollback below
+      // misses character + session-side mutations (HP, XP, inventory, quests,
+      // flags, relationships, codex, achievements, location) that fire from
+      // mid-stream state_change events. If the stream errors after some have
+      // landed, we'd otherwise leak partial state into the next turn.
+      const preTurnCharacter = useGameStore.getState().character;
+      const preTurnSession = useGameStore.getState().session;
 
       const optimistic = createOptimisticTurn(
         {
@@ -117,7 +169,18 @@ export function useGameSession() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               signal,
-              body: JSON.stringify({ action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, dbSessionId: reqDbSessionId }),
+              body: JSON.stringify({
+                action: reqAction,
+                // The server (lib/ai/memory/context-window.ts) keeps the most
+                // recent ~40k chars of history anyway. Sending the full
+                // unbounded log every turn just wastes bandwidth and grows
+                // proportionally to session length. Trim history client-side
+                // to the same window before posting.
+                session: trimSessionHistory(reqSession),
+                character: reqCharacter,
+                world: reqWorld,
+                dbSessionId: reqDbSessionId,
+              }),
             }),
         };
 
@@ -132,11 +195,21 @@ export function useGameSession() {
 
         if (!res.ok) {
           let message = `GM request failed: ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`;
+          let errCode: string | undefined;
           try {
             const errBody = await res.json() as { message?: string; error?: string };
+            errCode = errBody.error;
             if (errBody.message) message = errBody.message;
             else if (errBody.error) message = `${message} — ${errBody.error}`;
           } catch { /* ignore parse errors */ }
+          // 402 + ai_minutes_exhausted: the server confirmed this user is out
+          // of free AI minutes for the day. Reflect that in the entitlements
+          // store immediately so any UI bound to aiMinutesRemaining stops
+          // pretending minutes are available, and show the message in-log.
+          if (res.status === 402 && errCode === "ai_minutes_exhausted") {
+            setEntitlements({ ...entitlements, aiMinutesRemaining: 0 });
+            announce(message, "assertive");
+          }
           throw new Error(message);
         }
         if (!res.body) {
@@ -176,7 +249,13 @@ export function useGameSession() {
               } else if (eventType === "state_change") {
                 const change = data as Record<string, unknown>;
                 if (change.hp !== undefined && change.hp !== null) {
-                  updateHP(change.hp as number);
+                  const delta = change.hp as number;
+                  updateHP(delta);
+                  // Audible cue for screen-reader users — the status bar
+                  // updates silently otherwise. Polite priority so it queues
+                  // behind narration rather than interrupting it.
+                  if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
+                  else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
                 }
                 if (change.statDeltas && typeof change.statDeltas === "object") {
                   const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
@@ -199,21 +278,6 @@ export function useGameSession() {
                 }
                 if (change.flags) {
                   updateFlags(change.flags as Record<string, unknown>);
-                  const flags = change.flags as Record<string, unknown>;
-                  if (typeof flags.last_skill_check === "string") {
-                    try {
-                      const sc = JSON.parse(flags.last_skill_check) as {
-                        stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
-                      };
-                      const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
-                      addNarrationEntry({
-                        id: `sc-${Date.now()}`,
-                        text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
-                        type: "system",
-                        timestamp: new Date(),
-                      });
-                    } catch { /* malformed flag — skip */ }
-                  }
                 }
                 if (Array.isArray(change.achievementUnlocks)) {
                   for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
@@ -248,6 +312,12 @@ export function useGameSession() {
                 if (Array.isArray(change.inventoryChanges)) {
                   for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
                     applyInventoryMutation(mut);
+                    // Audible cue. Useful enough on its own, and especially
+                    // on free-tier where the GM may not always weave the
+                    // pickup into narration.
+                    const verb = mut.op === "add" ? "Picked up" : "Lost";
+                    const qty = mut.quantity > 1 ? ` ×${mut.quantity}` : "";
+                    announce(`${verb} ${mut.name}${qty}.`, "polite");
                   }
                 }
                 if (change.sceneTransition && typeof change.sceneTransition === "object") {
@@ -291,6 +361,32 @@ export function useGameSession() {
                 };
                 addNarrationEntry(narEntry);
 
+                // Skill check resolution arrives as flags.last_skill_check on
+                // this turn's state_change. We render the result entry AFTER
+                // the narration that introduces the check so the order in the
+                // log reads naturally — narration setup, then dice outcome —
+                // instead of dice-result-then-the-setup-it-resolved.
+                const flags = useGameStore.getState().session?.globalFlags as Record<string, unknown> | undefined;
+                if (
+                  flags &&
+                  typeof flags.last_skill_check === "string" &&
+                  flags.last_skill_check !== lastRenderedSkillCheckRef.current
+                ) {
+                  try {
+                    const sc = JSON.parse(flags.last_skill_check) as {
+                      stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
+                    };
+                    const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
+                    addNarrationEntry({
+                      id: `sc-${Date.now()}`,
+                      text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
+                      type: "system",
+                      timestamp: new Date(),
+                    });
+                    lastRenderedSkillCheckRef.current = flags.last_skill_check;
+                  } catch { /* malformed flag — skip */ }
+                }
+
                 if (entitlements.premiumTts && character) {
                   await speakNarrationMultiVoice(
                     narration,
@@ -306,6 +402,14 @@ export function useGameSession() {
                   if (!abort.signal.aborted) {
                     await speakText(narration);
                   }
+                }
+              } else if (eventType === "memory_summary") {
+                // Server compacted older history into a memory summary; persist
+                // it so subsequent turns send the compacted form rather than
+                // re-sending the long uncompacted history.
+                const summaryData = data as { summary?: unknown };
+                if (typeof summaryData.summary === "string") {
+                  setMemorySummary(summaryData.summary);
                 }
               } else if (eventType === "error") {
                 receivedStreamError = true;
@@ -330,21 +434,18 @@ export function useGameSession() {
         }
 
         if (receivedStreamError) {
-          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
-          const reconciled = reconcileOptimisticState({
-            optimistic: rolled,
-            server: rolled,
-            clientRevision: (session as { revision?: number }).revision,
-            serverRevision: (session as { revision?: number }).revision,
-          });
-
-          useGameStore.setState((s) => ({
-            session: s.session
+          // Full rollback: restore the pre-turn character + session and only
+          // re-apply the player-action narration entry + the (system) error
+          // message. Any mid-stream state mutations are discarded.
+          useGameStore.setState({
+            character: preTurnCharacter,
+            session: preTurnSession
               ? {
-                ...s.session,
+                ...preTurnSession,
                 narrationLog: streamErrorMessage
                   ? [
-                    ...reconciled.state.narrationLog,
+                    ...preTurnSession.narrationLog,
+                    optimistic.playerEntry,
                     {
                       id: (Date.now() + 4).toString(),
                       text: streamErrorMessage,
@@ -352,13 +453,13 @@ export function useGameSession() {
                       timestamp: new Date(),
                     },
                   ]
-                  : reconciled.state.narrationLog,
-                isGenerating: reconciled.state.isGenerating,
-                history: reconciled.state.history,
-                choices: reconciled.state.choices,
+                  : [...preTurnSession.narrationLog, optimistic.playerEntry],
+                isGenerating: false,
+                choices: preTurnSession.choices,
+                history: preTurnSession.history,
               }
               : null,
-          }));
+          });
           return;
         }
 
@@ -381,22 +482,26 @@ export function useGameSession() {
             : null,
         }));
 
+        // Capture the pre-turn snapshot as the undo target. Only on successful
+        // completion — if the turn errored we already rolled back to this same
+        // snapshot, so making it the undo target would be a no-op.
+        if (preTurnCharacter && preTurnSession) {
+          capturePreTurn({ character: preTurnCharacter, session: preTurnSession });
+        }
+
         incrementTurnCount();
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           console.error("Game session error:", err);
-          const rolled = rollbackTurn(optimistic.next, optimistic.rollback);
-          const reconciled = reconcileOptimisticState({
-            optimistic: rolled,
-            server: rolled,
-            clientRevision: (session as { revision?: number }).revision,
-            serverRevision: (session as { revision?: number }).revision,
-          });
-          useGameStore.setState((s) => ({
-            session: s.session
-              ? { ...s.session, narrationLog: reconciled.state.narrationLog, isGenerating: reconciled.state.isGenerating, history: reconciled.state.history, choices: reconciled.state.choices }
+          // Full rollback to the pre-turn snapshot — same reasoning as the
+          // stream-error path above. The optimistic player_action entry is
+          // dropped entirely on a hard failure since the action never landed.
+          useGameStore.setState({
+            character: preTurnCharacter,
+            session: preTurnSession
+              ? { ...preTurnSession, isGenerating: false }
               : null,
-          }));
+          });
         }
       } finally {
         inFlightRef.current = false;
@@ -407,9 +512,20 @@ export function useGameSession() {
       session, character, world, dbSessionId, addNarrationEntry, setChoices,
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
-      speakText, soundCuesEnabled, announce,
+      setMemorySummary, capturePreTurn, speakText, soundCuesEnabled, announce,
+      entitlements, setEntitlements,
     ]
   );
+
+  const previousTurn = useGameStore((s) => s.previousTurn);
+  const undoLastTurn = useCallback(() => {
+    // Stop any in-flight TTS before snapping back so the user doesn't hear a
+    // sentence from the now-stale state continuing over the restored scene.
+    stopSpeech();
+    const ok = useGameStore.getState().undoLastTurn();
+    announce(ok ? "Last turn undone." : "Nothing to undo.", "polite");
+    return ok;
+  }, [announce]);
 
   return {
     session,
@@ -417,9 +533,12 @@ export function useGameSession() {
     world,
     submitAction,
     replayLast,
+    recapRecentTurns,
     speakText,
     lastNarration,
     sceneTransitionHint,
     clearSceneTransitionHint: () => setSceneTransitionHint(null),
+    canUndo: previousTurn !== null && !session?.isGenerating,
+    undoLastTurn,
   };
 }

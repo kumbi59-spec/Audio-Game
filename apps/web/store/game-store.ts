@@ -5,12 +5,39 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
 
+/**
+ * Hard cap on the in-memory narrationLog. Long sessions otherwise grow it
+ * unbounded — every entry is persisted into localStorage on every set(),
+ * so 500-turn sessions can balloon the persisted slice into many MB and
+ * slow store writes. Keep the most recent ENTRIES (covers ~50–80 turns
+ * of GM narration + system + player_action mix) and drop the oldest.
+ *
+ * The DB-backed history (when dbSessionId is set) is the canonical
+ * record — clients keep only a recent display window.
+ */
+const NARRATION_LOG_MAX_ENTRIES = 400;
+
+function trimNarrationLog<T>(log: T[]): T[] {
+  return log.length <= NARRATION_LOG_MAX_ENTRIES
+    ? log
+    : log.slice(log.length - NARRATION_LOG_MAX_ENTRIES);
+}
+
 interface GameStore {
   session: InMemorySession | null;
   character: CharacterData | null;
   world: WorldData | null;
   /** DB-persisted session ID (null when running in-memory only) */
   dbSessionId: string | null;
+  /**
+   * Snapshot of (character, session) immediately before the most recent
+   * completed turn. Captured by useGameSession on successful turn finalize
+   * and consumed by undoLastTurn(). Single-step only — null when no undo
+   * is available (start of session, after an undo, or after clearSession).
+   * Not persisted: undo is a same-tab convenience; resuming a saved session
+   * starts with no undo target.
+   */
+  previousTurn: { character: CharacterData; session: InMemorySession } | null;
   savedCampaigns: Array<{ id: string; savedAt: number; session: InMemorySession; character: CharacterData; world: WorldData; dbSessionId: string | null }>;
 
   setSession: (session: InMemorySession) => void;
@@ -31,6 +58,9 @@ interface GameStore {
   updateNpcRelationship: (change: { npcId: string; name: string; standing: number; notes?: string }) => void;
   addCodexEntry: (entry: CodexEntry) => void;
   updateLocation: (locationId: string) => void;
+  setMemorySummary: (summary: string) => void;
+  capturePreTurn: (snapshot: { character: CharacterData; session: InMemorySession }) => void;
+  undoLastTurn: () => boolean;
   clearSession: () => void;
   saveCurrentCampaign: () => void;
   loadSavedCampaign: (id: string) => void;
@@ -44,6 +74,7 @@ export const useGameStore = create<GameStore>()(
       character: null,
       world: null,
       dbSessionId: null,
+      previousTurn: null,
       savedCampaigns: [],
 
       setSession: (session) => set({ session }),
@@ -54,7 +85,7 @@ export const useGameStore = create<GameStore>()(
       addNarrationEntry: (entry) =>
         set((state) => ({
           session: state.session
-            ? { ...state.session, narrationLog: [...state.session.narrationLog, entry] }
+            ? { ...state.session, narrationLog: trimNarrationLog([...state.session.narrationLog, entry]) }
             : null,
         })),
 
@@ -102,11 +133,38 @@ export const useGameStore = create<GameStore>()(
           if ((knownStats as readonly string[]).includes(statName)) {
             const key = statName as KnownStat;
             const current = state.character.stats[key] ?? 0;
+            const newStats = { ...state.character.stats, [key]: Math.max(0, current + delta) };
+
+            // Auto-level on XP gain. Mirrors packages/gm-engine/src/reducer.ts:
+            //   threshold = level² × 100
+            //   per level: +5 maxHp, +5 hp (capped at new maxHp)
+            //   odd levels: +1 STR, +1 DEX
+            //   even levels: +1 INT, +1 CHA
+            // The reducer keeps applying levels in a loop while XP exceeds the
+            // threshold, so a large XP grant can cross multiple levels in one
+            // turn. The GM's prompt also says "the system handles leveling
+            // automatically" — this is what makes that true on the web side.
+            if (key === "experience") {
+              while (true) {
+                const lvl = newStats.level ?? 1;
+                const threshold = lvl * lvl * 100;
+                if ((newStats.experience ?? 0) < threshold) break;
+                const next = lvl + 1;
+                newStats.level = next;
+                newStats.maxHp = (newStats.maxHp ?? 10) + 5;
+                newStats.hp = Math.min((newStats.hp ?? 0) + 5, newStats.maxHp);
+                if (next % 2 !== 0) {
+                  newStats.strength = (newStats.strength ?? 10) + 1;
+                  newStats.dexterity = (newStats.dexterity ?? 10) + 1;
+                } else {
+                  newStats.intelligence = (newStats.intelligence ?? 10) + 1;
+                  newStats.charisma = (newStats.charisma ?? 10) + 1;
+                }
+              }
+            }
+
             return {
-              character: {
-                ...state.character,
-                stats: { ...state.character.stats, [key]: Math.max(0, current + delta) },
-              },
+              character: { ...state.character, stats: newStats },
             };
           }
           const current = state.character.customStats?.[statName] ?? 0;
@@ -242,8 +300,26 @@ export const useGameStore = create<GameStore>()(
           session: state.session ? { ...state.session, currentLocationId: locationId } : null,
         })),
 
+      setMemorySummary: (summary) =>
+        set((state) => ({
+          session: state.session ? { ...state.session, memorySummary: summary } : null,
+        })),
+
+      capturePreTurn: (snapshot) => set({ previousTurn: snapshot }),
+
+      undoLastTurn: () => {
+        const { previousTurn } = useGameStore.getState();
+        if (!previousTurn) return false;
+        useGameStore.setState({
+          character: previousTurn.character,
+          session: previousTurn.session,
+          previousTurn: null,
+        });
+        return true;
+      },
+
       clearSession: () =>
-        set({ session: null, character: null, world: null, dbSessionId: null }),
+        set({ session: null, character: null, world: null, dbSessionId: null, previousTurn: null }),
       saveCurrentCampaign: () => set((state) => {
         if (!state.session || !state.character || !state.world) return {};
         const id = `${state.world.id}:${state.session.id}`;

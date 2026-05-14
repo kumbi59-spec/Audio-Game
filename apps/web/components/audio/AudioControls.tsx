@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAudioStore } from "@/store/audio-store";
+import { useAccessibilityStore } from "@/store/accessibility-store";
 import { pauseSpeech, resumeSpeech, stopSpeech, isSpeaking, isPaused, getVoices } from "@/lib/audio/tts-provider";
 import type { TTSVoice } from "@/types/audio";
 
@@ -28,6 +29,8 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
     setAmbientVolume,
     setSoundCuesEnabled,
   } = useAudioStore();
+  const focusAfterTurn = useAccessibilityStore((s) => s.focusAfterTurn);
+  const setFocusAfterTurn = useAccessibilityStore((s) => s.setFocusAfterTurn);
 
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -216,6 +219,19 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
               className="h-4 w-4 accent-primary"
             />
             <span>Sound cues</span>
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-muted-foreground sm:col-span-2">
+            <span>After each turn, focus</span>
+            <select
+              value={focusAfterTurn}
+              onChange={(e) => setFocusAfterTurn(e.target.value as "choices" | "input")}
+              aria-label="Where to land focus after a turn finishes"
+              className="rounded border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="choices">First choice (default)</option>
+              <option value="input">Action input</option>
+            </select>
           </label>
         </div>
       </details>
