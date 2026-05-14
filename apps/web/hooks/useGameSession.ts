@@ -56,7 +56,7 @@ export function useGameSession() {
   } = useGameStore();
 
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
-  const { entitlements } = useEntitlementsStore();
+  const { entitlements, setEntitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
   // Per-session NPC name → voice slot map (A/B/C), reset when session changes
   const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
@@ -195,11 +195,21 @@ export function useGameSession() {
 
         if (!res.ok) {
           let message = `GM request failed: ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`;
+          let errCode: string | undefined;
           try {
             const errBody = await res.json() as { message?: string; error?: string };
+            errCode = errBody.error;
             if (errBody.message) message = errBody.message;
             else if (errBody.error) message = `${message} — ${errBody.error}`;
           } catch { /* ignore parse errors */ }
+          // 402 + ai_minutes_exhausted: the server confirmed this user is out
+          // of free AI minutes for the day. Reflect that in the entitlements
+          // store immediately so any UI bound to aiMinutesRemaining stops
+          // pretending minutes are available, and show the message in-log.
+          if (res.status === 402 && errCode === "ai_minutes_exhausted") {
+            setEntitlements({ ...entitlements, aiMinutesRemaining: 0 });
+            announce(message, "assertive");
+          }
           throw new Error(message);
         }
         if (!res.body) {
@@ -503,6 +513,7 @@ export function useGameSession() {
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
       setMemorySummary, capturePreTurn, speakText, soundCuesEnabled, announce,
+      entitlements, setEntitlements,
     ]
   );
 
