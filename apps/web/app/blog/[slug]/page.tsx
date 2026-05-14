@@ -121,6 +121,18 @@ export default async function BlogPostPage({ params }: Props) {
       />
       <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
         <SiteHeader />
+        {post.coverImageUrl && (
+          <div className="border-b" style={{ borderColor: "var(--border)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
+            <img
+              src={post.coverImageUrl}
+              alt=""
+              className="aspect-[16/9] w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        )}
         <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto max-w-3xl">
             <Link href="/blog" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← All posts</Link>
