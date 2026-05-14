@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0.0",
+  "project": "EchoQuest Audio Library",
+  "generated_at": "2026-05-14",
+  "assets": {
+    "ui_accessibility": [
+      {
+        "id": "ui_nav_hover_soft_01",
+        "file_path": "audio/ui/ui_nav_hover_soft_01.ogg",
+        "volume_default": 0.45,
+        "ducking_priority": 2,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A short, soft fantasy UI hover tick with a gentle high-frequency shimmer, under 250ms. Clean attack, no harsh transient."
+      },
+      {
+        "id": "ui_nav_click_primary_01",
+        "file_path": "audio/ui/ui_nav_click_primary_01.ogg",
+        "volume_default": 0.55,
+        "ducking_priority": 2,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A crisp, tactile primary UI click with subtle wood-and-metal texture in dark-fantasy style. Short and readable, under 300ms."
+      },
+      {
+        "id": "ui_nav_confirm_success_01",
+        "file_path": "audio/ui/ui_nav_confirm_success_01.ogg",
+        "volume_default": 0.6,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A positive confirmation chime with warm magical overtones and a quick upward motion. Rewarding but speech-safe."
+      },
+      {
+        "id": "ui_sr_text_block_complete_01",
+        "file_path": "audio/ui/ui_sr_text_block_complete_01.ogg",
+        "volume_default": 0.5,
+        "ducking_priority": 0,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A distinct two-tone assistive cue indicating text block completion for screen-reader users. Clear tonal separation, under 400ms."
+      },
+      {
+        "id": "ui_sr_focus_interactive_01",
+        "file_path": "audio/ui/ui_sr_focus_interactive_01.ogg",
+        "volume_default": 0.52,
+        "ducking_priority": 0,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A precise focus indicator cue for interactive elements. Fast onset and light timbre that remains audible over ambient beds."
+      },
+      {
+        "id": "ui_error_invalid_action_01",
+        "file_path": "audio/ui/ui_error_invalid_action_01.ogg",
+        "volume_default": 0.62,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A brief downward error tone with muted metallic texture to indicate invalid action. Negative but non-alarming."
+      },
+      {
+        "id": "ui_error_forbidden_action_01",
+        "file_path": "audio/ui/ui_error_forbidden_action_01.ogg",
+        "volume_default": 0.65,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A stronger forbidden cue with low thud and short dissonant accent. Communicates locked or prohibited action immediately."
+      }
+    ],
+    "narrative_system_cues": [
+      {
+        "id": "narrative_momentum_gain_major_01",
+        "file_path": "audio/narrative/narrative_momentum_gain_major_01.ogg",
+        "volume_default": 0.68,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A rising cinematic cue with subtle choir and bright harmonic swell, signaling major momentum gain. About one second long."
+      },
+      {
+        "id": "narrative_momentum_loss_major_01",
+        "file_path": "audio/narrative/narrative_momentum_loss_major_01.ogg",
+        "volume_default": 0.68,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A descending dark cue with low strings and soft bass impact to signal momentum loss. Emotional but concise."
+      },
+      {
+        "id": "narrative_divergence_major_split_01",
+        "file_path": "audio/narrative/narrative_divergence_major_split_01.ogg",
+        "volume_default": 0.72,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A subtle ethereal chime followed by a low cinematic bass drop, indicating a major plot branch split in dark-fantasy style."
+      },
+      {
+        "id": "system_stat_increase_01",
+        "file_path": "audio/system/system_stat_increase_01.ogg",
+        "volume_default": 0.58,
+        "ducking_priority": 2,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A compact ascending sparkle cue for stat increases. Magical, clean, and satisfying without masking narration."
+      },
+      {
+        "id": "system_level_up_01",
+        "file_path": "audio/system/system_level_up_01.ogg",
+        "volume_default": 0.74,
+        "ducking_priority": 1,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A triumphant fantasy level-up flourish with layered chimes and brief orchestral lift. Celebratory, 1.5 to 2 seconds."
+      },
+      {
+        "id": "system_quest_update_01",
+        "file_path": "audio/system/system_quest_update_01.ogg",
+        "volume_default": 0.6,
+        "ducking_priority": 2,
+        "loop": false,
+        "status": "missing",
+        "prompt": "A neutral-positive quest update cue with parchment-like soft hit and a tonal chime. Informative and thematic, under one second."
+      }
+    ]
+  }
+}
