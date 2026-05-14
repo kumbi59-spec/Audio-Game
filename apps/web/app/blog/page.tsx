@@ -30,12 +30,19 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function BlogPage() {
-  let posts: { id: string; title: string; slug: string; excerpt: string; publishedAt: Date | null }[] = [];
+  let posts: {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt: string;
+    publishedAt: Date | null;
+    coverImageUrl: string | null;
+  }[] = [];
   try {
     posts = await prisma.blogPost.findMany({
       where: { publishedAt: { not: null, lte: new Date() } },
       orderBy: { publishedAt: "desc" },
-      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
+      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true, coverImageUrl: true },
     });
   } catch {
     // Table may not exist yet during build-time static generation (before migrations run)
@@ -66,20 +73,34 @@ export default async function BlogPage() {
           <ul className="space-y-8">
             {posts.map((post) => (
               <li key={post.id}>
-                <article className="rounded-xl border p-6 transition-shadow hover:shadow-lg"
+                <article className="overflow-hidden rounded-xl border transition-shadow hover:shadow-lg"
                   style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-                  <time dateTime={post.publishedAt!.toISOString()} className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    {new Date(post.publishedAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-                  </time>
-                  <h2 className="mt-2 text-xl font-bold" style={{ color: "var(--text)" }}>
-                    <Link href={`/blog/${post.slug}`} className="hover:underline">{post.title}</Link>
-                  </h2>
-                  <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{post.excerpt}</p>
-                  <Link href={`/blog/${post.slug}`}
-                    className="mt-4 inline-block text-sm font-semibold hover:underline"
-                    style={{ color: "var(--accent)" }}>
-                    Read more →
-                  </Link>
+                  {post.coverImageUrl && (
+                    <Link href={`/blog/${post.slug}`} aria-hidden="true" tabIndex={-1} className="block">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
+                      <img
+                        src={post.coverImageUrl}
+                        alt=""
+                        className="aspect-[16/9] w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </Link>
+                  )}
+                  <div className="p-6">
+                    <time dateTime={post.publishedAt!.toISOString()} className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      {new Date(post.publishedAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                    </time>
+                    <h2 className="mt-2 text-xl font-bold" style={{ color: "var(--text)" }}>
+                      <Link href={`/blog/${post.slug}`} className="hover:underline">{post.title}</Link>
+                    </h2>
+                    <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{post.excerpt}</p>
+                    <Link href={`/blog/${post.slug}`}
+                      className="mt-4 inline-block text-sm font-semibold hover:underline"
+                      style={{ color: "var(--accent)" }}>
+                      Read more →
+                    </Link>
+                  </div>
                 </article>
               </li>
             ))}

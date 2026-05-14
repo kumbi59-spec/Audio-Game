@@ -314,6 +314,11 @@ model BlogPost {
   slug        String    @unique
   excerpt     String
   content     String
+  /// Cover hero image. Populated by /api/admin/blog/[id]/cover or the bulk
+  /// /api/admin/blog/covers endpoint, both of which call the BFL image
+  /// generator. Stored as a base64 data: URL (consistent with World.imageUrl)
+  /// so it survives without a separate object store. Null until generated.
+  coverImageUrl String?
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
