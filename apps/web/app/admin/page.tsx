@@ -138,16 +138,27 @@ export default function AdminPage() {
       }
       let ok = 0, failed = 0, lastReason = "";
       let iteration = 0;
+      // Track the next post the server told us to process. Required for
+      // the force loop — without an explicit id, the server keeps picking
+      // the oldest post and would regenerate the same row every iteration.
+      // First call: no nextCursor (server picks the seed post). Subsequent
+      // calls: pass the nextId returned by the prior response.
+      let nextCursor: string | null = null;
       while (iteration < list.summary.total + 5) {
         iteration++;
         setBlogCoverResult(`Generating ${iteration} of up to ${todo}…`);
         try {
-          const res = await fetch(`/api/admin/blog/covers${force ? "?force=true" : ""}`, { method: "POST" });
+          const params = new URLSearchParams();
+          if (force) params.set("force", "true");
+          if (nextCursor) params.set("id", nextCursor);
+          const qs = params.toString();
+          const res = await fetch(`/api/admin/blog/covers${qs ? `?${qs}` : ""}`, { method: "POST" });
           const data = await res.json() as {
             status?: string;
             done?: boolean;
             title?: string;
             reason?: string;
+            nextId?: string | null;
           };
           if (res.ok && data.status === "ok") {
             ok++;
@@ -156,7 +167,8 @@ export default function AdminPage() {
             failed++;
             lastReason = data.reason ?? "";
           }
-          if (data.done) break;
+          nextCursor = data.nextId ?? null;
+          if (data.done || !nextCursor) break;
         } catch {
           failed++;
           break;

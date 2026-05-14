@@ -46,13 +46,24 @@ export async function GET() {
 /**
  * POST /api/admin/blog/covers
  *
- * Generate the next missing cover. Pass `?force=true` to regenerate the
- * next post regardless of existing cover. The route processes one post
- * per call to stay inside the function timeout; the admin UI loops by
- * re-POSTing until the response reports `done: true`.
+ * Generate one cover per call. The route processes one post and returns
+ * the next-id so the caller can re-POST without a separate list call.
  *
- * Response includes `nextId` if more work remains so the caller can
- * trigger the next iteration without a separate list call.
+ * Two cursoring strategies, picked by query params:
+ *
+ *   ?id=<postId>
+ *     Process this specific post. Required for the `force=true` loop —
+ *     without it the server keeps re-finding the oldest post by
+ *     createdAt and regenerates it over and over.
+ *
+ *   ?force=true       (no id)
+ *     First iteration only — process the oldest post overall. Subsequent
+ *     calls in the loop must pass the nextId from the prior response.
+ *
+ *   (no params)
+ *     Process the oldest post whose coverImageUrl is null. Self-cursoring
+ *     because each successful generation flips the cover, so the next
+ *     "oldest null" is a different post.
  */
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin();
@@ -63,51 +74,67 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "failed", reason: configError }, { status: 400 });
   }
 
-  const force = new URL(req.url).searchParams.get("force") === "true";
+  const url = new URL(req.url);
+  const force = url.searchParams.get("force") === "true";
+  const explicitId = url.searchParams.get("id");
 
-  const next = await prisma.blogPost.findFirst({
-    where: force ? {} : { coverImageUrl: null },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, title: true, excerpt: true, content: true },
-  });
+  let target: { id: string; title: string; excerpt: string; content: string } | null;
+  if (explicitId) {
+    target = await prisma.blogPost.findUnique({
+      where: { id: explicitId },
+      select: { id: true, title: true, excerpt: true, content: true },
+    });
+    if (!target) {
+      return NextResponse.json({ status: "failed", reason: `No blog post with id=${explicitId}` }, { status: 404 });
+    }
+  } else {
+    target = await prisma.blogPost.findFirst({
+      where: force ? {} : { coverImageUrl: null },
+      orderBy: { createdAt: "asc" },
+      select: { id: true, title: true, excerpt: true, content: true },
+    });
+  }
 
-  if (!next) {
+  if (!target) {
     return NextResponse.json({ status: "ok", done: true, message: "All posts already have covers." });
   }
 
   const result = await generateBlogCoverArt({
-    title: next.title,
-    excerpt: next.excerpt,
-    contentSnippet: next.content.slice(0, 800),
+    title: target.title,
+    excerpt: target.excerpt,
+    contentSnippet: target.content.slice(0, 800),
   });
 
   if (result.error) {
     return NextResponse.json({
       status: "failed",
-      title: next.title,
-      id: next.id,
+      title: target.title,
+      id: target.id,
       reason: result.error,
     });
   }
 
-  await prisma.blogPost.update({
-    where: { id: next.id },
+  // Capture the createdAt of the just-processed post so we can advance
+  // past it on the next force iteration. Required because force mode
+  // doesn't have the "coverImageUrl is null" predicate to self-advance.
+  const processed = await prisma.blogPost.update({
+    where: { id: target.id },
     data: { coverImageUrl: result.url },
-    select: { id: true },
+    select: { id: true, createdAt: true },
   });
 
-  // Look ahead so the caller doesn't need a separate list call between
-  // iterations. nextId === null means we just generated the last one.
   const remaining = await prisma.blogPost.findFirst({
-    where: force ? { id: { not: next.id } } : { coverImageUrl: null },
+    where: force
+      ? { createdAt: { gt: processed.createdAt }, id: { not: processed.id } }
+      : { coverImageUrl: null },
     orderBy: { createdAt: "asc" },
     select: { id: true, title: true },
   });
 
   return NextResponse.json({
     status: "ok",
-    title: next.title,
-    id: next.id,
+    title: target.title,
+    id: target.id,
     nextId: remaining?.id ?? null,
     nextTitle: remaining?.title ?? null,
     done: !remaining,
