@@ -16,6 +16,7 @@ import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
+import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
@@ -48,7 +49,9 @@ export function GameShell() {
     audioOnlyMode,
   } = useAccessibilityStore();
   const { announce } = useAnnouncer();
+  const saveCurrentCampaign = useGameStore((s) => s.saveCurrentCampaign);
   const [helpHintVisible, setHelpHintVisible] = useState(false);
+  const lastAutoSaveTurnRef = useRef<number>(-1);
   const inputRef = useRef<HTMLElement | null>(null);
   const [speaking, setSpeaking] = useState(false);
   const [hudOpen, setHudOpen] = useState(false);
@@ -116,6 +119,28 @@ export function GameShell() {
     setHelpHintVisible(true);
     announce("Press H or use the Help button at any time to open the Operations Manual.", "polite");
   }, [session, operationsManualSeen, announce]);
+
+  // Auto-save every AUTO_SAVE_INTERVAL turns. Tracks last-saved turn in a
+  // ref so a turn count change in either direction (undo can decrease it
+  // back to a multiple) doesn't double-save.
+  const AUTO_SAVE_INTERVAL = 5;
+  useEffect(() => {
+    if (!session) return;
+    const turn = session.turnCount;
+    if (turn === 0) return;
+    if (turn === lastAutoSaveTurnRef.current) return;
+    if (turn % AUTO_SAVE_INTERVAL !== 0) return;
+    lastAutoSaveTurnRef.current = turn;
+    saveCurrentCampaign();
+    announce(`Auto-saved at turn ${turn}.`, "polite");
+  }, [session, saveCurrentCampaign, announce]);
+
+  const handleManualSave = useCallback(() => {
+    if (!session) return;
+    saveCurrentCampaign();
+    lastAutoSaveTurnRef.current = session.turnCount;
+    announce(`Saved at turn ${session.turnCount}.`, "polite");
+  }, [session, saveCurrentCampaign, announce]);
 
   const dismissHelpHint = useCallback(() => {
     setHelpHintVisible(false);
@@ -511,6 +536,13 @@ export function GameShell() {
               Undo
             </button>
             <button
+              onClick={handleManualSave}
+              aria-label="Save current campaign"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+            >
+              Save
+            </button>
+            <button
               onClick={shareRecap}
               aria-label="Share your session recap"
               className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
@@ -534,6 +566,9 @@ export function GameShell() {
                 </button>
                 <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
                   Undo
+                </button>
+                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                  Save
                 </button>
                 <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Share Recap
