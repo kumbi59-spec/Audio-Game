@@ -88,6 +88,25 @@ export function useGameSession() {
     speak(lastNarration, { rate: ttsSpeed, pitch: ttsPitch, volume });
   }, [lastNarration, ttsSpeed, ttsPitch, volume]);
 
+  /**
+   * Concatenate the last RECAP_TURNS narration entries and speak them as one
+   * "what happened?" catch-up. Useful after a session gap where replay-last
+   * isn't enough context. Falls back to replay-last when only one narration
+   * exists.
+   */
+  const recapRecentTurns = useCallback(
+    (turns = 3) => {
+      const log = session?.narrationLog ?? [];
+      const narrations = log.filter((e) => e.type === "narration").slice(-turns);
+      if (narrations.length === 0) return;
+      stopSpeech();
+      const intro = narrations.length > 1 ? `Recap of the last ${narrations.length} scenes. ` : "";
+      const text = intro + narrations.map((n) => n.text).join(" ");
+      speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
+    },
+    [session, ttsSpeed, ttsPitch, volume],
+  );
+
   const speakText = useCallback(
     (text: string) => {
       return speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
@@ -503,6 +522,7 @@ export function useGameSession() {
     world,
     submitAction,
     replayLast,
+    recapRecentTurns,
     speakText,
     lastNarration,
     sceneTransitionHint,

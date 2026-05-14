@@ -29,6 +29,7 @@ export function GameShell() {
     world,
     submitAction,
     replayLast,
+    recapRecentTurns,
     speakText,
     sceneTransitionHint,
     clearSceneTransitionHint,
@@ -495,8 +496,8 @@ export function GameShell() {
               )}
             </button>
             <button
-              onClick={replayLast}
-              aria-label="Replay last narration (R)"
+              onClick={() => recapRecentTurns(3)}
+              aria-label="Catch up — recap the last 3 scenes"
               className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
             >
               Recap
@@ -528,7 +529,7 @@ export function GameShell() {
                 <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Quest Book {activeQuestCount > 0 && `(${activeQuestCount})`}
                 </button>
-                <button onClick={replayLast} aria-label="Replay last narration" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
                   Recap
                 </button>
                 <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
