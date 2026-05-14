@@ -5,6 +5,24 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
 
+/**
+ * Hard cap on the in-memory narrationLog. Long sessions otherwise grow it
+ * unbounded — every entry is persisted into localStorage on every set(),
+ * so 500-turn sessions can balloon the persisted slice into many MB and
+ * slow store writes. Keep the most recent ENTRIES (covers ~50–80 turns
+ * of GM narration + system + player_action mix) and drop the oldest.
+ *
+ * The DB-backed history (when dbSessionId is set) is the canonical
+ * record — clients keep only a recent display window.
+ */
+const NARRATION_LOG_MAX_ENTRIES = 400;
+
+function trimNarrationLog<T>(log: T[]): T[] {
+  return log.length <= NARRATION_LOG_MAX_ENTRIES
+    ? log
+    : log.slice(log.length - NARRATION_LOG_MAX_ENTRIES);
+}
+
 interface GameStore {
   session: InMemorySession | null;
   character: CharacterData | null;
@@ -67,7 +85,7 @@ export const useGameStore = create<GameStore>()(
       addNarrationEntry: (entry) =>
         set((state) => ({
           session: state.session
-            ? { ...state.session, narrationLog: [...state.session.narrationLog, entry] }
+            ? { ...state.session, narrationLog: trimNarrationLog([...state.session.narrationLog, entry]) }
             : null,
         })),
 
