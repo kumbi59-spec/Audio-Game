@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
+import { useAccessibilityStore } from "@/store/accessibility-store";
 
 interface ChoiceListProps {
   choices: string[];
@@ -11,6 +12,7 @@ interface ChoiceListProps {
 
 export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListProps) {
   const { announce } = useAnnouncer();
+  const focusAfterTurn = useAccessibilityStore((s) => s.focusAfterTurn);
   const listRef = useRef<HTMLOListElement>(null);
   // Local lock to disable the buttons synchronously on click. The parent's
   // `disabled` prop comes from session.isGenerating which only flips after the
@@ -24,11 +26,18 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
       setSubmittedIdx(null);
       const summary = `${choices.length} options available: ${choices.map((c, i) => `${i + 1}, ${c}`).join(". ")}`;
       announce(summary);
-      // Move focus to the first choice
-      const firstBtn = listRef.current?.querySelector<HTMLButtonElement>("button");
-      firstBtn?.focus();
+      // Honour the focusAfterTurn preference. Default ("choices") moves focus
+      // to the first choice button — best for screen-reader users navigating
+      // choices. Players who mostly type freeform can opt into "input", in
+      // which case we leave focus alone here so the input retains it.
+      if (focusAfterTurn === "choices") {
+        const firstBtn = listRef.current?.querySelector<HTMLButtonElement>("button");
+        firstBtn?.focus();
+      } else {
+        document.getElementById("action-text-input")?.focus();
+      }
     }
-  }, [choices, announce]);
+  }, [choices, announce, focusAfterTurn]);
 
   function handleSelect(i: number, choice: string) {
     if (disabled || submittedIdx !== null) return;
