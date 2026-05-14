@@ -80,6 +80,8 @@ export default function AdminPage() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [generatingCovers, setGeneratingCovers] = useState(false);
   const [coverResult, setCoverResult] = useState("");
+  const [generatingBlogCovers, setGeneratingBlogCovers] = useState(false);
+  const [blogCoverResult, setBlogCoverResult] = useState("");
 
   async function generateCovers() {
     setGeneratingCovers(true);
@@ -108,6 +110,66 @@ export default function AdminPage() {
       setCoverResult(err instanceof Error ? err.message : "Failed.");
     } finally {
       setGeneratingCovers(false);
+    }
+  }
+
+  /**
+   * Loop the bulk blog-cover endpoint until it reports `done: true`. The
+   * endpoint processes one post per call to stay inside the function timeout,
+   * so the UI drives the iteration. Pass `force=true` to overwrite covers
+   * that have already been generated; otherwise we only fill in posts whose
+   * coverImageUrl is null.
+   */
+  async function generateBlogCovers(force = false) {
+    setGeneratingBlogCovers(true);
+    setBlogCoverResult("Checking provider config…");
+    try {
+      const listRes = await fetch("/api/admin/blog/covers");
+      if (!listRes.ok) { setBlogCoverResult("Failed to fetch blog posts."); return; }
+      const list = await listRes.json() as {
+        summary: { total: number; withCover: number; withoutCover: number };
+        configError: string | null;
+      };
+      if (list.configError) { setBlogCoverResult(`Config error: ${list.configError}`); return; }
+      const todo = force ? list.summary.total : list.summary.withoutCover;
+      if (todo === 0) {
+        setBlogCoverResult(`All ${list.summary.total} posts already have covers. Use the Force button to regenerate.`);
+        return;
+      }
+      let ok = 0, failed = 0, lastReason = "";
+      let iteration = 0;
+      while (iteration < list.summary.total + 5) {
+        iteration++;
+        setBlogCoverResult(`Generating ${iteration} of up to ${todo}…`);
+        try {
+          const res = await fetch(`/api/admin/blog/covers${force ? "?force=true" : ""}`, { method: "POST" });
+          const data = await res.json() as {
+            status?: string;
+            done?: boolean;
+            title?: string;
+            reason?: string;
+          };
+          if (res.ok && data.status === "ok") {
+            ok++;
+            setBlogCoverResult(`Generated ${ok}/${todo}${data.title ? `: ${data.title}` : ""}…`);
+          } else {
+            failed++;
+            lastReason = data.reason ?? "";
+          }
+          if (data.done) break;
+        } catch {
+          failed++;
+          break;
+        }
+      }
+      setBlogCoverResult(`Done — ${ok} generated, ${failed} failed.${lastReason ? ` Last error: ${lastReason}` : ""}`);
+      // Refresh post list so the UI shows the new cover indicators.
+      const fresh = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
+      setPosts(Array.isArray(fresh) ? fresh : posts);
+    } catch (err) {
+      setBlogCoverResult(err instanceof Error ? err.message : "Failed.");
+    } finally {
+      setGeneratingBlogCovers(false);
     }
   }
 
@@ -486,8 +548,25 @@ export default function AdminPage() {
                     title="Auto-updates existing blog content with baseline SEO improvements.">
                     {seoFixing ? "Applying SEO…" : "Auto-fix existing SEO"}
                   </button>
+                  <button
+                    onClick={() => generateBlogCovers(false)}
+                    disabled={generatingBlogCovers}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                    title="Calls BFL (or Replicate) for every post that doesn't yet have a coverImageUrl. Skips posts that already have a cover.">
+                    {generatingBlogCovers ? "Generating covers…" : "Generate Blog Covers"}
+                  </button>
+                  <button
+                    onClick={() => generateBlogCovers(true)}
+                    disabled={generatingBlogCovers}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Regenerates ALL blog covers, overwriting existing ones. Use after a prompt change.">
+                    {generatingBlogCovers ? "…" : "Force-regen all covers"}
+                  </button>
                 </div>
               </div>
+              {blogCoverResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{blogCoverResult}</p>}
               {seedResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{seedResult}</p>}
               <div className="space-y-3">
                 {posts.map((p) => (
