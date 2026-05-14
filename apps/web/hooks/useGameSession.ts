@@ -220,7 +220,13 @@ export function useGameSession() {
               } else if (eventType === "state_change") {
                 const change = data as Record<string, unknown>;
                 if (change.hp !== undefined && change.hp !== null) {
-                  updateHP(change.hp as number);
+                  const delta = change.hp as number;
+                  updateHP(delta);
+                  // Audible cue for screen-reader users — the status bar
+                  // updates silently otherwise. Polite priority so it queues
+                  // behind narration rather than interrupting it.
+                  if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
+                  else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
                 }
                 if (change.statDeltas && typeof change.statDeltas === "object") {
                   const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
@@ -277,6 +283,12 @@ export function useGameSession() {
                 if (Array.isArray(change.inventoryChanges)) {
                   for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
                     applyInventoryMutation(mut);
+                    // Audible cue. Useful enough on its own, and especially
+                    // on free-tier where the GM may not always weave the
+                    // pickup into narration.
+                    const verb = mut.op === "add" ? "Picked up" : "Lost";
+                    const qty = mut.quantity > 1 ? ` ×${mut.quantity}` : "";
+                    announce(`${verb} ${mut.name}${qty}.`, "polite");
                   }
                 }
                 if (change.sceneTransition && typeof change.sceneTransition === "object") {
