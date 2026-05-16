@@ -185,6 +185,76 @@ export default function AdminPage() {
     }
   }
 
+  const [generatingSectionImages, setGeneratingSectionImages] = useState(false);
+  const [sectionImageResult, setSectionImageResult] = useState("");
+
+  /**
+   * Loop the section-image endpoint until done. Each post gets up to 3
+   * illustrations interleaved between its H2 sections. One image per POST
+   * (BFL is slow); the server returns a (nextPostId, nextIdx) cursor we
+   * thread back so the loop advances instead of re-processing slot 0 —
+   * same cursoring contract as the cover loop.
+   */
+  async function generateSectionImages(force = false) {
+    setGeneratingSectionImages(true);
+    setSectionImageResult("Checking provider config…");
+    try {
+      const listRes = await fetch("/api/admin/blog/section-images");
+      if (!listRes.ok) { setSectionImageResult("Failed to fetch section-image status."); return; }
+      const list = await listRes.json() as {
+        summary: { planned: number; generated: number; missing: number };
+        configError: string | null;
+      };
+      if (list.configError) { setSectionImageResult(`Config error: ${list.configError}`); return; }
+      const todo = force ? list.summary.planned : list.summary.missing;
+      if (todo === 0) {
+        setSectionImageResult(`All ${list.summary.planned} planned section images already generated. Use Force to regenerate.`);
+        return;
+      }
+      let ok = 0, failed = 0, lastReason = "";
+      let iteration = 0;
+      let cursor: { postId: string; idx: number } | null = null;
+      while (iteration < list.summary.planned + 5) {
+        iteration++;
+        setSectionImageResult(`Generating ${iteration} of up to ${todo}…`);
+        try {
+          const params = new URLSearchParams();
+          if (force) params.set("force", "true");
+          if (cursor) { params.set("postId", cursor.postId); params.set("idx", String(cursor.idx)); }
+          const qs = params.toString();
+          const res = await fetch(`/api/admin/blog/section-images${qs ? `?${qs}` : ""}`, { method: "POST" });
+          const data = await res.json() as {
+            status?: string;
+            done?: boolean;
+            postTitle?: string;
+            reason?: string;
+            nextPostId?: string | null;
+            nextIdx?: number | null;
+          };
+          if (res.ok && data.status === "ok") {
+            ok++;
+            setSectionImageResult(`Generated ${ok}/${todo}${data.postTitle ? `: ${data.postTitle}` : ""}…`);
+          } else {
+            failed++;
+            lastReason = data.reason ?? "";
+          }
+          cursor = data.nextPostId != null && data.nextIdx != null
+            ? { postId: data.nextPostId, idx: data.nextIdx }
+            : null;
+          if (data.done || !cursor) break;
+        } catch {
+          failed++;
+          break;
+        }
+      }
+      setSectionImageResult(`Done — ${ok} generated, ${failed} failed.${lastReason ? ` Last error: ${lastReason}` : ""}`);
+    } catch (err) {
+      setSectionImageResult(err instanceof Error ? err.message : "Failed.");
+    } finally {
+      setGeneratingSectionImages(false);
+    }
+  }
+
   // Blog editor state
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -576,9 +646,26 @@ export default function AdminPage() {
                     title="Regenerates ALL blog covers, overwriting existing ones. Use after a prompt change.">
                     {generatingBlogCovers ? "…" : "Force-regen all covers"}
                   </button>
+                  <button
+                    onClick={() => generateSectionImages(false)}
+                    disabled={generatingSectionImages}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                    title="Generates up to 3 in-body illustrations per post, interleaved between H2 sections. Skips slots already generated.">
+                    {generatingSectionImages ? "Generating images…" : "Generate Section Images"}
+                  </button>
+                  <button
+                    onClick={() => generateSectionImages(true)}
+                    disabled={generatingSectionImages}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Regenerates ALL section images, overwriting existing ones.">
+                    {generatingSectionImages ? "…" : "Force-regen section images"}
+                  </button>
                 </div>
               </div>
               {blogCoverResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{blogCoverResult}</p>}
+              {sectionImageResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{sectionImageResult}</p>}
               {seedResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{seedResult}</p>}
               <div className="space-y-3">
                 {posts.map((p) => (

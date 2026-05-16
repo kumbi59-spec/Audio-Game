@@ -6,6 +6,7 @@ import { marked } from "marked";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { planSectionImages } from "@/lib/blog/section-image-plan";
 
 export const revalidate = 60;
 
@@ -73,13 +74,37 @@ export default async function BlogPostPage({ params }: Props) {
   try {
     post = await prisma.blogPost.findUnique({
       where: { slug },
-      include: { author: { select: { name: true } } },
+      include: {
+        author: { select: { name: true } },
+        images: { orderBy: { idx: "asc" }, select: { id: true, idx: true, alt: true } },
+      },
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
   const htmlContent = await marked(post.content, { async: true });
+  const sections = splitHtmlOnH2(htmlContent);
+
+  // Map "section index to render the image after" → image record. The plan
+  // (shared with the generator) tells us which H2 each image idx targets.
+  //
+  // splitHtmlOnH2 emits one chunk per <h2>, preceded by a leading intro
+  // chunk ONLY when there's non-empty content before the first <h2> (it
+  // filters empty chunks). So heading index j maps to:
+  //   sections[j + 1]  when an intro chunk exists, else
+  //   sections[j]      when the post opens directly with an <h2>.
+  // Derive the offset from (#sections − #H2s) instead of assuming an intro.
+  const h2Count = (htmlContent.match(/<h2\b/gi) ?? []).length;
+  const introOffset = Math.max(0, sections.length - h2Count); // 1 if intro, else 0
+  const plan = planSectionImages(post.content);
+  const imageBySectionIndex = new Map<number, { id: string; alt: string }>();
+  for (const img of post.images) {
+    const planned = plan.find((p) => p.idx === img.idx);
+    if (planned) {
+      imageBySectionIndex.set(planned.headingIndex + introOffset, { id: img.id, alt: img.alt });
+    }
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -154,21 +179,35 @@ export default async function BlogPostPage({ params }: Props) {
         <main className="mx-auto max-w-3xl px-6 py-12">
           <article className="blog-content">
             {(() => {
-              const sections = splitHtmlOnH2(htmlContent);
               // Drop an ad after the 2nd and 5th H2-bounded section. Falls
               // through gracefully on shorter posts: the AdBanner just won't
               // be inserted past the last section.
               const adAfter = new Set([1, 4]);
-              return sections.map((s, i) => (
-                <Fragment key={i}>
-                  <div dangerouslySetInnerHTML={{ __html: s }} />
-                  {adAfter.has(i) && i < sections.length - 1 && (
-                    <div className="my-8">
-                      <AdBanner />
-                    </div>
-                  )}
-                </Fragment>
-              ));
+              return sections.map((s, i) => {
+                const img = imageBySectionIndex.get(i);
+                return (
+                  <Fragment key={i}>
+                    <div dangerouslySetInnerHTML={{ __html: s }} />
+                    {img && (
+                      <figure className="my-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/image route, not a static asset */}
+                        <img
+                          src={`/api/blog/image/${img.id}`}
+                          alt={img.alt}
+                          className="aspect-[16/9] w-full rounded-xl object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </figure>
+                    )}
+                    {adAfter.has(i) && i < sections.length - 1 && (
+                      <div className="my-8">
+                        <AdBanner />
+                      </div>
+                    )}
+                  </Fragment>
+                );
+              });
             })()}
             <div className="mt-8">
               <AdBanner />
