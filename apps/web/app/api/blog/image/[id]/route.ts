@@ -3,9 +3,14 @@ import { prisma } from "@/lib/db";
 
 // Serve a stored BlogPostImage as a real image response so the blog page
 // HTML only carries a small <img src> URL, not megabytes of inline base64.
-// Same decode pattern as /api/worlds/[id]/image. Immutable + long max-age
-// because an image row's bytes never change once generated (regeneration
-// creates a new row id).
+// Same decode pattern as /api/worlds/[id]/image.
+//
+// NOT immutable: the admin force-regen path upserts BlogPostImage.dataUrl
+// in place (stable id, new bytes), so a given /api/blog/image/{id} URL can
+// serve different bytes after a regen. Cache TTL is aligned to the blog
+// page's own `revalidate = 60` so a regenerated image propagates to
+// readers within ~a minute; stale-while-revalidate keeps it fast in the
+// meantime without ever pinning a week-old image.
 export const dynamic = "force-dynamic";
 
 export async function GET(
@@ -35,7 +40,7 @@ export async function GET(
   return new NextResponse(buffer, {
     headers: {
       "Content-Type": contentType,
-      "Cache-Control": "public, max-age=604800, immutable",
+      "Cache-Control": "public, max-age=60, stale-while-revalidate=86400",
       "Content-Length": String(buffer.byteLength),
     },
   });

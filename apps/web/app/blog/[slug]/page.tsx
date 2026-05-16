@@ -84,17 +84,25 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
   const htmlContent = await marked(post.content, { async: true });
+  const sections = splitHtmlOnH2(htmlContent);
 
   // Map "section index to render the image after" → image record. The plan
-  // (shared with the generator) tells us which H2 each image idx targets;
-  // sections[0] is the pre-first-H2 intro, so heading index j lives in
-  // sections[j + 1] and the image is placed after that section.
+  // (shared with the generator) tells us which H2 each image idx targets.
+  //
+  // splitHtmlOnH2 emits one chunk per <h2>, preceded by a leading intro
+  // chunk ONLY when there's non-empty content before the first <h2> (it
+  // filters empty chunks). So heading index j maps to:
+  //   sections[j + 1]  when an intro chunk exists, else
+  //   sections[j]      when the post opens directly with an <h2>.
+  // Derive the offset from (#sections − #H2s) instead of assuming an intro.
+  const h2Count = (htmlContent.match(/<h2\b/gi) ?? []).length;
+  const introOffset = Math.max(0, sections.length - h2Count); // 1 if intro, else 0
   const plan = planSectionImages(post.content);
   const imageBySectionIndex = new Map<number, { id: string; alt: string }>();
   for (const img of post.images) {
     const planned = plan.find((p) => p.idx === img.idx);
     if (planned) {
-      imageBySectionIndex.set(planned.headingIndex + 1, { id: img.id, alt: img.alt });
+      imageBySectionIndex.set(planned.headingIndex + introOffset, { id: img.id, alt: img.alt });
     }
   }
 
@@ -171,7 +179,6 @@ export default async function BlogPostPage({ params }: Props) {
         <main className="mx-auto max-w-3xl px-6 py-12">
           <article className="blog-content">
             {(() => {
-              const sections = splitHtmlOnH2(htmlContent);
               // Drop an ad after the 2nd and 5th H2-bounded section. Falls
               // through gracefully on shorter posts: the AdBanner just won't
               // be inserted past the last section.
