@@ -133,7 +133,7 @@ interface BFLResult {
   result?: { sample?: string };
 }
 
-async function generateViaBFL(input: BlogCoverInput): Promise<BlogCoverResult> {
+async function generateViaBFL(prompt: string): Promise<BlogCoverResult> {
   const apiKey = process.env["BFL_API_KEY"];
   if (!apiKey) return { error: "BFL_API_KEY is not set" };
 
@@ -150,7 +150,7 @@ async function generateViaBFL(input: BlogCoverInput): Promise<BlogCoverResult> {
         method: "POST",
         headers: { "X-Key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: buildBlogCoverPrompt(input),
+          prompt,
           width: 1024,
           height: 576,
           steps: modelName === "flux-schnell" ? 4 : 28,
@@ -228,7 +228,7 @@ async function pollReplicateUntilDone(
   return prediction;
 }
 
-async function generateViaReplicate(input: BlogCoverInput): Promise<BlogCoverResult> {
+async function generateViaReplicate(prompt: string): Promise<BlogCoverResult> {
   const token = process.env["REPLICATE_API_TOKEN"];
   if (!token) return { error: "REPLICATE_API_TOKEN is not set" };
 
@@ -245,7 +245,7 @@ async function generateViaReplicate(input: BlogCoverInput): Promise<BlogCoverRes
     postUrl = "https://api.replicate.com/v1/predictions";
     body = {
       version,
-      input: { prompt: buildBlogCoverPrompt(input), width: 1024, height: 576, num_inference_steps: 25 },
+      input: { prompt, width: 1024, height: 576, num_inference_steps: 25 },
     };
   } else {
     const [owner, modelName] = modelStr.split("/");
@@ -255,7 +255,7 @@ async function generateViaReplicate(input: BlogCoverInput): Promise<BlogCoverRes
     postUrl = `https://api.replicate.com/v1/models/${owner}/${modelName}/predictions`;
     body = {
       input: {
-        prompt: buildBlogCoverPrompt(input),
+        prompt,
         aspect_ratio: "16:9",
         output_quality: 80,
         num_inference_steps: 4,
@@ -311,12 +311,72 @@ async function generateViaReplicate(input: BlogCoverInput): Promise<BlogCoverRes
 
 // ── Entry point ────────────────────────────────────────────────────────────
 
-export async function generateBlogCoverArt(input: BlogCoverInput): Promise<BlogCoverResult> {
+async function generateFromPrompt(prompt: string): Promise<BlogCoverResult> {
   const provider = process.env["IMAGE_GEN_PROVIDER"]?.toLowerCase();
   if (!provider) return { error: "IMAGE_GEN_PROVIDER env var is not set" };
-  if (provider === "bfl") return generateViaBFL(input);
-  if (provider === "replicate") return generateViaReplicate(input);
+  if (provider === "bfl") return generateViaBFL(prompt);
+  if (provider === "replicate") return generateViaReplicate(prompt);
   return { error: `Unknown IMAGE_GEN_PROVIDER="${provider}" (expected "bfl" or "replicate")` };
+}
+
+export async function generateBlogCoverArt(input: BlogCoverInput): Promise<BlogCoverResult> {
+  return generateFromPrompt(buildBlogCoverPrompt(input));
+}
+
+export interface BlogSectionImageInput {
+  /** Post title — keeps the section image tonally tied to the article. */
+  title: string;
+  /** The H2 heading this image illustrates. */
+  heading: string;
+  /** First ~400 chars of the section body, for visual-cue extraction. */
+  sectionText?: string;
+  /**
+   * Zero-based section index. Folded into the prompt as a compositional
+   * nudge so consecutive images in one post don't all come back as the
+   * same framing — variety is the whole point of in-body images.
+   */
+  idx: number;
+}
+
+const SECTION_COMPOSITIONS = [
+  "wide establishing shot, distant subject, lots of negative space",
+  "intimate close-up, shallow depth of field, single focal object",
+  "low-angle dramatic perspective looking upward",
+  "overhead flat-lay arrangement of thematic objects",
+  "side-lit profile composition with strong rim light",
+  "atmospheric mid-distance scene framed through a doorway or arch",
+];
+
+export function buildBlogSectionPrompt(input: BlogSectionImageInput): string {
+  const title = sanitiseForPrompt(input.title, 120);
+  const heading = sanitiseForPrompt(input.heading, 120);
+  const body = sanitiseForPrompt(input.sectionText ?? "", 400);
+
+  const scenes = pickScenes(`${heading} ${body} ${title}`);
+  const sceneClause = scenes.length > 0 ? `Visual focus: ${scenes.join("; ")}. ` : "";
+  // Rotate the compositional style by section index so a post's images
+  // read as a varied set rather than six near-identical frames.
+  const composition = SECTION_COMPOSITIONS[input.idx % SECTION_COMPOSITIONS.length];
+
+  return [
+    `Editorial spot illustration for the section "${heading}" of an article about ${title}.`,
+    sceneClause,
+    `Composition: ${composition}.`,
+    "Style: warm painterly editorial illustration, soft volumetric lighting,",
+    "muted purples and warm ambers with deep contrast, cohesive with a",
+    "magazine-cover visual language.",
+    "Audio-first / accessibility-themed visual metaphor where relevant.",
+    "No text, no logos, no UI elements, no human faces in the foreground.",
+    "Wide cinematic composition. 16:9 aspect ratio. Painterly, not photographic.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export async function generateBlogSectionImage(
+  input: BlogSectionImageInput,
+): Promise<BlogCoverResult> {
+  return generateFromPrompt(buildBlogSectionPrompt(input));
 }
 
 export function blogCoverProviderDiagnostic(): string | null {

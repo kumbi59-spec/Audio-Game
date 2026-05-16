@@ -6,6 +6,7 @@ import { marked } from "marked";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { planSectionImages } from "@/lib/blog/section-image-plan";
 
 export const revalidate = 60;
 
@@ -73,13 +74,29 @@ export default async function BlogPostPage({ params }: Props) {
   try {
     post = await prisma.blogPost.findUnique({
       where: { slug },
-      include: { author: { select: { name: true } } },
+      include: {
+        author: { select: { name: true } },
+        images: { orderBy: { idx: "asc" }, select: { id: true, idx: true, alt: true } },
+      },
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
   const htmlContent = await marked(post.content, { async: true });
+
+  // Map "section index to render the image after" → image record. The plan
+  // (shared with the generator) tells us which H2 each image idx targets;
+  // sections[0] is the pre-first-H2 intro, so heading index j lives in
+  // sections[j + 1] and the image is placed after that section.
+  const plan = planSectionImages(post.content);
+  const imageBySectionIndex = new Map<number, { id: string; alt: string }>();
+  for (const img of post.images) {
+    const planned = plan.find((p) => p.idx === img.idx);
+    if (planned) {
+      imageBySectionIndex.set(planned.headingIndex + 1, { id: img.id, alt: img.alt });
+    }
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -159,16 +176,31 @@ export default async function BlogPostPage({ params }: Props) {
               // through gracefully on shorter posts: the AdBanner just won't
               // be inserted past the last section.
               const adAfter = new Set([1, 4]);
-              return sections.map((s, i) => (
-                <Fragment key={i}>
-                  <div dangerouslySetInnerHTML={{ __html: s }} />
-                  {adAfter.has(i) && i < sections.length - 1 && (
-                    <div className="my-8">
-                      <AdBanner />
-                    </div>
-                  )}
-                </Fragment>
-              ));
+              return sections.map((s, i) => {
+                const img = imageBySectionIndex.get(i);
+                return (
+                  <Fragment key={i}>
+                    <div dangerouslySetInnerHTML={{ __html: s }} />
+                    {img && (
+                      <figure className="my-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/image route, not a static asset */}
+                        <img
+                          src={`/api/blog/image/${img.id}`}
+                          alt={img.alt}
+                          className="aspect-[16/9] w-full rounded-xl object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </figure>
+                    )}
+                    {adAfter.has(i) && i < sections.length - 1 && (
+                      <div className="my-8">
+                        <AdBanner />
+                      </div>
+                    )}
+                  </Fragment>
+                );
+              });
             })()}
             <div className="mt-8">
               <AdBanner />
