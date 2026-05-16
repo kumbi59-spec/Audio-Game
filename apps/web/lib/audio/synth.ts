@@ -179,6 +179,14 @@ function makeReverb(
 
 interface AmbientHandle {
   masterGain: GainNode;
+  /**
+   * Dedicated node for transient cue sidechaining. Lives in series after
+   * masterGain so duckAmbientUnderCue() can automate it WITHOUT touching
+   * masterGain's volume/narrator automation. Without this separation the
+   * two writers race on one AudioParam and the bed ratchets to silence
+   * after a few turns of sound cues.
+   */
+  duckGain?: GainNode;
   nodes: AudioNode[];
   cleanup?: () => void;
 }
@@ -611,6 +619,24 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
   const handle = buildAmbient(ac, track);
   if (!handle) return;
 
+  // Insert a dedicated duck node between master and destination. buildAmbient
+  // wires master → ac.destination internally; we splice the duck gain in so
+  // cue sidechaining (duckGain) and volume/narrator control (masterGain) are
+  // independent automation targets. They previously shared masterGain.gain,
+  // and duckAmbientUnderCue's cancelScheduledValues kept killing the volume
+  // recovery automation — the bed faded to zero after ~5 turns of cues.
+  try {
+    handle.masterGain.disconnect();
+  } catch {
+    /* not connected yet — fine */
+  }
+  const duckGain = ac.createGain();
+  duckGain.gain.value = 1;
+  handle.masterGain.connect(duckGain);
+  duckGain.connect(ac.destination);
+  handle.duckGain = duckGain;
+  handle.nodes.push(duckGain);
+
   // Fade in
   handle.masterGain.gain.setValueAtTime(0, ac.currentTime);
   handle.masterGain.gain.linearRampToValueAtTime(volume, ac.currentTime + 1.5);
@@ -1038,18 +1064,20 @@ const CUE_DUCK_FACTOR = 0.35;
 const CUE_DUCK_MS = 600;
 
 function duckAmbientUnderCue(): void {
-  if (!_ambient || !_ctx) return;
+  // Automate the dedicated duck node, NOT masterGain. duckGain is a pure
+  // 0..1 multiplier in series after masterGain, so cancelScheduledValues
+  // here only ever cancels a previous duck — never the volume/narrator
+  // automation that synthSetAmbientVolume writes to masterGain.gain.
+  const duck = _ambient?.duckGain;
+  if (!duck || !_ctx) return;
   const ac = _ctx;
   const t = ac.currentTime;
-  const target = _ambient.masterGain;
-  const original = target.gain.value;
-  // Cancel any in-flight ramp so we don't stack ducks. setValueAtTime then
-  // ramp down → hold → ramp back up to the value the bed had before duck.
-  target.gain.cancelScheduledValues(t);
-  target.gain.setValueAtTime(original, t);
-  target.gain.linearRampToValueAtTime(original * CUE_DUCK_FACTOR, t + 0.05);
-  target.gain.setValueAtTime(original * CUE_DUCK_FACTOR, t + (CUE_DUCK_MS - 200) / 1000);
-  target.gain.linearRampToValueAtTime(original, t + CUE_DUCK_MS / 1000);
+  const g = duck.gain;
+  g.cancelScheduledValues(t);
+  g.setValueAtTime(1, t);
+  g.linearRampToValueAtTime(CUE_DUCK_FACTOR, t + 0.05);
+  g.setValueAtTime(CUE_DUCK_FACTOR, t + (CUE_DUCK_MS - 200) / 1000);
+  g.linearRampToValueAtTime(1, t + CUE_DUCK_MS / 1000);
 }
 
 export function synthPlayCue(cue: SoundCue, volume = 0.7): void {
