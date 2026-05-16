@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { useGameStore } from "@/store/game-store";
+import { isSpeaking } from "@/lib/audio/tts-provider";
 
 interface ChoiceListProps {
   choices: string[];
@@ -89,10 +90,20 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
     [choices, questCorpus],
   );
 
-  // Announce when new choices appear
+  // Announce + focus when new choices appear — but only once the GM
+  // narration TTS has stopped. Doing it immediately makes a phone screen
+  // reader (VoiceOver / TalkBack) read the live-region summary and the
+  // focused button while the narrator voice is still mid-sentence, so the
+  // player hears two voices at once. We poll isSpeaking() and defer the
+  // announce + focus until the narrator is quiet.
   useEffect(() => {
-    if (choices.length > 0) {
-      setSubmittedIdx(null);
+    if (choices.length === 0) return;
+    setSubmittedIdx(null);
+
+    let cancelled = false;
+
+    const announceAndFocus = () => {
+      if (cancelled) return;
       const summary = `${choices.length} options available: ${choices.map((c, i) => `${i + 1}, ${c}`).join(". ")}`;
       announce(summary);
       // Honour the focusAfterTurn preference. Default ("choices") moves focus
@@ -100,12 +111,32 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
       // choices. Players who mostly type freeform can opt into "input", in
       // which case we leave focus alone here so the input retains it.
       if (focusAfterTurn === "choices") {
-        const firstBtn = listRef.current?.querySelector<HTMLButtonElement>("button");
-        firstBtn?.focus();
+        listRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
       } else {
         document.getElementById("action-text-input")?.focus();
       }
+    };
+
+    if (!isSpeaking()) {
+      announceAndFocus();
+      return;
     }
+
+    const interval = setInterval(() => {
+      if (cancelled) {
+        clearInterval(interval);
+        return;
+      }
+      if (!isSpeaking()) {
+        clearInterval(interval);
+        announceAndFocus();
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [choices, announce, focusAfterTurn]);
 
   function handleSelect(i: number, choice: string) {
