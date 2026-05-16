@@ -1,23 +1,14 @@
 import Link from "next/link";
+import { loadPublicWorlds } from "@/lib/worlds/shape";
 
-interface World {
-  id: string;
-  name: string;
-  description: string;
-  genre: string;
-  tone: string;
-  author?: string | null;
-}
-
-async function getWorld(id: string): Promise<World | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/worlds/${id}`, { cache: "no-store" });
-  if (!res.ok) return null;
-  return (await res.json()) as World;
-}
+export const revalidate = 60;
 
 export default async function ForkWorldPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const world = await getWorld(id);
+  // Direct data-layer call — see the note in /forks/page.tsx for why the
+  // prior fetch("/api/worlds/:id") from a server component was broken.
+  const worlds = await loadPublicWorlds();
+  const world = worlds.find((w) => w.id === id);
 
   if (!world) {
     return <main className="mx-auto max-w-2xl px-6 py-10">World not found.</main>;
