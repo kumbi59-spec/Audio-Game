@@ -305,6 +305,32 @@ export default function AdminPage() {
     }
   }
 
+  const [strippingImages, setStrippingImages] = useState(false);
+
+  // Remove legacy embedded ![](…)/<img> from stored post bodies. All blog
+  // imagery is BFL-generated and delivered out-of-band (cover + section
+  // images), so old stock images injected into content must go. Unlike a
+  // force re-seed this preserves manual edits.
+  async function stripLegacyImages() {
+    setStrippingImages(true);
+    setSeedResult("");
+    try {
+      const res = await fetch("/api/admin/blog/strip-images", { method: "POST" });
+      const data = await res.json().catch(() => ({})) as { error?: string; cleaned?: number; total?: number };
+      if (!res.ok) {
+        setSeedResult(data.error ?? `Strip failed (${res.status}).`);
+        return;
+      }
+      const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
+      setPosts(Array.isArray(newPosts) ? newPosts : []);
+      setSeedResult(`Removed legacy images from ${data.cleaned ?? 0} of ${data.total ?? 0} posts.`);
+    } catch (err) {
+      setSeedResult(err instanceof Error ? err.message : "Strip failed.");
+    } finally {
+      setStrippingImages(false);
+    }
+  }
+
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/auth/sign-in");
   }, [status, router]);
@@ -629,6 +655,12 @@ export default function AdminPage() {
                     style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
                     title="Auto-updates existing blog content with baseline SEO improvements.">
                     {seoFixing ? "Applying SEO…" : "Auto-fix existing SEO"}
+                  </button>
+                  <button onClick={stripLegacyImages} disabled={strippingImages}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Removes old non-BFL images embedded in post bodies. BFL covers and section images are unaffected. Preserves manual edits.">
+                    {strippingImages ? "Removing images…" : "Remove legacy images"}
                   </button>
                   <button
                     onClick={() => generateBlogCovers(false)}

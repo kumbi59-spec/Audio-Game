@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
+import { stripContentImages } from "@/lib/blog/strip-images";
 
 function slugify(title: string) {
   return title.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -2033,125 +2034,6 @@ function getPublishDate(daysFromNow: number): Date {
   return d;
 }
 
-// Maps post slug → hero image path. Uses our existing world-cover SVGs so the
-// blog gets visual variety without external dependencies. Anything not in this
-// map falls back to neon-precinct.svg.
-const HERO_IMAGE_BY_SLUG: Record<string, { src: string; alt: string }> = {
-  "welcome-to-echoquest-the-ai-rpg-built-for-everyone": { src: "/images/worlds/neon-precinct.svg", alt: "Stylized cover art for EchoQuest, glowing neon city skyline" },
-  "how-to-play-your-first-echoquest-adventure-beginners-guide": { src: "/images/worlds/long-watch.svg", alt: "A lone watchtower silhouetted at dusk, the start of an adventure" },
-  "why-audio-first-gaming-is-a-revolution-for-blind-players": { src: "/images/worlds/saltbound.svg", alt: "Sound waves rolling across a calm coastal sea" },
-  "5-world-building-tips-that-make-great-rpg-campaigns": { src: "/images/worlds/verdant-wilds.svg", alt: "A lush green forest world full of unexplored trails" },
-  "how-claude-ai-powers-the-echoquest-game-master": { src: "/images/worlds/neon-precinct.svg", alt: "Glowing cybernetic AI motifs over a futuristic skyline" },
-  "the-best-fantasy-rpg-tropes-and-when-to-subvert-them": { src: "/images/worlds/iron-citadel.svg", alt: "An iron citadel rising from craggy mountain peaks" },
-  "keyboard-navigation-in-echoquest-play-without-a-mouse": { src: "/images/worlds/black-vellum.svg", alt: "An open spell book on dark vellum, glowing runes" },
-  "elevenlabs-premium-narration-why-voice-quality-changes-everything": { src: "/images/worlds/saltbound.svg", alt: "A bard's lantern over a calm harbor at twilight" },
-  "10-classic-rpg-character-archetypes-and-how-to-play-them-well": { src: "/images/worlds/verdant-wilds.svg", alt: "Adventurers gathered at a forest clearing" },
-  "how-to-write-a-game-bible-the-world-builders-template": { src: "/images/worlds/black-vellum.svg", alt: "A leather-bound game bible on a writing desk" },
-  "accessibility-in-gaming-the-state-of-play-in-2026": { src: "/images/worlds/long-watch.svg", alt: "A guiding lighthouse beam reaching across rough seas" },
-  "how-ambient-sound-design-elevates-rpg-storytelling": { src: "/images/worlds/mirewood.svg", alt: "Mist rolling through a dark mirewood forest" },
-  "from-tabletop-to-ai-how-echoquest-reimagines-dd": { src: "/images/worlds/iron-citadel.svg", alt: "A sweeping fantasy castle, evoking the spirit of D&D" },
-  "writing-compelling-npcs-7-techniques-that-work": { src: "/images/worlds/verdant-wilds.svg", alt: "An NPC innkeeper standing in a wooded village" },
-  "the-power-of-choice-how-branching-narratives-work-in-ai-rpgs": { src: "/images/worlds/neon-precinct.svg", alt: "Glowing branching neon paths over a circuit-like cityscape" },
-  "how-to-create-your-first-custom-world-on-echoquest": { src: "/images/worlds/black-vellum.svg", alt: "A blank cartographer's map ready to be inked" },
-  "voice-commands-in-echoquest-play-completely-hands-free": { src: "/images/worlds/saltbound.svg", alt: "A microphone glowing softly in the dark" },
-  "the-science-of-immersion-why-audio-storytelling-is-so-powerful": { src: "/images/worlds/mirewood.svg", alt: "A figure listening intently, surrounded by drifting sound" },
-  "setting-difficulty-in-ai-rpgs-from-beginner-to-power-player": { src: "/images/worlds/iron-citadel.svg", alt: "Climbing a difficult mountain pass to a distant fortress" },
-  "the-history-of-interactive-fiction-and-where-ai-takes-it-next": { src: "/images/worlds/black-vellum.svg", alt: "A vintage terminal screen glowing green with words" },
-  "how-to-run-a-horror-rpg-campaign-without-any-visuals": { src: "/images/worlds/mirewood.svg", alt: "Pale moonlight breaking through a haunted swamp" },
-  "crafting-moral-dilemmas-how-to-make-players-truly-think": { src: "/images/worlds/long-watch.svg", alt: "A weathered scale balanced on cracked stone" },
-  "5-classic-dd-campaigns-that-inspired-echoquest": { src: "/images/worlds/iron-citadel.svg", alt: "Ancient runes carved on a crumbling tower" },
-  "solo-rpg-vs-group-play-the-case-for-playing-alone": { src: "/images/worlds/long-watch.svg", alt: "A solitary traveler at a quiet campfire under stars" },
-  "the-world-builder-wizard-a-complete-guide-for-creators": { src: "/images/worlds/black-vellum.svg", alt: "A wizard at a workshop drafting maps and notes" },
-  "storytelling-for-mental-health-the-therapeutic-power-of-rpgs": { src: "/images/worlds/verdant-wilds.svg", alt: "A peaceful clearing in a sunlit forest" },
-  "how-screen-readers-work-with-echoquest-a-technical-deep-dive": { src: "/images/worlds/neon-precinct.svg", alt: "Stylized waveforms cascading across a digital interface" },
-  "behind-the-gm-how-we-prompt-claude-to-run-your-adventures": { src: "/images/worlds/neon-precinct.svg", alt: "Lines of glowing prompt text behind a futuristic GM screen" },
-  "building-community-worlds-tips-from-echoquest-creators": { src: "/images/worlds/verdant-wilds.svg", alt: "A bustling community of creators at work in a forest village" },
-  "whats-next-for-echoquest-our-vision-for-the-future": { src: "/images/worlds/neon-precinct.svg", alt: "A road of light leading toward a glowing horizon" },
-};
-
-const FALLBACK_HERO = { src: "/images/worlds/neon-precinct.svg", alt: "EchoQuest blog post header illustration" };
-
-// Pool of inline body images. We rotate through these to add 1-2 visuals
-// inside each post body so readers don't face a wall of text. Uses our
-// existing world-cover SVGs for zero external dependencies.
-const INLINE_IMAGE_POOL: Array<{ src: string; alt: string }> = [
-  { src: "/images/worlds/iron-citadel.svg", alt: "An iron citadel rising from craggy mountain peaks" },
-  { src: "/images/worlds/neon-precinct.svg", alt: "A neon-lit cyberpunk skyline at night" },
-  { src: "/images/worlds/saltbound.svg", alt: "A coastal harbor at twilight, lanterns on the water" },
-  { src: "/images/worlds/verdant-wilds.svg", alt: "Sunlit trails winding through a lush green forest" },
-  { src: "/images/worlds/black-vellum.svg", alt: "An open spell book on dark vellum, runes glowing" },
-  { src: "/images/worlds/long-watch.svg", alt: "A lone watchtower silhouetted at dusk" },
-  { src: "/images/worlds/mirewood.svg", alt: "Mist drifting through a dark, ancient mirewood" },
-];
-
-function simpleHash(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
-// Pick two body images for a slug that differ from each other and from the hero.
-function inlineImagesFor(slug: string, heroSrc: string): Array<{ src: string; alt: string }> {
-  const candidates = INLINE_IMAGE_POOL.filter((img) => img.src !== heroSrc);
-  const h = simpleHash(slug);
-  const first = candidates[h % candidates.length]!;
-  const second = candidates[(h + 3) % candidates.length]!;
-  return first.src === second.src
-    ? [first, candidates[(h + 5) % candidates.length]!]
-    : [first, second];
-}
-
-// Insert an image into markdown content right after the Nth H2 heading
-// (1-indexed). Returns the original content if there are fewer than n H2s.
-function insertAfterNthH2(content: string, n: number, imageMd: string): string {
-  if (content.includes(imageMd)) return content; // idempotent
-  const re = /^##\s.+$/gm;
-  let match: RegExpExecArray | null;
-  let count = 0;
-  while ((match = re.exec(content)) !== null) {
-    count++;
-    if (count === n) {
-      const idx = match.index + match[0].length;
-      return content.slice(0, idx) + `\n\n${imageMd}\n` + content.slice(idx);
-    }
-  }
-  return content;
-}
-
-// Inject a hero image after the first H1 plus two inline body images at
-// proportional positions, so every post opens with a visual and breaks up
-// long-form text. Idempotent — calling twice doesn't duplicate images.
-function injectHeroImage(slug: string, content: string): string {
-  const hero = HERO_IMAGE_BY_SLUG[slug] ?? FALLBACK_HERO;
-  const heroMd = `![${hero.alt}](${hero.src})`;
-  let out = content;
-  if (!out.includes(heroMd)) {
-    const h1Match = out.match(/^#\s.+$/m);
-    if (h1Match) {
-      const idx = (h1Match.index ?? 0) + h1Match[0].length;
-      out = out.slice(0, idx) + `\n\n${heroMd}\n` + out.slice(idx);
-    } else {
-      out = `${heroMd}\n\n${out}`;
-    }
-  }
-
-  // Count H2s to decide where to drop the inline images.
-  const h2Count = (out.match(/^##\s.+$/gm) ?? []).length;
-  if (h2Count >= 2) {
-    const [img1, img2] = inlineImagesFor(slug, hero.src);
-    // First inline image: after the 2nd H2 (early in the body).
-    out = insertAfterNthH2(out, 2, `![${img1!.alt}](${img1!.src})`);
-    // Second inline image: roughly two-thirds through, but only if there are
-    // enough H2s to avoid stacking it next to the first one.
-    const secondPos = h2Count >= 6 ? Math.min(h2Count - 1, 5) : Math.max(3, h2Count - 1);
-    if (secondPos > 2) {
-      out = insertAfterNthH2(out, secondPos, `![${img2!.alt}](${img2!.src})`);
-    }
-  }
-
-  return out;
-}
-
 export async function POST(req: Request) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -2166,14 +2048,18 @@ export async function POST(req: Request) {
 
   for (const p of POSTS) {
     const slug = slugify(p.title);
-    const contentWithHero = injectHeroImage(slug, p.content);
+    // No image injection. Blog imagery is BFL-generated and delivered
+    // out-of-band (coverImageUrl hero + interleaved BlogPostImage rows).
+    // Strip any embedded ![](…)/<img> so a forced re-seed also cleans
+    // posts that were seeded by the old image-injecting code path.
+    const cleanContent = stripContentImages(p.content);
     try {
       const existing = await prisma.blogPost.findUnique({ where: { slug } });
       if (existing) {
         if (!force) { skipped.push(slug); continue; }
         await prisma.blogPost.update({
           where: { slug },
-          data: { title: p.title, excerpt: p.excerpt, content: contentWithHero },
+          data: { title: p.title, excerpt: p.excerpt, content: cleanContent },
           select: { id: true },
         });
         updated.push(slug);
@@ -2185,7 +2071,7 @@ export async function POST(req: Request) {
           title: p.title,
           slug,
           excerpt: p.excerpt,
-          content: contentWithHero,
+          content: cleanContent,
           publishedAt: getPublishDate(p.daysFromNow),
           authorId: admin.id,
         },

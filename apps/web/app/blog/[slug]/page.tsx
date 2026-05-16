@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
+import { stripContentImages } from "@/lib/blog/strip-images";
 
 export const revalidate = 60;
 
@@ -83,7 +84,12 @@ export default async function BlogPostPage({ params }: Props) {
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
-  const htmlContent = await marked(post.content, { async: true });
+  // Strip any legacy embedded images from the body before rendering. All
+  // blog imagery is BFL-generated and delivered out-of-band (coverImageUrl
+  // hero + interleaved BlogPostImage rows); old seed runs injected stock
+  // ![](…) images into the content, which we never want shown.
+  const cleanContent = stripContentImages(post.content);
+  const htmlContent = await marked(cleanContent, { async: true });
   const sections = splitHtmlOnH2(htmlContent);
 
   // Map "section index to render the image after" → image record. The plan
