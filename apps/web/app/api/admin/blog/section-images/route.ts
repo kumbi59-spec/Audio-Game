@@ -132,15 +132,21 @@ export async function POST(req: NextRequest) {
     idx: target.slot.idx,
   });
 
-  if (result.error) {
+  // BlogCoverResult isn't a discriminated union (it uses optional-never),
+  // so `if (result.error)` doesn't narrow result.url to string. Pull it
+  // into a checked const — this also defends against a generator returning
+  // neither error nor url.
+  if (result.error || !result.url) {
     return NextResponse.json({
       status: "failed",
       postTitle: target.slot.postTitle,
       postId: target.slot.postId,
       idx: target.slot.idx,
-      reason: result.error,
+      reason: result.error ?? "generator returned no image",
     });
   }
+  const dataUrl = result.url;
+  const alt = `Illustration for the section "${target.slot.heading}"`;
 
   // Upsert so a force regen replaces the existing image in place (and keeps
   // the same idx → render placement) instead of duplicating.
@@ -149,12 +155,12 @@ export async function POST(req: NextRequest) {
     create: {
       postId: target.slot.postId,
       idx: target.slot.idx,
-      dataUrl: result.url,
-      alt: `Illustration for the section "${target.slot.heading}"`,
+      dataUrl,
+      alt,
     },
     update: {
-      dataUrl: result.url,
-      alt: `Illustration for the section "${target.slot.heading}"`,
+      dataUrl,
+      alt,
     },
   });
 
