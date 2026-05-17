@@ -637,9 +637,19 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
   handle.duckGain = duckGain;
   handle.nodes.push(duckGain);
 
-  // Fade in
+  // Start silent. Only schedule a fade-in ramp when a positive target was
+  // supplied. AmbientPlayer calls synthPlayAmbient(track, 0) deliberately
+  // ("start at 0, the volume effect ramps up") and then synthSetAmbientVolume
+  // brings the bed in via setTargetAtTime. If we ramp to 0 here, that ramp's
+  // endpoint at +1.5s pins masterGain at 0 and the (earlier-scheduled)
+  // setTargetAtTime gets overridden — the bed is silent forever. (Previously
+  // masked: the old shared-masterGain duckAmbientUnderCue called
+  // cancelScheduledValues on a cue, which happened to wipe this ramp; the
+  // PR #245 duck-node split removed that accidental rescue.)
   handle.masterGain.gain.setValueAtTime(0, ac.currentTime);
-  handle.masterGain.gain.linearRampToValueAtTime(volume, ac.currentTime + 1.5);
+  if (volume > 0) {
+    handle.masterGain.gain.linearRampToValueAtTime(volume, ac.currentTime + 1.5);
+  }
   _ambient = handle;
 }
 
