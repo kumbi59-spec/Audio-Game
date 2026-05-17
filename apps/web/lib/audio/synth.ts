@@ -193,6 +193,14 @@ interface AmbientHandle {
 
 let _ambient: AmbientHandle | null = null;
 
+// Last ambient volume requested via synthSetAmbientVolume, remembered even
+// when no handle exists yet. Lets a deferred start (suspended AudioContext
+// flushed by unlockAudioContext, or a track change) come up to the user's
+// current level without waiting for AmbientPlayer's volume effect to fire
+// again. Includes narrator-duck + master-curve scaling since callers pass
+// the already-computed effective value.
+let _lastAmbientVolume = 0;
+
 function buildAmbient(ac: AudioContext, track: AmbientTrack): AmbientHandle | null {
   const master = gain(ac, 0);
   const nodes: AudioNode[] = [master];
@@ -649,6 +657,16 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
   handle.masterGain.gain.setValueAtTime(0, ac.currentTime);
   if (volume > 0) {
     handle.masterGain.gain.linearRampToValueAtTime(volume, ac.currentTime + 1.5);
+  } else if (_lastAmbientVolume > 0) {
+    // volume === 0 (the AmbientPlayer "start at 0" pattern) AND we already
+    // know the user's level from a prior synthSetAmbientVolume. Bring the
+    // bed up immediately. Covers two cases AmbientPlayer's separate volume
+    // effect doesn't: the suspended-context unlock flush (effect deps
+    // unchanged, so it won't re-fire after the deferred start) and a track
+    // change (snappier than waiting for the next effective-volume change).
+    // If a synthSetAmbientVolume lands microseconds later it just re-targets
+    // the same param — harmless.
+    handle.masterGain.gain.setTargetAtTime(_lastAmbientVolume, ac.currentTime, 0.1);
   }
   _ambient = handle;
 }
@@ -662,9 +680,14 @@ export function synthStopAmbient(): void {
 }
 
 export function synthSetAmbientVolume(volume: number): void {
+  const clamped = Math.max(0, Math.min(1, volume));
+  // Remember the target even when there's no live handle — a deferred start
+  // (suspended-context unlock flush) needs it to come up without waiting on
+  // another effective-volume change.
+  _lastAmbientVolume = clamped;
   if (!_ambient) return;
   _ambient.masterGain.gain.setTargetAtTime(
-    Math.max(0, Math.min(1, volume)),
+    clamped,
     (_ctx?.currentTime ?? 0),
     0.1,
   );
