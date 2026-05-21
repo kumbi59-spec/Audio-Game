@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { loadPublicWorlds } from "@/lib/worlds/shape";
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export const metadata: Metadata = {
   title: "Fork a Community World",

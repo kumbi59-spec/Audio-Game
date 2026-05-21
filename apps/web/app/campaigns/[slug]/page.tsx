@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SEO_CAMPAIGNS, getSeoCampaign } from "@/lib/seo-campaigns";
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export function generateStaticParams() {
   return SEO_CAMPAIGNS.map((campaign) => ({ slug: campaign.slug }));

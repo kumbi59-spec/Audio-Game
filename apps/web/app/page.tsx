@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
@@ -68,17 +68,17 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://echoquest.app/#organization",
+      "@id": `${SITE_URL}/#organization`,
       name: "EchoQuest",
-      url: "https://echoquest.app",
-      logo: { "@type": "ImageObject", url: "https://echoquest.app/opengraph-image" },
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/opengraph-image` },
       sameAs: [],
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://echoquest.app/#app",
+      "@id": `${SITE_URL}/#app`,
       name: "EchoQuest",
-      url: "https://echoquest.app",
+      url: SITE_URL,
       applicationCategory: "GameApplication",
       operatingSystem: "Web",
       offers: {
@@ -90,7 +90,7 @@ const jsonLd = {
       },
       description:
         "An audio-first AI tabletop RPG platform with a live AI Game Master. Fully accessible for blind and visually impaired players.",
-      screenshot: "https://echoquest.app/opengraph-image",
+      screenshot: `${SITE_URL}/opengraph-image`,
       featureList: [
         "AI Game Master powered by Claude",
         "Audio-first design with TTS narration",
@@ -98,18 +98,18 @@ const jsonLd = {
         "Community world creation",
         "Voice command navigation",
       ],
-      publisher: { "@id": "https://echoquest.app/#organization" },
+      publisher: { "@id": `${SITE_URL}/#organization` },
     },
     {
       "@type": "WebSite",
-      "@id": "https://echoquest.app/#website",
-      url: "https://echoquest.app",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
       name: "EchoQuest",
-      publisher: { "@id": "https://echoquest.app/#organization" },
+      publisher: { "@id": `${SITE_URL}/#organization` },
     },
     {
       "@type": "HowTo",
-      "@id": "https://echoquest.app/#howto",
+      "@id": `${SITE_URL}/#howto`,
       name: "How to play EchoQuest",
       description:
         "Start an AI-narrated tabletop RPG adventure in three steps. Works with keyboard, voice, and screen readers.",
@@ -119,12 +119,12 @@ const jsonLd = {
         position: i + 1,
         name: h.title,
         text: h.body,
-        url: `https://echoquest.app/#how-it-works`,
+        url: `${SITE_URL}/#how-it-works`,
       })),
     },
     {
       "@type": "FAQPage",
-      "@id": "https://echoquest.app/#faq",
+      "@id": `${SITE_URL}/#faq`,
       mainEntity: [
         {
           "@type": "Question",

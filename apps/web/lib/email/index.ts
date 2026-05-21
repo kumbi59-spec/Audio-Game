@@ -11,7 +11,7 @@ function getResend(): Resend | null {
 // RESEND_FROM must be a sender address on a domain verified in Resend.
 // Example: "EchoQuest <noreply@yourdomain.com>"
 const FROM = process.env["RESEND_FROM"] ?? "EchoQuest <noreply@echoquest.app>";
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 async function sendEmail(payload: Parameters<Resend["emails"]["send"]>[0]): Promise<void> {
   const resend = getResend();
