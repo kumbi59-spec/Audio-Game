@@ -6,6 +6,10 @@ export const alt = "EchoQuest blog post";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const SITE_HOST = (process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
+
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function BlogOgImage({ params }: Props) {
@@ -170,7 +174,7 @@ export default async function BlogOgImage({ params }: Props) {
             fontWeight: 500,
           }}
         >
-          echoquest.app
+          {SITE_HOST}
         </div>
       </div>
     ),

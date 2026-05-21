@@ -12,7 +12,7 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { auth } from "@/auth";
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

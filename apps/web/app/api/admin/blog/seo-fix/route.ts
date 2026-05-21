@@ -34,7 +34,7 @@ function improveContent(title: string, content: string): string {
   if (!/\]\(\/(blog|library|campaigns|pricing|worlds)[^)]+\)/i.test(next)) {
     next += "\n\nRelated reading: [Browse all EchoQuest blog posts](/blog).";
   }
-  if (!/\]\(https?:\/\/(?!echoquest\.app)[^)]+\)/i.test(next)) {
+  if (!/\]\(https?:\/\/(?!echoquest\.(?:app|us))[^)]+\)/i.test(next)) {
     next += "\n\nReference: [Google Search SEO Starter Guide](https://developers.google.com/search/docs/fundamentals/seo-starter-guide).";
   }
 

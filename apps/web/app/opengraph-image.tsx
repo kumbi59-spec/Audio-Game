@@ -5,6 +5,10 @@ export const alt = "EchoQuest — Narrated AI RPG Adventures";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const SITE_HOST = (process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us")
+  .replace(/^https?:\/\//, "")
+  .replace(/\/$/, "");
+
 export default function OgImage() {
   return new ImageResponse(
     (
@@ -104,7 +108,7 @@ export default function OgImage() {
             fontSize: "18px",
           }}
         >
-          Free to start · echoquest.app
+          Free to start · {SITE_HOST}
         </div>
       </div>
     ),

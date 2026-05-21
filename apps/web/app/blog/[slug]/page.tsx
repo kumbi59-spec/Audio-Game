@@ -10,7 +10,7 @@ import { planSectionImages } from "@/lib/blog/section-image-plan";
 
 export const revalidate = 60;
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.app";
+const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 // Split rendered HTML into chunks at each <h2> boundary so AdSense units can
 // be interleaved between body sections. The first chunk is everything up to

@@ -62,7 +62,7 @@ function getSeoChecks(post: BlogPost): SeoCheck[] {
     { label: "Keyword in first 100 words", pass: !!primaryPhrase && first100Words.includes(primaryPhrase) },
     { label: "Has H2/H3 section", pass: /^#{2,3}\s+/m.test(post.content) },
     { label: "Internal link", pass: /\]\(\/(blog|library|campaigns|pricing|worlds)[^)]+\)/i.test(post.content) },
-    { label: "External link", pass: /\]\(https?:\/\/(?!echoquest\.app)[^)]+\)/i.test(post.content) },
+    { label: "External link", pass: /\]\(https?:\/\/(?!echoquest\.(?:app|us))[^)]+\)/i.test(post.content) },
     { label: "Image alt text", pass: /!\[[^\]]{4,}\]\([^)]+\)/.test(post.content) },
   ];
 }
