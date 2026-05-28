@@ -1,4 +1,4 @@
-import { speak } from "./tts-provider";
+import { speak, beginNarrationSession, endNarrationSession } from "./tts-provider";
 import { useAudioStore } from "@/store/audio-store";
 
 /**
@@ -116,18 +116,33 @@ export async function speakNarrationMultiVoice(
     return ttsVoiceId || undefined;
   }
 
-  // Speak each speaker-segment as one TTS request rather than one per
-  // sentence. Each ElevenLabs sentence-call would cost a full HTTP round
-  // trip; coalescing same-voice text into one call cuts the round-trip
-  // count from O(sentences) to O(voice changes). Combined with the
-  // streaming response on the provider side, multi-sentence segments now
-  // play essentially gaplessly.
-  //
-  // Interruption still works: the audio queue calls stopSpeech() which
-  // tears down the in-flight audio element mid-utterance.
+  // Coalesce adjacent segments that resolve to the same voice into one TTS
+  // request. With no character/NPC voice configured everything falls back to
+  // the narrator voice, in which case a multi-segment narration collapses to
+  // a single call. Even when voices differ, repeated speakers (Maria → prose
+  // → Maria) merge — fewer HTTP gaps means fewer audible voice flips.
+  const grouped: { voiceId: string | undefined; text: string }[] = [];
   for (const seg of segments) {
-    if (signal.aborted) break;
     const voiceId = voiceForSegment(seg);
-    await speakFn(seg.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId });
+    const last = grouped[grouped.length - 1];
+    if (last && last.voiceId === voiceId) {
+      last.text += " " + seg.text;
+    } else {
+      grouped.push({ voiceId, text: seg.text });
+    }
+  }
+
+  // Open a narration session so isSpeaking() stays true across the per-voice
+  // HTTP gaps between groups. Without this, AmbientPlayer un-ducks the bed on
+  // every voice change and ChoiceList focuses the next choices mid-narration,
+  // which sounds like the voice "won't cleanly stay" on the new speaker.
+  beginNarrationSession();
+  try {
+    for (const group of grouped) {
+      if (signal.aborted) break;
+      await speakFn(group.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: group.voiceId });
+    }
+  } finally {
+    endNarrationSession();
   }
 }
