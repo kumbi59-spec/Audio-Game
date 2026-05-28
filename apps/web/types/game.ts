@@ -19,6 +19,10 @@ export interface NpcRelationship {
   standing: number; // -100 (enemy) to +100 (ally), 0 = neutral
   notes?: string;
   lastSeenTurn: number;
+  /** Used by the NPC voice auto-assigner to pick a gender-matched voice.
+   *  GM emits this in npcRelationshipChanges; falls back to "neutral" so any
+   *  catalog voice is eligible. */
+  gender?: import("@/types/audio").VoiceGender;
 }
 
 export interface CodexEntry {
@@ -69,7 +73,13 @@ export interface GameStateUpdate {
   inventoryChanges?: ItemMutation[];
   questChanges?: QuestMutation[];
   achievementUnlocks?: AchievementUnlock[];
-  npcRelationshipChanges?: Array<{ npcId: string; name: string; standing: number; notes?: string }>;
+  npcRelationshipChanges?: Array<{
+    npcId: string;
+    name: string;
+    standing: number;
+    notes?: string;
+    gender?: import("@/types/audio").VoiceGender;
+  }>;
   codexEntries?: CodexEntry[];
   passiveBonuses?: PassiveBonus[];
   passiveBonusNarration?: string[];
@@ -94,6 +104,9 @@ export interface NPCAction {
   npcId: string;
   action: string;
   dialogue?: string;
+  /** Optional — when present, used by the voice auto-assigner to pick a
+   *  gender-matched voice on first appearance of this NPC. */
+  gender?: import("@/types/audio").VoiceGender;
 }
 
 export interface NarrationEntry {

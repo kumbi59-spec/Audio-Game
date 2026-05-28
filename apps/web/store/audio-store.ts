@@ -13,9 +13,7 @@ interface AudioStore extends AudioSettings {
   setSoundCuesEnabled: (enabled: boolean) => void;
   setCurrentAmbient: (track: AmbientTrack) => void;
   setCharacterVoiceId: (voiceId: string) => void;
-  setNpcVoiceA: (voiceId: string) => void;
-  setNpcVoiceB: (voiceId: string) => void;
-  setNpcVoiceC: (voiceId: string) => void;
+  setEnabledNpcVoiceIds: (ids: string[]) => void;
   hydrateFromServer: (prefs: Partial<AudioSettings>) => void;
 }
 
@@ -32,9 +30,9 @@ export const useAudioStore = create<AudioStore>()(
       soundCuesEnabled: true,
       currentAmbient: "none",
       characterVoiceId: "",
-      npcVoiceA: "",
-      npcVoiceB: "",
-      npcVoiceC: "",
+      // Empty = "use the whole catalog". Users can narrow the pool from the
+      // settings page if they only like a subset of the available voices.
+      enabledNpcVoiceIds: [],
 
       setTTSProvider: (provider) => set({ ttsProvider: provider }),
       setTTSVoiceId: (voiceId) => set({ ttsVoiceId: voiceId }),
@@ -46,11 +44,24 @@ export const useAudioStore = create<AudioStore>()(
       setSoundCuesEnabled: (enabled) => set({ soundCuesEnabled: enabled }),
       setCurrentAmbient: (track) => set({ currentAmbient: track }),
       setCharacterVoiceId: (voiceId) => set({ characterVoiceId: voiceId }),
-      setNpcVoiceA: (voiceId) => set({ npcVoiceA: voiceId }),
-      setNpcVoiceB: (voiceId) => set({ npcVoiceB: voiceId }),
-      setNpcVoiceC: (voiceId) => set({ npcVoiceC: voiceId }),
+      setEnabledNpcVoiceIds: (ids) => set({ enabledNpcVoiceIds: ids }),
       hydrateFromServer: (prefs) => set((state) => ({ ...state, ...prefs })),
     }),
-    { name: "audio-game-audio" }
+    {
+      name: "audio-game-audio",
+      version: 2,
+      // v1 had npcVoiceA/B/C. Drop them; the new auto-assigner uses the full
+      // catalog via enabledNpcVoiceIds and server-side per-NPC assignments.
+      migrate: (persisted, version) => {
+        if (version < 2 && persisted && typeof persisted === "object") {
+          const p = persisted as Record<string, unknown>;
+          delete p.npcVoiceA;
+          delete p.npcVoiceB;
+          delete p.npcVoiceC;
+          if (!Array.isArray(p.enabledNpcVoiceIds)) p.enabledNpcVoiceIds = [];
+        }
+        return persisted as Partial<AudioStore>;
+      },
+    }
   )
 );
