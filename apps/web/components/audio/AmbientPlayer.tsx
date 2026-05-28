@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAudioStore } from "@/store/audio-store";
 import { playAmbient, stopAmbient, setAmbientVolume } from "@/lib/audio/sound-cues";
 
@@ -31,16 +31,28 @@ export function AmbientPlayer({
       ? Math.min(1, ambientVolume * 1.2)
       : ambientVolume;
 
+  // Stash the live effective volume in a ref so the play effect (which only
+  // re-runs on track/enabled changes) can read the current value without
+  // adding effectiveVolume to its deps and restarting the graph on every duck.
+  const effectiveVolumeRef = useRef(effectiveVolume);
+  effectiveVolumeRef.current = effectiveVolume;
+
   useEffect(() => {
     if (!ambientEnabled || currentAmbient === "none") {
       stopAmbient();
     } else {
-      // Start at 0; the volume effect below immediately ramps to effectiveVolume
-      // via a smooth GainNode ramp — no node graph restart needed for volume changes.
-      playAmbient(currentAmbient, 0);
+      // Pass the actual effective volume so synthPlayAmbient schedules its
+      // 1.5s fade-in to the right target. Previously this was 0 with the idea
+      // that the setAmbientVolume effect below would ramp it up — but on
+      // mobile the AudioContext is suspended until first gesture, so the play
+      // request gets queued at 0 and flushed at 0 on unlock, with no follow-up
+      // setAmbientVolume call. Result: the bed stayed silent forever.
+      playAmbient(currentAmbient, effectiveVolumeRef.current);
     }
-  // ambientVolume intentionally omitted: volume changes are handled by the
-  // setAmbientVolume effect below, not by restarting the audio graph.
+  // effectiveVolume / ambientVolume intentionally omitted: volume changes are
+  // handled by the setAmbientVolume effect below, not by restarting the audio
+  // graph. We read effectiveVolumeRef.current so the latest value is captured
+  // without re-running this effect.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAmbient, ambientEnabled]);
 

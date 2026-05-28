@@ -143,13 +143,61 @@ function parseGMResponse(raw: string): GMResponse {
       skill_check: parsed.skill_check ?? null,
     };
   } catch {
-    // If JSON parsing fails, treat entire content as narration
+    // Truncated / malformed JSON — most commonly hit when the model runs into
+    // MAX_TOKENS or the stream is cut. Dumping `raw` as narration leaked the
+    // entire response (including nested objects like npcAction) into the
+    // player-visible text, and the dialogue parser then matched garbage like
+    // `[npcId]: "village_doctor"` as a phantom NPC speaker — wildly bouncing
+    // narrator voices. Extract just the narration field via regex if we can,
+    // and only fall through to raw if even that fails.
+    const extracted = extractNarrationField(cleaned);
     return {
-      narration: raw,
+      narration: extracted ?? raw,
       choices: ["Continue", "Look around", "Do something else"],
       soundCue: null,
     };
   }
+}
+
+/**
+ * Pulls the value of the top-level "narration" key out of a malformed/truncated
+ * JSON string. Handles escaped quotes inside the value. Returns null if the
+ * key isn't found or its value can't be located. Best-effort, no fancy parser.
+ */
+function extractNarrationField(text: string): string | null {
+  const keyMatch = text.match(/"narration"\s*:\s*"/);
+  if (!keyMatch) return null;
+  const start = keyMatch.index! + keyMatch[0].length;
+  let i = start;
+  let escaped = false;
+  while (i < text.length) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+    } else if (ch === "\\") {
+      escaped = true;
+    } else if (ch === '"') {
+      // Unescape standard JSON sequences inside the field — \" \\ \n \r \t.
+      // Anything more exotic (\uXXXX) is left literal; rare in narration prose.
+      return text
+        .slice(start, i)
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, "\\")
+        .replace(/\\n/g, "\n")
+        .replace(/\\r/g, "\r")
+        .replace(/\\t/g, "\t");
+    }
+    i += 1;
+  }
+  // Truncated mid-value: return what we have up to the cut so the player still
+  // sees the prose Claude managed to emit, minus the trailing JSON tail.
+  return text
+    .slice(start)
+    .replace(/\\"/g, '"')
+    .replace(/\\\\/g, "\\")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "\r")
+    .replace(/\\t/g, "\t");
 }
 
 // Non-streaming: returns a complete GMResponse
