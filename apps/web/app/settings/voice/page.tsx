@@ -15,12 +15,7 @@ import { friendlyTtsError, voicesForProvider } from "@/src/domain/voice/use-case
 const PREVIEW_TEXT =
   "The fog rolls in off the cliffs. Somewhere a bell tolls the watch change. Tonight, the city is yours.";
 
-const NPC_PREVIEW: Record<"A" | "B" | "C", string> = {
-  A: '[Guard Captain]: "Halt! No one passes without the king\'s seal."',
-  B: '[Merchant]: "Fine goods, finest in the realm. Step up, step up!"',
-  C: '[Innkeeper]: "Room for the night? That\'ll be two silver, and no trouble."',
-};
-
+const NPC_VOICE_PREVIEW = '[NPC]: "A new face in town, are you? You\'ll want to mind the watch."';
 const CHARACTER_PREVIEW = "I step forward, hand on my blade. \"I'm here for answers, not a fight.\"";
 
 export default function VoiceSettingsPage() {
@@ -35,7 +30,7 @@ export default function VoiceSettingsPage() {
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [previewingSlot, setPreviewingSlot] = useState<"narrator" | "character" | "A" | "B" | "C" | null>(null);
+  const [previewingSlot, setPreviewingSlot] = useState<string | null>(null);
   const dirtyRef = useRef(false);
 
   useEffect(() => {
@@ -109,7 +104,7 @@ export default function VoiceSettingsPage() {
   }
 
 
-  async function previewVoice(text: string, voiceId: string | undefined, slot: "narrator" | "character" | "A" | "B" | "C") {
+  async function previewVoice(text: string, voiceId: string | undefined, slot: string) {
     setPreviewingSlot(slot);
     setPreviewError(null);
     try {
@@ -299,53 +294,92 @@ export default function VoiceSettingsPage() {
               </div>
             </section>
 
-            {/* NPC voices */}
+            {/* NPC voice pool */}
             <section
               aria-label="NPC voices"
               className="mb-6 rounded-xl border p-5"
               style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
             >
               <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
-                NPC voices
+                NPC voice pool
               </h2>
               <p className="mb-4 text-xs" style={{ color: "var(--text-muted)" }}>
-                Up to three distinct voices for NPCs. They&apos;re assigned automatically — the first NPC in a scene gets Voice A, the second gets B, the third gets C.
+                Each named NPC is automatically assigned a voice from the pool below — gender-matched when the GM tells us the character&apos;s gender, biased toward voices the session hasn&apos;t used yet. Assignments stick to that NPC across all your sessions and devices. Untick a voice to remove it from the rotation.
               </p>
-              {(["A", "B", "C"] as const).map((slot) => {
-                const current = slot === "A" ? store.npcVoiceA : slot === "B" ? store.npcVoiceB : store.npcVoiceC;
-                const setter = slot === "A" ? store.setNpcVoiceA : slot === "B" ? store.setNpcVoiceB : store.setNpcVoiceC;
+              {(() => {
+                const catalogVoices = availableVoices.filter((v) => v.provider === "elevenlabs");
+                if (catalogVoices.length === 0) {
+                  return (
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                      Switch to ElevenLabs above to enable per-NPC voices.
+                    </p>
+                  );
+                }
+                const enabled = store.enabledNpcVoiceIds;
+                // Empty array means "everything enabled" — UI shows all checked.
+                const isChecked = (id: string) => enabled.length === 0 || enabled.includes(id);
+                function toggle(id: string) {
+                  dirtyRef.current = true;
+                  if (enabled.length === 0) {
+                    // First click: switch from implicit-all to an explicit
+                    // list that has the just-unchecked voice removed.
+                    store.setEnabledNpcVoiceIds(catalogVoices.filter((v) => v.id !== id).map((v) => v.id));
+                    return;
+                  }
+                  const next = enabled.includes(id)
+                    ? enabled.filter((v) => v !== id)
+                    : [...enabled, id];
+                  // Collapsing back to "everything checked" → store empty
+                  // array so the implicit-all default kicks in again.
+                  if (next.length === catalogVoices.length) {
+                    store.setEnabledNpcVoiceIds([]);
+                  } else {
+                    store.setEnabledNpcVoiceIds(next);
+                  }
+                }
+                const activePoolSize = enabled.length === 0 ? catalogVoices.length : enabled.length;
                 return (
-                  <div key={slot} className="mb-3">
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
-                      NPC Voice {slot}
-                    </label>
-                    <div className="flex gap-2">
-                      <select
-                        aria-label={`NPC voice slot ${slot}`}
-                        value={current}
-                        onChange={(e) => { dirtyRef.current = true; setter(e.target.value); }}
-                        className="flex-1 rounded-lg border px-3 py-2 text-sm"
-                        style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)", color: "var(--text)", minHeight: 44 }}
-                      >
-                        <option value="">Same as narrator</option>
-                        {availableVoices.map((v) => (
-                          <option key={v.id} value={v.id}>{v.name}</option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => void previewVoice(NPC_PREVIEW[slot], current || store.ttsVoiceId || undefined, slot)}
-                        disabled={previewingSlot !== null}
-                        aria-label={`Preview NPC voice ${slot}`}
-                        className="shrink-0 rounded-lg border px-3 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ borderColor: "var(--border)", color: "var(--text)", minHeight: 44 }}
-                      >
-                        {previewingSlot === slot ? "Playing…" : "Preview"}
-                      </button>
-                    </div>
-                  </div>
+                  <>
+                    <p className="mb-3 text-xs" style={{ color: "var(--text-faint)" }}>
+                      {activePoolSize} of {catalogVoices.length} voices in the rotation
+                    </p>
+                    <ul className="space-y-2">
+                      {catalogVoices.map((v) => {
+                        const checked = isChecked(v.id);
+                        const genderLabel = v.gender ? ` · ${v.gender}` : "";
+                        return (
+                          <li key={v.id} className="flex items-center gap-2">
+                            <label className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg px-2 py-1 hover:opacity-90">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggle(v.id)}
+                                aria-label={`Include ${v.name} in NPC voice pool`}
+                                className="h-5 w-5"
+                                style={{ minHeight: 20, minWidth: 20 }}
+                              />
+                              <span className="text-sm" style={{ color: "var(--text)" }}>
+                                {v.name}
+                                <span className="ml-1 text-xs" style={{ color: "var(--text-faint)" }}>{genderLabel}</span>
+                              </span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => void previewVoice(NPC_VOICE_PREVIEW, v.id, `pool-${v.id}`)}
+                              disabled={previewingSlot !== null}
+                              aria-label={`Preview ${v.name}`}
+                              className="shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                              style={{ borderColor: "var(--border)", color: "var(--text)", minHeight: 36 }}
+                            >
+                              {previewingSlot === `pool-${v.id}` ? "Playing…" : "Preview"}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
                 );
-              })}
+              })()}
             </section>
           </>
         ) : (

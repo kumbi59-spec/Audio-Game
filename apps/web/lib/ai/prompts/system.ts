@@ -27,10 +27,10 @@ RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structu
     ],
     "skill_check": { "stat": "strength|dexterity|intelligence|charisma", "dc": 12, "label": "Force open the gate" },
     "achievementUnlocks": [{ "key": "achievement_key", "title": "Achievement Title", "description": "Why it was earned" }],
-    "npcRelationshipChanges": [{ "npcId": "captain_voss", "name": "Captain Voss", "standing": 40, "notes": "Convinced to let us pass" }],
+    "npcRelationshipChanges": [{ "npcId": "captain_voss", "name": "Captain Voss", "standing": 40, "notes": "Convinced to let us pass", "gender": "male" }],
     "codexEntries": [{ "key": "drowned_chapel", "title": "The Drowned Chapel", "body": "An ancient chapel submerged during the great flood, now haunt of the undead." }]
   },
-  "npcAction": { "npcId": "string", "action": "string", "dialogue": "string" } | null
+  "npcAction": { "npcId": "string", "action": "string", "dialogue": "string", "gender": "male|female|neutral" } | null
 }
 
 STATE CHANGE RULES — you MUST track all changes accurately:
@@ -54,6 +54,7 @@ Track standing with named NPCs using npcRelationshipChanges. Use a consistent sn
 Standing is -100 (sworn enemy) to +100 (loyal ally). New NPCs start at 0 (neutral). Emit a change whenever the player meaningfully helps, harms, persuades, or offends an NPC.
 Standing guide: ≥50 Ally, ≥10 Friendly, ≥-9 Neutral, ≥-49 Hostile, <-50 Enemy.
 Include notes (≤15 words) explaining why the standing changed. Check WORLD STATE for current standings to avoid resetting them unintentionally.
+ALWAYS include "gender" for every NPC on first mention: "male", "female", or "neutral" (use "neutral" for ambiguous, non-binary, or non-human voices like droids and monsters). The TTS system uses this to pick a gender-matched voice that stays consistent across sessions, so getting this right on the first turn is important. Re-emit gender on subsequent turns if it ever changes (rare).
 
 CODEX
 When the player discovers or confirms significant lore — a named location, faction, artefact, historical event, or important character backstory — emit a codexEntries item.

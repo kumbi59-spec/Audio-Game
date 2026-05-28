@@ -6,7 +6,8 @@ import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
-import { speakNarrationMultiVoice } from "@/lib/audio/narration-speaker";
+import { speakNarrationMultiVoice, npcKeyFromName, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
+import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
 import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
@@ -58,8 +59,14 @@ export function useGameSession() {
   const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
   const { entitlements, setEntitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
-  // Per-session NPC name → voice slot map (A/B/C), reset when session changes
-  const npcVoiceMapRef = useRef<Map<string, "A" | "B" | "C">>(new Map());
+  // npcKey → assigned voice. Hydrated from the server per (userId, worldId)
+  // so a returning player hears the same voice for the same NPC across
+  // sessions and devices. New assignments are upserted as they're made.
+  const npcVoiceAssignmentsRef = useRef<Map<string, NpcVoiceAssignment>>(new Map());
+  // Gender hints reported by the GM via npcRelationshipChanges and npcAction.
+  // Keyed by npcKey too. Read by speakNarrationMultiVoice when it needs to
+  // pick a voice for an NPC that doesn't yet have one.
+  const npcGenderHintsRef = useRef<Map<string, VoiceGender>>(new Map());
   // Last-rendered skill_check signature, used to dedupe the dice-result system
   // entry. The GM doesn't clear flags.last_skill_check between turns, so the
   // same flag value can arrive on multiple subsequent state_change events.
@@ -69,11 +76,32 @@ export function useGameSession() {
   const abortRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
 
-  // Reset the NPC voice map whenever a new session starts
+  // Reset session-scoped refs whenever a new session starts, then prime the
+  // NPC voice map from the server so previously-met NPCs keep their voices.
   useEffect(() => {
-    npcVoiceMapRef.current = new Map();
+    npcVoiceAssignmentsRef.current = new Map();
+    npcGenderHintsRef.current = new Map();
     lastRenderedSkillCheckRef.current = null;
-  }, [session?.id]);
+
+    const worldId = session?.worldId;
+    if (!worldId || !entitlements.premiumTts) return;
+    const ac = new AbortController();
+    fetch(`/api/me/npc-voices?worldId=${encodeURIComponent(worldId)}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { assignments?: Array<{ npcKey: string; voiceId: string; gender: VoiceGender }> } | null) => {
+        if (!data?.assignments) return;
+        for (const a of data.assignments) {
+          npcVoiceAssignmentsRef.current.set(a.npcKey, { voiceId: a.voiceId, gender: a.gender });
+          npcGenderHintsRef.current.set(a.npcKey, a.gender);
+        }
+      })
+      .catch(() => undefined);
+    return () => ac.abort();
+  // We want this to re-hydrate when the session changes, not on every
+  // entitlements re-render — entitlements.premiumTts is captured at the time
+  // of the effect run, which matches what we want.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.id, session?.worldId]);
 
   useEffect(() => {
     const latestNarration = [...(session?.narrationLog ?? [])]
@@ -292,8 +320,16 @@ export function useGameSession() {
                   }
                 }
                 if (Array.isArray(change.npcRelationshipChanges)) {
-                  for (const rel of change.npcRelationshipChanges as Array<{ npcId: string; name: string; standing: number; notes?: string }>) {
+                  for (const rel of change.npcRelationshipChanges as Array<{
+                    npcId: string; name: string; standing: number; notes?: string; gender?: VoiceGender;
+                  }>) {
                     updateNpcRelationship(rel);
+                    // Record the GM-emitted gender keyed by the same npcKey
+                    // the voice auto-assigner uses, so a voice picked later
+                    // in this turn (or next) can match.
+                    if (rel.gender && rel.name) {
+                      npcGenderHintsRef.current.set(npcKeyFromName(rel.name), rel.gender);
+                    }
                   }
                 }
                 if (Array.isArray(change.codexEntries)) {
@@ -353,6 +389,16 @@ export function useGameSession() {
                 setChoices(choices);
                 setLastNarration(narration);
 
+                // npcAction often carries gender for the speaker too — fold it
+                // into the gender-hints map before the multi-voice playback so
+                // the picker sees it on first encounter.
+                if (gmResp.npcAction?.gender && gmResp.npcAction?.npcId) {
+                  npcGenderHintsRef.current.set(
+                    npcKeyFromName(gmResp.npcAction.npcId),
+                    gmResp.npcAction.gender,
+                  );
+                }
+
                 const narEntry: NarrationEntry = {
                   id: (Date.now() + 1).toString(),
                   text: narration,
@@ -388,10 +434,30 @@ export function useGameSession() {
                 }
 
                 if (entitlements.premiumTts && character) {
+                  const worldId = session.worldId;
                   await speakNarrationMultiVoice(
                     narration,
                     character.name,
-                    npcVoiceMapRef.current,
+                    npcVoiceAssignmentsRef.current,
+                    (npcName) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
+                    (entry) => {
+                      // Fire-and-forget upsert. If the request fails the
+                      // assignment is still good for the current session via
+                      // the in-memory map; next session will just re-pick
+                      // (and likely land on the same voice because the gender
+                      // hint and usage counts are stable).
+                      void fetch("/api/me/npc-voices", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          worldId,
+                          npcKey: entry.key,
+                          voiceId: entry.voiceId,
+                          gender: entry.gender,
+                          displayName: entry.displayName,
+                        }),
+                      }).catch(() => undefined);
+                    },
                     abort.signal,
                   );
                 } else {
