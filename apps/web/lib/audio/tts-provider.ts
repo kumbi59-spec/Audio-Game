@@ -5,6 +5,24 @@ import { useAudioStore } from "@/store/audio-store";
 
 const instances: Partial<Record<TTSProviderType, ITTSProvider>> = {};
 
+// Counter rather than a boolean so nested/overlapping narration sessions
+// (defensive — there's only one caller today) don't end early when the
+// inner one finishes.
+let _narrationDepth = 0;
+
+/**
+ * Mark the start of a multi-segment narration. Keeps isSpeaking() true
+ * across the per-voice HTTP gaps so consumers (ambient ducking, choice
+ * focus) don't see a false "narration ended" pulse between segments.
+ */
+export function beginNarrationSession(): void {
+  _narrationDepth++;
+}
+
+export function endNarrationSession(): void {
+  _narrationDepth = Math.max(0, _narrationDepth - 1);
+}
+
 /**
  * Apply the same perceptual (squared) curve to the master volume that
  * sound-cues.ts uses, so narration loudness scales evenly with ambient
@@ -77,6 +95,9 @@ export async function speakPreview(text: string, options: TTSOptions = {}): Prom
 export function stopSpeech(): void {
   // Stop all providers — switching mid-narration shouldn't leak audio.
   for (const inst of Object.values(instances)) inst?.stop();
+  // Manual stop also tears down any in-flight narration session so its
+  // speaking-state guard doesn't outlive the audio it was protecting.
+  _narrationDepth = 0;
 }
 
 export function pauseSpeech(): void {
@@ -92,7 +113,11 @@ export function getVoices(provider?: TTSProviderType): TTSVoice[] {
 }
 
 export function isSpeaking(): boolean {
-  return getTTSProvider().isSpeaking();
+  // Multi-voice narration makes one provider call per voice change with a
+  // network gap in between. The provider's _speaking goes false in that gap
+  // even though the narration as a whole is still going — without the session
+  // guard, ambient ducking and choice focus bounce on every voice change.
+  return _narrationDepth > 0 || getTTSProvider().isSpeaking();
 }
 
 export function isPaused(): boolean {
