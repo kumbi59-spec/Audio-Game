@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
@@ -10,7 +10,7 @@ import { CharacterSheet } from "./CharacterSheet";
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
-import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
+import { inferAmbientTrack, inferAmbientTrackSticky } from "@/lib/audio/ambient-inference";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
@@ -88,15 +88,48 @@ export function GameShell() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-trigger ambient sound when the player moves to a new location.
+  // Pick the most recent NARRATION entry to feed into ambient inference. We
+  // narrow what the next effect depends on so it only re-runs when the
+  // narration text actually changes — not on every state ping from the GM.
+  const latestNarrationText = useMemo(() => {
+    if (!session) return "";
+    for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
+      const e = session.narrationLog[i];
+      if (e?.type === "narration") return e.text;
+    }
+    return "";
+  }, [session]);
+
+  // Auto-trigger ambient sound based on the current scene. We try, in order:
+  //   1. An explicit ambientSound on the current world location.
+  //   2. Keyword inference from the location's name + description.
+  //   3. Keyword inference from the most recent GM narration text.
+  // Step 3 is what saves us when the GM never emits a locationId update or
+  // when the location's stored description is too sparse to classify — the
+  // previous version fell through to "none" in those cases and the bed
+  // stayed silent for the entire session, which is the "ambient never plays"
+  // report from the user.
+  const { currentAmbient: currentAmbientTrack } = useAudioStore();
   useEffect(() => {
-    if (!session?.currentLocationId || !world) return;
-    const loc = world.locations.find((l) => l.id === session.currentLocationId);
-    const track = loc?.ambientSound
-      ?? (loc ? inferAmbientTrack(loc.name, loc.description) : null)
-      ?? "none";
+    if (!world) return;
+    const loc = session?.currentLocationId
+      ? world.locations.find((l) => l.id === session.currentLocationId)
+      : null;
+    const explicit = loc?.ambientSound as import("@/types/audio").AmbientTrack | undefined;
+    const fromLocation = loc ? inferAmbientTrack(loc.name, loc.description) : null;
+    // Sticky-infer from narration so a single off-topic mention doesn't flip
+    // the bed mid-scene. Passes the current track as the "stay unless beaten
+    // by ≥2 points" anchor.
+    const fromNarration = latestNarrationText
+      ? inferAmbientTrackSticky("", latestNarrationText, currentAmbientTrack)
+      : null;
+    const track = explicit ?? fromLocation ?? fromNarration ?? "none";
     setCurrentAmbient(track as import("@/types/audio").AmbientTrack);
-  }, [session?.currentLocationId, world, setCurrentAmbient]);
+  // currentAmbientTrack intentionally omitted from deps: it's only read as
+  // the sticky anchor for inference. Including it would re-run this effect
+  // every time the bed track changes, racing with the change we just made.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.currentLocationId, world, latestNarrationText, setCurrentAmbient]);
 
   // Speak the most recent narration that was pre-loaded before navigation.
   // This ensures resumed sessions continue from the latest narrated section.

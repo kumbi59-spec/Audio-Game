@@ -44,6 +44,32 @@ model User {
   pushTokens   PushToken[]
   blogPosts    BlogPost[]
   uploadAuditEvents UploadAuditEvent[]
+  npcVoiceAssignments NpcVoiceAssignment[]
+}
+
+// Stable per-NPC voice picks so the same character sounds the same across
+// sessions and devices. Keyed by (userId, worldId, npcKey) where npcKey is
+// a normalized form of the NPC's display name (lowercased, articles stripped)
+// — see npcKeyFromName in lib/audio/narration-speaker.ts.
+model NpcVoiceAssignment {
+  id        String   @id @default(cuid())
+  userId    String
+  worldId   String
+  npcKey    String
+  voiceId   String
+  // Stored so the auto-assigner can re-balance the voice pool deterministically
+  // when picking voices for new NPCs.
+  gender    String   @default("neutral")
+  // Last display name we saw the GM use for this NPC, so the settings UI can
+  // render a human-readable label.
+  displayName String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, worldId, npcKey])
+  @@index([userId, worldId])
 }
 
 model World {

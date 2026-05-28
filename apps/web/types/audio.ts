@@ -1,5 +1,10 @@
 export type TTSProviderType = "browser" | "elevenlabs";
 
+/** Voice gender used for NPC voice matching. "neutral" covers ambiguous /
+ *  non-binary / non-human voices that should be available regardless of
+ *  the speaker's stated gender. */
+export type VoiceGender = "male" | "female" | "neutral";
+
 export interface TTSOptions {
   rate?: number;
   pitch?: number;
@@ -14,6 +19,9 @@ export interface TTSVoice {
   name: string;
   lang: string;
   provider: TTSProviderType;
+  /** Optional — only set on curated catalog voices (ElevenLabs presets).
+   *  Browser TTS voices don't carry gender metadata, so this stays undefined. */
+  gender?: VoiceGender;
 }
 
 export interface TTSProvider {
@@ -72,10 +80,9 @@ export interface AudioSettings {
   currentAmbient: AmbientTrack;
   /** Storyteller+: voice for the player's own character's dialogue */
   characterVoiceId: string;
-  /** Storyteller+: NPC voice slot A (first unique NPC in a turn) */
-  npcVoiceA: string;
-  /** Storyteller+: NPC voice slot B */
-  npcVoiceB: string;
-  /** Storyteller+: NPC voice slot C */
-  npcVoiceC: string;
+  /** Storyteller+: voice IDs from the catalog that the NPC auto-assigner is
+   *  allowed to pick from. Empty array = "all catalog voices allowed". Stable
+   *  per-NPC assignments are stored server-side keyed by (userId, worldId,
+   *  npcKey) — see /api/me/npc-voices. */
+  enabledNpcVoiceIds: string[];
 }
