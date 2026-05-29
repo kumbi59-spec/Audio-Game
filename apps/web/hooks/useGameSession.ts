@@ -10,7 +10,7 @@ import { speakNarrationMultiVoice, npcKeyFromName, type NpcVoiceAssignment } fro
 import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
-import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue } from "@/src/domain/game/use-cases";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue, withNpcActionDialogue } from "@/src/domain/game/use-cases";
 import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
@@ -385,19 +385,32 @@ export function useGameSession() {
                 }
               } else if (eventType === "choices_ready") {
                 const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;
-                const { narration, choices } = extractNarrationFromChoiceEvent(gmResp);
+                const { narration: rawNarration, choices } = extractNarrationFromChoiceEvent(gmResp);
                 setChoices(choices);
-                setLastNarration(narration);
 
                 // npcAction often carries gender for the speaker too — fold it
                 // into the gender-hints map before the multi-voice playback so
-                // the picker sees it on first encounter.
+                // the picker sees it on first encounter. Use the npcId-derived
+                // key so it lines up with the same npcKey we'll feed to the
+                // assigner once the dialogue is tagged below.
                 if (gmResp.npcAction?.gender && gmResp.npcAction?.npcId) {
+                  const npcRel = useGameStore.getState().session?.relationships
+                    .find((r) => r.npcId === gmResp.npcAction!.npcId);
+                  const nameForKey = npcRel?.name ?? gmResp.npcAction.npcId;
                   npcGenderHintsRef.current.set(
-                    npcKeyFromName(gmResp.npcAction.npcId),
+                    npcKeyFromName(nameForKey),
                     gmResp.npcAction.gender,
                   );
                 }
+
+                // Weave npcAction.dialogue into the narration with a [Name]:
+                // tag. When the GM puts NPC speech only in the structured
+                // field (no inline tag in the prose), the multi-voice player
+                // would otherwise find no NPC segments and read everything
+                // in the narrator's voice — the "voices not switching" bug.
+                const relationships = useGameStore.getState().session?.relationships ?? [];
+                const narration = withNpcActionDialogue(rawNarration, gmResp.npcAction, relationships);
+                setLastNarration(narration);
 
                 const narEntry: NarrationEntry = {
                   id: (Date.now() + 1).toString(),
