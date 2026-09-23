@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdsterraSmartlink } from "@/components/ads/AdsterraSmartlink";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 
@@ -400,6 +401,7 @@ export default function LandingPage() {
             <Link href="/privacy" className="hover:underline">Privacy</Link>
             <Link href="/terms" className="hover:underline">Terms</Link>
             <Link href="/contact-us" className="hover:underline">Contact</Link>
+            <AdsterraSmartlink />
           </div>
         </footer>
       </div>

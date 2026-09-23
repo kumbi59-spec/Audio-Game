@@ -21,6 +21,7 @@ import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { speak, isSpeaking } from "@/lib/audio/tts-provider";
 import { AdBanner } from "@/components/ads/AdBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import type { PlayerAction, SceneTransition } from "@/types/game";
 
 export function GameShell() {
@@ -463,6 +464,7 @@ export function GameShell() {
 
         {/* Ad banner — free tier only */}
         <AdBanner visible={shouldShowAdBanner} />
+        <AdsterraNativeBanner visible={shouldShowAdBanner} />
 
         {/* Bottom toolbar */}
         <div

@@ -10,6 +10,7 @@ import { AuthProvider } from "./AuthProvider";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
+import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
 import { auth } from "@/auth";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
@@ -91,6 +92,9 @@ export default async function RootLayout({
         <AuthProvider session={session}>
           <AudioAnnouncer>
             <ServiceWorkerRegistrar />
+            <Suspense>
+              <AdsterraGlobal />
+            </Suspense>
             <SkipLinks />
             <FocusManager />
             <Suspense>
