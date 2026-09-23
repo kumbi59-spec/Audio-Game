@@ -5,6 +5,7 @@ import { Fragment } from "react";
 import { marked } from "marked";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
+import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
 
@@ -212,6 +213,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="mt-8">
               <AdBanner />
             </div>
+            <AdsterraNativeBanner />
           </article>
           <div className="mt-12 border-t pt-8" style={{ borderColor: "var(--border)" }}>
             <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: "var(--accent)" }}>← Back to all posts</Link>
