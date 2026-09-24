@@ -7,8 +7,8 @@ type BannerUnit = { key: string; src: string; width: number; height: number };
 /**
  * Adsterra iframe-format display banner. Each banner runs in its own srcdoc
  * iframe so the global `atOptions` the invoke script reads can't collide
- * between two banners on one page, and nothing the script writes can touch
- * the host page.
+ * between two banners on one page. The sandbox permits the ad script to run
+ * while giving the srcdoc an opaque origin, so it cannot access the host page.
  */
 export function AdsterraBanner({ unit = ADSTERRA.railBanner }: { unit?: BannerUnit }) {
   if (!ADSTERRA_ENABLED) return null;
@@ -20,6 +20,7 @@ export function AdsterraBanner({ unit = ADSTERRA.railBanner }: { unit?: BannerUn
     <iframe
       title="Advertisement"
       srcDoc={srcDoc}
+      sandbox="allow-scripts"
       width={unit.width}
       height={unit.height}
       scrolling="no"
