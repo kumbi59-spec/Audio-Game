@@ -154,14 +154,14 @@ export default async function BlogPostPage({ params }: Props) {
                   <div dangerouslySetInnerHTML={{ __html: s }} />
                   {i === nativeAfter && <AdsterraNativeBanner />}
                   {adAfter.has(i) && i < sections.length - 1 && (
-                    <div className="my-8">
+                    <div className="ad-slot my-8">
                       <AdBanner />
                     </div>
                   )}
                 </Fragment>
               ));
             })()}
-            <div className="mt-8">
+            <div className="ad-slot mt-8">
               <AdBanner />
             </div>
           </article>

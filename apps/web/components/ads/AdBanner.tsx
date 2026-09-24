@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
 
@@ -35,9 +35,14 @@ function HouseAd() {
   );
 }
 
-/** Google AdSense banner. Initialises the ad unit after mount. */
+/**
+ * Google AdSense banner. Initialises the ad unit after mount and hides the
+ * whole slot when AdSense reports it as unfilled, so no blank box is left.
+ */
 function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
   const initialised = useRef(false);
+  const insRef = useRef<HTMLModElement>(null);
+  const [unfilled, setUnfilled] = useState(false);
 
   useEffect(() => {
     if (initialised.current) return;
@@ -49,13 +54,25 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
     }
   }, []);
 
+  useEffect(() => {
+    const ins = insRef.current;
+    if (!ins) return;
+    const check = () => setUnfilled(ins.getAttribute("data-ad-status") === "unfilled");
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(ins, { attributes: true, attributeFilter: ["data-ad-status"] });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
       className="flex justify-center overflow-hidden"
-      style={{ borderTop: "1px solid var(--border)", minHeight: 50 }}
+      style={unfilled ? { display: "none" } : { borderTop: "1px solid var(--border)", minHeight: 50 }}
       aria-label="Advertisement"
+      aria-hidden={unfilled || undefined}
     >
       <ins
+        ref={insRef}
         className="adsbygoogle"
         style={{ display: "block", width: "100%", height: 50 }}
         data-ad-client={pubId}
