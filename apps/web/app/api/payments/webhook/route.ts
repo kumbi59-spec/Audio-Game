@@ -1,11 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { constructWebhookEvent, tierForPriceKey, isPackPriceKey, minutesForPackKey, type PriceKey, STRIPE_PRICES } from "@/lib/payments/stripe";
+import type { Tier } from "@audio-rpg/shared";
+import { constructWebhookEvent, getStripe, isPackPriceKey, minutesForPackKey } from "@/lib/payments/stripe";
+import { resolveUserForCustomer, tierForSubscription } from "@/lib/payments/sync";
 import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId, addAiMinutes, markStripeEventProcessed } from "@/lib/db/queries/users";
 import { sendUpgradeEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push/sender";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+async function applyPaidTier(
+  user: { id: string; email: string; name: string | null; tier: string },
+  newTier: Tier,
+  eventId: string,
+) {
+  if (user.tier === newTier) return;
+  await updateUserTier(user.id, newTier);
+  const tierLabel = newTier === "creator" ? "Creator" : "Storyteller";
+  try {
+    await sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
+  } catch (error) {
+    console.error("Non-critical webhook side effect failed: upgrade email", { eventId, error });
+  }
+  try {
+    await sendPushToUser(user.id, {
+      title: `EchoQuest ${tierLabel} plan active`,
+      body: "Unlimited play and premium voices are now unlocked. Tap to start your adventure.",
+      url: "/library",
+    });
+  } catch (error) {
+    console.error("Non-critical webhook side effect failed: upgrade push", { eventId, error });
+  }
+}
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature");
@@ -31,6 +57,8 @@ export async function POST(req: NextRequest) {
         mode?: string;
         metadata?: Record<string, string>;
         customer?: string;
+        subscription?: string | { id: string } | null;
+        customer_details?: { email?: string | null } | null;
       };
       const userId = session.metadata?.["userId"];
       const customerId = typeof session.customer === "string" ? session.customer : undefined;
@@ -54,40 +82,34 @@ export async function POST(req: NextRequest) {
           }
         }
       }
+
+      // Subscription checkout — upgrade here too. Stripe may deliver
+      // customer.subscription.created before this event, when the customer id
+      // was not yet linked to the user, so we can't rely on that event alone.
+      const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+      if (session.mode === "subscription" && customerId && subscriptionId) {
+        const user = await resolveUserForCustomer(customerId, {
+          userId,
+          email: session.customer_details?.email,
+        });
+        if (user) {
+          const sub = await getStripe().subscriptions.retrieve(subscriptionId);
+          const newTier = tierForSubscription(sub);
+          if (newTier) await applyPaidTier(user, newTier, event.id);
+        } else {
+          console.error("Subscription checkout completed but no matching user", { eventId: event.id, customerId });
+        }
+      }
     }
 
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-      const sub = event.data.object as {
+      const sub = event.data.object as Parameters<typeof tierForSubscription>[0] & {
         customer: string;
-        status: string;
-        items: { data: Array<{ price: { id: string } }> };
         metadata?: Record<string, string>;
       };
-      const customerId = sub.customer;
-      const user = await findUserByStripeCustomerId(customerId);
-      if (user && sub.status === "active") {
-        const priceId = sub.items.data[0]?.price.id ?? "";
-        const priceKey = (Object.entries(STRIPE_PRICES).find(([, v]) => v === priceId)?.[0] ?? "") as PriceKey | "";
-        if (priceKey) {
-          const newTier = tierForPriceKey(priceKey);
-          await updateUserTier(user.id, newTier);
-          const tierLabel = newTier === "creator" ? "Creator" : "Storyteller";
-          try {
-            await sendUpgradeEmail(user.email, user.name ?? user.email.split("@")[0]!, newTier);
-          } catch (error) {
-            console.error("Non-critical webhook side effect failed: upgrade email", { eventId: event.id, error });
-          }
-          try {
-            await sendPushToUser(user.id, {
-              title: `EchoQuest ${tierLabel} plan active`,
-              body: "Unlimited play and premium voices are now unlocked. Tap to start your adventure.",
-              url: "/library",
-            });
-          } catch (error) {
-            console.error("Non-critical webhook side effect failed: upgrade push", { eventId: event.id, error });
-          }
-        }
-      }
+      const user = await resolveUserForCustomer(sub.customer, { userId: sub.metadata?.["userId"] });
+      const newTier = tierForSubscription(sub);
+      if (user && newTier) await applyPaidTier(user, newTier, event.id);
     }
 
     if (event.type === "customer.subscription.deleted") {

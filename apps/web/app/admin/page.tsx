@@ -83,6 +83,28 @@ export default function AdminPage() {
   const [generatingBlogCovers, setGeneratingBlogCovers] = useState(false);
   const [blogCoverResult, setBlogCoverResult] = useState("");
 
+  const [syncingUserId, setSyncingUserId] = useState<string | null>(null);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  async function syncStripe(user: AdminUser) {
+    setSyncingUserId(user.id);
+    setSyncResult(null);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/sync-stripe`, { method: "POST" });
+      const data = await res.json() as { tier?: string; error?: string };
+      if (!res.ok || !data.tier) {
+        setSyncResult(`${user.email}: ${data.error ?? "sync failed"}`);
+        return;
+      }
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, tier: data.tier! } : u)));
+      setSyncResult(`${user.email}: tier is now ${data.tier}`);
+    } catch {
+      setSyncResult(`${user.email}: sync failed`);
+    } finally {
+      setSyncingUserId(null);
+    }
+  }
+
   async function generateCovers() {
     setGeneratingCovers(true);
     setCoverResult("Fetching worlds…");
@@ -524,11 +546,14 @@ export default function AdminPage() {
         {/* Users table */}
         {!loading && tab === "users" && (
           <div role="tabpanel" aria-label="Users list">
+            {syncResult && (
+              <p className="mb-3 text-xs" role="status" style={{ color: "var(--text-muted)" }}>{syncResult}</p>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="User accounts">
                 <thead>
                   <tr className="border-b text-left" style={{ borderColor: "var(--border)" }}>
-                    {["Email", "Name", "Tier", "Worlds", "Sessions", "Joined"].map((h) => (
+                    {["Email", "Name", "Tier", "Worlds", "Sessions", "Joined", "Stripe"].map((h) => (
                       <th key={h} scope="col" className="pb-3 pr-4 font-semibold" style={{ color: "var(--text-muted)" }}>{h}</th>
                     ))}
                   </tr>
@@ -550,6 +575,17 @@ export default function AdminPage() {
                       <td className="py-3 pr-4 text-center" style={{ color: "var(--text-muted)" }}>{u.worldCount}</td>
                       <td className="py-3 pr-4 text-center" style={{ color: "var(--text-muted)" }}>{u.sessionCount}</td>
                       <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 pr-4">
+                        <button
+                          onClick={() => syncStripe(u)}
+                          disabled={syncingUserId !== null}
+                          className="rounded px-2 py-1 text-xs font-medium disabled:opacity-50 transition-opacity hover:opacity-80"
+                          style={{ border: "1px solid var(--border)", color: "var(--text)", background: "none", minHeight: "32px" }}
+                          aria-label={`Sync Stripe subscription for ${u.email}`}
+                        >
+                          {syncingUserId === u.id ? "Syncing…" : "Sync"}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
