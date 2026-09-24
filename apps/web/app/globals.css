@@ -508,3 +508,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Hide AdSense slots Google couldn't fill (covers auto-placed ads too). */
+ins.adsbygoogle[data-ad-status="unfilled"] {
+  display: none !important;
+}
+
+/* Collapse the spacing around an ad wrapper whose AdSense slot went unfilled. */
+.ad-slot:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}
