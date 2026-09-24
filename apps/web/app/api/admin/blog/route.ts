@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
+import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
 
 function slugify(title: string): string {
   return title
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
       title: title.trim(),
       slug,
       excerpt: excerpt?.trim() ?? title.trim(),
-      content: content.trim(),
+      content: stripPlaceholderImages(content.trim()),
       publishedAt: publishedAt ? new Date(publishedAt) : null,
       authorId: admin.id,
     },

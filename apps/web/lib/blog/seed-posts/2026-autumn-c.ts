@@ -6,7 +6,6 @@ export const AUTUMN_2026_C: ScheduledSeedPost[] = [
     publishAt: "2026-10-14",
     title: "Mystery RPGs: How to Solve Cases Without Getting Stuck",
     excerpt: "Love detective RPGs but hate getting stuck? Learn how to investigate, track clues, question suspects, and crack mystery adventures with a human or AI Game Master.",
-    hero: { src: "/images/worlds/neon-precinct.svg", alt: "A detective's silhouette under a flickering streetlight in the rain" },
     content: `# Mystery RPGs: How to Solve Cases Without Getting Stuck
 
 Mystery adventures are some of the most satisfying roleplaying experiences, and some of the most frustrating. When the clues click together, you feel brilliant. When they don't, you spend an hour interrogating the wrong butler.
@@ -103,7 +102,6 @@ Grab your notebook, or just your ears, and step into a mystery where the suspect
     publishAt: "2026-10-15",
     title: "Voice-Controlled Games: The Complete Guide to Playing by Speech",
     excerpt: "Voice-controlled games let you play without hands or a screen. Learn how speech input works, which genres suit it, the setup tips that help, and the best ways to play.",
-    hero: { src: "/images/worlds/saltbound.svg", alt: "Glowing sound waves rising over a calm twilight sea" },
     content: `# Voice-Controlled Games: The Complete Guide to Playing by Speech
 
 For decades, games were controlled with hands: joysticks, keyboards, mice, and touchscreens. Speech recognition has now become fast and accurate enough to change that. **Voice-controlled games** let you play with your voice alone, and for many players that means playing at all.
@@ -187,7 +185,6 @@ As speech models improve, voice games will understand tone, emotion, and even *h
     publishAt: "2026-10-16",
     title: "Free Online RPGs You Can Play in Your Browser (No Download)",
     excerpt: "Want a free online RPG with no download? Here's what browser RPGs offer in 2026, from text adventures to AI Game Masters, and how to pick the right one.",
-    hero: { src: "/images/worlds/crimson-sands.svg", alt: "A caravan trail winding across crimson desert dunes" },
     content: `# Free Online RPGs You Can Play in Your Browser (No Download)
 
 Not everyone has a gaming PC, a console, or space on their phone for a 5 GB download. Maybe you're on a work laptop, a Chromebook, or a library computer. Browser RPGs have become surprisingly deep, and many are free. Here's what's available in **free online RPGs you can play in a browser**, and how to choose.
@@ -268,7 +265,6 @@ No download, no card, no waiting. Choose a world and start your adventure in the
     publishAt: "2026-10-17",
     title: "Magic Systems 101: How to Design Magic That Feels Fair",
     excerpt: "Design a fantasy magic system that feels fair and exciting. Learn about hard vs. soft magic, costs and limits, and how to write magic rules an AI GM can follow.",
-    hero: { src: "/images/worlds/black-vellum.svg", alt: "Runes glowing on the pages of an open spellbook" },
     content: `# Magic Systems 101: How to Design Magic That Feels Fair
 
 Magic can make a fantasy world wondrous, or break it completely. If a wizard can solve any problem with a spell, why does the story need anyone else? A good **magic system** creates wonder *and* tension. It gives characters power but makes that power cost something.
@@ -368,7 +364,6 @@ Design one magic tradition with a source, a cost, a limit, and a sensory signatu
     publishAt: "2026-10-18",
     title: "Assistive Technology for Gaming: Switches, Braille Displays and Adaptive Controllers",
     excerpt: "An introduction to assistive technology for gaming: adaptive controllers, switches, braille displays, eye tracking, and voice input, and which games work with them.",
-    hero: { src: "/images/worlds/long-watch.svg", alt: "A guiding light shining from a watchtower over a dark landscape" },
     content: `# Assistive Technology for Gaming: Switches, Braille Displays and Adaptive Controllers
 
 For many disabled players, the barrier to gaming isn't the game itself. It's the input. Standard controllers and keyboards assume two hands, fine motor control, and sight. **Assistive technology** changes that, letting players connect with games in whatever way works for their body.
@@ -456,7 +451,6 @@ Assistive technology has come a long way, but it only works when games are built
     publishAt: "2026-10-19",
     title: "How to Create a Villain Players Love to Hate",
     excerpt: "Great RPG villains drive great campaigns. Learn how to create a memorable villain with clear motives, a real presence in the story, and a satisfying final confrontation.",
-    hero: { src: "/images/worlds/iron-citadel.svg", alt: "A dark citadel looming over a stormy mountain pass" },
     content: `# How to Create a Villain Players Love to Hate
 
 A campaign is only as good as its villain. The best villains make players lean in, curse under their breath, and talk about them for years afterwards. The worst are cardboard: evil because the plot needs someone to fight.
@@ -563,7 +557,6 @@ Villains are where roleplaying gets personal. Create one with a real goal, a lin
     publishAt: "2026-10-20",
     title: "Best Tabletop RPG Systems for Beginners (And Which Suit AI Play)",
     excerpt: "New to tabletop RPGs? Compare beginner-friendly systems, from D&D 5e to rules-light games, and learn which styles work best with an AI Game Master.",
-    hero: { src: "/images/worlds/verdant-wilds.svg", alt: "Dice and a map spread across a table in a forest lodge" },
     content: `# Best Tabletop RPG Systems for Beginners (And Which Suit AI Play)
 
 Walk into a game shop, or browse online, and you'll find hundreds of tabletop RPG systems. For a beginner that's overwhelming. Which one should you learn first? And if you're playing with an AI Game Master, does the system even matter?
@@ -652,7 +645,6 @@ New to all of this? Start with [How to Play Your First EchoQuest Adventure](/blo
     publishAt: "2026-10-21",
     title: "Game Master Tips: How to Pace a Session Like a Pro",
     excerpt: "Pacing makes or breaks an RPG session. These Game Master tips cover scene framing, cutting dead time, tension and release, and ending on a strong cliffhanger.",
-    hero: { src: "/images/worlds/shattered-reaches.svg", alt: "A winding path across floating islands leading toward a distant peak" },
     content: `# Game Master Tips: How to Pace a Session Like a Pro
 
 Ask players what separates a great session from a forgettable one and they rarely mention rules or lore. They talk about how it *felt*: tense, fast, funny, heartbreaking. That feeling comes largely from **pacing**, and pacing is a skill every Game Master can learn.
@@ -752,7 +744,6 @@ We prompt EchoQuest's AI Game Master to follow these principles: frame scenes ar
     publishAt: "2026-10-22",
     title: "Learn English With RPGs: How Interactive Stories Build Language Skills",
     excerpt: "Can games help you learn English? How interactive audio RPGs build listening, vocabulary, and speaking skills, with practical tips for language learners.",
-    hero: { src: "/images/worlds/black-vellum.svg", alt: "Words glowing on the pages of an open book" },
     content: `# Learn English With RPGs: How Interactive Stories Build Language Skills
 
 Language learners often hit the same wall. Textbooks teach grammar, apps teach vocabulary, and then real conversation turns out to be fast, messy, and unpredictable. Roleplaying games fill that gap surprisingly well. Interactive stories give you **meaningful listening practice, vocabulary in context, and a reason to speak**, without the pressure of a real conversation partner.
@@ -854,7 +845,6 @@ Pick a world, slow the narration down, and start your first adventure in English
     publishAt: "2026-10-23",
     title: "Post-Apocalyptic RPG Campaign Guide: Survival Stories That Stick",
     excerpt: "Plan a post-apocalyptic RPG campaign with real stakes: choosing your apocalypse, survival mechanics, factions, settlements, and 8 plot hooks for the wasteland.",
-    hero: { src: "/images/worlds/crimson-sands.svg", alt: "A ruined road stretching across a red desert wasteland" },
     content: `# Post-Apocalyptic RPG Campaign Guide: Survival Stories That Stick
 
 The world ended. Now what? Post-apocalyptic stories strip away everything we take for granted (supermarkets, governments, running water) and ask what people will do to survive, and what they'll refuse to do. It's one of the richest genres in roleplaying, full of hard choices and small victories.

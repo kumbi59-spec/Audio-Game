@@ -263,6 +263,7 @@ export default function AdminPage() {
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState("");
   const [seoFixing, setSeoFixing] = useState(false);
+  const [strippingImages, setStrippingImages] = useState(false);
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   async function seedPosts(force = false) {
@@ -302,6 +303,26 @@ export default function AdminPage() {
       setSeedResult(err instanceof Error ? err.message : "SEO fix failed.");
     } finally {
       setSeoFixing(false);
+    }
+  }
+
+  async function stripPlaceholderImages() {
+    setStrippingImages(true);
+    setSeedResult("");
+    try {
+      const res = await fetch("/api/admin/blog/strip-placeholder-images", { method: "POST" });
+      const data = await res.json().catch(() => ({})) as { error?: string; checked?: number; updatedCount?: number };
+      if (!res.ok) {
+        setSeedResult(data.error ?? `Removing placeholder images failed (${res.status}).`);
+        return;
+      }
+      const newPosts = await fetch("/api/admin/blog").then((r) => r.ok ? r.json() : []) as BlogPost[];
+      setPosts(Array.isArray(newPosts) ? newPosts : []);
+      setSeedResult(`Removed placeholder images from ${data.updatedCount ?? 0} of ${data.checked ?? 0} posts.`);
+    } catch (err) {
+      setSeedResult(err instanceof Error ? err.message : "Removing placeholder images failed.");
+    } finally {
+      setStrippingImages(false);
     }
   }
 
@@ -629,6 +650,12 @@ export default function AdminPage() {
                     style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
                     title="Auto-updates existing blog content with baseline SEO improvements.">
                     {seoFixing ? "Applying SEO…" : "Auto-fix existing SEO"}
+                  </button>
+                  <button onClick={stripPlaceholderImages} disabled={strippingImages}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    title="Deletes the generic world-cover SVG images baked into post text by older seed runs. BFL covers and section images are kept.">
+                    {strippingImages ? "Removing…" : "Remove placeholder images"}
                   </button>
                   <button
                     onClick={() => generateBlogCovers(false)}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
+import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -24,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     data: {
       ...(title !== undefined && { title: title.trim() }),
       ...(excerpt !== undefined && { excerpt: excerpt.trim() }),
-      ...(content !== undefined && { content: content.trim() }),
+      ...(content !== undefined && { content: stripPlaceholderImages(content.trim()) }),
       ...(publishedAt !== undefined && { publishedAt: publishedAt ? new Date(publishedAt) : null }),
     },
   });
