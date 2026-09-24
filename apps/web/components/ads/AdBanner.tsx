@@ -39,7 +39,7 @@ function HouseAd() {
  * Google AdSense banner. Initialises the ad unit after mount and hides the
  * whole slot when AdSense reports it as unfilled, so no blank box is left.
  */
-function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
+function AdSenseUnit({ pubId, slot, vertical = false }: { pubId: string; slot: string; vertical?: boolean }) {
   const initialised = useRef(false);
   const insRef = useRef<HTMLModElement>(null);
   const [unfilled, setUnfilled] = useState(false);
@@ -67,18 +67,18 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
   return (
     <div
       className="flex justify-center overflow-hidden"
-      style={unfilled ? { display: "none" } : { borderTop: "1px solid var(--border)", minHeight: 50 }}
+      style={unfilled ? { display: "none" } : vertical ? { minHeight: 600 } : { borderTop: "1px solid var(--border)", minHeight: 50 }}
       aria-label="Advertisement"
       aria-hidden={unfilled || undefined}
     >
       <ins
         ref={insRef}
         className="adsbygoogle"
-        style={{ display: "block", width: "100%", height: 50 }}
+        style={{ display: "block", width: "100%", height: vertical ? 600 : 50 }}
         data-ad-client={pubId}
         data-ad-slot={slot}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
+        data-ad-format={vertical ? "vertical" : "auto"}
+        data-full-width-responsive={vertical ? undefined : "true"}
       />
     </div>
   );
@@ -99,4 +99,11 @@ export function AdBanner({ visible = true }: { visible?: boolean }) {
   }
 
   return <HouseAd />;
+}
+
+/** Tall (160×600) AdSense unit for the desktop side rails. Free tier only; hides itself when unfilled. */
+export function AdSenseRailUnit() {
+  const { showAds } = useCanWeb();
+  if (!showAds || !PUB_ID || !AD_SLOT) return null;
+  return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} vertical />;
 }
