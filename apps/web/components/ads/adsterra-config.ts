@@ -13,6 +13,13 @@ export const ADSTERRA = {
     "https://pl31480256.profitableratecpmnetwork.com/0dbdd69628b95bce5aaa65be4ff36f14/invoke.js",
   nativeBannerContainerId: "container-0dbdd69628b95bce5aaa65be4ff36f14",
   smartlinkUrl: "https://www.profitableratecpmnetwork.com/zb1zt3aeix?key=6924bb55550ed25fb03c437c4d0a6b74",
+  /** 160×600 display banner used in the desktop side rails. */
+  railBanner: {
+    key: "831059fa39e3288ff5fa55ac4bb800f7",
+    src: "https://recordssponge.com/831059fa39e3288ff5fa55ac4bb800f7/invoke.js",
+    width: 160,
+    height: 600,
+  },
 } as const;
 
 /**
