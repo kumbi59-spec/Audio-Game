@@ -55,28 +55,45 @@ export async function listUserSessions(userId: string) {
   });
 }
 
+/**
+ * Loads a session only if it belongs to `userId`. Game routes must resolve the
+ * session through this before invoking the model or writing any turn data.
+ */
+export async function getOwnedSession(sessionId: string, userId: string) {
+  return prisma.gameSession.findFirst({
+    where: { id: sessionId, userId },
+    include: { gameState: true },
+  });
+}
+
 export async function persistTurn(
   sessionId: string,
+  ownerId: string,
   turnNumber: number,
   role: "user" | "assistant",
   content: string,
   actionType?: string | null,
   metadata: Record<string, unknown> = {}
 ) {
-  return prisma.gameHistoryEntry.create({
-    data: {
-      sessionId,
-      turnNumber,
-      role,
-      content,
-      actionType: actionType ?? null,
-      metadata: JSON.stringify(metadata),
-    },
+  return prisma.$transaction(async (tx) => {
+    const owned = await tx.gameSession.count({ where: { id: sessionId, userId: ownerId } });
+    if (owned === 0) throw new Error("Session not found for owner");
+    return tx.gameHistoryEntry.create({
+      data: {
+        sessionId,
+        turnNumber,
+        role,
+        content,
+        actionType: actionType ?? null,
+        metadata: JSON.stringify(metadata),
+      },
+    });
   });
 }
 
 export async function updateGameState(
   sessionId: string,
+  ownerId: string,
   patch: {
     currentLocationId?: string | null;
     timeOfDay?: string;
@@ -98,8 +115,8 @@ export async function updateGameState(
     npcStatesPatch = JSON.stringify(base);
   }
 
-  return prisma.gameState.update({
-    where: { sessionId },
+  return prisma.gameState.updateMany({
+    where: { sessionId, session: { userId: ownerId } },
     data: {
       currentLocationId: patch.currentLocationId,
       timeOfDay: patch.timeOfDay,
@@ -112,10 +129,19 @@ export async function updateGameState(
   });
 }
 
-export async function incrementTurnCount(sessionId: string) {
-  return prisma.gameSession.update({
-    where: { id: sessionId },
-    data: { turnCount: { increment: 1 }, lastPlayedAt: new Date() },
+/**
+ * Atomically claims the next turn number for an owned session. Returns null
+ * when the session does not exist or is not owned by `ownerId`.
+ */
+export async function incrementTurnCount(sessionId: string, ownerId: string): Promise<number | null> {
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.gameSession.updateMany({
+      where: { id: sessionId, userId: ownerId },
+      data: { turnCount: { increment: 1 }, lastPlayedAt: new Date() },
+    });
+    if (updated.count === 0) return null;
+    const row = await tx.gameSession.findUnique({ where: { id: sessionId }, select: { turnCount: true } });
+    return row?.turnCount ?? null;
   });
 }
 

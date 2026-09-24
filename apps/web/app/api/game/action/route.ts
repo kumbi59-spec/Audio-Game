@@ -3,90 +3,17 @@ import { z } from "zod";
 import { streamGMTurn } from "@/lib/ai/gm-engine";
 import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/safety/moderator";
 import type { InMemorySession, PlayerAction } from "@/types/game";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
-import { consumeFreeAiMinute, resetDailyMinutesIfNeeded } from "@/lib/db/queries/users";
-
-const CharacterSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  class: z.enum(["warrior", "rogue", "mage", "ranger", "bard"]),
-  roleTitle: z.string().nullish(),
-  backstory: z.string(),
-  stats: z.object({
-    hp: z.number(),
-    maxHp: z.number(),
-    strength: z.number(),
-    dexterity: z.number(),
-    intelligence: z.number(),
-    charisma: z.number(),
-    level: z.number(),
-    experience: z.number(),
-  }),
-  customStats: z.record(z.number()).optional(),
-  inventory: z.array(
-    z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      description: z.string().default(""),
-      category: z.enum(["weapon", "armor", "consumable", "key", "misc"]).default("misc"),
-      quantity: z.number(),
-      properties: z.record(z.unknown()).default({}),
-    })
-  ),
-  quests: z.array(
-    z.object({
-      id: z.string().min(1),
-      title: z.string().min(1),
-      description: z.string().default(""),
-      status: z.enum(["active", "completed", "failed", "abandoned"]),
-      objectives: z.array(
-        z.object({
-          id: z.string().min(1),
-          text: z.string().min(1),
-          completed: z.boolean(),
-        })
-      ),
-      reward: z.string().nullish(),
-    })
-  ),
-  pronouns: z.string().nullish(),
-  age: z.number().nullish(),
-  shortDescription: z.string().nullish(),
-});
-
-const WorldSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string(),
-  genre: z.string(),
-  tone: z.string(),
-  systemPrompt: z.string(),
-  isPrebuilt: z.boolean(),
-  locations: z.array(
-    z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      description: z.string().default(""),
-      shortDesc: z.string(),
-      ambientSound: z.string().nullish(),
-      connectedTo: z.array(z.string()).default([]),
-      properties: z.record(z.unknown()).default({}),
-    })
-  ),
-  npcs: z.array(
-    z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      role: z.string().default(""),
-      personality: z.string().default(""),
-      voiceDescription: z.string().default(""),
-      relationship: z.enum(["friendly", "hostile", "neutral", "allied"]).default("neutral"),
-      isAlive: z.boolean().default(true),
-      locationId: z.string().nullish(),
-    })
-  ).default([]),
-});
+import type { CharacterData } from "@/types/character";
+import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
+import { authorizeAiUsage, aiUsageDenialResponse } from "@/lib/ai/usage-guard";
+import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
+import { getOwnedSession } from "@/lib/db/queries/sessions";
+import {
+  CharacterSchema,
+  LegacyGuestIdSchema,
+  SessionSnapshotSchema,
+  WorldRefSchema,
+} from "@/lib/game/request-schemas";
 
 const ActionSchema = z.object({
   action: z.object({
@@ -94,32 +21,21 @@ const ActionSchema = z.object({
     content: z.string().min(1).max(2000),
     choiceIndex: z.number().optional(),
   }),
-  session: z.object({
-    id: z.string(),
-    worldId: z.string(),
-    characterId: z.string(),
-    status: z.string().default("active"),
-    turnCount: z.number().default(0),
-    currentLocationId: z.string().nullish(),
-    timeOfDay: z.string().default("morning"),
-    weather: z.string().default("clear"),
-    globalFlags: z.record(z.unknown()).default({}),
-    npcStates: z.record(z.unknown()).default({}),
-    memorySummary: z.string().default(""),
-    history: z.array(
-      z.object({ role: z.enum(["user", "assistant"]), content: z.string() })
-    ).default([]),
-    narrationLog: z.array(z.unknown()).default([]),
-    choices: z.array(z.string()).default([]),
-    isGenerating: z.boolean().default(false),
-    achievements: z.array(z.unknown()).default([]),
-    relationships: z.array(z.unknown()).default([]),
-    codex: z.array(z.unknown()).default([]),
-  }),
+  session: SessionSnapshotSchema,
   character: CharacterSchema,
-  world: WorldSchema,
-  dbSessionId: z.string().nullish(),
+  world: WorldRefSchema,
+  dbSessionId: z.string().max(200).nullish(),
+  guestId: LegacyGuestIdSchema,
 });
+
+function parseJson<T>(raw: string | null | undefined, fallback: T): T {
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export async function POST(req: NextRequest) {
   let body: z.infer<typeof ActionSchema>;
@@ -134,45 +50,83 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const identity = await resolvePlayer(req, {
+    allowGuestCreation: true,
+    legacyGuestId: body.guestId,
+  });
+  if (!identity.ok) return playerErrorResponse(identity);
+  const { player, setCookie } = identity;
+  const respond = (res: Response) => withPlayerCookie(res, setCookie);
+
   const action: PlayerAction = body.action;
-  const session: InMemorySession = body.session as InMemorySession;
-  const character = body.character;
-  const world = body.world;
+  const character = body.character as CharacterData;
   const dbSessionId = body.dbSessionId;
-
-  const authSession = await auth();
-  const user = authSession?.user?.id
-    ? await prisma.user.findUnique({
-      where: { id: authSession.user.id },
-      select: { tier: true, email: true },
-    })
-    : null;
-
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",").map((e) => e.trim()).filter(Boolean);
-  const isAdmin = user?.email ? adminEmails.includes(user.email) : false;
 
   const inputCheck = moderatePlayerInput(action.content);
   if (!inputCheck.safe) {
-    return NextResponse.json(
+    return respond(NextResponse.json(
       { error: "content_policy", message: SAFETY_FALLBACK },
       { status: 422 }
-    );
+    ));
   }
 
-  if (authSession?.user?.id && user?.tier === "free" && !isAdmin) {
-    await resetDailyMinutesIfNeeded(authSession.user.id, user.tier);
-    const consumed = await consumeFreeAiMinute(authSession.user.id);
-    if (!consumed) {
-      return NextResponse.json(
-        {
-          error: "ai_minutes_exhausted",
-          message: "You have used all free AI minutes for today. Upgrade or buy extra minutes to continue.",
-        },
-        { status: 402 },
-      );
-    }
+  // The world (and its system prompt) is loaded server-side; the client only
+  // names which world it is playing.
+  const worldResult = await resolvePlayableWorld(body.world.id, player.userId);
+  if (!worldResult.ok) {
+    return respond(NextResponse.json(
+      { error: worldResult.status === 404 ? "world_not_found" : "world_forbidden" },
+      { status: worldResult.status }
+    ));
   }
+  const world = worldResult.world;
+
+  // A persisted session must belong to the caller before anything is
+  // generated or written. Its stored state is authoritative over the
+  // client snapshot.
+  const ownedSession = dbSessionId ? await getOwnedSession(dbSessionId, player.userId) : null;
+  if (dbSessionId && !ownedSession) {
+    return respond(NextResponse.json({ error: "session_not_found" }, { status: 404 }));
+  }
+  if (ownedSession && ownedSession.worldId !== world.id) {
+    return respond(NextResponse.json({ error: "session_world_mismatch" }, { status: 409 }));
+  }
+
+  const storedState = ownedSession?.gameState ?? null;
+  const storedNpcStates = parseJson<Record<string, unknown>>(storedState?.npcStates, {});
+  const {
+    _achievements: storedAchievements,
+    _relationships: storedRelationships,
+    _codex: storedCodex,
+    ...storedNpcStateRest
+  } = storedNpcStates as {
+    _achievements?: unknown[];
+    _relationships?: unknown[];
+    _codex?: unknown[];
+    [key: string]: unknown;
+  };
+
+  const clientSession = body.session as InMemorySession;
+  const session: InMemorySession = storedState
+    ? {
+      ...clientSession,
+      turnCount: ownedSession!.turnCount,
+      currentLocationId: storedState.currentLocationId ?? clientSession.currentLocationId,
+      timeOfDay: storedState.timeOfDay,
+      weather: storedState.weather,
+      globalFlags: parseJson<Record<string, unknown>>(storedState.globalFlags, {}),
+      npcStates: storedNpcStateRest,
+      memorySummary: storedState.memorySummary,
+      achievements: (storedAchievements ?? []) as InMemorySession["achievements"],
+      relationships: (storedRelationships ?? []) as InMemorySession["relationships"],
+      codex: (storedCodex ?? []) as InMemorySession["codex"],
+    }
+    : clientSession;
+
+  const usage = await authorizeAiUsage(req, player, "turn");
+  if (!usage.ok) return respond(aiUsageDenialResponse(usage.denial));
+  const { grant } = usage;
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -204,33 +158,36 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        if (dbSessionId) {
+        if (ownedSession) {
           try {
-            const { persistTurn, updateGameState, incrementTurnCount, countHistoryEntries } =
+            const { persistTurn, updateGameState, incrementTurnCount, countHistoryEntries, getOldestHistoryEntries } =
               await import("@/lib/db/queries/sessions");
             const { summarizeHistory, SUMMARIZE_THRESHOLD, ENTRIES_TO_COMPRESS } =
               await import("@/lib/ai/memory/summarizer");
-            const { updateGameState: updateStateInDb } = await import("@/lib/db/queries/sessions");
+            const sessionId = ownedSession.id;
+            const ownerId = player.userId;
 
-            const newTurn = session.turnCount + 1;
+            // Turn numbers come from the stored session, never the client.
+            const newTurn = await incrementTurnCount(sessionId, ownerId);
+            if (newTurn === null) throw new Error("Session is no longer owned by the caller");
 
             await Promise.all([
-              persistTurn(dbSessionId, newTurn, "user", action.content, action.type),
+              persistTurn(sessionId, ownerId, newTurn, "user", action.content, action.type),
               fullNarration
-                ? persistTurn(dbSessionId, newTurn, "assistant", fullNarration)
+                ? persistTurn(sessionId, ownerId, newTurn, "assistant", fullNarration)
                 : Promise.resolve(),
-              incrementTurnCount(dbSessionId),
             ]);
 
             if (Object.keys(stateChanges).length > 0 || session.currentLocationId !== null) {
               const flagPatch = (stateChanges as { flags?: Record<string, unknown> }).flags;
 
-              // Merge new achievements/relationships/codex from this turn
-              const prevAch = body.session.achievements as unknown[];
+              // Merge new achievements/relationships/codex from this turn onto
+              // the stored (server-side) values.
+              const prevAch = session.achievements as unknown[];
               const newAch = ((stateChanges as { achievementUnlocks?: unknown[] }).achievementUnlocks ?? []) as Array<{ key: string }>;
               const mergedAch = [...prevAch, ...newAch.filter((a) => !prevAch.some((e) => (e as { key: string }).key === a.key))];
 
-              const prevRels = body.session.relationships as unknown[];
+              const prevRels = session.relationships as unknown[];
               const relChanges = ((stateChanges as { npcRelationshipChanges?: unknown[] }).npcRelationshipChanges ?? []) as Array<{ npcId: string; name: string; standing: number; notes?: string }>;
               const mergedRels = relChanges.reduce((acc: unknown[], rel) => {
                 const idx = acc.findIndex((r) => (r as { npcId: string }).npcId === rel.npcId);
@@ -242,27 +199,27 @@ export async function POST(req: NextRequest) {
                 return [...acc, rel];
               }, [...prevRels]);
 
-              const prevCodex = body.session.codex as unknown[];
+              const prevCodex = session.codex as unknown[];
               const newCodex = ((stateChanges as { codexEntries?: unknown[] }).codexEntries ?? []) as Array<{ key: string }>;
               const mergedCodex = [...prevCodex, ...newCodex.filter((c) => !prevCodex.some((e) => (e as { key: string }).key === c.key))];
 
-              await updateStateInDb(dbSessionId, {
+              await updateGameState(sessionId, ownerId, {
                 currentLocationId: (stateChanges as { locationId?: string }).locationId ?? session.currentLocationId,
                 timeOfDay: (stateChanges as { timeOfDay?: string }).timeOfDay ?? session.timeOfDay,
                 weather: (stateChanges as { weather?: string }).weather ?? session.weather,
                 globalFlags: flagPatch
                   ? { ...session.globalFlags, ...flagPatch }
                   : undefined,
+                npcStates: storedNpcStateRest,
                 achievements: mergedAch,
                 relationships: mergedRels,
                 codex: mergedCodex,
               });
             }
 
-            const historyCount = await countHistoryEntries(dbSessionId);
+            const historyCount = await countHistoryEntries(sessionId);
             if (historyCount >= SUMMARIZE_THRESHOLD) {
-              const { getOldestHistoryEntries } = await import("@/lib/db/queries/sessions");
-              const oldEntries = await getOldestHistoryEntries(dbSessionId, ENTRIES_TO_COMPRESS);
+              const oldEntries = await getOldestHistoryEntries(sessionId, ENTRIES_TO_COMPRESS);
               const summary = await summarizeHistory(
                 oldEntries.map((e) => ({
                   role: e.role as "user" | "assistant",
@@ -272,7 +229,7 @@ export async function POST(req: NextRequest) {
                 session.memorySummary,
                 world.name
               );
-              await updateGameState(dbSessionId, { memorySummary: summary });
+              await updateGameState(sessionId, ownerId, { memorySummary: summary });
               send("memory_summary", { summary });
             }
           } catch (dbErr) {
@@ -281,20 +238,29 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err) {
-        send("error", {
-          message: err instanceof Error ? err.message : "Unknown error",
-        });
+        try {
+          send("error", {
+            message: err instanceof Error ? err.message : "Unknown error",
+          });
+        } catch {
+          // Stream already closed by the client.
+        }
       } finally {
-        controller.close();
+        grant.release();
+        try {
+          controller.close();
+        } catch {
+          // Stream already closed by the client.
+        }
       }
     },
   });
 
-  return new Response(stream, {
+  return respond(new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
     },
-  });
+  }));
 }

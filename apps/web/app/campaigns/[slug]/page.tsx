@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SEO_CAMPAIGNS, getSeoCampaign } from "@/lib/seo-campaigns";
+import { serializeJsonLd } from "@/lib/blog/render-markdown";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -49,7 +50,7 @@ export default async function CampaignDetailPage({ params }: Props) {
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">

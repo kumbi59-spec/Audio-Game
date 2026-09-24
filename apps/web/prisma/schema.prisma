@@ -45,6 +45,8 @@ model User {
   blogPosts    BlogPost[]
   uploadAuditEvents UploadAuditEvent[]
   npcVoiceAssignments NpcVoiceAssignment[]
+  discussionThreads   DiscussionThread[]
+  discussionComments  DiscussionComment[]
 }
 
 // Stable per-NPC voice picks so the same character sounds the same across
@@ -379,4 +381,36 @@ model BlogPostImage {
 
   @@unique([postId, idx])
   @@index([postId])
+}
+
+// Community discussion board. `hidden` lets moderators take content down
+// without deleting it; hidden rows are never returned by the public API.
+model DiscussionThread {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments DiscussionComment[]
+
+  @@index([hidden, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model DiscussionComment {
+  id        String   @id @default(cuid())
+  text      String
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  threadId String
+  thread   DiscussionThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, hidden, createdAt])
+  @@index([authorId, createdAt])
 }

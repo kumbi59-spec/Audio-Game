@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
-import { marked } from "marked";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
 import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
+import { renderBlogMarkdown, serializeJsonLd } from "@/lib/blog/render-markdown";
 
 export const revalidate = 60;
 
@@ -87,7 +87,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   // Old seed runs baked generic world-cover SVGs into the markdown; never render them.
   const markdown = stripPlaceholderImages(post.content);
-  const htmlContent = await marked(markdown, { async: true });
+  const htmlContent = await renderBlogMarkdown(markdown);
   const sections = splitHtmlOnH2(htmlContent);
 
   // Map "section index to render the image after" → image record. The plan
@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
         <SiteHeader />

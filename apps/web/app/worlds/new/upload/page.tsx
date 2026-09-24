@@ -40,21 +40,12 @@ export default function UploadBiblePage() {
     if (!can.bibleUpload) { setPaywallOpen(true); return; }
     if (!file || isProcessing) return;
 
-    const guestId = (() => {
-      const stored = localStorage.getItem("echoquest-guest-id");
-      if (stored) return stored;
-      const id = crypto.randomUUID();
-      localStorage.setItem("echoquest-guest-id", id);
-      return id;
-    })();
-
     abortRef.current?.abort();
     const abort = new AbortController();
     abortRef.current = abort;
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("guestId", guestId);
 
     setStage("receiving");
     setMessage("Sending your file…");

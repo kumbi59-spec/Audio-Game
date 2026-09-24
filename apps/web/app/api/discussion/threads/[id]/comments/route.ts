@@ -1,38 +1,30 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { threads } from "../../../store";
+import { z } from "zod";
+import { authorizeDiscussionWrite } from "@/lib/discussion/guard";
+import { createComment } from "@/lib/discussion/queries";
+
+const CreateCommentSchema = z.object({
+  text: z.string().trim().min(1).max(2_000),
+});
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const emailVerified = Boolean((session.user as { emailVerified?: Date | null }).emailVerified);
-  if (!emailVerified) {
-    return NextResponse.json({ error: "Email not verified" }, { status: 403 });
+  const gate = await authorizeDiscussionWrite(req, "comment");
+  if (!gate.ok) return gate.response;
+
+  let body: z.infer<typeof CreateCommentSchema>;
+  try {
+    body = CreateCommentSchema.parse(await req.json());
+  } catch {
+    return NextResponse.json({ error: "text (up to 2,000 characters) is required" }, { status: 400 });
   }
 
   const { id } = await params;
-  const thread = threads.find((t) => t.id === id);
-  if (!thread) {
+  const comment = await createComment(id, gate.userId, body.text);
+  if (!comment) {
     return NextResponse.json({ error: "Thread not found" }, { status: 404 });
   }
-
-  const body = (await req.json()) as { text?: string };
-  const text = body.text?.trim() ?? "";
-  if (!text) {
-    return NextResponse.json({ error: "text is required" }, { status: 400 });
-  }
-
-  const comment = {
-    id: `comment-${Date.now()}`,
-    text,
-    author: session.user.name ?? session.user.email ?? "Anonymous",
-    createdAt: new Date().toISOString(),
-  };
-  thread.comments.push(comment);
   return NextResponse.json(comment, { status: 201 });
 }

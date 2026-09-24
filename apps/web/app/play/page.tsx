@@ -10,9 +10,6 @@ export default function PlayPage() {
   const { session, character, world } = useGameStore();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("echoquest-guest-id")) {
-      localStorage.setItem("echoquest-guest-id", crypto.randomUUID());
-    }
     if (!session || !character || !world) {
       router.replace("/library");
     }

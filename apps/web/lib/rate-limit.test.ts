@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Prisma mock ──────────────────────────────────────────────────────────────
 // Mirrors the RateLimitBucket table in memory so DbRateLimitStore can be
@@ -15,22 +15,36 @@ const buckets = new Map<string, BucketRow>();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    $executeRaw: vi.fn(async (strings: TemplateStringsArray, ...values: unknown[]) => {
-      // Parse the tagged template: INSERT ... VALUES (key, count, resetAt, cooldownUntil, NOW())
-      // ON CONFLICT DO UPDATE …
-      const [key, count, resetAt, cooldownUntil] = values as [string, number, Date, Date | null];
-      buckets.set(key, { key, count, resetAt, cooldownUntil, updatedAt: new Date() });
-      return 1;
+    // Emulates the single-statement upsert in DbRateLimitStore. Values arrive
+    // in template order: key, increment, newResetAt, now, … (repeats).
+    $queryRaw: vi.fn(async (_strings: TemplateStringsArray, ...values: unknown[]) => {
+      const [key, increment, newResetAt, now] = values as [string, number, Date, Date];
+      const existing = buckets.get(key);
+      let row: BucketRow;
+      if (!existing) {
+        row = { key, count: increment, resetAt: newResetAt, cooldownUntil: null, updatedAt: now };
+      } else if (existing.cooldownUntil && existing.cooldownUntil > now) {
+        row = { ...existing, updatedAt: now };
+      } else if (existing.resetAt <= now) {
+        row = { key, count: increment, resetAt: newResetAt, cooldownUntil: null, updatedAt: now };
+      } else {
+        row = { ...existing, count: existing.count + increment, cooldownUntil: null, updatedAt: now };
+      }
+      buckets.set(key, row);
+      return [{ count: row.count, resetAt: row.resetAt, cooldownUntil: row.cooldownUntil }];
     }),
-    $queryRaw: vi.fn(async (strings: TemplateStringsArray, ...values: unknown[]) => {
-      const key = values[0] as string;
+    // UPDATE … SET cooldownUntil = $1 WHERE key = $2 AND (cooldown unset/expired at $3)
+    $executeRaw: vi.fn(async (_strings: TemplateStringsArray, ...values: unknown[]) => {
+      const [cooldownUntil, key, now] = values as [Date, string, Date];
       const row = buckets.get(key);
-      return row ? [{ count: row.count, resetAt: row.resetAt, cooldownUntil: row.cooldownUntil }] : [];
+      if (!row || (row.cooldownUntil && row.cooldownUntil > now)) return 0;
+      row.cooldownUntil = cooldownUntil;
+      return 1;
     }),
   },
 }));
 
-import { consumeRateLimit } from "./rate-limit";
+import { consumeRateLimit, getClientIp } from "./rate-limit";
 
 describe("consumeRateLimit (DbRateLimitStore)", () => {
   beforeEach(() => {
@@ -121,5 +135,59 @@ describe("consumeRateLimit (DbRateLimitStore)", () => {
     // Window expired — next request should start a new window and be allowed
     const result = await consumeRateLimit({ key: "test:user7", limit: 3, windowSeconds: 60 });
     expect(result.allowed).toBe(true);
+  });
+
+  it("does not over-admit concurrent callers sharing a key", async () => {
+    const results = await Promise.all(
+      Array.from({ length: 10 }, () => consumeRateLimit({ key: "test:parallel", limit: 3, windowSeconds: 60 })),
+    );
+    expect(results.filter((r) => r.allowed)).toHaveLength(3);
+    expect(buckets.get("test:parallel")?.count).toBe(10);
+  });
+});
+
+describe("getClientIp", () => {
+  const envKeys = ["TRUSTED_PROXY_HOPS", "TRUSTED_CLIENT_IP_HEADER"] as const;
+  const saved: Record<string, string | undefined> = {};
+
+  beforeEach(() => {
+    for (const k of envKeys) {
+      saved[k] = process.env[k];
+      delete process.env[k];
+    }
+  });
+
+  afterEach(() => {
+    for (const k of envKeys) {
+      if (saved[k] === undefined) delete process.env[k];
+      else process.env[k] = saved[k];
+    }
+  });
+
+  function req(headers: Record<string, string>) {
+    return new Request("http://localhost/", { headers });
+  }
+
+  it("uses the entry appended by the trusted proxy, not client-supplied ones", () => {
+    expect(getClientIp(req({ "x-forwarded-for": "6.6.6.6, 203.0.113.9" }))).toBe("203.0.113.9");
+  });
+
+  it("honours a configured number of trusted proxy hops", () => {
+    process.env["TRUSTED_PROXY_HOPS"] = "2";
+    expect(getClientIp(req({ "x-forwarded-for": "6.6.6.6, 203.0.113.9, 10.0.0.2" }))).toBe("203.0.113.9");
+  });
+
+  it("ignores forwarding headers when no proxy is trusted", () => {
+    process.env["TRUSTED_PROXY_HOPS"] = "0";
+    expect(getClientIp(req({ "x-forwarded-for": "6.6.6.6" }))).toBe("unknown");
+  });
+
+  it("does not trust x-real-ip by default", () => {
+    expect(getClientIp(req({ "x-real-ip": "6.6.6.6" }))).toBe("unknown");
+  });
+
+  it("prefers an explicitly trusted edge header", () => {
+    process.env["TRUSTED_CLIENT_IP_HEADER"] = "cf-connecting-ip";
+    expect(getClientIp(req({ "cf-connecting-ip": "198.51.100.4", "x-forwarded-for": "6.6.6.6" }))).toBe("198.51.100.4");
   });
 });

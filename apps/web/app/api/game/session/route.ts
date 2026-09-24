@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/auth";
-import { ensureGuestUser, createDbCharacter } from "@/lib/db/queries/users";
+import { createDbCharacter } from "@/lib/db/queries/users";
 import { createDbSession, getSessionWithHistory, listUserSessions } from "@/lib/db/queries/sessions";
-import { getWorldById } from "@/lib/db/queries/worlds";
-import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
+import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
+import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
+import { LegacyGuestIdSchema } from "@/lib/game/request-schemas";
 
 const CreateSchema = z.object({
-  guestId: z.string().min(1),
-  worldId: z.string().min(1),
+  // Legacy browser-generated guest id; identity now comes from the session
+  // or the server-issued guest cookie.
+  guestId: LegacyGuestIdSchema,
+  worldId: z.string().min(1).max(200),
   character: z.object({
     id: z.string(),
     name: z.string(),
@@ -37,53 +39,57 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Prefer the authenticated user's id when present so logged-in players'
-  // sessions are attributed to their real account (not their guest cookie).
-  // Only fall back to the client-provided guestId for unauthenticated play.
-  const authSession = await auth();
-  const authUserId = authSession?.user?.id as string | undefined;
-  const userId = authUserId ?? body.guestId;
+  const identity = await resolvePlayer(req, {
+    allowGuestCreation: true,
+    legacyGuestId: body.guestId,
+  });
+  if (!identity.ok) return playerErrorResponse(identity);
+  const { player, setCookie } = identity;
+  const respond = (res: Response) => withPlayerCookie(res, setCookie);
+  const userId = player.userId;
 
   try {
-    if (!authUserId) {
-      await ensureGuestUser(body.guestId);
+    const worldResult = await resolvePlayableWorld(body.worldId, userId);
+    if (!worldResult.ok) {
+      return respond(NextResponse.json(
+        { error: worldResult.status === 404 ? "World not found" : "Not allowed to play this world" },
+        { status: worldResult.status }
+      ));
     }
+    const world = worldResult.world;
 
     const dbCharacter = await createDbCharacter(userId, body.character);
-
-    const world =
-      PREBUILT_WORLDS.find((w) => w.id === body.worldId)
-      ?? (await getWorldById(body.worldId))
-      ?? PREBUILT_WORLDS[0];
     const startingLocationId = world.locations[0]?.id ?? null;
 
     const session = await createDbSession(
-      body.worldId,
+      world.id,
       userId,
       dbCharacter.id,
       startingLocationId
     );
 
-    return NextResponse.json({ sessionId: session.id });
+    return respond(NextResponse.json({ sessionId: session.id }));
   } catch (err) {
     console.error("Session create error:", err);
-    return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
+    return respond(NextResponse.json({ error: "Failed to create session" }, { status: 500 }));
   }
 }
 
-// GET /api/game/session?sessionId=...&guestId=...
+// GET /api/game/session?sessionId=...
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const sessionId = searchParams.get("sessionId");
-  const guestId = searchParams.get("guestId");
 
-  // Same auth-first resolution as POST: prefer the logged-in user's id.
-  const authSession = await auth();
-  const authUserId = authSession?.user?.id as string | undefined;
-  const userId = authUserId ?? guestId;
+  const identity = await resolvePlayer(req, { legacyGuestId: searchParams.get("guestId") });
+  if (!identity.ok) {
+    return sessionId ? playerErrorResponse(identity) : NextResponse.json([]);
+  }
+  return withPlayerCookie(await loadForPlayer(identity.player.userId, sessionId), identity.setCookie);
+}
 
+async function loadForPlayer(userId: string, sessionId: string | null): Promise<Response> {
   // List sessions for the current user
-  if (!sessionId && userId) {
+  if (!sessionId) {
     try {
       const sessions = await listUserSessions(userId);
       return NextResponse.json(
@@ -99,10 +105,6 @@ export async function GET(req: NextRequest) {
     } catch {
       return NextResponse.json([]);
     }
-  }
-
-  if (!sessionId || !userId) {
-    return NextResponse.json({ error: "sessionId required" }, { status: 400 });
   }
 
   try {
