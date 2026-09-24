@@ -3,7 +3,7 @@ import type { Tier } from "@audio-rpg/shared";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 
 // Stripe client — lazy-initialised so the module is importable server-side only
-function getStripe(): Stripe {
+export function getStripe(): Stripe {
   const key = process.env["STRIPE_SECRET_KEY"];
   if (!key) throw new Error("STRIPE_SECRET_KEY is not set.");
   return new Stripe(key, { apiVersion: "2026-04-22.dahlia" });
