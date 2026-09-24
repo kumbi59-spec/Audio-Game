@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useCanWeb } from "@/store/entitlements-store";
-import { AdSenseRailUnit } from "./AdBanner";
+import { AdsterraBanner } from "./AdsterraBanner";
 import { ADSTERRA, ADSTERRA_ENABLED } from "./adsterra-config";
 
 /**
@@ -16,7 +16,7 @@ function showRailsOn(pathname: string): boolean {
   return pathname === "/" || RAIL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
-/** Clearly-labelled sponsored card that opens the Adsterra smartlink. */
+/** Clearly-labelled sponsored card that opens the Adsterra smartlink (only on screens tall enough to fit it under the banner). */
 function SponsoredCard() {
   if (!ADSTERRA_ENABLED) return null;
   return (
@@ -24,7 +24,7 @@ function SponsoredCard() {
       href={ADSTERRA.smartlinkUrl}
       target="_blank"
       rel="sponsored noopener noreferrer"
-      className="block rounded-xl border p-4 text-center transition-opacity hover:opacity-90"
+      className="hidden rounded-xl border p-4 text-center transition-opacity hover:opacity-90 [@media(min-height:880px)]:block"
       style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
     >
       <span className="block text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -50,8 +50,8 @@ function Rail({ side }: { side: "left" | "right" }) {
       aria-label="Advertisement"
       className={`fixed top-20 z-10 hidden w-[160px] flex-col gap-4 xl:flex ${side === "left" ? "left-4" : "right-4"}`}
     >
+      <AdsterraBanner />
       <SponsoredCard />
-      <AdSenseRailUnit />
     </aside>
   );
 }
