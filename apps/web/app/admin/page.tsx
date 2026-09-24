@@ -611,7 +611,7 @@ export default function AdminPage() {
                   <button onClick={() => seedPosts(false)} disabled={seeding}
                     className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
                     style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
-                    {seeding ? "Seeding…" : "Seed 30 posts"}
+                    {seeding ? "Seeding…" : "Seed posts"}
                   </button>
                   <button onClick={() => seedPosts(true)} disabled={seeding}
                     className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"

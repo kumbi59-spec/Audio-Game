@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/db";
+import { SCHEDULED_SEED_POSTS, scheduledPublishDate } from "@/lib/blog/seed-posts";
 
 function slugify(title: string) {
   return title.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -2069,6 +2070,8 @@ const HERO_IMAGE_BY_SLUG: Record<string, { src: string; alt: string }> = {
   "whats-next-for-echoquest-our-vision-for-the-future": { src: "/images/worlds/neon-precinct.svg", alt: "A road of light leading toward a glowing horizon" },
 };
 
+for (const p of SCHEDULED_SEED_POSTS) HERO_IMAGE_BY_SLUG[slugify(p.title)] = p.hero;
+
 const FALLBACK_HERO = { src: "/images/worlds/neon-precinct.svg", alt: "EchoQuest blog post header illustration" };
 
 // Pool of inline body images. We rotate through these to add 1-2 visuals
@@ -2164,7 +2167,14 @@ export async function POST(req: Request) {
   const skipped: string[] = [];
   const errors: string[] = [];
 
-  for (const p of POSTS) {
+  // Every post is created up front; future publish dates keep a post hidden
+  // from /blog, the sitemap, and the feed until its release day.
+  const allPosts = [
+    ...POSTS.map((p) => ({ ...p, publishedAt: getPublishDate(p.daysFromNow) })),
+    ...SCHEDULED_SEED_POSTS.map((p) => ({ ...p, publishedAt: scheduledPublishDate(p.publishAt) })),
+  ];
+
+  for (const p of allPosts) {
     const slug = slugify(p.title);
     const contentWithHero = injectHeroImage(slug, p.content);
     try {
@@ -2186,7 +2196,7 @@ export async function POST(req: Request) {
           slug,
           excerpt: p.excerpt,
           content: contentWithHero,
-          publishedAt: getPublishDate(p.daysFromNow),
+          publishedAt: p.publishedAt,
           authorId: admin.id,
         },
       });
