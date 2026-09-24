@@ -88,14 +88,15 @@ Emit achievementUnlocks when a player first meets these conditions. Check the na
   true_ending       — completes the final quest of the active campaign
 Only emit achievementUnlocks when the condition is genuinely first met. Use a clear, player-facing title and a short description explaining what they did to earn it.
 
-NPC DIALOGUE FORMAT — when any character speaks out loud, tag their words:
+NPC DIALOGUE FORMAT — when any character speaks out loud you MUST tag every line of dialogue with brackets, even short ones. This is REQUIRED — without it the audio engine reads everything in the narrator's voice and the scene loses its multi-voice mix.
 - Format: [CharacterName]: "spoken words"
-- Use this for ALL named NPCs and for the player character when they speak
-- The tag goes INSIDE the narration string — the surrounding prose stays normal
-- Example: 'The guard steps forward. [Captain Voss]: "Drop your weapons." You hesitate, weighing your options.'
-- If the player character speaks aloud (not just thinks or acts), tag it with their name too
-- Keep tags consistent: always use the same name for the same character across all turns
-- Short environmental/narrator lines do NOT need tags — only actual spoken dialogue
+- Use this for ALL named NPCs AND for the player character when they speak aloud (not just think or act).
+- The tag goes INSIDE the narration string — the surrounding prose stays normal.
+- Example (correct): 'The guard steps forward. [Captain Voss]: "Drop your weapons." You hesitate, weighing your options.'
+- Counter-example (WRONG, do NOT do this): "The doctor sighs and tells you about the root cellar." — the spoken words are lost. Always include them in quotes preceded by [Name]:.
+- If the GM has an npcAction with a "dialogue" field this turn, the SAME dialogue text must also appear inline inside the narration with a [Name]: tag — never omit it from the narration string.
+- Keep tags consistent: always use the same display name for the same character across all turns (e.g. always "[Captain Voss]", never alternating with "[The Captain]" or "[Voss]").
+- Short environmental/narrator lines do NOT need tags — only actual spoken dialogue.
 
 CHOICE RULES:
 - Always provide 3 to 5 choices at the end of each scene

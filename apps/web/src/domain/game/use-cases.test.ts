@@ -8,6 +8,7 @@ import {
   rollbackTurn,
   sanitizeAction,
   selectChoice,
+  withNpcActionDialogue,
   shouldPlaySoundCue,
 } from "./use-cases";
 
@@ -73,5 +74,71 @@ describe("game domain use-cases", () => {
     expect(shouldPlaySoundCue(false, "sound_cue", "discovery")).toBe(false);
     expect(shouldPlaySoundCue(true, "state_change", "discovery")).toBe(false);
     expect(shouldPlaySoundCue(true, "sound_cue", null)).toBe(false);
+  });
+
+  describe("withNpcActionDialogue", () => {
+    const relationships = [
+      { npcId: "village_doctor", name: "Doctor Hale", standing: 0, lastSeenTurn: 1 },
+    ];
+
+    it("returns the narration unchanged when there's no npcAction", () => {
+      const result = withNpcActionDialogue("Plain prose.", null, relationships);
+      expect(result).toBe("Plain prose.");
+    });
+
+    it("returns the narration unchanged when npcAction has no dialogue", () => {
+      const result = withNpcActionDialogue("Plain prose.", { npcId: "x", action: "watches" }, relationships);
+      expect(result).toBe("Plain prose.");
+    });
+
+    it("appends a tagged dialogue line when the prose doesn't already contain it", () => {
+      const result = withNpcActionDialogue(
+        "The doctor sighs at the doorway.",
+        { npcId: "village_doctor", action: "offers cellar", dialogue: "There's a root cellar." },
+        relationships,
+      );
+      // The "voices not switching" bug: GM puts dialogue only in npcAction
+      // and we used to lose it. The fix is to tag it inline so the multi-
+      // voice player can route it to the NPC's voice.
+      expect(result).toBe('The doctor sighs at the doorway. [Doctor Hale]: "There\'s a root cellar."');
+    });
+
+    it("tags an inline quoted dialogue in place rather than appending", () => {
+      const result = withNpcActionDialogue(
+        'The doctor leans in. "There\'s a root cellar." She looks away.',
+        { npcId: "village_doctor", action: "offers cellar", dialogue: "There's a root cellar." },
+        relationships,
+      );
+      expect(result).toBe('The doctor leans in. [Doctor Hale]: "There\'s a root cellar." She looks away.');
+    });
+
+    it("leaves the prose alone when a [Name]: tag is already present", () => {
+      // Trust the GM when it tagged correctly — don't double-tag.
+      const tagged = '[Doctor Hale]: "There\'s a root cellar." The doctor steps back.';
+      const result = withNpcActionDialogue(
+        tagged,
+        { npcId: "village_doctor", action: "offers cellar", dialogue: "There's a root cellar." },
+        relationships,
+      );
+      expect(result).toBe(tagged);
+    });
+
+    it("falls back to a prettified npcId when no matching relationship is known", () => {
+      const result = withNpcActionDialogue(
+        "Someone speaks from the shadow.",
+        { npcId: "shadow_figure", action: "whispers", dialogue: "Wait." },
+        [],
+      );
+      expect(result).toBe('Someone speaks from the shadow. [Shadow Figure]: "Wait."');
+    });
+
+    it("adds a sentence boundary when the prose doesn't end with terminal punctuation", () => {
+      const result = withNpcActionDialogue(
+        "The doctor pauses mid-thought",
+        { npcId: "village_doctor", action: "speaks", dialogue: "Wait." },
+        relationships,
+      );
+      expect(result).toBe('The doctor pauses mid-thought. [Doctor Hale]: "Wait."');
+    });
   });
 });

@@ -139,6 +139,63 @@ export function extractNarrationFromChoiceEvent(data: Pick<GMResponse, "narratio
   return { narration: data.narration, choices: normalizeChoiceList(data.choices) };
 }
 
+/**
+ * Weave the structured `npcAction.dialogue` into the narration text with a
+ * proper `[Name]: "..."` tag. The GM often emits NPC speech only in the
+ * structured field (not in the narration prose), which left the dialogue
+ * unspoken and the voice auto-assigner with nothing to switch to. Wrapping
+ * it inline lets the multi-voice player route the NPC's words to its own
+ * voice and also gives audio-off players a visible attribution.
+ *
+ * Rules:
+ *   - No-op when there's no npcAction.dialogue.
+ *   - If the narration already contains a `[Name]: "..."` tag, trust it and
+ *     do nothing (avoid double-tagging when the GM did its job).
+ *   - If the dialogue substring is present as plain `"..."` prose, tag it in
+ *     place so surrounding prose order is preserved.
+ *   - Otherwise append the tagged line so it's heard at all.
+ */
+export function withNpcActionDialogue(
+  narration: string,
+  npcAction: import("@/types/game").NPCAction | null | undefined,
+  relationships: import("@/types/game").NpcRelationship[],
+): string {
+  if (!npcAction?.dialogue) return narration;
+  const dialogue = npcAction.dialogue.trim();
+  if (!dialogue) return narration;
+
+  // Already tagged somewhere — assume GM did it correctly.
+  if (/\[[^\]]+\]:\s*["']/.test(narration)) return narration;
+
+  const rel = relationships.find((r) => r.npcId === npcAction.npcId);
+  // Prefer the human-readable name we've been tracking; fall back to a
+  // best-effort prettified form of the npcId so the tag isn't "village_doctor".
+  const displayName = rel?.name ?? prettifyNpcId(npcAction.npcId);
+  if (!displayName) return narration;
+
+  const tagged = `[${displayName}]: "${dialogue}"`;
+  const quotedDialogue = `"${dialogue}"`;
+  if (narration.includes(quotedDialogue)) {
+    return narration.replace(quotedDialogue, tagged);
+  }
+
+  const trimmed = narration.trimEnd();
+  if (!trimmed) return tagged;
+  // Append on a new sentence boundary so the prose flows naturally into
+  // the tagged dialogue without smashing words together.
+  const needsPeriod = !/[.!?…—]$/.test(trimmed);
+  return needsPeriod ? `${trimmed}. ${tagged}` : `${trimmed} ${tagged}`;
+}
+
+function prettifyNpcId(npcId: string): string {
+  if (!npcId) return "";
+  return npcId
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function shouldPlaySoundCue(soundCuesEnabled: boolean, eventType: string, cue: SoundCue | null): cue is SoundCue {
   return soundCuesEnabled && eventType === "sound_cue" && Boolean(cue);
 }
