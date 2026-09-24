@@ -14,6 +14,7 @@
     }
   },
   "scripts": {
+    "pretypecheck": "pnpm --filter @audio-rpg/shared build",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
     "test": "pnpm --filter @audio-rpg/shared build && vitest run --passWithNoTests"

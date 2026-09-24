@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { extractText, MAX_FILE_BYTES } from "@/lib/upload/file-router";
 import { UploadParseError } from "@/lib/upload/guards";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
-import { ensureGuestUser, getUserTier } from "@/lib/db/queries/users";
+import { getUserTier } from "@/lib/db/queries/users";
 import { prisma } from "@/lib/db";
 import { recordUploadAuditEvent } from "@/lib/db/queries/upload-audit";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
       }
 
       let file: File | null = null;
-      let guestId: string | null = null;
       let gameBibleId: string | null = null;
 
       try {
@@ -32,30 +31,31 @@ export async function POST(req: NextRequest) {
 
         const [formData, session] = await Promise.all([req.formData(), auth()]);
         file = formData.get("file") as File | null;
-        guestId = formData.get("guestId") as string | null;
 
         if (!file) {
           send({ stage: "error", message: "No file received. Please select a file and try again." });
           return;
         }
-        if (!guestId) {
-          send({ stage: "error", message: "Missing guest ID." });
+        // Parsing a bible is an AI call and uploads are a paid-tier feature, so
+        // anonymous callers are rejected rather than attributed to a
+        // client-supplied guest id (which could name any account).
+        if (!session?.user?.id) {
+          send({ stage: "error", message: "Sign in to upload a game bible." });
           return;
         }
 
-        // Use the authenticated user's ID as owner so they can play the world after upload
-        const ownerId = session?.user?.id ?? guestId;
+        const ownerId = session.user.id;
 
         // Enforce maxWorlds tier limit
-        if (session?.user?.id) {
-          const tier = await getUserTier(session.user.id);
+        {
+          const tier = await getUserTier(ownerId);
           const { maxWorlds } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
           if (maxWorlds !== null && maxWorlds === 0) {
             send({ stage: "error", message: "Upgrade to the Storyteller plan to create custom worlds." });
             return;
           }
           if (maxWorlds !== null) {
-            const worldCount = await prisma.world.count({ where: { ownerId: session.user.id, isPrebuilt: false } });
+            const worldCount = await prisma.world.count({ where: { ownerId, isPrebuilt: false } });
             if (worldCount >= maxWorlds) {
               send({ stage: "error", message: `You've reached your world limit (${maxWorlds}). Upgrade to Creator for unlimited worlds.` });
               return;
@@ -153,13 +153,6 @@ export async function POST(req: NextRequest) {
 
         if (rawText.length < 20) {
           send({ stage: "error", message: "The file appears to be empty or contains no readable text." });
-          return;
-        }
-
-        try {
-          await ensureGuestUser(ownerId);
-        } catch {
-          send({ stage: "error", message: "Could not establish your user account. Please refresh and try again." });
           return;
         }
 

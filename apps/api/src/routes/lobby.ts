@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { MultiplayerClientEvent, type LobbyParticipant, type MultiplayerServerEvent } from "@audio-rpg/shared";
-import { verifySessionToken } from "../state/tokens.js";
+import { verifyLobbyToken } from "../state/tokens.js";
 
 export interface LobbyRouteOptions {
   /** Milliseconds between lobby_ready broadcast and the turn_request that triggers game start. Default 2000. */
@@ -129,7 +129,8 @@ export async function registerLobbyRoutes(
         }
 
         if (event.type === "lobby_join") {
-          if (!verifySessionToken(event.authToken, campaignId)) {
+          const claims = verifyLobbyToken(event.authToken, campaignId);
+          if (!claims) {
             socket.send(
               JSON.stringify({
                 type: "error",
@@ -147,6 +148,7 @@ export async function registerLobbyRoutes(
           // than the token nonce means the client can receive it via myUserId in
           // lobby_state and use it to identify itself in the participant list.
           userId = randomUUID();
+          app.log.info({ campaignId, userId, subject: claims.subject }, "lobby join authorized");
 
           let room = rooms.get(campaignId);
           if (!room) {

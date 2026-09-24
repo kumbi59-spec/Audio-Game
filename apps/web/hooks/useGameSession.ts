@@ -15,6 +15,7 @@ import { advanceSession, validateActionEligibility, type ActionRequestGateway } 
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
+import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
 
 // Mirrors the server-side window in lib/ai/memory/context-window.ts: keep the
 // most recent ~40k chars of history. The server trims again on receipt; this
@@ -191,25 +192,43 @@ export function useGameSession() {
       let streamErrorMessage: string | null = null;
 
       try {
-        const gateway: ActionRequestGateway = {
-          submit: ({ action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, dbSessionId: reqDbSessionId, signal }) =>
-            fetch("/api/game/action", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              signal,
-              body: JSON.stringify({
-                action: reqAction,
-                // The server (lib/ai/memory/context-window.ts) keeps the most
-                // recent ~40k chars of history anyway. Sending the full
-                // unbounded log every turn just wastes bandwidth and grows
-                // proportionally to session length. Trim history client-side
-                // to the same window before posting.
-                session: trimSessionHistory(reqSession),
-                character: reqCharacter,
-                world: reqWorld,
-                dbSessionId: reqDbSessionId,
-              }),
+        const postAction = (
+          { action: reqAction, session: reqSession, character: reqCharacter, world: reqWorld, signal }: Parameters<ActionRequestGateway["submit"]>[0],
+          reqDbSessionId: string | null | undefined,
+        ) =>
+          fetch("/api/game/action", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal,
+            body: JSON.stringify({
+              action: reqAction,
+              // The server (lib/ai/memory/context-window.ts) keeps the most
+              // recent ~40k chars of history anyway. Sending the full
+              // unbounded log every turn just wastes bandwidth and grows
+              // proportionally to session length. Trim history client-side
+              // to the same window before posting.
+              // narrationLog is display-only and the server loads the
+              // world itself, so neither is sent in full.
+              session: { ...trimSessionHistory(reqSession), narrationLog: [] },
+              character: reqCharacter,
+              world: { id: reqWorld.id },
+              dbSessionId: reqDbSessionId,
+              guestId: readLegacyGuestId(),
             }),
+          });
+
+        const gateway: ActionRequestGateway = {
+          submit: async (req) => {
+            const first = await postAction(req, req.dbSessionId);
+            if (first.status !== 404 || !req.dbSessionId) return first;
+            // The saved session belongs to a different identity (e.g. it was
+            // started as a guest before signing in). Keep playing without
+            // server-side persistence rather than failing every turn.
+            const errBody = await first.clone().json().catch(() => null) as { error?: string } | null;
+            if (errBody?.error !== "session_not_found") return first;
+            useGameStore.getState().setDbSessionId(null);
+            return postAction(req, null);
+          },
         };
 
         const res = await retryWithBackoff(() => advanceSession(gateway, {

@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 import WebSocket from "ws";
 import type { MultiplayerServerEvent } from "@audio-rpg/shared";
 import { buildServer } from "../server.js";
-import { issueSessionToken } from "../state/tokens.js";
+import { issueLobbyToken } from "../state/tokens.js";
 import { clearRooms } from "../routes/lobby.js";
 
 let app: Awaited<ReturnType<typeof buildServer>>;
@@ -72,7 +72,7 @@ describe("lobby WebSocket", () => {
     const ws = await openWs(cid);
     const events = collect(ws);
 
-    ws.send(joinMsg(cid, issueSessionToken(cid), "Alice"));
+    ws.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
     await waitFor(events, "lobby_state");
 
     expect(events.find((e) => e.type === "lobby_state")).toMatchObject({
@@ -89,12 +89,12 @@ describe("lobby WebSocket", () => {
     const cid = "lob-2";
     const ws1 = await openWs(cid);
     const ev1 = collect(ws1);
-    ws1.send(joinMsg(cid, issueSessionToken(cid), "Alice"));
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
     await waitFor(ev1, "lobby_state");
 
     const ws2 = await openWs(cid);
     const ev2 = collect(ws2);
-    ws2.send(joinMsg(cid, issueSessionToken(cid), "Bob"));
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
 
     await waitFor(ev1, "player_joined");
     await waitFor(ev2, "lobby_state");
@@ -119,12 +119,12 @@ describe("lobby WebSocket", () => {
 
     const ws1 = await openWs(cid);
     const ev1 = collect(ws1);
-    ws1.send(joinMsg(cid, issueSessionToken(cid), "Alice"));
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
     await waitFor(ev1, "lobby_state");
 
     const ws2 = await openWs(cid);
     const ev2 = collect(ws2);
-    ws2.send(joinMsg(cid, issueSessionToken(cid), "Bob"));
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
     await waitFor(ev2, "lobby_state");
 
     ws1.send(readyMsg(cid, true));
@@ -154,7 +154,7 @@ describe("lobby WebSocket", () => {
 
     const ws1 = await openWs(cid);
     const ev1 = collect(ws1);
-    ws1.send(joinMsg(cid, issueSessionToken(cid), "Loner"));
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Loner"));
     await waitFor(ev1, "lobby_state");
 
     ws1.send(readyMsg(cid, true));
@@ -187,11 +187,11 @@ describe("lobby WebSocket", () => {
 
     const ws1 = await openWs(cid);
     const ev1 = collect(ws1);
-    ws1.send(joinMsg(cid, issueSessionToken(cid), "Alice"));
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
     await waitFor(ev1, "lobby_state");
 
     const ws2 = await openWs(cid);
-    ws2.send(joinMsg(cid, issueSessionToken(cid), "Bob"));
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
     await waitFor(ev1, "player_joined");
 
     ws2.close();

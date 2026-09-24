@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getPublicOrigin, isSameSiteOrigin } from "@/lib/site-url";
 import { createCheckoutSession, STRIPE_PRICES, isPackPriceKey, type PriceKey } from "@/lib/payments/stripe";
 
 async function buildCheckoutResult(priceKey: PriceKey, origin: string, userId?: string, userEmail?: string, customerId?: string) {
@@ -17,7 +18,7 @@ async function buildCheckoutResult(priceKey: PriceKey, origin: string, userId?: 
 // GET — used by landing page <Link href="/api/payments/checkout?tier=storyteller_monthly">
 export async function GET(req: NextRequest) {
   const tier = req.nextUrl.searchParams.get("tier") ?? "";
-  const origin = req.nextUrl.origin;
+  const origin = getPublicOrigin(req);
 
   if (!tier || !Object.keys(STRIPE_PRICES).includes(tier)) {
     return NextResponse.redirect(`${origin}/#pricing`);
@@ -45,6 +46,12 @@ export async function GET(req: NextRequest) {
 
 // POST — used by account page pack purchase buttons
 export async function POST(req: NextRequest) {
+  // CSRF defence in depth: browsers always send Origin on POST, and it must
+  // be our own site.
+  if (!isSameSiteOrigin(req)) {
+    return NextResponse.json({ error: "Invalid origin." }, { status: 403 });
+  }
+
   try {
     const body = await req.json() as { priceKey?: string };
     const { priceKey } = body;
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid priceKey." }, { status: 400 });
     }
 
-    const origin = req.headers.get("origin") ?? req.nextUrl.origin;
+    const origin = getPublicOrigin(req);
     const session = await auth();
     const user = session?.user?.id
       ? await prisma.user.findUnique({ where: { id: session.user.id }, select: { stripeCustomerId: true, email: true } })

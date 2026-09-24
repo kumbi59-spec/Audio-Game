@@ -9,6 +9,8 @@ import { CLASS_DESCRIPTIONS } from "@/types/character";
 import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
+import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
+import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import {
   CORE_STAT_KEYS,
   resolveStatRules,
@@ -277,16 +279,12 @@ function CreateCharacterPage() {
     setCharacter(character);
     setSession(session);
 
-    // Persist to DB in the background (best-effort — game works without it)
-    const guestId = (() => {
-      const stored = localStorage.getItem("echoquest-guest-id");
-      if (stored) return stored;
-      const id = crypto.randomUUID();
-      localStorage.setItem("echoquest-guest-id", id);
-      return id;
-    })();
+    // Persist to DB (best-effort — game works without it). Awaited before the
+    // opening request so a first-time guest gets one server-issued identity
+    // cookie rather than two racing ones.
+    const guestId = readLegacyGuestId();
 
-    fetch("/api/game/session", {
+    await fetch("/api/game/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ guestId, worldId: world.id, character }),
@@ -302,7 +300,7 @@ function CreateCharacterPage() {
       const res = await fetch("/api/game/opening", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ world, character }),
+        body: JSON.stringify({ world: { id: world.id }, character, guestId }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const opening = await res.json();
@@ -339,6 +337,15 @@ function CreateCharacterPage() {
     if (!world) return;
     setIsStarting(true);
     narrate("Setting up your multiplayer lobby…");
+
+    // The lobby (id + invite code) is created server-side so only invited
+    // players can join it.
+    const lobby = await createLobbyPath();
+    if (!lobby.ok) {
+      narrate(lobby.message, "assertive");
+      setIsStarting(false);
+      return;
+    }
 
     const sessionId = `session-${Date.now()}`;
     const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
@@ -393,13 +400,7 @@ function CreateCharacterPage() {
     setCharacter(character);
     setSession(session);
 
-    const guestId = (() => {
-      const stored = localStorage.getItem("echoquest-guest-id");
-      if (stored) return stored;
-      const id = crypto.randomUUID();
-      localStorage.setItem("echoquest-guest-id", id);
-      return id;
-    })();
+    const guestId = readLegacyGuestId();
 
     void fetch("/api/game/session", {
       method: "POST",
@@ -412,7 +413,7 @@ function CreateCharacterPage() {
       })
       .catch(() => undefined);
 
-    router.push(`/campaign/${encodeURIComponent(sessionId)}/lobby`);
+    router.push(lobby.path);
   }
 
   return (

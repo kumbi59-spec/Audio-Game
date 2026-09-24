@@ -2,20 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { consumeVerificationToken } from "@/lib/email/verification";
 import { sendWelcomeEmail } from "@/lib/email";
+import { getPublicOrigin } from "@/lib/site-url";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  // Use x-forwarded-host so the redirect goes to the public URL, not the
-  // internal Render host (localhost:10000).
-  const proto = req.headers.get("x-forwarded-proto") ?? "https";
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
-  const origin =
-    host && !host.startsWith("localhost")
-      ? `${proto}://${host}`
-      : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
+  // Redirect to the canonical public URL, not the internal Render host
+  // (localhost:10000) or a request-controlled Host header.
+  const origin = getPublicOrigin(req);
 
   if (!token || !email) {
     return NextResponse.redirect(`${origin}/auth/sign-in?verify_error=invalid`);

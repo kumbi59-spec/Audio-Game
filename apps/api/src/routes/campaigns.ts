@@ -12,7 +12,7 @@ import {
   listCampaigns,
   seedCampaign,
 } from "../state/store.js";
-import { issueSessionToken } from "../state/tokens.js";
+import { issueLobbyToken, issueSessionToken } from "../state/tokens.js";
 
 const CreateBody = z.object({
   worldId: z.string().min(1).default("sunken_bell"),
@@ -65,13 +65,15 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
     return summary;
   });
 
-  // Issues a fresh HMAC-signed lobby token for any campaignId.
-  // The token is cryptographically bound to the campaignId so it cannot authorize
-  // a connection to a different lobby. No campaign pre-existence check is needed:
-  // the lobby is a pre-game gathering point and its in-memory room is created on
-  // first join, independent of whether campaign state exists in the store.
+  // Issues a short-lived lobby token for a campaign that exists in this API's
+  // store (mobile creates campaigns here via POST /campaigns). Lobbies created
+  // by the web app never exist here: their tokens are minted by the web app,
+  // and only for invited members, so this route must not mint them. The API
+  // has no user accounts, so the subject is an anonymous per-token id.
   app.get<{ Params: { id: string } }>("/campaigns/:id/join-token", async (req, reply) => {
-    return reply.send({ token: issueSessionToken(req.params.id) });
+    const summary = await getCampaignSummary(req.params.id);
+    if (!summary) return reply.status(404).send({ error: "not_found" });
+    return reply.send({ token: issueLobbyToken(req.params.id, `anon:${randomUUID()}`) });
   });
 }
 

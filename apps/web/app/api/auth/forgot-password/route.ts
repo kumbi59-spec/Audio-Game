@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { createPasswordResetToken } from "@/lib/email/password-reset";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getPublicOrigin } from "@/lib/site-url";
 
 
 const FORGOT_IP_LIMIT = 10;
@@ -44,13 +45,9 @@ export async function POST(req: Request) {
     );
   }
 
-  // Derive the public-facing origin from reverse-proxy headers (Render sets
-  // x-forwarded-host/proto). req.url is the internal address (localhost:10000).
-  const proto = req.headers.get("x-forwarded-proto") ?? "https";
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
-  const origin = host && !host.startsWith("localhost")
-    ? `${proto}://${host}`
-    : (process.env["NEXTAUTH_URL"] ?? process.env["NEXT_PUBLIC_SITE_URL"] ?? "http://localhost:3000");
+  // Never build the emailed link from Host/X-Forwarded-Host: a forged header
+  // would send the victim a reset link (and token) pointing at another host.
+  const origin = getPublicOrigin(req);
 
   try {
     // Find case-insensitively so mixed-case signups (e.g. Kumbi59@gmail.com) still work

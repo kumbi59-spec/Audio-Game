@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SiteHeader } from "@/components/SiteHeader";
 import type {
@@ -22,12 +22,19 @@ interface LobbyState {
 
 // ── Hook ───────────────────────────────────────────────────────────────────
 
-function useLobbySocket(campaignId: string) {
+const LOBBY_ACCESS_ERRORS: Record<string, string> = {
+  not_invited: "You need an invite link from the host to join this lobby.",
+  lobby_not_found: "This lobby doesn't exist or has expired. Ask the host for a new invite link.",
+  lobby_full: "This lobby is full.",
+};
+
+function useLobbySocket(campaignId: string, invite: string | null) {
   const { data: authSession } = useSession();
   const [status, setStatus] = useState<LobbyStatus>("connecting");
   const [lobby, setLobby] = useState<LobbyState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const router = useRouter();
 
@@ -61,7 +68,8 @@ function useLobbySocket(campaignId: string) {
       let token: string;
       try {
         const res = await fetch(
-          `/api/game/lobby-token?campaignId=${encodeURIComponent(campaignId)}`,
+          `/api/game/lobby-token?campaignId=${encodeURIComponent(campaignId)}` +
+            (invite ? `&invite=${encodeURIComponent(invite)}` : ""),
         );
         if (!res.ok) {
           // Surface the server's reason (e.g. SESSION_SIGNING_KEY unset → 503)
@@ -69,14 +77,15 @@ function useLobbySocket(campaignId: string) {
           let reason = `${res.status}`;
           try {
             const body = (await res.json()) as { error?: string };
-            if (body.error) reason = body.error;
+            if (body.error) reason = LOBBY_ACCESS_ERRORS[body.error] ?? body.error;
           } catch {
             // body wasn't JSON; keep the status code
           }
           throw new Error(reason);
         }
-        const data = (await res.json()) as { token: string };
+        const data = (await res.json()) as { token: string; inviteCode?: string };
         token = data.token;
+        if (!cancelled && data.inviteCode) setInviteCode(data.inviteCode);
       } catch (err) {
         if (!cancelled) {
           setStatus("error");
@@ -199,9 +208,9 @@ function useLobbySocket(campaignId: string) {
       wsRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignId, authSession]);
+  }, [campaignId, invite, authSession]);
 
-  return { status, lobby, error, markReady, leave, myUserId };
+  return { status, lobby, error, markReady, leave, myUserId, inviteCode };
 }
 
 // ── Participant row ────────────────────────────────────────────────────────
@@ -265,8 +274,15 @@ function ParticipantRow({
 
 export default function LobbyPage() {
   const { id: campaignId } = useParams<{ id: string }>();
-  const { status, lobby, error, markReady, leave, myUserId } =
-    useLobbySocket(campaignId);
+  const invite = useSearchParams().get("invite");
+  const { status, lobby, error, markReady, leave, myUserId, inviteCode } =
+    useLobbySocket(campaignId, invite);
+  // The invite link carries the lobby's secret invite code; without it,
+  // other players can't join.
+  const inviteUrl =
+    inviteCode && typeof window !== "undefined"
+      ? `${window.location.origin}/campaign/${encodeURIComponent(campaignId)}/lobby?invite=${encodeURIComponent(inviteCode)}`
+      : "";
 
   const me = myUserId ? lobby?.participants.find((p) => p.userId === myUserId) : undefined;
   const readyCount = lobby?.participants.filter((p) => p.ready).length ?? 0;
@@ -394,14 +410,13 @@ export default function LobbyPage() {
                 style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
               >
                 <code className="flex-1 truncate text-xs" style={{ color: "var(--text-muted)" }}>
-                  {typeof window !== "undefined" ? window.location.href : ""}
+                  {inviteUrl || "Loading invite link…"}
                 </code>
                 <button
                   onClick={() => {
-                    if (typeof window !== "undefined") {
-                      void navigator.clipboard.writeText(window.location.href);
-                    }
+                    if (inviteUrl) void navigator.clipboard.writeText(inviteUrl);
                   }}
+                  disabled={!inviteUrl}
                   className="rounded-lg px-3 py-1.5 text-xs font-semibold"
                   style={{ backgroundColor: "var(--accentBg, rgba(99,102,241,0.12))", color: "var(--accent)" }}
                   aria-label="Copy invite link to clipboard"

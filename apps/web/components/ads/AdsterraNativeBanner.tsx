@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useServerShowsAds } from "./AdsServerContext";
 import { ADSTERRA, ADSTERRA_ENABLED } from "./adsterra-config";
+import { nonceAttr, useNonce } from "@/components/security/NonceContext";
 
 const SLOT_ID = "adsterra-native-slot";
 
@@ -29,12 +30,13 @@ export function AdsterraNativeBanner({ visible = true }: { visible?: boolean }) 
   const serverShowsAds = useServerShowsAds();
   const ref = useRef<HTMLElement>(null);
   const show = ADSTERRA_ENABLED && showAds && visible;
+  const nonce = nonceAttr(useNonce());
 
   const container = `<div id="${ADSTERRA.nativeBannerContainerId}"></div>`;
   const serverHtml = serverShowsAds
     ? container +
-      `<script>window.__eqNativeBannerSSR=true</script>` +
-      `<script async="async" data-cfasync="false" src="${ADSTERRA.nativeBannerSrc}"></script>`
+      `<script${nonce}>window.__eqNativeBannerSSR=true</script>` +
+      `<script${nonce} async="async" data-cfasync="false" src="${ADSTERRA.nativeBannerSrc}"></script>`
     : container;
   // By the time React hydrates, the ad script may already have filled the
   // container. Adopt whatever markup is on the page so React never resets it

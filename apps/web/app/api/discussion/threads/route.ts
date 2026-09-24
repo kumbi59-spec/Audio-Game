@@ -1,36 +1,43 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { threads, type DiscussionThread } from "../store";
+import { z } from "zod";
+import { authorizeDiscussionWrite } from "@/lib/discussion/guard";
+import { createThread, ensureSeedThreads, listThreads } from "@/lib/discussion/queries";
 
-export async function GET() {
-  return NextResponse.json(threads);
+const CreateThreadSchema = z.object({
+  title: z.string().trim().min(3).max(150),
+  body: z.string().trim().min(1).max(5_000),
+});
+
+// GET /api/discussion/threads?cursor=<threadId>
+// Returns one page of threads; the next page's cursor is in X-Next-Cursor.
+export async function GET(req: Request) {
+  const cursor = new URL(req.url).searchParams.get("cursor");
+  try {
+    await ensureSeedThreads();
+    const { threads, nextCursor } = await listThreads(cursor);
+    return NextResponse.json(threads, {
+      headers: nextCursor ? { "X-Next-Cursor": nextCursor } : undefined,
+    });
+  } catch (err) {
+    console.error("[discussion] list failed:", err);
+    return NextResponse.json({ error: "Failed to load discussions" }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  const emailVerified = Boolean((session.user as { emailVerified?: Date | null }).emailVerified);
-  if (!emailVerified) {
-    return NextResponse.json({ error: "Email not verified" }, { status: 403 });
+  const gate = await authorizeDiscussionWrite(req, "thread");
+  if (!gate.ok) return gate.response;
+
+  let body: z.infer<typeof CreateThreadSchema>;
+  try {
+    body = CreateThreadSchema.parse(await req.json());
+  } catch {
+    return NextResponse.json(
+      { error: "title (3–150 characters) and body (up to 5,000 characters) are required" },
+      { status: 400 },
+    );
   }
 
-  const body = (await req.json()) as { title?: string; body?: string };
-  const title = body.title?.trim() ?? "";
-  const text = body.body?.trim() ?? "";
-  if (!title || !text) {
-    return NextResponse.json({ error: "title and body are required" }, { status: 400 });
-  }
-
-  const thread: DiscussionThread = {
-    id: `thread-${Date.now()}`,
-    title,
-    body: text,
-    author: session.user.name ?? session.user.email ?? "Anonymous",
-    createdAt: new Date().toISOString(),
-    comments: [],
-  };
-  threads.unshift(thread);
+  const thread = await createThread(gate.userId, body.title, body.body);
   return NextResponse.json(thread, { status: 201 });
 }

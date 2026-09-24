@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import Stripe from "stripe";
+import { getPublicOrigin } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   const stripe = new Stripe(key, { apiVersion: "2026-04-22.dahlia" });
-  const origin = new URL(req.url).origin;
+  const origin = getPublicOrigin(req);
 
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
