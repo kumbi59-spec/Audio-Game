@@ -280,7 +280,8 @@ export function GameShell() {
   }
 
   const hasChoices = session.choices.length > 0;
-  const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 11 === 0;
+  // Free tier: ad banner every 5th turn.
+  const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 5 === 0;
   // Show the degraded banner only when the most recent degraded-mode system
   // entry is more recent than the most recent successful narration. Without
   // this guard the banner stuck around forever — the matched system message
