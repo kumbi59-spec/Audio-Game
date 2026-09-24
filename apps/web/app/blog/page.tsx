@@ -36,13 +36,12 @@ export default async function BlogPage() {
     slug: string;
     excerpt: string;
     publishedAt: Date | null;
-    coverImageUrl: string | null;
   }[] = [];
   try {
     posts = await prisma.blogPost.findMany({
       where: { publishedAt: { not: null, lte: new Date() } },
       orderBy: { publishedAt: "desc" },
-      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true, coverImageUrl: true },
+      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
     });
   } catch {
     // Table may not exist yet during build-time static generation (before migrations run)
@@ -75,18 +74,6 @@ export default async function BlogPage() {
               <li key={post.id}>
                 <article className="overflow-hidden rounded-xl border transition-shadow hover:shadow-lg"
                   style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-                  {post.coverImageUrl && (
-                    <Link href={`/blog/${post.slug}`} aria-hidden="true" tabIndex={-1} className="block">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
-                      <img
-                        src={post.coverImageUrl}
-                        alt=""
-                        className="aspect-[16/9] w-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </Link>
-                  )}
                   <div className="p-6">
                     <time dateTime={post.publishedAt!.toISOString()} className="text-xs" style={{ color: "var(--text-muted)" }}>
                       {new Date(post.publishedAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
