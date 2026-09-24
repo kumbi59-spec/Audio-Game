@@ -6,28 +6,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Enforced now: directives that cannot break first- or third-party scripts.
-// frame-ancestors 'self' matches the existing X-Frame-Options: SAMEORIGIN.
+// Enforced on every response: directives that cannot break first- or
+// third-party scripts. frame-ancestors 'self' matches X-Frame-Options:
+// SAMEORIGIN. Pages also get the nonce-based script policy from middleware
+// (lib/security/csp.ts), report-only until CSP_SCRIPT_POLICY=enforce.
 const ENFORCED_CSP = ["frame-ancestors 'self'", "base-uri 'self'", "object-src 'none'"].join("; ");
-
-// Report-only baseline for moving to an enforced policy. Ad banners render in
-// srcdoc iframes that inherit this policy, so script-src needs a nonce/hash
-// design (and ad-network testing) before it can be enforced.
-const REPORT_ONLY_CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-  "style-src 'self' 'unsafe-inline' https:",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data: https:",
-  "connect-src 'self' https: wss:",
-  "media-src 'self' data: blob: https:",
-  "frame-src 'self' https: data: blob: about:",
-  "worker-src 'self' blob:",
-  "frame-ancestors 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
-].join("; ");
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -35,7 +18,6 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Content-Security-Policy", value: ENFORCED_CSP },
-  { key: "Content-Security-Policy-Report-Only", value: REPORT_ONLY_CSP },
   // No includeSubDomains/preload until every subdomain is confirmed HTTPS-only.
   ...(isProduction ? [{ key: "Strict-Transport-Security", value: "max-age=31536000" }] : []),
 ];

@@ -47,6 +47,8 @@ model User {
   npcVoiceAssignments NpcVoiceAssignment[]
   discussionThreads   DiscussionThread[]
   discussionComments  DiscussionComment[]
+  hostedLobbies       Lobby[]
+  lobbyMemberships    LobbyMember[]
 }
 
 // Stable per-NPC voice picks so the same character sounds the same across
@@ -413,4 +415,31 @@ model DiscussionComment {
 
   @@index([threadId, hidden, createdAt])
   @@index([authorId, createdAt])
+}
+
+// Multiplayer lobby membership. The host creates the lobby (server-generated
+// id + secret invite code); others become members by presenting the invite
+// code. Lobby tokens for the API's WebSocket are only issued to members.
+model Lobby {
+  id         String   @id
+  inviteCode String
+  createdAt  DateTime @default(now())
+
+  hostId  String
+  host    User          @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  members LobbyMember[]
+
+  @@index([hostId, createdAt])
+}
+
+model LobbyMember {
+  joinedAt DateTime @default(now())
+
+  lobbyId String
+  lobby   Lobby  @relation(fields: [lobbyId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([lobbyId, userId])
+  @@index([userId])
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { issueLobbyToken, isValidCampaignId } from "@/lib/multiplayer/lobby-token";
+import { authorizeLobbyAccess } from "@/lib/multiplayer/lobbies";
 
 // Issues a short-lived lobby token that the API service's verifyLobbyToken()
 // accepts (both apps share SESSION_SIGNING_KEY). Generating it here avoids a
@@ -8,9 +9,8 @@ import { issueLobbyToken, isValidCampaignId } from "@/lib/multiplayer/lobby-toke
 // NEXT_PUBLIC_API_URL on the web service so the browser can open the
 // /ws/lobby/:campaignId WebSocket on the API host.
 //
-// Lobby membership is not modelled yet: anyone holding a lobby link may join,
-// so the token binds the caller's identity and a short expiry rather than
-// proving membership.
+// Tokens are only issued to lobby members. A non-member becomes one by
+// presenting the lobby's invite code (?invite=, from the host's invite link).
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -37,7 +37,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid campaignId" }, { status: 400 });
   }
 
+  const access = await authorizeLobbyAccess(
+    campaignId,
+    session.user.id,
+    req.nextUrl.searchParams.get("invite"),
+  );
+  if (!access.ok) {
+    return NextResponse.json({ error: access.error }, { status: access.status });
+  }
+
   return NextResponse.json({
     token: issueLobbyToken(campaignId, session.user.id, signingKey ?? "dev-insecure-change-me"),
+    // Members may share the invite link with others.
+    inviteCode: access.inviteCode,
   });
 }

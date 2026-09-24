@@ -10,6 +10,7 @@ import type { CharacterClass, CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
+import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import {
   CORE_STAT_KEYS,
   resolveStatRules,
@@ -337,6 +338,15 @@ function CreateCharacterPage() {
     setIsStarting(true);
     narrate("Setting up your multiplayer lobby…");
 
+    // The lobby (id + invite code) is created server-side so only invited
+    // players can join it.
+    const lobby = await createLobbyPath();
+    if (!lobby.ok) {
+      narrate(lobby.message, "assertive");
+      setIsStarting(false);
+      return;
+    }
+
     const sessionId = `session-${Date.now()}`;
     const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
     const classData = CLASS_DESCRIPTIONS[selectedClass];
@@ -403,7 +413,7 @@ function CreateCharacterPage() {
       })
       .catch(() => undefined);
 
-    router.push(`/campaign/${encodeURIComponent(sessionId)}/lobby`);
+    router.push(lobby.path);
   }
 
   return (

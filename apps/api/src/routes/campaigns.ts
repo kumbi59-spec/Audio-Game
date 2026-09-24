@@ -65,13 +65,14 @@ export async function registerCampaignRoutes(app: FastifyInstance): Promise<void
     return summary;
   });
 
-  // Issues a short-lived lobby token for any campaignId. The token is bound to
-  // the campaignId and expires after a few minutes. No campaign pre-existence
-  // check is made: the lobby is a pre-game gathering point and its in-memory
-  // room is created on first join. The API has no user accounts, so the
-  // subject is an anonymous per-token id (the web app issues tokens whose
-  // subject is the signed-in user).
+  // Issues a short-lived lobby token for a campaign that exists in this API's
+  // store (mobile creates campaigns here via POST /campaigns). Lobbies created
+  // by the web app never exist here: their tokens are minted by the web app,
+  // and only for invited members, so this route must not mint them. The API
+  // has no user accounts, so the subject is an anonymous per-token id.
   app.get<{ Params: { id: string } }>("/campaigns/:id/join-token", async (req, reply) => {
+    const summary = await getCampaignSummary(req.params.id);
+    if (!summary) return reply.status(404).send({ error: "not_found" });
     return reply.send({ token: issueLobbyToken(req.params.id, `anon:${randomUUID()}`) });
   });
 }

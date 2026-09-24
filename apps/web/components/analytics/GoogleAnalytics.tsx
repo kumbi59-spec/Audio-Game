@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
+import { useNonce } from "@/components/security/NonceContext";
 
 const GA_ID = process.env["NEXT_PUBLIC_GA_ID"] ?? "G-HH47SHDC3E";
 
@@ -34,14 +35,16 @@ function PageViewTracker({ gaId }: { gaId: string }) {
  * the required production measurement ID.
  */
 export function GoogleAnalytics() {
+  const nonce = useNonce();
   if (!GA_ID) return null;
   return (
     <>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      <Script id="ga-init" strategy="afterInteractive">
+      <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
         {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;

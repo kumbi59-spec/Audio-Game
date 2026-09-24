@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { NonceProvider } from "@/components/security/NonceContext";
 import { Suspense } from "react";
 import "./globals.css";
 import { AudioAnnouncer } from "@/components/accessibility/AudioAnnouncer";
@@ -87,7 +88,10 @@ export default async function RootLayout({
   // routes never do.
   const tier = ((session?.user as { tier?: string } | undefined)?.tier ?? "free") as Tier;
   const serverShowsAds = ADSTERRA_ENABLED && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
-  const pathname = (await headers()).get("x-pathname") ?? "";
+  const requestHeaders = await headers();
+  const pathname = requestHeaders.get("x-pathname") ?? "";
+  // Set by middleware; every script we render carries it (lib/security/csp.ts).
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
   const pageLevelAds = serverShowsAds && !ADSTERRA_EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
@@ -98,7 +102,9 @@ export default async function RootLayout({
           strategy="beforeInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9267788778991046"
           crossOrigin="anonymous"
+          nonce={nonce}
         />
+        <NonceProvider nonce={nonce}>
         <Suspense>
           <GoogleAnalytics />
         </Suspense>
@@ -122,10 +128,11 @@ export default async function RootLayout({
             </AudioAnnouncer>
           </AdsServerProvider>
         </AuthProvider>
+        </NonceProvider>
         {pageLevelAds && (
           <>
-            <script id="adsterra-popunder" async data-cfasync="false" src={ADSTERRA.popunderSrc} />
-            <script id="adsterra-social-bar" async data-cfasync="false" src={ADSTERRA.socialBarSrc} />
+            <script id="adsterra-popunder" async data-cfasync="false" src={ADSTERRA.popunderSrc} nonce={nonce} />
+            <script id="adsterra-social-bar" async data-cfasync="false" src={ADSTERRA.socialBarSrc} nonce={nonce} />
           </>
         )}
       </body>

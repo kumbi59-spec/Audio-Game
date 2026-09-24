@@ -12,6 +12,7 @@ describeDb("database-backed authorization and rate limiting", () => {
   let consumeRateLimit: typeof import("@/lib/rate-limit").consumeRateLimit;
   let sessions: typeof import("@/lib/db/queries/sessions");
   let discussion: typeof import("@/lib/discussion/queries");
+  let lobbies: typeof import("@/lib/multiplayer/lobbies");
   const runId = `t${Date.now()}`;
   const ownerId = `${runId}-owner`;
   const attackerId = `${runId}-attacker`;
@@ -24,6 +25,7 @@ describeDb("database-backed authorization and rate limiting", () => {
     ({ consumeRateLimit } = await import("@/lib/rate-limit"));
     sessions = await import("@/lib/db/queries/sessions");
     discussion = await import("@/lib/discussion/queries");
+    lobbies = await import("@/lib/multiplayer/lobbies");
 
     for (const id of [ownerId, attackerId]) {
       await prisma.user.create({ data: { id, email: `${id}@example.test` } });
@@ -49,6 +51,7 @@ describeDb("database-backed authorization and rate limiting", () => {
   afterAll(async () => {
     if (!prisma) return;
     await prisma.discussionThread.deleteMany({ where: { authorId: ownerId } });
+    await prisma.lobby.deleteMany({ where: { hostId: ownerId } });
     await prisma.gameHistoryEntry.deleteMany({ where: { sessionId } });
     await prisma.gameState.deleteMany({ where: { sessionId } });
     await prisma.gameSession.deleteMany({ where: { id: sessionId } });
@@ -144,5 +147,34 @@ describeDb("database-backed authorization and rate limiting", () => {
     expect(all.threads.map((t) => t.id)).toEqual(
       expect.arrayContaining(["best-audio-rpg-builds-2026", "how-to-master-voice-text-adventure"]),
     );
+  });
+
+  it("admits lobby members and invited players only", async () => {
+    const { lobbyId, inviteCode } = await lobbies.createLobby(ownerId);
+
+    expect(await lobbies.authorizeLobbyAccess(lobbyId, ownerId, null)).toMatchObject({ ok: true, isHost: true, inviteCode });
+    expect(await lobbies.authorizeLobbyAccess(lobbyId, attackerId, null)).toMatchObject({ ok: false, error: "not_invited" });
+    expect(await lobbies.authorizeLobbyAccess(lobbyId, attackerId, "wrong-code")).toMatchObject({ ok: false, error: "not_invited" });
+    expect(await lobbies.authorizeLobbyAccess("lobby-does-not-exist", attackerId, inviteCode)).toMatchObject({ ok: false, status: 404 });
+
+    // Presenting the invite once makes the player a member.
+    expect(await lobbies.authorizeLobbyAccess(lobbyId, attackerId, inviteCode)).toMatchObject({ ok: true, isHost: false });
+    expect(await lobbies.authorizeLobbyAccess(lobbyId, attackerId, null)).toMatchObject({ ok: true });
+    expect(await prisma.lobbyMember.count({ where: { lobbyId } })).toBe(2);
+  });
+
+  it("caps lobby membership", async () => {
+    const { lobbyId, inviteCode } = await lobbies.createLobby(ownerId);
+    const extra = Array.from({ length: lobbies.MAX_LOBBY_MEMBERS }, (_, i) => `${runId}-m${i}`);
+    for (const id of extra) await prisma.user.create({ data: { id, email: `${id}@example.test` } });
+    try {
+      const results = [];
+      for (const id of extra) results.push(await lobbies.authorizeLobbyAccess(lobbyId, id, inviteCode));
+      expect(results.filter((r) => r.ok)).toHaveLength(lobbies.MAX_LOBBY_MEMBERS - 1);
+      expect(results.at(-1)).toMatchObject({ ok: false, error: "lobby_full" });
+    } finally {
+      await prisma.lobby.deleteMany({ where: { id: lobbyId } });
+      await prisma.user.deleteMany({ where: { id: { in: extra } } });
+    }
   });
 });

@@ -73,6 +73,8 @@ services:
         value: black-forest-labs/flux-schnell
       - key: NEXT_PUBLIC_SITE_URL
         sync: false           # Canonical site URL e.g. https://echoquest.us — set in Render dashboard
+      - key: CSP_SCRIPT_POLICY
+        value: report-only    # Nonce-based script CSP: report-only | enforce | off. Violations are logged as [csp-violation]; switch to enforce once they're clean.
       - key: NEXT_PUBLIC_ADSENSE_PUB_ID
         sync: false           # Google AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX)
       - key: NEXT_PUBLIC_ADSENSE_SLOT
