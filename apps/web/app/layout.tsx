@@ -12,6 +12,10 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
 import { AdRails } from "@/components/ads/AdRails";
+import { AdsServerProvider } from "@/components/ads/AdsServerContext";
+import { ADSTERRA, ADSTERRA_ENABLED, ADSTERRA_EXCLUDED_PREFIXES } from "@/components/ads/adsterra-config";
+import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
+import { headers } from "next/headers";
 import { auth } from "@/auth";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
@@ -77,6 +81,15 @@ export default async function RootLayout({
 }) {
   const session = await auth();
 
+  // Free-tier (and signed-out) visitors get Adsterra's page-level scripts in
+  // the server HTML, where "View page source" shows them and they run as the
+  // page loads. Paid/admin sessions and the gameplay/admin/auth/account
+  // routes never do.
+  const tier = ((session?.user as { tier?: string } | undefined)?.tier ?? "free") as Tier;
+  const serverShowsAds = ADSTERRA_ENABLED && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const pageLevelAds = serverShowsAds && !ADSTERRA_EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
+
   return (
     <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
@@ -91,22 +104,30 @@ export default async function RootLayout({
         </Suspense>
         <AudioUnlocker />
         <AuthProvider session={session}>
-          <AudioAnnouncer>
-            <ServiceWorkerRegistrar />
-            <Suspense>
-              <AdsterraGlobal />
-            </Suspense>
-            <SkipLinks />
-            <FocusManager />
-            <Suspense>
-              <VerificationBanner />
-            </Suspense>
-            {children}
-            <Suspense>
-              <AdRails />
-            </Suspense>
-          </AudioAnnouncer>
+          <AdsServerProvider value={serverShowsAds}>
+            <AudioAnnouncer>
+              <ServiceWorkerRegistrar />
+              <Suspense>
+                <AdsterraGlobal />
+              </Suspense>
+              <SkipLinks />
+              <FocusManager />
+              <Suspense>
+                <VerificationBanner />
+              </Suspense>
+              {children}
+              <Suspense>
+                <AdRails />
+              </Suspense>
+            </AudioAnnouncer>
+          </AdsServerProvider>
         </AuthProvider>
+        {pageLevelAds && (
+          <>
+            <script id="adsterra-popunder" async data-cfasync="false" src={ADSTERRA.popunderSrc} />
+            <script id="adsterra-social-bar" async data-cfasync="false" src={ADSTERRA.socialBarSrc} />
+          </>
+        )}
       </body>
     </html>
   );
