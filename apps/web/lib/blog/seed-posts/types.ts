@@ -10,7 +10,6 @@ export type ScheduledSeedPost = {
   title: string;
   /** Doubles as the meta description — keep it under ~160 characters. */
   excerpt: string;
-  hero: { src: string; alt: string };
   content: string;
 };
 

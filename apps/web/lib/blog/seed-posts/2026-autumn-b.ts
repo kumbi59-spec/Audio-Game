@@ -6,7 +6,6 @@ export const AUTUMN_2026_B: ScheduledSeedPost[] = [
     publishAt: "2026-10-04",
     title: "13 Halloween Horror RPG One-Shot Ideas for Spooky Season",
     excerpt: "Need a Halloween one-shot? Here are 13 horror RPG adventure hooks, from haunted lighthouses to cursed radio shows, that you can run solo or with friends.",
-    hero: { src: "/images/worlds/mirewood.svg", alt: "Pale moonlight breaking through a fog-drenched haunted forest" },
     content: `# 13 Halloween Horror RPG One-Shot Ideas for Spooky Season
 
 October is the best month of the year for horror roleplaying. The nights draw in, the wind picks up, and everyone is in the mood for a scare. A **Halloween one-shot**, a complete adventure played in a single session, is the perfect way to celebrate.
@@ -120,7 +119,6 @@ Every hook above works as a solo EchoQuest session. Start a horror world, paste 
     publishAt: "2026-10-05",
     title: "How to Start a Cyberpunk RPG Campaign: Setting, Tone and Plot Hooks",
     excerpt: "Plan a cyberpunk RPG campaign that feels alive: core themes, city design, factions, tech rules, and 8 plot hooks for neon-soaked noir adventures.",
-    hero: { src: "/images/worlds/neon-precinct.svg", alt: "A rain-slick neon megacity under a starless sky" },
     content: `# How to Start a Cyberpunk RPG Campaign: Setting, Tone and Plot Hooks
 
 Neon reflected in puddles. Corporations more powerful than nations. Chrome limbs, stolen data, and the question of what's still human. Cyberpunk is one of the most atmospheric genres in roleplaying, and one of the easiest to get wrong. Get the lights and the rain right but miss the themes, and it becomes an action movie with extra gadgets.
@@ -208,7 +206,6 @@ Ready to walk the neon streets? Start with Neon Precinct, EchoQuest's official c
     publishAt: "2026-10-06",
     title: "Interactive Audio Stories: How They Differ From Audiobooks and Podcasts",
     excerpt: "Interactive audio stories let you shape the plot as you listen. See how they compare to audiobooks, audio dramas, and podcasts, and why listeners are switching.",
-    hero: { src: "/images/worlds/saltbound.svg", alt: "Lanterns glowing over calm water beneath a twilight sky" },
     content: `# Interactive Audio Stories: How They Differ From Audiobooks and Podcasts
 
 Audiobooks are booming. Fiction podcasts and audio dramas have huge audiences. But all of them share one limit: you're listening to a story someone else has already decided. **Interactive audio stories** remove that limit. You listen, you respond, and the story changes.
@@ -292,7 +289,6 @@ Put in your headphones, choose a world, and step into the story.
     publishAt: "2026-10-07",
     title: "20 D&D One-Shot Ideas You Can Run Tonight",
     excerpt: "Twenty ready-to-run D&D one-shot ideas across fantasy, mystery, heist, and comedy, each with a hook, a complication, and a satisfying finale for one session.",
-    hero: { src: "/images/worlds/iron-citadel.svg", alt: "A torchlit fortress gate at the start of an adventure" },
     content: `# 20 D&D One-Shot Ideas You Can Run Tonight
 
 A one-shot is a complete adventure in a single session. It's perfect for introducing new players, filling a gap between campaigns, trying a new genre, or playing solo with an AI Dungeon Master. The trick is a tight premise: a clear goal, one good complication, and a finale you can reach in three or four hours.
@@ -369,7 +365,6 @@ A good AI Game Master will pace toward a finale. If you haven't played solo befo
     publishAt: "2026-10-08",
     title: "AI Storytelling Games for Families: A Parent's Guide",
     excerpt: "Are AI storytelling games good for families? A parent's guide to benefits, safety settings, choosing age-appropriate worlds, and playing together.",
-    hero: { src: "/images/worlds/verdant-wilds.svg", alt: "A bright forest clearing with winding paths to explore" },
     content: `# AI Storytelling Games for Families: A Parent's Guide
 
 Families have always told stories together, around campfires, at bedtime, and on long car journeys. AI storytelling games bring a new partner into that tradition: a tireless narrator who can invent a world on the spot and voice every character in it. For parents, that raises obvious questions. Is it good for kids? Is it safe? How do you do it well?
@@ -459,7 +454,6 @@ Choose a gentle world, set the tone, and tell a story together, with a narrator 
     publishAt: "2026-10-09",
     title: "How to Build a Fantasy World Without Drawing a Map",
     excerpt: "You don't need drawing skills to build a fantasy world. Learn how to design geography, travel, and places in words, which also makes your world audio-friendly.",
-    hero: { src: "/images/worlds/shattered-reaches.svg", alt: "A sweeping fantasy vista of floating isles and distant peaks" },
     content: `# How to Build a Fantasy World Without Drawing a Map
 
 Every worldbuilding guide seems to start with "draw your map." But many creators can't draw, don't want to, or can't see a map at all. The good news: **a map isn't what makes a world feel real**. Relationships between places, the time it takes to travel, and what the places sound and feel like do far more.
@@ -552,7 +546,6 @@ Start with a spine, three places, and one conflict. You'll have a playable world
     publishAt: "2026-10-10",
     title: "Gaming With Low Vision: Settings, Tools and Tips That Actually Help",
     excerpt: "Practical tips for gaming with low vision: display settings, magnification, contrast, audio cues, and game choices that reduce eye strain and increase fun.",
-    hero: { src: "/images/worlds/long-watch.svg", alt: "A warm lantern glowing in a watchtower window at dusk" },
     content: `# Gaming With Low Vision: Settings, Tools and Tips That Actually Help
 
 Low vision covers a wide range, from reduced acuity and contrast sensitivity to field loss, light sensitivity, and conditions that change from day to day. Many low-vision gamers aren't served by "blind mode" or by default settings. They need a middle path.
@@ -646,7 +639,6 @@ If your vision has changed recently, gaming can feel frustrating, as though some
     publishAt: "2026-10-11",
     title: "Pirate RPG Campaign Guide: Ships, Crews and Island Politics",
     excerpt: "Plan a pirate RPG campaign full of plunder and intrigue: ship rules, crew morale, island factions, naval combat tips, and 10 swashbuckling adventure hooks.",
-    hero: { src: "/images/worlds/saltbound.svg", alt: "A tall ship at anchor in a lantern-lit island harbour" },
     content: `# Pirate RPG Campaign Guide: Ships, Crews and Island Politics
 
 Pirate campaigns promise everything roleplaying does best: freedom, danger, treasure, and a crew of colourful characters who might mutiny at any moment. They also bring special challenges: ships as characters, travel across open water, and a crowd of competing factions.
@@ -729,7 +721,6 @@ Solo pirate play works well with an AI Game Master handling the crew as NPCs. As
     publishAt: "2026-10-12",
     title: "AI Roleplay Games vs. AI Chatbots: What's the Difference?",
     excerpt: "AI roleplay games and AI chatbots both tell stories, but they work very differently. Learn how game state, rules, pacing, and world design change the experience.",
-    hero: { src: "/images/worlds/neon-precinct.svg", alt: "Two glowing paths diverging through a neon-lit city" },
     content: `# AI Roleplay Games vs. AI Chatbots: What's the Difference?
 
 Type "roleplay with me" into almost any AI chatbot and it will happily oblige. So why do dedicated **AI roleplay games** exist? Isn't it all the same technology?
@@ -807,7 +798,6 @@ EchoQuest uses Claude as the Game Master's voice and reasoning, wrapped in struc
     publishAt: "2026-10-13",
     title: "How to Get Better at Roleplaying: 9 Habits of Great RPG Players",
     excerpt: "Want to get better at roleplaying? These 9 habits, from playing flaws to asking questions, will make your RPG sessions richer with a human or AI Game Master.",
-    hero: { src: "/images/worlds/verdant-wilds.svg", alt: "Adventurers gathered around a campfire in a forest clearing" },
     content: `# How to Get Better at Roleplaying: 9 Habits of Great RPG Players
 
 Some players make every session better. Their characters feel real, their choices create stories, and the Game Master lights up when it's their turn. That isn't talent. It's habits you can learn.

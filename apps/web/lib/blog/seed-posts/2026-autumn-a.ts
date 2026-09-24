@@ -6,7 +6,6 @@ export const AUTUMN_2026_A: ScheduledSeedPost[] = [
     publishAt: "2026-09-24",
     title: "Best AI Dungeon Alternatives in 2026: What to Look For in an AI RPG",
     excerpt: "Looking for an AI Dungeon alternative? Here's how to compare AI RPGs on game state, memory, voice narration, accessibility, and price, plus where EchoQuest fits.",
-    hero: { src: "/images/worlds/shattered-reaches.svg", alt: "A fractured fantasy landscape of floating islands under a violet sky" },
     content: `# Best AI Dungeon Alternatives in 2026: What to Look For in an AI RPG
 
 AI Dungeon showed millions of people that a language model could improvise a story with them. Since then the field has grown quickly. There are now AI storytelling apps, AI roleplay chatbots, AI-assisted visual novels, and AI Game Masters that run real campaigns with rules behind them. If you're searching for an **AI Dungeon alternative**, you're really asking which of these categories suits the way you like to play.
@@ -93,7 +92,6 @@ The fastest way to compare is to play. Pick a campaign from the library, make a 
     publishAt: "2026-09-25",
     title: "Audio Games for Blind People: 10 Genres You Can Play Entirely by Ear",
     excerpt: "A guide to audio games for blind and visually impaired players: 10 genres that work by sound alone, what makes them accessible, and where to start.",
-    hero: { src: "/images/worlds/saltbound.svg", alt: "Sound-like ripples spreading across a moonlit sea" },
     content: `# Audio Games for Blind People: 10 Genres You Can Play Entirely by Ear
 
 Audio games are games you can play fully through sound. They've been around for decades, built by small teams and passionate blind developers, and in recent years mainstream studios have started adding serious accessibility too. If you're blind, visually impaired, or supporting someone who is, this guide covers the main genres of **audio games for blind people**, what makes each one work, and how to choose.
@@ -176,7 +174,6 @@ Gaming is social and cultural, a shared language for millions of people. When ga
     publishAt: "2026-09-26",
     title: "How to Play D&D Solo With an AI Dungeon Master",
     excerpt: "No group? No problem. Learn how to play D&D-style adventures solo with an AI Dungeon Master: setup, character creation, pacing, and tips for better sessions.",
-    hero: { src: "/images/worlds/iron-citadel.svg", alt: "A lone adventurer approaching a mountain fortress" },
     content: `# How to Play D&D Solo With an AI Dungeon Master
 
 The hardest part of Dungeons & Dragons usually isn't the rules. It's scheduling. Five adults with jobs, kids, and time zones rarely line up. That's why so many people are looking for ways to **play D&D solo**, and why AI Dungeon Masters have become one of the most popular options.
@@ -277,7 +274,6 @@ You don't need a group, a rulebook, or a Friday night free. Pick a world, make a
     publishAt: "2026-09-27",
     title: "Text Adventure Games Online: A Modern Player's Guide",
     excerpt: "Text adventure games are back, now with AI. Learn how to play text adventures online, how modern AI versions differ from classic parser games, and where to start.",
-    hero: { src: "/images/worlds/black-vellum.svg", alt: "Glowing words spilling across an old book of dark vellum" },
     content: `# Text Adventure Games Online: A Modern Player's Guide
 
 Before 3D graphics, before sprites, there were words on a screen: "You are standing in an open field west of a white house." Text adventure games were among the first computer games, and they never really went away. Today they're having a revival, driven by accessibility, nostalgia, and AI that can finally understand what players mean.
@@ -356,7 +352,6 @@ Text adventures were written off as a relic once graphics arrived. It turns out 
     publishAt: "2026-09-28",
     title: "What Is an AI Game Master? Everything You Need to Know",
     excerpt: "What is an AI Game Master, how does it work, and can it really run a tabletop-style RPG? A plain-English explainer covering memory, rules, dice, and narration.",
-    hero: { src: "/images/worlds/neon-precinct.svg", alt: "A glowing AI presence overlooking a neon-lit city" },
     content: `# What Is an AI Game Master? Everything You Need to Know
 
 "AI Game Master" is one of the fastest-growing terms in gaming, and one of the most misunderstood. Some people picture a chatbot that makes up stories. Others picture a robot running D&D. The reality is somewhere in between, and more interesting than either.
@@ -444,7 +439,6 @@ The best way to understand an AI GM is to play one. EchoQuest's free tier includ
     publishAt: "2026-09-29",
     title: "Accessible Video Games: A Checklist for Blind and Low-Vision Gamers",
     excerpt: "Use this accessibility checklist to judge whether a video game will work for blind and low-vision players, covering screen readers, audio cues, text, and controls.",
-    hero: { src: "/images/worlds/long-watch.svg", alt: "A lighthouse beam guiding the way across a dark coast" },
     content: `# Accessible Video Games: A Checklist for Blind and Low-Vision Gamers
 
 Game store pages love the word "accessible", but a colour-blind filter and a subtitle toggle don't make a game playable for someone who is blind. Before you spend money or hours, it helps to know what to look for.
@@ -534,7 +528,6 @@ Accessibility in games has improved a lot, with several major releases now shipp
     publishAt: "2026-09-30",
     title: "Choose Your Own Adventure Games for Adults: Where to Start",
     excerpt: "Loved choose-your-own-adventure books as a kid? Here's how CYOA games for adults have grown up, from branching stories to AI adventures with real consequences.",
-    hero: { src: "/images/worlds/verdant-wilds.svg", alt: "A forest path splitting into several trails" },
     content: `# Choose Your Own Adventure Games for Adults: Where to Start
 
 "If you open the door, turn to page 42. If you run, turn to page 17." For many of us, choose-your-own-adventure books were our first interactive stories. We kept a finger in the previous page and cheated shamelessly. The format has grown up since then, and **choose your own adventure games for adults** now range from thoughtful branching fiction to AI-driven stories with no fixed pages at all.
@@ -611,7 +604,6 @@ You don't need to keep a finger in page 42 anymore. Pick a world, make a charact
     publishAt: "2026-10-01",
     title: "How to Write a D&D Backstory (With 10 Prompts and Examples)",
     excerpt: "Learn how to write a D&D character backstory that gives your DM hooks to use: a simple structure, common mistakes, and 10 backstory prompts with examples.",
-    hero: { src: "/images/worlds/crimson-sands.svg", alt: "A traveller crossing crimson desert dunes at sunset" },
     content: `# How to Write a D&D Backstory (With 10 Prompts and Examples)
 
 A great backstory does more than explain where your character came from. It gives your Game Master hooks: people, debts, secrets, and goals they can bring into the story. Whether you're playing with a human Dungeon Master or an AI Game Master, a strong backstory makes the campaign about *you*.
@@ -695,7 +687,6 @@ The best way to test a backstory is to play it. Create a character on EchoQuest,
     publishAt: "2026-10-02",
     title: "Games You Can Play With a Screen Reader: NVDA, JAWS and VoiceOver Tips",
     excerpt: "Which games work with a screen reader, and how do you set up NVDA, JAWS, or VoiceOver for gaming? Practical tips for playing browser, PC, and mobile games.",
-    hero: { src: "/images/worlds/black-vellum.svg", alt: "Glowing text lines being read from an ancient book" },
     content: `# Games You Can Play With a Screen Reader: NVDA, JAWS and VoiceOver Tips
 
 Screen readers were built for documents and websites, not games. Even so, a growing number of games work well with them, especially browser-based and text-driven ones. This guide covers which **games work with a screen reader**, and how to configure NVDA, JAWS, VoiceOver, and TalkBack for the smoothest experience.
@@ -776,7 +767,6 @@ EchoQuest is tested with NVDA, JAWS, VoiceOver, TalkBack, and Orca. The free tie
     publishAt: "2026-10-03",
     title: "Games You Can Play With Your Eyes Closed: Audio RPGs for Commutes, Chores and Bedtime",
     excerpt: "Looking for games you can play with your eyes closed? Audio RPGs let you adventure while commuting, doing chores, or winding down. Here's how to fit them into your day.",
-    hero: { src: "/images/worlds/mirewood.svg", alt: "Mist drifting through a quiet forest at dusk" },
     content: `# Games You Can Play With Your Eyes Closed: Audio RPGs for Commutes, Chores and Bedtime
 
 Most games demand your eyes and your hands. That's a problem when you're on a crowded train, folding laundry, or trying to wind down without another hour of screen glare. **Games you can play with your eyes closed** fill that gap. The best of them aren't simple distractions. They're full adventures.

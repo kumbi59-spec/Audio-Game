@@ -7,6 +7,8 @@ import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { planSectionImages } from "@/lib/blog/section-image-plan";
+import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
 
 export const revalidate = 60;
 
@@ -74,14 +76,39 @@ export default async function BlogPostPage({ params }: Props) {
   try {
     post = await prisma.blogPost.findUnique({
       where: { slug },
-      include: { author: { select: { name: true } } },
+      include: {
+        author: { select: { name: true } },
+        images: { orderBy: { idx: "asc" }, select: { id: true, idx: true, alt: true } },
+      },
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
 
   if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
 
-  const htmlContent = await marked(post.content, { async: true });
+  // Old seed runs baked generic world-cover SVGs into the markdown; never render them.
+  const markdown = stripPlaceholderImages(post.content);
+  const htmlContent = await marked(markdown, { async: true });
   const sections = splitHtmlOnH2(htmlContent);
+
+  // Map "section index to render the image after" → image record. The plan
+  // (shared with the generator) tells us which H2 each image idx targets.
+  //
+  // splitHtmlOnH2 emits one chunk per <h2>, preceded by a leading intro
+  // chunk ONLY when there's non-empty content before the first <h2> (it
+  // filters empty chunks). So heading index j maps to:
+  //   sections[j + 1]  when an intro chunk exists, else
+  //   sections[j]      when the post opens directly with an <h2>.
+  // Derive the offset from (#sections − #H2s) instead of assuming an intro.
+  const h2Count = (htmlContent.match(/<h2\b/gi) ?? []).length;
+  const introOffset = Math.max(0, sections.length - h2Count); // 1 if intro, else 0
+  const plan = planSectionImages(markdown);
+  const imageBySectionIndex = new Map<number, { id: string; alt: string }>();
+  for (const img of post.images) {
+    const planned = plan.find((p) => p.idx === img.idx);
+    if (planned) {
+      imageBySectionIndex.set(planned.headingIndex + introOffset, { id: img.id, alt: img.alt });
+    }
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -123,6 +150,18 @@ export default async function BlogPostPage({ params }: Props) {
       />
       <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
         <SiteHeader />
+        {post.coverImageUrl && (
+          <div className="border-b" style={{ borderColor: "var(--border)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
+            <img
+              src={post.coverImageUrl}
+              alt=""
+              className="aspect-[16/9] w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        )}
         <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
           <div className="mx-auto max-w-3xl">
             <Link href="/blog" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← All posts</Link>
@@ -149,17 +188,32 @@ export default async function BlogPostPage({ params }: Props) {
               // 5th H2-bounded sections (skipped on shorter posts).
               const nativeAfter = 0;
               const adAfter = new Set([1, 4]);
-              return sections.map((s, i) => (
-                <Fragment key={i}>
-                  <div dangerouslySetInnerHTML={{ __html: s }} />
-                  {i === nativeAfter && <AdsterraNativeBanner />}
-                  {adAfter.has(i) && i < sections.length - 1 && (
-                    <div className="ad-slot my-8">
-                      <AdBanner />
-                    </div>
-                  )}
-                </Fragment>
-              ));
+              return sections.map((s, i) => {
+                const img = imageBySectionIndex.get(i);
+                return (
+                  <Fragment key={i}>
+                    <div dangerouslySetInnerHTML={{ __html: s }} />
+                    {img && (
+                      <figure className="my-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/image route, not a static asset */}
+                        <img
+                          src={`/api/blog/image/${img.id}`}
+                          alt={img.alt}
+                          className="aspect-[16/9] w-full rounded-xl object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </figure>
+                    )}
+                    {i === nativeAfter && <AdsterraNativeBanner />}
+                    {adAfter.has(i) && i < sections.length - 1 && (
+                      <div className="ad-slot my-8">
+                        <AdBanner />
+                      </div>
+                    )}
+                  </Fragment>
+                );
+              });
             })()}
             <div className="ad-slot mt-8">
               <AdBanner />
