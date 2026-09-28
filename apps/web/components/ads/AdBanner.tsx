@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
 import { ADSENSE_ENABLED } from "./adsense-config";
-import { AdsterraSponsoredBar } from "./AdsterraSponsoredBar";
+import { AdsterraBanner } from "./AdsterraBanner";
+import { useIsWideScreen } from "./useIsWideScreen";
 
 /**
  * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
@@ -101,16 +102,38 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
 }
 
 /**
- * Banner-bar ad slot for free-tier users (in-game every 5th turn, between
- * blog sections). The site's ads are Adsterra, so by default this is the
- * Adsterra sponsored bar. Only when AdSense is enabled (adsense-config.ts)
- * does it show an AdSense unit (or, with no unit configured, the built-in
- * house banner). Returns null for paid users.
+ * Adsterra display banner (the account's 160×600 display unit) for in-content
+ * spots on narrow screens. On wide screens the side rails already carry that
+ * unit, so nothing is added there.
  */
-export function AdBanner({ visible = true }: { visible?: boolean }) {
+function AdsterraDisplaySlot() {
+  const wide = useIsWideScreen();
+  if (wide !== false) return null;
+  return (
+    <div className="flex justify-center py-2" aria-label="Advertisement">
+      <AdsterraBanner />
+    </div>
+  );
+}
+
+/**
+ * In-content ad slot for free-tier users. The site's ads are Adsterra, so by
+ * default this is the Adsterra display banner (`fallback="display"`, phones
+ * and tablets only) or nothing (`fallback="none"`, e.g. in-game, where the
+ * Adsterra native banner fills the ad turn). Only when AdSense is enabled
+ * (adsense-config.ts) does it show an AdSense unit (or, with no unit
+ * configured, the built-in house banner). Returns null for paid users.
+ */
+export function AdBanner({
+  visible = true,
+  fallback = "display",
+}: {
+  visible?: boolean;
+  fallback?: "display" | "none";
+}) {
   const { showAds } = useCanWeb();
   if (!showAds || !visible) return null;
-  if (!ADSENSE_ENABLED) return <AdsterraSponsoredBar />;
+  if (!ADSENSE_ENABLED) return fallback === "display" ? <AdsterraDisplaySlot /> : null;
 
   if (PUB_ID && AD_SLOT) {
     return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;
@@ -118,4 +141,3 @@ export function AdBanner({ visible = true }: { visible?: boolean }) {
 
   return <HouseAd />;
 }
-
