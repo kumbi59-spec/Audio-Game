@@ -473,7 +473,8 @@ export function GameShell() {
         )}
 
         {/* Ad banner — free tier only */}
-        <AdBanner visible={shouldShowAdBanner} />
+        {/* In-game the Adsterra native banner below is the ad; AdBanner adds AdSense only if enabled. */}
+        <AdBanner visible={shouldShowAdBanner} fallback="none" />
         {nativeAdMounted && (
           <div hidden={!shouldShowAdBanner}>
             <AdsterraNativeBanner />
