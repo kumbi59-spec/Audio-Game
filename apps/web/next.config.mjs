@@ -16,7 +16,10 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Microphone is allowed for our own pages only (voice commands and the
+  // world-builder use speech recognition); ad and other cross-origin iframes
+  // stay blocked.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
   { key: "Content-Security-Policy", value: ENFORCED_CSP },
   // No includeSubDomains/preload until every subdomain is confirmed HTTPS-only.
   ...(isProduction ? [{ key: "Strict-Transport-Security", value: "max-age=31536000" }] : []),
