@@ -4,7 +4,21 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
 
-const PUB_ID = process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"];
+/**
+ * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
+ * set as the bare "pub-…" id (the ads.txt form), which AdSense treats as an
+ * unknown client: the unit reports "unfilled" and collapses right after it
+ * appears. Accept either form (or just the digits).
+ */
+export function adClientId(raw: string | undefined): string | undefined {
+  const id = raw?.trim();
+  if (!id) return undefined;
+  if (id.startsWith("ca-pub-")) return id;
+  if (id.startsWith("pub-")) return `ca-${id}`;
+  return /^\d+$/.test(id) ? `ca-pub-${id}` : id;
+}
+
+const PUB_ID = adClientId(process.env["NEXT_PUBLIC_ADSENSE_PUB_ID"]);
 const AD_SLOT = process.env["NEXT_PUBLIC_ADSENSE_SLOT"];
 
 declare global {

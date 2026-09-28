@@ -33,8 +33,9 @@ export function MobileAdSlot({ className = "mx-auto my-6 max-w-3xl px-4" }: { cl
 
   if (!want || !owner) return null;
   return (
-    <div className={className}>
-      <p className="mb-1 text-center text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+    <div className={`ad-slot ${className}`}>
+      {/* Hidden until the ad network actually fills the banner (globals.css). */}
+      <p className="ad-slot-label mb-1 text-center text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
         Advertisement
       </p>
       <AdsterraNativeBanner />
