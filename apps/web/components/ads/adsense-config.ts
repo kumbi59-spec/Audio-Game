@@ -5,7 +5,7 @@
  * auto ads (anchor, side rails) and the in-page units rendered an empty ad
  * box and then collapsed it as "unfilled" — ads that showed for a split
  * second and vanished, on desktop and mobile. With it off, the loader script
- * isn't requested and AdBanner renders nothing.
+ * isn't requested and AdBanner shows the Adsterra sponsored bar.
  */
 export const ADSENSE_ENABLED = process.env["NEXT_PUBLIC_ADSENSE_ENABLED"] === "1";
 

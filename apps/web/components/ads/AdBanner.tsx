@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
 import { ADSENSE_ENABLED } from "./adsense-config";
+import { AdsterraSponsoredBar } from "./AdsterraSponsoredBar";
 
 /**
  * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
@@ -100,15 +101,16 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
 }
 
 /**
- * AdSense banner slot for free-tier users. Renders nothing unless AdSense is
- * enabled (adsense-config.ts) — the site's ads are Adsterra, and the
- * built-in "Playing free" house banner shouldn't stand in for them. With
- * AdSense enabled it shows a real unit when NEXT_PUBLIC_ADSENSE_PUB_ID /
- * _SLOT are set, otherwise the house banner. Returns null for paid users.
+ * Banner-bar ad slot for free-tier users (in-game every 5th turn, between
+ * blog sections). The site's ads are Adsterra, so by default this is the
+ * Adsterra sponsored bar. Only when AdSense is enabled (adsense-config.ts)
+ * does it show an AdSense unit (or, with no unit configured, the built-in
+ * house banner). Returns null for paid users.
  */
 export function AdBanner({ visible = true }: { visible?: boolean }) {
   const { showAds } = useCanWeb();
-  if (!ADSENSE_ENABLED || !showAds || !visible) return null;
+  if (!showAds || !visible) return null;
+  if (!ADSENSE_ENABLED) return <AdsterraSponsoredBar />;
 
   if (PUB_ID && AD_SLOT) {
     return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;
