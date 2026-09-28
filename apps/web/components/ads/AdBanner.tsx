@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
+import { ADSENSE_ENABLED } from "./adsense-config";
 
 /**
  * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
@@ -100,15 +101,15 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
 
 /**
  * Renders an ad banner for free-tier users.
- * Shows a real AdSense unit when NEXT_PUBLIC_ADSENSE_PUB_ID is set,
- * otherwise falls back to an upgrade prompt.
+ * Shows a real AdSense unit when AdSense is enabled (adsense-config.ts) and
+ * NEXT_PUBLIC_ADSENSE_PUB_ID / _SLOT are set, otherwise an upgrade prompt.
  * Returns null for paid users (showAds = false).
  */
 export function AdBanner({ visible = true }: { visible?: boolean }) {
   const { showAds } = useCanWeb();
   if (!showAds || !visible) return null;
 
-  if (PUB_ID && AD_SLOT) {
+  if (ADSENSE_ENABLED && PUB_ID && AD_SLOT) {
     return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;
   }
 

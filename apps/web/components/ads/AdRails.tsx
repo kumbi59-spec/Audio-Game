@@ -18,6 +18,15 @@ function showRailsOn(pathname: string): boolean {
   return pathname === "/" || RAIL_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+/**
+ * Pages that place their own native banner (the home page's mobile slot, the
+ * in-article banner on blog posts). The narrow-screen fallback slot skips
+ * them, since only one native banner can be on a page.
+ */
+function pageHasOwnNative(pathname: string): boolean {
+  return pathname === "/" || /^\/blog\/[^/]+/.test(pathname);
+}
+
 /** Clearly-labelled sponsored card that opens the Adsterra smartlink (only on screens tall enough to fit it under the banner). */
 function SponsoredCard() {
   if (!ADSTERRA_ENABLED) return null;
@@ -65,15 +74,15 @@ function Rail({ side }: { side: "left" | "right" }) {
  *
  * The rails only mount at xl widths: a CSS-hidden iframe still loads its ad,
  * which on phones meant invisible impressions and no visible ad. Below xl a
- * responsive in-flow slot takes their place (skipped when the page already
- * placed its own).
+ * responsive in-flow slot takes their place, except on pages that place their
+ * own native banner.
  */
 export function AdRails() {
   const { showAds } = useCanWeb();
   const pathname = usePathname() ?? "";
   const wide = useIsWideScreen();
   if (!showAds || !showRailsOn(pathname) || wide === null) return null;
-  if (!wide) return <MobileAdSlot />;
+  if (!wide) return pageHasOwnNative(pathname) ? null : <MobileAdSlot />;
   return (
     <>
       <Rail side="left" />

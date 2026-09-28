@@ -15,6 +15,7 @@ import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
 import { AdRails } from "@/components/ads/AdRails";
 import { AdsServerProvider } from "@/components/ads/AdsServerContext";
 import { ADSTERRA, ADSTERRA_ENABLED, ADSTERRA_EXCLUDED_PREFIXES } from "@/components/ads/adsterra-config";
+import { ADSENSE_ENABLED, ADSENSE_LOADER_SRC } from "@/components/ads/adsense-config";
 import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
 import { headers } from "next/headers";
 import { auth } from "@/auth";
@@ -97,13 +98,15 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
-        <Script
-          id="adsense-loader"
-          strategy="beforeInteractive"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9267788778991046"
-          crossOrigin="anonymous"
-          nonce={nonce}
-        />
+        {ADSENSE_ENABLED && (
+          <Script
+            id="adsense-loader"
+            strategy="beforeInteractive"
+            src={ADSENSE_LOADER_SRC}
+            crossOrigin="anonymous"
+            nonce={nonce}
+          />
+        )}
         <NonceProvider nonce={nonce}>
         <Suspense>
           <GoogleAnalytics />
