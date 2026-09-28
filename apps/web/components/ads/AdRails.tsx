@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { useCanWeb } from "@/store/entitlements-store";
 import { AdsterraBanner } from "./AdsterraBanner";
 import { ADSTERRA, ADSTERRA_ENABLED } from "./adsterra-config";
+import { MobileAdSlot } from "./MobileAdSlot";
+import { useIsWideScreen } from "./useIsWideScreen";
 
 /**
  * Routes whose content column is narrow (max-w-3xl / 4xl) and so leaves empty
@@ -57,14 +59,21 @@ function Rail({ side }: { side: "left" | "right" }) {
 }
 
 /**
- * Desktop side-rail ads for free-tier users, filling the empty gutters beside
- * narrow content pages. Rendered after the page content so screen readers
- * reach the article first.
+ * Side-rail ads for free-tier users, filling the empty gutters beside narrow
+ * content pages. Rendered after the page content so screen readers reach the
+ * article first.
+ *
+ * The rails only mount at xl widths: a CSS-hidden iframe still loads its ad,
+ * which on phones meant invisible impressions and no visible ad. Below xl a
+ * responsive in-flow slot takes their place (skipped when the page already
+ * placed its own).
  */
 export function AdRails() {
   const { showAds } = useCanWeb();
   const pathname = usePathname() ?? "";
-  if (!showAds || !showRailsOn(pathname)) return null;
+  const wide = useIsWideScreen();
+  if (!showAds || !showRailsOn(pathname) || wide === null) return null;
+  if (!wide) return <MobileAdSlot />;
   return (
     <>
       <Rail side="left" />

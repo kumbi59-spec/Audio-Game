@@ -6,7 +6,8 @@ import { useServerShowsAds } from "./AdsServerContext";
 import { ADSTERRA, ADSTERRA_ENABLED } from "./adsterra-config";
 import { nonceAttr, useNonce } from "@/components/security/NonceContext";
 
-const SLOT_ID = "adsterra-native-slot";
+export const NATIVE_SLOT_ID = "adsterra-native-slot";
+const SLOT_ID = NATIVE_SLOT_ID;
 
 declare global {
   interface Window {

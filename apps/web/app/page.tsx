@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdsterraSmartlink } from "@/components/ads/AdsterraSmartlink";
+import { MobileAdSlot } from "@/components/ads/MobileAdSlot";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 
@@ -264,6 +265,8 @@ export default function LandingPage() {
           </section>
 
           {/* Accessibility callout */}
+          <MobileAdSlot />
+
           <section aria-labelledby="a11y-heading" className="px-6 py-12" style={{ backgroundColor: "var(--surface)" }}>
             <div className="mx-auto max-w-3xl rounded-xl border p-8" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}>
               <h2 id="a11y-heading" className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
