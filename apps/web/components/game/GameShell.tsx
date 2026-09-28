@@ -271,6 +271,17 @@ export function GameShell() {
 
   const activeQuestCount = character?.quests.filter((q) => q.status === "active").length ?? 0;
 
+  // Free tier: ad banner every 5th turn.
+  const turnCount = session?.turnCount ?? 0;
+  const shouldShowAdBanner = turnCount > 0 && turnCount % 5 === 0;
+  // Once the Adsterra native banner has been shown, keep it mounted and only
+  // hide it between ad turns. Unmounting it threw away the rendered ad, and
+  // re-running the ad script on the same page may not render it again.
+  const [nativeAdMounted, setNativeAdMounted] = useState(false);
+  useEffect(() => {
+    if (shouldShowAdBanner) setNativeAdMounted(true);
+  }, [shouldShowAdBanner]);
+
   if (!session || !character || !world) {
     return (
       <div role="status" className="flex h-full items-center justify-center">
@@ -280,8 +291,6 @@ export function GameShell() {
   }
 
   const hasChoices = session.choices.length > 0;
-  // Free tier: ad banner every 5th turn.
-  const shouldShowAdBanner = session.turnCount > 0 && session.turnCount % 5 === 0;
   // Show the degraded banner only when the most recent degraded-mode system
   // entry is more recent than the most recent successful narration. Without
   // this guard the banner stuck around forever — the matched system message
@@ -465,7 +474,11 @@ export function GameShell() {
 
         {/* Ad banner — free tier only */}
         <AdBanner visible={shouldShowAdBanner} />
-        <AdsterraNativeBanner visible={shouldShowAdBanner} />
+        {nativeAdMounted && (
+          <div hidden={!shouldShowAdBanner}>
+            <AdsterraNativeBanner />
+          </div>
+        )}
 
         {/* Bottom toolbar */}
         <div

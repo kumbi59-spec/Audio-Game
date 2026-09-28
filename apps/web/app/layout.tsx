@@ -13,6 +13,7 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
 import { AdRails } from "@/components/ads/AdRails";
+import { AdPreviewBadge } from "@/components/ads/AdPreviewBadge";
 import { AdsServerProvider } from "@/components/ads/AdsServerContext";
 import { ADSTERRA, ADSTERRA_ENABLED, ADSTERRA_EXCLUDED_PREFIXES } from "@/components/ads/adsterra-config";
 import { ADSENSE_ENABLED, ADSENSE_LOADER_SRC } from "@/components/ads/adsense-config";
@@ -87,7 +88,9 @@ export default async function RootLayout({
   // the server HTML, where "View page source" shows them and they run as the
   // page loads. Paid/admin sessions and the gameplay/admin/auth/account
   // routes never do.
-  const tier = ((session?.user as { tier?: string } | undefined)?.tier ?? "free") as Tier;
+  const sessionUser = session?.user as { tier?: string; isAdmin?: boolean } | undefined;
+  // Admins never get ads, whatever tier their session token carries.
+  const tier = (sessionUser?.isAdmin ? "creator" : sessionUser?.tier ?? "free") as Tier;
   const serverShowsAds = ADSTERRA_ENABLED && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-pathname") ?? "";
@@ -128,6 +131,7 @@ export default async function RootLayout({
               <Suspense>
                 <AdRails />
               </Suspense>
+              <AdPreviewBadge />
             </AudioAnnouncer>
           </AdsServerProvider>
         </AuthProvider>

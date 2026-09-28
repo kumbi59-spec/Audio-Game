@@ -13,7 +13,10 @@ function TierSync() {
 
   useEffect(() => {
     if (status === "loading") return;
-    const tier = (session?.user as { tier?: string } | undefined)?.tier as Tier | undefined;
+    const user = session?.user as { tier?: string; isAdmin?: boolean } | undefined;
+    // Admins get the top tier's entitlements (no ads) even if the tier in their
+    // session token is stale — the server grants them the same (lib/admin.ts).
+    const tier = (user?.isAdmin ? "creator" : user?.tier) as Tier | undefined;
     if (tier) {
       setTier(tier);
       localStorage.setItem("echoquest-tier", tier);

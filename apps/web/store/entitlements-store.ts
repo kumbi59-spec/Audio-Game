@@ -10,6 +10,8 @@ interface EntitlementsStore {
   adPreview: boolean;
   setTier: (t: Tier) => void;
   setEntitlements: (e: Entitlements) => void;
+  /** Turn ad preview off for the rest of the browser session. */
+  clearAdPreview: () => void;
 }
 
 function getInitialEntitlements(): Entitlements {
@@ -45,6 +47,14 @@ export const useEntitlementsStore = create<EntitlementsStore>((set) => ({
   adPreview: getInitialAdPreview(),
   setTier: (t) => set({ entitlements: TIER_ENTITLEMENTS[t] }),
   setEntitlements: (e) => set({ entitlements: e }),
+  clearAdPreview: () => {
+    try {
+      sessionStorage.removeItem(AD_PREVIEW_KEY);
+    } catch {
+      // Storage blocked — the in-memory flag below still turns it off.
+    }
+    set({ adPreview: false });
+  },
 }));
 
 export function useCanWeb() {
