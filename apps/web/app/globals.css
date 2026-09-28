@@ -523,3 +523,6 @@ ins.adsbygoogle[data-ad-status="unfilled"] {
    an unfilled slot doesn't leave a stray "Advertisement" caption. */
 .ad-slot-label { display: none; }
 .ad-slot:has([id^="container-"] > *) .ad-slot-label { display: block; }
+
+/* An ad wrapper whose ad component rendered nothing (e.g. AdSense off). */
+.ad-slot:empty { display: none; }
