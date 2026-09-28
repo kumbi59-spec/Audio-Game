@@ -493,10 +493,10 @@ export function useGameSession() {
                     abort.signal,
                   );
                 } else {
-                  // Browser TTS keepalive (browser-tts.ts) keeps the engine
-                  // alive across the full narration, so we no longer need to
-                  // chunk per sentence — chunking introduced an audible gap
-                  // between sentences where the synthesis engine restarted.
+                  // Browser TTS (browser-tts.ts) splits long narration into
+                  // short chunks and queues them all at once, so the engine
+                  // plays them back-to-back with no gap and no single
+                  // utterance hits Chrome's ~15s cutoff.
                   if (!abort.signal.aborted) {
                     await speakText(narration);
                   }
