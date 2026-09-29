@@ -27,7 +27,7 @@ function pageHasOwnNative(pathname: string): boolean {
   return pathname === "/" || /^\/blog\/[^/]+/.test(pathname);
 }
 
-/** Clearly-labelled sponsored card that opens the Adsterra smartlink (only on screens tall enough to fit it under the banner). */
+/** Clearly-labelled sponsored card that opens the Adsterra smartlink. */
 function SponsoredCard() {
   if (!ADSTERRA_ENABLED) return null;
   return (
@@ -35,7 +35,7 @@ function SponsoredCard() {
       href={ADSTERRA.smartlinkUrl}
       target="_blank"
       rel="sponsored noopener noreferrer"
-      className="hidden rounded-xl border p-4 text-center transition-opacity hover:opacity-90 [@media(min-height:880px)]:block"
+      className="block rounded-xl border p-4 text-center transition-opacity hover:opacity-90"
       style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
     >
       <span className="block text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -55,14 +55,18 @@ function SponsoredCard() {
   );
 }
 
+/**
+ * Adsterra counts each banner code once per page: the same code twice on a
+ * page breaks its stats. The account has one 160×600 unit, so only the right
+ * rail carries it; the left rail holds the sponsored card.
+ */
 function Rail({ side }: { side: "left" | "right" }) {
   return (
     <aside
       aria-label="Advertisement"
       className={`fixed top-20 z-10 hidden w-[160px] flex-col gap-4 xl:flex ${side === "left" ? "left-4" : "right-4"}`}
     >
-      <AdsterraBanner />
-      <SponsoredCard />
+      {side === "right" ? <AdsterraBanner /> : <SponsoredCard />}
     </aside>
   );
 }

@@ -90,6 +90,13 @@ export default async function BlogPostPage({ params }: Props) {
   const htmlContent = await renderBlogMarkdown(markdown);
   const sections = splitHtmlOnH2(htmlContent);
 
+  // Ad slots follow the 2nd and 5th H2-bounded sections (skipped on shorter
+  // posts) and the end of the post. Adsterra allows each banner code once per
+  // page, so only the first slot gets the display banner (AdSense, when on,
+  // fills all of them).
+  const adAfter = [1, 4].filter((i) => i < sections.length - 1);
+  const displayAt = adAfter.length > 0 ? adAfter[0] : "end";
+
   // Map "section index to render the image after" → image record. The plan
   // (shared with the generator) tells us which H2 each image idx targets.
   //
@@ -184,10 +191,8 @@ export default async function BlogPostPage({ params }: Props) {
           <article className="blog-content">
             {(() => {
               // Adsterra native banner goes right after the intro so it sits
-              // near the top of the post; AdSense units follow the 2nd and
-              // 5th H2-bounded sections (skipped on shorter posts).
+              // near the top of the post.
               const nativeAfter = 0;
-              const adAfter = new Set([1, 4]);
               return sections.map((s, i) => {
                 const img = imageBySectionIndex.get(i);
                 return (
@@ -206,9 +211,9 @@ export default async function BlogPostPage({ params }: Props) {
                       </figure>
                     )}
                     {i === nativeAfter && <AdsterraNativeBanner />}
-                    {adAfter.has(i) && i < sections.length - 1 && (
+                    {adAfter.includes(i) && (
                       <div className="ad-slot my-8">
-                        <AdBanner />
+                        <AdBanner fallback={i === displayAt ? "display" : "none"} />
                       </div>
                     )}
                   </Fragment>
@@ -216,7 +221,7 @@ export default async function BlogPostPage({ params }: Props) {
               });
             })()}
             <div className="ad-slot mt-8">
-              <AdBanner />
+              <AdBanner fallback={displayAt === "end" ? "display" : "none"} />
             </div>
           </article>
           <div className="mt-12 border-t pt-8" style={{ borderColor: "var(--border)" }}>
