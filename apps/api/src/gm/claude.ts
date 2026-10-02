@@ -4,7 +4,7 @@ import { GmTurn as GmTurnSchema } from "@audio-rpg/shared";
 import { STYLE_PROFILES, buildSystemPrompt } from "@audio-rpg/gm-engine";
 import type { MemoryTurn } from "@audio-rpg/gm-engine";
 import { config } from "../config.js";
-import { resolveModelPolicy } from "./model-policy.js";
+import { modelRequestParams, resolveModelPolicy } from "./model-policy.js";
 
 let client: Anthropic | null = null;
 const modelPolicy = resolveModelPolicy();
@@ -57,7 +57,8 @@ export async function generateGmTurn(args: GenerateTurnArgs): Promise<GmTurn> {
   const stream = await getClient().messages.stream({
     model: modelPolicy.gmTurnModel,
     max_tokens: 1600,
-    temperature,
+    // The style's temperature, where the model accepts one.
+    ...modelRequestParams(modelPolicy.gmTurnModel, temperature),
     system: [
       {
         type: "text",
@@ -208,6 +209,7 @@ export async function generateWizardSuggestions(args: {
   const response = await getClient().messages.create({
     model: modelPolicy.gmTurnModel,
     max_tokens: 200,
+    ...modelRequestParams(modelPolicy.gmTurnModel),
     messages: [
       {
         role: "user",

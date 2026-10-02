@@ -1,6 +1,9 @@
+import type Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
 
 export const APPROVED_ANTHROPIC_MODELS = [
+  "claude-sonnet-5-5",
+  // Kept approved so CLAUDE_GM_MODEL can roll back without a deploy.
   "claude-sonnet-4-6",
   "claude-haiku-4-5-20251001",
 ] as const;
@@ -28,4 +31,25 @@ export function resolveModelPolicy(): ModelPolicy {
   }
 
   return { gmTurnModel, summaryModel };
+}
+
+/**
+ * Request settings that depend on the model. Claude Sonnet 5.5 rejects a
+ * non-default temperature, and thinks before replying unless told not to —
+ * these calls want their first token fast, so it runs with no extended
+ * thinking ("between_tools", its lowest setting). Older models keep the
+ * temperature the caller asked for.
+ */
+export function modelRequestParams(
+  model: string,
+  temperature?: number,
+): { temperature?: number; thinking?: Anthropic.ThinkingConfigParam; output_config?: Anthropic.OutputConfig } {
+  if (model === "claude-sonnet-5-5") {
+    return {
+      // Not yet in this SDK version's ThinkingConfigParam union.
+      thinking: { type: "between_tools" } as unknown as Anthropic.ThinkingConfigParam,
+      output_config: { effort: "high" },
+    };
+  }
+  return temperature === undefined ? {} : { temperature };
 }

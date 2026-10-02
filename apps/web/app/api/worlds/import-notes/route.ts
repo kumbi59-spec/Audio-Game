@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { getAnthropicClient, MODEL } from "@/lib/ai/client";
+import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 512,
+      ...modelParams(),
       messages: [
         {
           role: "user",
@@ -52,14 +53,14 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const block = response.content[0];
-    if (!block || block.type !== "text") {
+    const text = messageText(response);
+    if (!text) {
       return NextResponse.json({ error: "No response from AI" }, { status: 502 });
     }
 
     let extracted: Record<string, string>;
     try {
-      extracted = JSON.parse(block.text.trim()) as Record<string, string>;
+      extracted = JSON.parse(text.trim()) as Record<string, string>;
     } catch {
       return NextResponse.json({ error: "AI returned non-JSON response" }, { status: 502 });
     }

@@ -1,10 +1,9 @@
 import type { ParsedGameBible } from "@/types/world";
 import { BIBLE_PARSE_SYSTEM } from "./prompts/bible-parse";
-import { getAnthropicClient } from "./client";
+import { getAnthropicClient, messageText, modelParams, MODEL } from "./client";
 import { prisma } from "@/lib/db";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
 
-const MODEL = process.env["CLAUDE_GM_MODEL"] ?? "claude-sonnet-4-6";
 const MAX_INPUT_CHARS = 80_000;
 const MAX_TOKENS = 8192;
 
@@ -18,6 +17,7 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
   const response = await getAnthropicClient().messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
+    ...modelParams(),
     system: BIBLE_PARSE_SYSTEM,
     messages: [
       {
@@ -33,13 +33,13 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
     );
   }
 
-  const block = response.content[0];
-  if (!block || block.type !== "text") {
+  const text = messageText(response);
+  if (!text) {
     throw new Error("Unexpected response type from Claude");
   }
 
   // Strip code fences Claude sometimes adds
-  let jsonText = block.text
+  let jsonText = text
     .replace(/^```(?:json)?\n?/i, "")
     .replace(/\n?```$/i, "")
     .trim();

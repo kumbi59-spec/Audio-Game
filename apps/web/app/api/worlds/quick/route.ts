@@ -7,7 +7,7 @@ import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { draftToBible, draftToSystemPrompt } from "@/lib/wizard/steps";
 import type { Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
-import { getAnthropicClient, MODEL } from "@/lib/ai/client";
+import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
 import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 
 export const runtime = "nodejs";
@@ -39,6 +39,7 @@ async function generateWorldDetails(
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: 512,
+    ...modelParams(),
     messages: [
       {
         role: "user",
@@ -61,10 +62,10 @@ Reply with ONLY the JSON object, no markdown fences, no explanation.`,
     ],
   });
 
-  const block = response.content[0];
-  if (block?.type !== "text") throw new Error("unexpected Claude response");
+  const text = messageText(response);
+  if (!text) throw new Error("unexpected Claude response");
 
-  const raw = block.text.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const raw = text.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
   const parsed = JSON.parse(raw) as Partial<ClaudeWorldDetails>;
 
   const VALID_STYLE_MODES = ["cinematic", "rules_light", "crunchy", "mystery", "horror", "political", "adventure"] as const;

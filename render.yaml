@@ -119,7 +119,7 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: CLAUDE_GM_MODEL
-        value: claude-sonnet-4-6
+        value: claude-sonnet-5-5
       - key: CLAUDE_SUMMARY_MODEL
         value: claude-haiku-4-5-20251001
       - key: ELEVENLABS_API_KEY

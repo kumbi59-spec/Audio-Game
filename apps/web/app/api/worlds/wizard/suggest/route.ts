@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { getAnthropicClient, MODEL } from "@/lib/ai/client";
+import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: 256,
+      ...modelParams(),
       messages: [
         {
           role: "user",
@@ -57,10 +58,10 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    const block = response.content[0];
-    if (block?.type !== "text") throw new Error("unexpected response");
+    const text = messageText(response);
+    if (!text) throw new Error("unexpected response");
 
-    const raw = block.text.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+    const raw = text.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
     const suggestions = JSON.parse(raw) as unknown;
     if (!Array.isArray(suggestions)) throw new Error("not an array");
 

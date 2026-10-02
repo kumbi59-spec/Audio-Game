@@ -16,13 +16,15 @@ export function getAnthropicClient(): Anthropic {
 export const MODEL = process.env["CLAUDE_WEB_GM_MODEL"] || "claude-sonnet-5-5";
 
 /**
- * Model-specific request settings. Claude Sonnet 5.5 thinks before replying
- * by default, which delays the first narration token; the GM writes short
- * structured turns, so it runs with no extended thinking ("between_tools",
- * the model's lowest thinking setting). Other models get the API defaults,
- * so overriding CLAUDE_WEB_GM_MODEL can't send a field they reject.
+ * Model-specific request settings for every Claude call that uses MODEL.
+ * Claude Sonnet 5.5 thinks before replying by default, which delays the
+ * first token and spends max_tokens on thinking; these calls write short
+ * structured replies, so they run with no extended thinking
+ * ("between_tools", the model's lowest thinking setting). Other models get
+ * the API defaults, so overriding CLAUDE_WEB_GM_MODEL can't send a field
+ * they reject.
  */
-export function gmModelParams(model: string = MODEL): {
+export function modelParams(model: string = MODEL): {
   thinking?: Anthropic.ThinkingConfigParam;
   output_config?: Anthropic.OutputConfig;
 } {
@@ -39,6 +41,17 @@ export function gmModelParams(model: string = MODEL): {
 // 1024 the JSON reply (narration + choices + stateChanges + codex) was often
 // cut off, which lost that turn's state changes to the parse fallback.
 export const MAX_TOKENS = 4096;
+
+/**
+ * The reply's text. Read by block type, never as content[0]: a reply can
+ * open with a thinking block.
+ */
+export function messageText(message: Anthropic.Message): string {
+  return message.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("");
+}
 
 export type ProviderErrorClass =
   | "timeout"

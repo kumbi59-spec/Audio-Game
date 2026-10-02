@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
+import { modelRequestParams } from "../gm/model-policy.js";
 
 let client: Anthropic | null = null;
 
@@ -25,7 +26,7 @@ export async function runIngestModel(args: {
   const result = await getClient().messages.create({
     model: config.CLAUDE_GM_MODEL,
     max_tokens: 4000,
-    temperature: 0.2,
+    ...modelRequestParams(config.CLAUDE_GM_MODEL, 0.2),
     system: args.system,
     messages: [{ role: "user", content: args.user }],
   });

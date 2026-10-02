@@ -2,7 +2,8 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import {
   getAnthropicClient,
-  gmModelParams,
+  messageText,
+  modelParams,
   MODEL,
   MAX_TOKENS,
   classifyProviderError,
@@ -270,13 +271,6 @@ function buildTurnRequest(
   return { system: buildSystemBlocks(world.systemPrompt), messages };
 }
 
-function textOf(message: Anthropic.Message): string {
-  return message.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("");
-}
-
 // Non-streaming: returns a complete GMResponse
 export async function runGMTurn(
   action: PlayerAction,
@@ -290,7 +284,7 @@ export async function runGMTurn(
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
-    ...gmModelParams(),
+    ...modelParams(),
     system,
     // Same tool list as the turns that follow, so this request warms the
     // tools + system cache they read. No rolls in the opening scene.
@@ -299,7 +293,7 @@ export async function runGMTurn(
     messages,
   });
 
-  return parseGMResponse(textOf(response));
+  return parseGMResponse(messageText(response));
 }
 
 /**
@@ -392,7 +386,7 @@ export async function* streamGMTurn(
           {
             model: MODEL,
             max_tokens: MAX_TOKENS,
-            ...gmModelParams(),
+            ...modelParams(),
             system,
             tools: [SKILL_CHECK_TOOL],
             tool_choice: lastRound ? { type: "none" } : { type: "auto", disable_parallel_tool_use: true },
@@ -440,7 +434,7 @@ export async function* streamGMTurn(
         );
       }
 
-      const gmResponse = parseGMResponse(final ? textOf(final) : "");
+      const gmResponse = parseGMResponse(final ? messageText(final) : "");
 
       // Usually already sent while streaming, ahead of the narration.
       if (gmResponse.soundCue && gmResponse.soundCue !== tap.cueSent) {
