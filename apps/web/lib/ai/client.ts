@@ -12,7 +12,10 @@ export function getAnthropicClient(): Anthropic {
 }
 
 export const MODEL = "claude-sonnet-4-6";
-export const MAX_TOKENS = 1024;
+// A ceiling, not a target — billing is for the tokens actually generated. At
+// 1024 the JSON reply (narration + choices + stateChanges + codex) was often
+// cut off, which lost that turn's state changes to the parse fallback.
+export const MAX_TOKENS = 4096;
 
 export type ProviderErrorClass =
   | "timeout"
@@ -23,6 +26,10 @@ export type ProviderErrorClass =
   | "provider_error";
 
 export function classifyProviderError(error: unknown): ProviderErrorClass {
+  if (error instanceof Anthropic.APIConnectionTimeoutError) return "timeout";
+  if (error instanceof Anthropic.RateLimitError) return "rate_limit";
+  if (error instanceof Anthropic.APIConnectionError) return "network_failure";
+
   const message =
     error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
 
@@ -39,4 +46,15 @@ export function classifyProviderError(error: unknown): ProviderErrorClass {
     return "network_failure";
   }
   return "provider_error";
+}
+
+/**
+ * Whether retrying the same request could succeed. Client errors (bad
+ * request, auth, permission, not found) fail identically on every attempt.
+ */
+export function isRetryableProviderError(error: unknown): boolean {
+  if (error instanceof Anthropic.APIError && typeof error.status === "number") {
+    return error.status === 408 || error.status === 409 || error.status === 429 || error.status >= 500;
+  }
+  return true;
 }

@@ -3,6 +3,7 @@ import {
   createOptimisticTurn,
   extractNarrationFromChoiceEvent,
   finalizeTurn,
+  formatSkillCheckLine,
   normalizeChoiceList,
   retryWithBackoff,
   rollbackTurn,
@@ -140,5 +141,13 @@ describe("game domain use-cases", () => {
       );
       expect(result).toBe('The doctor pauses mid-thought. [Doctor Hale]: "Wait."');
     });
+  });
+
+  it("formats a skill check so the arithmetic adds up", () => {
+    const base = { stat: "strength" as const, label: "Force the gate", dc: 12, roll: 14, modifier: 2, bonus: 0, total: 16, success: true };
+    expect(formatSkillCheckLine(base)).toBe("🎲 STRENGTH check — Force the gate: rolled 14 +2 = 16 vs DC 12 — Success!");
+    expect(formatSkillCheckLine({ ...base, modifier: -1, bonus: 2, total: 15, dc: 16, success: false })).toBe(
+      "🎲 STRENGTH check — Force the gate: rolled 14 -1 +2 bonus = 15 vs DC 16 — Failure.",
+    );
   });
 });

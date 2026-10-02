@@ -1,8 +1,11 @@
+import type Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
 import {
   getAnthropicClient,
   MODEL,
   MAX_TOKENS,
   classifyProviderError,
+  isRetryableProviderError,
   type ProviderErrorClass,
 } from "./client";
 import { buildWorldSystemPrompt } from "./prompts/system";
@@ -11,13 +14,18 @@ import {
   buildCharacterStateBlock,
   buildWorldStateBlock,
 } from "./memory/context-window";
-import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus } from "@/types/game";
+import { parseGMResponse } from "./gm-response";
+import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus, SkillCheckResult } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
 export interface GMStreamEvent {
   type:
     | "narration_chunk"
+    // Text streamed so far this turn has been discarded (a retry, or a round
+    // that ended in a tool call). Clients drop what they buffered.
+    | "narration_reset"
+    | "skill_check_result"
     | "choices_ready"
     | "sound_cue"
     | "state_change"
@@ -27,13 +35,122 @@ export interface GMStreamEvent {
 }
 
 export const TURN_RELIABILITY_POLICY = {
-  timeoutMs: 25_000,
+  // Abort a request when the stream goes this long without an event. Unlike a
+  // whole-turn deadline, this never cuts off a long reply that is still
+  // arriving.
+  idleTimeoutMs: 20_000,
   maxRetries: 2,
   fallback: {
     mode: "safe_continue_choices",
     choices: ["Take a cautious step forward", "Pause and assess", "Ask for a recap"],
   },
 } as const;
+
+export interface StreamGMTurnOptions {
+  /** Aborted when the player disconnects; stops generation and retries. */
+  signal?: AbortSignal;
+  /** Source of randomness for dice rolls (tests pass a seeded one). */
+  rng?: () => number;
+}
+
+class GMTurnTimeoutError extends Error {
+  constructor() {
+    super("gm_turn_timeout");
+  }
+}
+
+class GMRefusalError extends Error {
+  constructor() {
+    super("gm_safety_refusal");
+  }
+}
+
+// ── Skill checks ────────────────────────────────────────────────────────────
+
+const SKILL_STATS = ["strength", "dexterity", "intelligence", "charisma"] as const satisfies readonly SkillCheckResult["stat"][];
+
+export const SKILL_CHECK_TOOL_NAME = "roll_skill_check";
+
+const SKILL_CHECK_TOOL: Anthropic.Tool = {
+  name: SKILL_CHECK_TOOL_NAME,
+  description:
+    "Roll a d20 skill check for a player action that carries a meaningful risk of failure. " +
+    "Call it BEFORE writing your JSON response. The system rolls d20 + the character's modifier " +
+    "against the DC and returns whether the attempt succeeded; narrate exactly that outcome. " +
+    "Call it at most once per turn, and never for routine actions.",
+  strict: true,
+  input_schema: {
+    type: "object",
+    properties: {
+      stat: {
+        type: "string",
+        enum: [...SKILL_STATS],
+        description:
+          "strength = forcing/lifting/melee, dexterity = stealth/acrobatics/ranged, " +
+          "intelligence = puzzles/lore/investigation, charisma = persuasion/deception/performance.",
+      },
+      dc: {
+        type: "integer",
+        description:
+          "Difficulty class: 5 trivial, 8 easy, 12 moderate, 16 hard, 20 very hard, 24 near-impossible.",
+      },
+      label: {
+        type: "string",
+        description: "Short description of the attempt, at most 8 words.",
+      },
+    },
+    required: ["stat", "dc", "label"],
+    additionalProperties: false,
+  },
+};
+
+const SkillCheckInputSchema = z.object({
+  stat: z.enum(SKILL_STATS),
+  dc: z.number().int().transform((dc) => Math.min(30, Math.max(5, dc))),
+  label: z.string().transform((label) => label.trim().slice(0, 80)),
+});
+export type SkillCheckInput = z.infer<typeof SkillCheckInputSchema>;
+
+/**
+ * Rolls d20 + stat modifier + applicable passive bonuses against the DC. The
+ * passive bonuses are the same ones narrated to the player as "STR granted +2",
+ * so what they're told is what the roll uses.
+ */
+export function resolveSkillCheck(
+  input: SkillCheckInput,
+  character: CharacterData,
+  passiveBonuses: PassiveBonus[],
+  rng: () => number = Math.random,
+): SkillCheckResult {
+  const statValue = character.stats[input.stat];
+  const base = typeof statValue === "number" && Number.isFinite(statValue) ? statValue : 10;
+  const modifier = Math.floor((base - 10) / 2);
+  const bonus = passiveBonuses
+    .filter((b) => b.sourceStat === input.stat || b.targetRoll === "general_risk")
+    .reduce((sum, b) => sum + b.value, 0);
+  const r = Math.min(Math.max(rng(), 0), 0.999999);
+  const roll = Math.floor(r * 20) + 1;
+  const total = roll + modifier + bonus;
+  return {
+    stat: input.stat,
+    label: input.label,
+    dc: input.dc,
+    roll,
+    modifier,
+    bonus,
+    total,
+    success: total >= input.dc,
+  };
+}
+
+function skillCheckToolResult(result: SkillCheckResult): string {
+  const outcome = result.success ? "SUCCESS" : "FAILURE";
+  return [
+    JSON.stringify(result),
+    `The ${result.stat} check "${result.label}" is a ${outcome} (${result.total} vs DC ${result.dc}).`,
+    "Narrate this outcome now in your JSON response. Do not roll again this turn.",
+  ].join("\n");
+}
 
 function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
   const text = `${action.type} ${action.content}`.toLowerCase();
@@ -97,6 +214,9 @@ function buildFallbackChoices(character: CharacterData): string[] {
 }
 
 function degradedMessage(errorClass: ProviderErrorClass): string {
+  if (errorClass === "safety_refusal") {
+    return "The narrator couldn't continue the story down that path. Try a different approach.";
+  }
   const base = "The narrator connection is unstable, so we switched to a safe fallback turn.";
   if (errorClass === "rate_limit") return `${base} Too many requests are in flight right now.`;
   if (errorClass === "timeout") return `${base} The response took too long.`;
@@ -125,79 +245,11 @@ function buildUserMessage(action: PlayerAction): string {
   return action.content;
 }
 
-// Parse the GM's JSON response, tolerating markdown code fences
-function parseGMResponse(raw: string): GMResponse {
-  const cleaned = raw
-    .replace(/```json\s*/gi, "")
-    .replace(/```\s*/g, "")
-    .trim();
-
-  try {
-    const parsed = JSON.parse(cleaned) as GMResponse;
-    return {
-      narration: parsed.narration ?? "",
-      choices: Array.isArray(parsed.choices) ? parsed.choices : [],
-      soundCue: parsed.soundCue ?? null,
-      stateChanges: parsed.stateChanges ?? undefined,
-      npcAction: parsed.npcAction ?? null,
-      skill_check: parsed.skill_check ?? null,
-    };
-  } catch {
-    // Truncated / malformed JSON — most commonly hit when the model runs into
-    // MAX_TOKENS or the stream is cut. Dumping `raw` as narration leaked the
-    // entire response (including nested objects like npcAction) into the
-    // player-visible text, and the dialogue parser then matched garbage like
-    // `[npcId]: "village_doctor"` as a phantom NPC speaker — wildly bouncing
-    // narrator voices. Extract just the narration field via regex if we can,
-    // and only fall through to raw if even that fails.
-    const extracted = extractNarrationField(cleaned);
-    return {
-      narration: extracted ?? raw,
-      choices: ["Continue", "Look around", "Do something else"],
-      soundCue: null,
-    };
-  }
-}
-
-/**
- * Pulls the value of the top-level "narration" key out of a malformed/truncated
- * JSON string. Handles escaped quotes inside the value. Returns null if the
- * key isn't found or its value can't be located. Best-effort, no fancy parser.
- */
-function extractNarrationField(text: string): string | null {
-  const keyMatch = text.match(/"narration"\s*:\s*"/);
-  if (!keyMatch) return null;
-  const start = keyMatch.index! + keyMatch[0].length;
-  let i = start;
-  let escaped = false;
-  while (i < text.length) {
-    const ch = text[i];
-    if (escaped) {
-      escaped = false;
-    } else if (ch === "\\") {
-      escaped = true;
-    } else if (ch === '"') {
-      // Unescape standard JSON sequences inside the field — \" \\ \n \r \t.
-      // Anything more exotic (\uXXXX) is left literal; rare in narration prose.
-      return text
-        .slice(start, i)
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, "\\")
-        .replace(/\\n/g, "\n")
-        .replace(/\\r/g, "\r")
-        .replace(/\\t/g, "\t");
-    }
-    i += 1;
-  }
-  // Truncated mid-value: return what we have up to the cut so the player still
-  // sees the prose Claude managed to emit, minus the trailing JSON tail.
-  return text
-    .slice(start)
-    .replace(/\\"/g, '"')
-    .replace(/\\\\/g, "\\")
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\r")
-    .replace(/\\t/g, "\t");
+function textOf(message: Anthropic.Message): string {
+  return message.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("");
 }
 
 // Non-streaming: returns a complete GMResponse
@@ -211,7 +263,7 @@ export async function runGMTurn(
   const systemPrompt = buildSystemPrompt(session, character, world);
   const history = buildContextMessages(session, character, world);
 
-  const messages: Array<{ role: "user" | "assistant"; content: string }> = [
+  const messages: Anthropic.MessageParam[] = [
     ...history.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: buildUserMessage(action) },
   ];
@@ -223,9 +275,54 @@ export async function runGMTurn(
     messages,
   });
 
-  const raw =
-    response.content[0]?.type === "text" ? response.content[0].text : "";
-  return parseGMResponse(raw);
+  return parseGMResponse(textOf(response));
+}
+
+/**
+ * Streams one model request, yielding raw text deltas as narration_chunk
+ * events, and returns the final message. Aborts when the stream goes idle for
+ * TURN_RELIABILITY_POLICY.idleTimeoutMs or when `signal` fires.
+ */
+async function* streamRound(
+  params: Anthropic.MessageStreamParams,
+  signal: AbortSignal | undefined,
+): AsyncGenerator<GMStreamEvent, Anthropic.Message> {
+  const stream = getAnthropicClient().messages.stream(params);
+  let idleTimer: ReturnType<typeof setTimeout> | undefined;
+  let timedOut = false;
+  let finished = false;
+  const armIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      timedOut = true;
+      stream.abort();
+    }, TURN_RELIABILITY_POLICY.idleTimeoutMs);
+  };
+  const onAbort = () => stream.abort();
+  signal?.addEventListener("abort", onAbort, { once: true });
+  if (signal?.aborted) stream.abort();
+  armIdleTimer();
+
+  try {
+    for await (const event of stream) {
+      armIdleTimer();
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        yield { type: "narration_chunk", data: { text: event.delta.text } };
+      }
+    }
+    const message = await stream.finalMessage();
+    finished = true;
+    return message;
+  } catch (err) {
+    if (timedOut) throw new GMTurnTimeoutError();
+    throw err;
+  } finally {
+    clearTimeout(idleTimer);
+    signal?.removeEventListener("abort", onAbort);
+    // The consumer stopped early (or an error escaped): don't leave the
+    // request generating tokens nobody will read.
+    if (!finished) stream.abort();
+  }
 }
 
 // Streaming version for the API route
@@ -233,125 +330,148 @@ export async function* streamGMTurn(
   action: PlayerAction,
   session: InMemorySession,
   character: CharacterData,
-  world: WorldData
+  world: WorldData,
+  options: StreamGMTurnOptions = {},
 ): AsyncGenerator<GMStreamEvent> {
-  const client = getAnthropicClient();
+  const { signal, rng = Math.random } = options;
   const systemPrompt = buildSystemPrompt(session, character, world);
   const history = buildContextMessages(session, character, world);
-
-  const messages: Array<{ role: "user" | "assistant"; content: string }> = [
+  const baseMessages: Anthropic.MessageParam[] = [
     ...history.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: buildUserMessage(action) },
   ];
+  const passive = computePassiveBonuses(action, character);
 
-  let accumulated = "";
-
-  let lastErrorClass: ProviderErrorClass | null = null;
+  let lastErrorClass: ProviderErrorClass = "provider_error";
   for (let attempt = 0; attempt <= TURN_RELIABILITY_POLICY.maxRetries; attempt += 1) {
+    if (signal?.aborted) return;
+    if (attempt > 0) yield { type: "narration_reset", data: { reason: "retry" } };
+
     try {
-      const stream = await Promise.race([
-        client.messages.create({
-          model: MODEL,
-          max_tokens: MAX_TOKENS,
-          system: systemPrompt,
-          messages,
-          stream: true,
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("gm_turn_timeout")), TURN_RELIABILITY_POLICY.timeoutMs),
-        ),
-      ]);
+      const messages = [...baseMessages];
+      let skillCheck: SkillCheckResult | null = null;
+      let final: Anthropic.Message | null = null;
 
-    for await (const chunk of stream) {
-      if (
-        chunk.type === "content_block_delta" &&
-        chunk.delta.type === "text_delta"
-      ) {
-        accumulated += chunk.delta.text;
+      // Round 1 may call roll_skill_check; round 2 (only after a roll) must
+      // write the narration, so it gets tool_choice "none".
+      for (let round = 0; round < 2; round += 1) {
+        final = yield* streamRound(
+          {
+            model: MODEL,
+            max_tokens: MAX_TOKENS,
+            system: systemPrompt,
+            tools: [SKILL_CHECK_TOOL],
+            tool_choice: round === 0
+              ? { type: "auto", disable_parallel_tool_use: true }
+              : { type: "none" },
+            messages,
+          },
+          signal,
+        );
 
-        // Stream narration chunks as they arrive (before JSON is complete)
-        // We yield raw text chunks for the client to buffer
-        yield {
-          type: "narration_chunk",
-          data: { text: chunk.delta.text },
+        if (final.stop_reason === "refusal") throw new GMRefusalError();
+        if (final.stop_reason !== "tool_use" || round > 0) break;
+
+        // Anything written before the tool call is preamble, not the reply.
+        yield { type: "narration_reset", data: { reason: "tool_use" } };
+
+        const toolResults: Anthropic.ToolResultBlockParam[] = [];
+        for (const block of final.content) {
+          if (block.type !== "tool_use") continue;
+          const parsed = block.name === SKILL_CHECK_TOOL_NAME && !skillCheck
+            ? SkillCheckInputSchema.safeParse(block.input)
+            : null;
+          if (parsed?.success) {
+            skillCheck = resolveSkillCheck(parsed.data, character, passive.bonuses, rng);
+            yield { type: "skill_check_result", data: skillCheck };
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              content: skillCheckToolResult(skillCheck),
+            });
+          } else {
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              is_error: true,
+              content: "No roll was made. Narrate the action without a skill check.",
+            });
+          }
+        }
+        messages.push(
+          { role: "assistant", content: final.content },
+          { role: "user", content: toolResults },
+        );
+      }
+
+      const gmResponse = parseGMResponse(final ? textOf(final) : "");
+
+      if (gmResponse.soundCue) {
+        yield { type: "sound_cue", data: { cue: gmResponse.soundCue } };
+      }
+
+      const mergedStateChanges: Record<string, unknown> = {
+        ...(gmResponse.stateChanges ?? {}),
+        passiveBonuses: passive.bonuses,
+        // Only surface passive bonuses to the player when a skill check is
+        // actually being resolved this turn — otherwise every "I attack"
+        // turn dumps a "STR granted +X on melee_attack" line into the log
+        // even when no roll happens.
+        ...(skillCheck && passive.narration.length > 0
+          ? { passiveBonusNarration: passive.narration }
+          : {}),
+      };
+
+      if (skillCheck) {
+        mergedStateChanges.flags = {
+          ...((mergedStateChanges.flags as Record<string, unknown>) ?? {}),
+          last_skill_check: JSON.stringify(skillCheck),
         };
       }
-    }
 
-    // Parse the full accumulated response
-    const gmResponse = parseGMResponse(accumulated);
+      yield { type: "state_change", data: mergedStateChanges };
 
-    if (gmResponse.soundCue) {
-      yield { type: "sound_cue", data: { cue: gmResponse.soundCue } };
-    }
-
-    const passive = computePassiveBonuses(action, character);
-    const mergedStateChanges: Record<string, unknown> = {
-      ...(gmResponse.stateChanges ?? {}),
-      passiveBonuses: passive.bonuses,
-      // Only surface passive bonuses to the player when a skill_check is
-      // actually being resolved this turn — otherwise every "I attack"
-      // turn dumps a "STR granted +X on melee_attack" line into the log
-      // even when no roll happens.
-      ...(gmResponse.skill_check && passive.narration.length > 0
-        ? { passiveBonusNarration: passive.narration }
-        : {}),
-    };
-
-    if (gmResponse.skill_check) {
-      const { stat, dc, label } = gmResponse.skill_check;
-      const statValue = (character.stats as unknown as Record<string, unknown>)[stat];
-      const base = typeof statValue === "number" ? statValue : 10;
-      const modifier = Math.floor((base - 10) / 2);
-      const roll = Math.floor(Math.random() * 20) + 1;
-      const total = roll + modifier;
-      const success = total >= dc;
-      mergedStateChanges.flags = {
-        ...((mergedStateChanges.flags as Record<string, unknown>) ?? {}),
-        last_skill_check: JSON.stringify({ stat, roll, modifier, dc, total, success, label }),
+      yield {
+        type: "choices_ready",
+        data: {
+          choices: gmResponse.choices,
+          narration: gmResponse.narration,
+          npcAction: gmResponse.npcAction,
+        },
       };
-      if (!gmResponse.soundCue) {
-        yield { type: "sound_cue", data: { cue: success ? "success" : "failure" } };
-      }
-    }
-
-    yield { type: "state_change", data: mergedStateChanges };
-
-    yield {
-      type: "choices_ready",
-      data: {
-        choices: gmResponse.choices,
-        narration: gmResponse.narration,
-        npcAction: gmResponse.npcAction,
-      },
-    };
 
       yield { type: "done", data: null };
       return;
     } catch (err) {
-      lastErrorClass = classifyProviderError(err);
-      if (attempt < TURN_RELIABILITY_POLICY.maxRetries) continue;
-      yield {
-        type: "error",
-        data: {
-          message: degradedMessage(lastErrorClass),
-          degraded: true,
-          errorClass: lastErrorClass,
-          fallbackMode: TURN_RELIABILITY_POLICY.fallback.mode,
-        },
-      };
-      yield {
-        type: "choices_ready",
-        data: {
-          choices: buildFallbackChoices(character),
-          narration: degradedMessage(lastErrorClass),
-          npcAction: null,
-        },
-      };
-      yield { type: "done", data: null };
-      return;
+      // The player went away — nobody is listening for a fallback turn.
+      if (signal?.aborted) return;
+      const refused = err instanceof GMRefusalError;
+      lastErrorClass = refused ? "safety_refusal" : classifyProviderError(err);
+      const retryable = !refused && isRetryableProviderError(err);
+      if (retryable && attempt < TURN_RELIABILITY_POLICY.maxRetries) continue;
+      break;
     }
   }
+
+  yield { type: "narration_reset", data: { reason: "fallback" } };
+  yield {
+    type: "error",
+    data: {
+      message: degradedMessage(lastErrorClass),
+      degraded: true,
+      errorClass: lastErrorClass,
+      fallbackMode: TURN_RELIABILITY_POLICY.fallback.mode,
+    },
+  };
+  yield {
+    type: "choices_ready",
+    data: {
+      choices: buildFallbackChoices(character),
+      narration: degradedMessage(lastErrorClass),
+      npcAction: null,
+    },
+  };
+  yield { type: "done", data: null };
 }
 
 // Build the opening narration for a new session (first turn)

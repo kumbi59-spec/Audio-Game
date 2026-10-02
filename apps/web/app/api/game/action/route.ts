@@ -138,13 +138,28 @@ export async function POST(req: NextRequest) {
 
       let fullNarration = "";
       let stateChanges: Record<string, unknown> = {};
+      // Only a turn that ran to completion is persisted. A degraded (fallback)
+      // turn is rolled back on the client, and an abandoned one (the player
+      // disconnected) never reached its history, so neither is saved or
+      // counted here.
+      let completed = false;
+      let degraded = false;
 
       try {
-        for await (const evt of streamGMTurn(action, session, character, world)) {
+        for await (const evt of streamGMTurn(action, session, character, world, { signal: req.signal })) {
           send(evt.type, evt.data);
 
           if (evt.type === "narration_chunk" && evt.data && typeof (evt.data as { text?: string }).text === "string") {
             fullNarration += (evt.data as { text: string }).text;
+          }
+          if (evt.type === "narration_reset") {
+            fullNarration = "";
+          }
+          if (evt.type === "error") {
+            degraded = true;
+          }
+          if (evt.type === "done") {
+            completed = true;
           }
           if (evt.type === "state_change" && evt.data && typeof evt.data === "object") {
             stateChanges = { ...stateChanges, ...(evt.data as Record<string, unknown>) };
@@ -158,11 +173,11 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        if (ownedSession) {
+        if (ownedSession && completed && !degraded) {
           try {
-            const { persistTurn, updateGameState, incrementTurnCount, countHistoryEntries, getOldestHistoryEntries } =
+            const { persistTurn, updateGameState, incrementTurnCount, getHistoryEntriesInTurnRange, markSummarized } =
               await import("@/lib/db/queries/sessions");
-            const { summarizeHistory, SUMMARIZE_THRESHOLD, ENTRIES_TO_COMPRESS } =
+            const { summarizeHistory, SUMMARIZE_AFTER_TURNS, TURNS_PER_SUMMARY } =
               await import("@/lib/ai/memory/summarizer");
             const sessionId = ownedSession.id;
             const ownerId = player.userId;
@@ -217,11 +232,15 @@ export async function POST(req: NextRequest) {
               });
             }
 
-            const historyCount = await countHistoryEntries(sessionId);
-            if (historyCount >= SUMMARIZE_THRESHOLD) {
-              const oldEntries = await getOldestHistoryEntries(sessionId, ENTRIES_TO_COMPRESS);
+            // Fold the oldest unsummarised window into the memory summary
+            // once enough turns have piled up past the marker. The marker
+            // advances each time, so every window is summarised exactly once.
+            const summarizedThrough = storedState?.summarizedThroughTurn ?? 0;
+            if (storedState && newTurn - summarizedThrough >= SUMMARIZE_AFTER_TURNS) {
+              const windowEnd = summarizedThrough + TURNS_PER_SUMMARY;
+              const entries = await getHistoryEntriesInTurnRange(sessionId, summarizedThrough, windowEnd);
               const summary = await summarizeHistory(
-                oldEntries.map((e) => ({
+                entries.map((e) => ({
                   role: e.role as "user" | "assistant",
                   content: e.content,
                   turnNumber: e.turnNumber,
@@ -229,8 +248,8 @@ export async function POST(req: NextRequest) {
                 session.memorySummary,
                 world.name
               );
-              await updateGameState(sessionId, ownerId, { memorySummary: summary });
-              send("memory_summary", { summary });
+              const applied = await markSummarized(sessionId, ownerId, summarizedThrough, windowEnd, summary);
+              if (applied) send("memory_summary", { summary });
             }
           } catch (dbErr) {
             // DB persistence is best-effort — don't fail the game turn

@@ -9,8 +9,8 @@ import { speak, stopSpeech } from "@/lib/audio/tts-provider";
 import { speakNarrationMultiVoice, npcKeyFromName, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
 import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
-import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry } from "@/types/game";
-import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, retryWithBackoff, sanitizeAction, shouldPlaySoundCue, withNpcActionDialogue } from "@/src/domain/game/use-cases";
+import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry, SkillCheckResult } from "@/types/game";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, formatSkillCheckLine, retryWithBackoff, sanitizeAction, shouldPlaySoundCue, withNpcActionDialogue } from "@/src/domain/game/use-cases";
 import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
@@ -68,10 +68,6 @@ export function useGameSession() {
   // Keyed by npcKey too. Read by speakNarrationMultiVoice when it needs to
   // pick a voice for an NPC that doesn't yet have one.
   const npcGenderHintsRef = useRef<Map<string, VoiceGender>>(new Map());
-  // Last-rendered skill_check signature, used to dedupe the dice-result system
-  // entry. The GM doesn't clear flags.last_skill_check between turns, so the
-  // same flag value can arrive on multiple subsequent state_change events.
-  const lastRenderedSkillCheckRef = useRef<string | null>(null);
   const [lastNarration, setLastNarration] = useState("");
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -82,7 +78,6 @@ export function useGameSession() {
   useEffect(() => {
     npcVoiceAssignmentsRef.current = new Map();
     npcGenderHintsRef.current = new Map();
-    lastRenderedSkillCheckRef.current = null;
 
     const worldId = session?.worldId;
     if (!worldId || !entitlements.premiumTts) return;
@@ -288,6 +283,21 @@ export function useGameSession() {
               if (eventType === "narration_chunk") {
                 narrationBuffer += data.text;
                 accumulatedNarration += data.text;
+              } else if (eventType === "narration_reset") {
+                // The server discarded what it streamed so far (a retry, or
+                // text written before a skill-check roll). Drop it here too so
+                // it never lands in history.
+                narrationBuffer = "";
+                accumulatedNarration = "";
+              } else if (eventType === "skill_check_result") {
+                // The roll is resolved before the narration is written, so the
+                // dice line goes in the log ahead of the narration that
+                // describes its outcome.
+                const sc = data as SkillCheckResult;
+                const line = formatSkillCheckLine(sc);
+                addNarrationEntry({ id: `sc-${Date.now()}`, text: line, type: "system", timestamp: new Date() });
+                announce(line, "polite");
+                if (soundCuesEnabled) playSoundCue(sc.success ? "success" : "failure");
               } else if (eventType === "sound_cue") {
                 const cue = (data.cue as SoundCue | null) ?? null;
                 if (shouldPlaySoundCue(soundCuesEnabled, eventType, cue)) {
@@ -438,32 +448,6 @@ export function useGameSession() {
                   timestamp: new Date(),
                 };
                 addNarrationEntry(narEntry);
-
-                // Skill check resolution arrives as flags.last_skill_check on
-                // this turn's state_change. We render the result entry AFTER
-                // the narration that introduces the check so the order in the
-                // log reads naturally — narration setup, then dice outcome —
-                // instead of dice-result-then-the-setup-it-resolved.
-                const flags = useGameStore.getState().session?.globalFlags as Record<string, unknown> | undefined;
-                if (
-                  flags &&
-                  typeof flags.last_skill_check === "string" &&
-                  flags.last_skill_check !== lastRenderedSkillCheckRef.current
-                ) {
-                  try {
-                    const sc = JSON.parse(flags.last_skill_check) as {
-                      stat: string; roll: number; modifier: number; dc: number; total: number; success: boolean; label: string;
-                    };
-                    const sign = sc.modifier >= 0 ? `+${sc.modifier}` : `${sc.modifier}`;
-                    addNarrationEntry({
-                      id: `sc-${Date.now()}`,
-                      text: `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${sign} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`,
-                      type: "system",
-                      timestamp: new Date(),
-                    });
-                    lastRenderedSkillCheckRef.current = flags.last_skill_check;
-                  } catch { /* malformed flag — skip */ }
-                }
 
                 if (entitlements.premiumTts && character) {
                   const worldId = session.worldId;

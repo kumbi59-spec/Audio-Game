@@ -36,7 +36,9 @@ export async function getSessionWithHistory(sessionId: string, recentTurns = 40)
     }),
     prisma.gameHistoryEntry.findMany({
       where: { sessionId },
-      orderBy: { turnNumber: "desc" },
+      // Within a turn, "assistant" sorts before "user"; reversed below, the
+      // player's action comes first.
+      orderBy: [{ turnNumber: "desc" }, { role: "asc" }],
       take: recentTurns,
     }),
   ]);
@@ -145,14 +147,37 @@ export async function incrementTurnCount(sessionId: string, ownerId: string): Pr
   });
 }
 
-export async function countHistoryEntries(sessionId: string) {
-  return prisma.gameHistoryEntry.count({ where: { sessionId } });
+/**
+ * History rows for turns in (fromExclusive, toInclusive], oldest first, with
+ * the player's action before the GM's reply within each turn.
+ */
+export async function getHistoryEntriesInTurnRange(
+  sessionId: string,
+  fromExclusive: number,
+  toInclusive: number,
+) {
+  return prisma.gameHistoryEntry.findMany({
+    where: { sessionId, turnNumber: { gt: fromExclusive, lte: toInclusive } },
+    // "user" sorts after "assistant", so desc puts the action first.
+    orderBy: [{ turnNumber: "asc" }, { role: "desc" }],
+  });
 }
 
-export async function getOldestHistoryEntries(sessionId: string, take: number) {
-  return prisma.gameHistoryEntry.findMany({
-    where: { sessionId },
-    orderBy: { turnNumber: "asc" },
-    take,
+/**
+ * Stores a new memory summary and advances the summarised-through marker,
+ * but only if no other request advanced it first (compare-and-set on
+ * `expectedThrough`). Returns whether this call applied.
+ */
+export async function markSummarized(
+  sessionId: string,
+  ownerId: string,
+  expectedThrough: number,
+  newThrough: number,
+  memorySummary: string,
+): Promise<boolean> {
+  const result = await prisma.gameState.updateMany({
+    where: { sessionId, summarizedThroughTurn: expectedThrough, session: { userId: ownerId } },
+    data: { memorySummary, summarizedThroughTurn: newThrough, lastUpdatedAt: new Date() },
   });
+  return result.count > 0;
 }

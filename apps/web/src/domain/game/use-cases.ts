@@ -1,4 +1,4 @@
-import type { GMResponse, ItemMutation, NarrationEntry, PlayerAction, QuestMutation, SoundCue } from "@/types/game";
+import type { GMResponse, ItemMutation, NarrationEntry, PlayerAction, QuestMutation, SkillCheckResult, SoundCue } from "@/types/game";
 
 export function selectChoice(choiceLabel: string): string {
   return choiceLabel.replace(/\s+/g, " ").trim();
@@ -198,4 +198,18 @@ function prettifyNpcId(npcId: string): string {
 
 export function shouldPlaySoundCue(soundCuesEnabled: boolean, eventType: string, cue: SoundCue | null): cue is SoundCue {
   return soundCuesEnabled && eventType === "sound_cue" && Boolean(cue);
+}
+
+function signed(n: number): string {
+  return n >= 0 ? `+${n}` : `${n}`;
+}
+
+/**
+ * Player-facing dice line for a resolved skill check, e.g.
+ * "🎲 STR check — Force the gate: rolled 14 +2 = 16 vs DC 12 — Success!".
+ * Passive bonuses appear as their own term so the arithmetic adds up.
+ */
+export function formatSkillCheckLine(sc: SkillCheckResult): string {
+  const bonus = sc.bonus ? ` ${signed(sc.bonus)} bonus` : "";
+  return `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${signed(sc.modifier)}${bonus} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`;
 }

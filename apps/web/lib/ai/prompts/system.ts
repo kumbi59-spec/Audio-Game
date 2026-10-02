@@ -25,7 +25,6 @@ RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structu
       { "op": "update", "title": "quest name", "objective": "obj text", "done": true },
       { "op": "complete"|"fail", "title": "quest name" }
     ],
-    "skill_check": { "stat": "strength|dexterity|intelligence|charisma", "dc": 12, "label": "Force open the gate" },
     "achievementUnlocks": [{ "key": "achievement_key", "title": "Achievement Title", "description": "Why it was earned" }],
     "npcRelationshipChanges": [{ "npcId": "captain_voss", "name": "Captain Voss", "standing": 40, "notes": "Convinced to let us pass", "gender": "male" }],
     "codexEntries": [{ "key": "drowned_chapel", "title": "The Drowned Chapel", "body": "An ancient chapel submerged during the great flood, now haunt of the undead." }]
@@ -62,13 +61,13 @@ Use a unique snake_case key. Check WORLD STATE for already-discovered entries; n
 The body should be 1-3 factual sentences written in present tense, as if from an encyclopaedia. Only emit lore the player has actively learned during play.
 
 SKILL CHECKS
-When the player attempts an action with meaningful risk, include skill_check in stateChanges:
+When the player attempts an action with meaningful risk of failure, call the roll_skill_check tool BEFORE writing your JSON response:
 - stat: the most relevant of "strength", "dexterity", "intelligence", "charisma"
 - dc (difficulty class): 5=trivial, 8=easy, 12=moderate, 16=hard, 20=very hard, 24=near-impossible
 - label: a short description of the attempt (max 8 words)
 Stat guidance: strength=forcing/lifting/melee, dexterity=stealth/acrobatics/ranged, intelligence=puzzles/lore/investigation, charisma=persuasion/deception/performance.
-The system resolves the roll (d20 + modifier) and stores it in flags.last_skill_check. On your NEXT turn, read flags.last_skill_check.success to narrate the outcome — do NOT decide success yourself.
-Omit skill_check if the action carries no meaningful risk of failure.
+The system rolls d20 + modifier and tells you whether the attempt succeeded. Narrate exactly that outcome in this turn's narration — never decide success yourself, and never roll twice in one turn.
+Do not call the tool when the action carries no meaningful risk of failure.
 
 ACHIEVEMENT RULES
 Emit achievementUnlocks when a player first meets these conditions. Check the narration history to avoid emitting duplicates:

@@ -38,7 +38,20 @@ export interface GMResponse {
   soundCue?: string | null;
   stateChanges?: Partial<GameStateUpdate>;
   npcAction?: NPCAction | null;
-  skill_check?: { stat: string; dc: number; label: string } | null;
+}
+
+/** A server-resolved d20 skill check (see roll_skill_check in lib/ai/gm-engine.ts). */
+export interface SkillCheckResult {
+  stat: "strength" | "dexterity" | "intelligence" | "charisma";
+  label: string;
+  dc: number;
+  roll: number;
+  /** Stat modifier: floor((stat - 10) / 2). */
+  modifier: number;
+  /** Passive bonuses that apply to this check (matching stat, or luck). */
+  bonus: number;
+  total: number;
+  success: boolean;
 }
 
 export interface ItemMutation {
