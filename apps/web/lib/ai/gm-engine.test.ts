@@ -11,7 +11,7 @@ vi.mock("./client", async (importOriginal) => ({
   getAnthropicClient: () => ({ messages: { stream: mocks.stream } }),
 }));
 
-import { resolveSkillCheck, streamGMTurn, type GMStreamEvent } from "./gm-engine";
+import { computePassiveBonuses, resolveSkillCheck, streamGMTurn, type GMStreamEvent } from "./gm-engine";
 
 interface Script {
   text?: string[];
@@ -428,3 +428,19 @@ describe("streamGMTurn", () => {
     expect(eventData(events, "error")).toMatchObject({ degraded: true, errorClass: "timeout" });
   });
 });
+
+describe("computePassiveBonuses", () => {
+  const strong = { ...character, customStats: {}, stats: { ...character.stats, strength: 16, dexterity: 18 } };
+  const act = (content: string): PlayerAction => ({ type: "free_text", content });
+
+  it("matches whole words and their inflections", () => {
+    expect(computePassiveBonuses(act("I attacked the guard"), strong).bonuses.map((b) => b.targetRoll)).toEqual(["melee_attack"]);
+    expect(computePassiveBonuses(act("I keep dodging"), strong).bonuses.map((b) => b.targetRoll)).toEqual(["evade"]);
+  });
+
+  it("doesn't match a keyword hidden inside another word", () => {
+    expect(computePassiveBonuses(act("I paint the white chapel"), strong).bonuses).toEqual([]);
+    expect(computePassiveBonuses(act("I pick up the duckling"), strong).bonuses).toEqual([]);
+  });
+});
+

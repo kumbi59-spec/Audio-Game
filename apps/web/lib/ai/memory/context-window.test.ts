@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { pendingSummaryFor, trimHistoryForContext } from "./context-window";
+import type { CharacterData } from "@/types/character";
+import { buildCharacterStateBlock, pendingSummaryFor, trimHistoryForContext } from "./context-window";
 
 const msg = (i: number, size = 10) => ({ role: i % 2 ? "assistant" : "user", content: String(i).padEnd(size, ".") });
 
@@ -53,5 +54,26 @@ describe("pendingSummaryFor", () => {
     const pending = pendingSummaryFor(long, 0, 100);
     expect(pending?.messages).toHaveLength(40);
     expect(pendingSummaryFor(long, 40, 100)?.fromMessage).toBe(40);
+  });
+});
+
+describe("buildCharacterStateBlock", () => {
+  const hero: CharacterData = {
+    id: "c1",
+    name: "Mara",
+    class: "warrior",
+    backstory: "",
+    stats: { hp: 12, maxHp: 25, strength: 12, dexterity: 10, intelligence: 10, charisma: 10, level: 2, experience: 250 },
+    inventory: [],
+    quests: [],
+  };
+
+  it("gives the real XP target for the next level", () => {
+    expect(buildCharacterStateBlock(hero)).toContain("XP: 250 (level 3 at 400 XP, 150 to go)");
+  });
+
+  it("flags a character at 0 HP as down", () => {
+    expect(buildCharacterStateBlock(hero)).not.toContain("Condition: DOWN");
+    expect(buildCharacterStateBlock({ ...hero, stats: { ...hero.stats, hp: 0 } })).toContain("Condition: DOWN (0 HP)");
   });
 });

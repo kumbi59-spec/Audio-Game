@@ -4,6 +4,7 @@ import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, Quest
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
+import { mergeAchievement, mergeCodexEntry, mergeRelationship, type RelationshipChange } from "@/lib/game/session-progress";
 import {
   applyHpDelta,
   applyInventoryMutation,
@@ -63,7 +64,7 @@ interface GameStore {
   applyInventoryMutation: (mutation: ItemMutation) => void;
   applyQuestMutation: (mutation: QuestMutation) => void;
   unlockAchievement: (achievement: AchievementUnlock) => void;
-  updateNpcRelationship: (change: { npcId: string; name: string; standing: number; notes?: string }) => void;
+  updateNpcRelationship: (change: RelationshipChange) => void;
   addCodexEntry: (entry: CodexEntry) => void;
   updateLocation: (locationId: string) => void;
   setMemorySummary: (summary: string) => void;
@@ -144,32 +145,33 @@ export const useGameStore = create<GameStore>()(
       unlockAchievement: (achievement) =>
         set((s) =>
           s.session
-            ? { session: { ...s.session, achievements: [...(s.session.achievements ?? []), achievement] } }
+            ? {
+                session: {
+                  ...s.session,
+                  achievements: mergeAchievement(s.session.achievements ?? [], achievement, s.session.turnCount),
+                },
+              }
             : s
         ),
 
       updateNpcRelationship: (change) =>
-        set((s) => {
-          if (!s.session) return s;
-          const existing = s.session.relationships.findIndex((r) => r.npcId === change.npcId);
-          const turnCount = s.session.turnCount;
-          const updated: NpcRelationship[] =
-            existing >= 0
-              ? s.session.relationships.map((r, i) =>
-                  i === existing
-                    ? { ...r, standing: change.standing, notes: change.notes ?? r.notes, lastSeenTurn: turnCount }
-                    : r
-                )
-              : [...s.session.relationships, { ...change, lastSeenTurn: turnCount }];
-          return { session: { ...s.session, relationships: updated } };
-        }),
+        set((s) =>
+          s.session
+            ? {
+                session: {
+                  ...s.session,
+                  relationships: mergeRelationship(s.session.relationships ?? [], change, s.session.turnCount),
+                },
+              }
+            : s
+        ),
 
       addCodexEntry: (entry) =>
-        set((s) => {
-          if (!s.session) return s;
-          if (s.session.codex.some((c) => c.key === entry.key)) return s;
-          return { session: { ...s.session, codex: [...s.session.codex, entry] } };
-        }),
+        set((s) =>
+          s.session
+            ? { session: { ...s.session, codex: mergeCodexEntry(s.session.codex ?? [], entry, s.session.turnCount) } }
+            : s
+        ),
 
       updateLocation: (locationId) =>
         set((state) => ({

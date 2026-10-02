@@ -223,9 +223,9 @@ export function GameShell() {
   }, [operationsManualOpen, handleCloseOperationsManual, openOperationsManual]);
 
   const handleAction = useCallback(
-    (action: PlayerAction) => {
-      if (session?.isGenerating) return;
-      submitAction(action);
+    (action: PlayerAction): Promise<boolean> => {
+      if (session?.isGenerating) return Promise.resolve(false);
+      return submitAction(action);
     },
     [session, submitAction]
   );

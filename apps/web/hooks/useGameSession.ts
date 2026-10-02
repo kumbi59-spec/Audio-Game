@@ -138,19 +138,20 @@ export function useGameSession() {
     [ttsSpeed, ttsPitch, volume]
   );
 
+  /** Plays one turn. Resolves true once the turn has landed, false if it didn't. */
   const submitAction = useCallback(
-    async (action: PlayerAction) => {
+    async (action: PlayerAction): Promise<boolean> => {
       const normalizedAction = sanitizeAction(action);
-      if (!normalizedAction) return;
+      if (!normalizedAction) return false;
 
       const eligibility = validateActionEligibility({ session, character, world, action: normalizedAction });
-      if (!eligibility.allowed) return;
+      if (!eligibility.allowed) return false;
 
-      if (!session || !character || !world) return;
+      if (!session || !character || !world) return false;
 
       // Synchronous guard: prevents a second submit firing in the same render
       // cycle before setIsGenerating(true) has re-rendered.
-      if (inFlightRef.current) return;
+      if (inFlightRef.current) return false;
       inFlightRef.current = true;
 
       // Stop any current TTS
@@ -372,11 +373,16 @@ export function useGameSession() {
                 const change = data as Record<string, unknown>;
                 if (change.hp !== undefined && change.hp !== null) {
                   const delta = change.hp as number;
+                  const hpBefore = useGameStore.getState().character?.stats.hp ?? 0;
                   updateHP(delta);
-                  // Audible cue for screen-reader users — the status bar
+                  const hpAfter = useGameStore.getState().character?.stats.hp ?? 0;
+                  // Audible cue for screen-reader users; the status bar
                   // updates silently otherwise. Polite priority so it queues
                   // behind narration rather than interrupting it.
-                  if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
+                  if (hpAfter === 0 && hpBefore > 0) {
+                    announce("You're down. Zero health.", "assertive");
+                    if (soundCuesEnabled) playSoundCue("death_nearby");
+                  } else if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
                   else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
                 }
                 if (change.statDeltas && typeof change.statDeltas === "object") {
@@ -598,7 +604,7 @@ export function useGameSession() {
               }
               : null,
           });
-          return;
+          return false;
         }
 
         // Update session history for context continuity
@@ -628,6 +634,7 @@ export function useGameSession() {
         }
 
         incrementTurnCount();
+        return true;
       } catch (err) {
         narrator.cancel();
         if (narrator.committedText) stopSpeech();
@@ -643,6 +650,7 @@ export function useGameSession() {
               : null,
           });
         }
+        return false;
       } finally {
         inFlightRef.current = false;
         setIsGenerating(false);

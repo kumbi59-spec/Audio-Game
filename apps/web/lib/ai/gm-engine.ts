@@ -162,8 +162,21 @@ function skillCheckToolResult(result: SkillCheckResult): string {
   ].join("\n");
 }
 
-function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
-  const text = `${action.type} ${action.content}`.toLowerCase();
+/** The word forms "attack" covers: attacks, attacked, attacking; "dodge": dodging. */
+function wordForms(base: string): string[] {
+  const forms = [base, `${base}s`, `${base}es`, `${base}ed`, `${base}d`, `${base}ing`];
+  if (base.endsWith("e")) forms.push(`${base.slice(0, -1)}ing`);
+  if (base.endsWith("y")) forms.push(`${base.slice(0, -1)}ies`, `${base.slice(0, -1)}ied`);
+  return forms;
+}
+
+/** True when the action uses one of `keywords` as a whole word, so "hit" doesn't match "white". */
+function mentionsAny(words: Set<string>, keywords: readonly string[]): boolean {
+  return keywords.some((k) => wordForms(k).some((form) => words.has(form)));
+}
+
+export function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
+  const words = new Set(action.content.toLowerCase().match(/[a-z]+/g) ?? []);
   const stats = character.stats;
   const customStats = character.customStats ?? {};
   const bonuses: PassiveBonus[] = [];
@@ -173,23 +186,23 @@ function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
     bonuses.push({ sourceStat, value, reason, targetRoll });
   };
 
-  const meleeKeywords = ["attack", "strike", "slash", "melee", "hit"];
+  const meleeKeywords = ["attack", "strike", "struck", "slash", "melee", "hit", "hitting"];
   const evadeKeywords = ["dodge", "evade", "avoid", "parry", "duck", "defend"];
   const socialKeywords = ["persuade", "convince", "charm", "negotiate", "deceive"];
 
-  if (meleeKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, meleeKeywords)) {
     pushBonus("strength", Math.max(0, Math.floor((stats.strength - 10) / 3)), "Physical power improves close-quarters attacks", "melee_attack");
   }
-  if (evadeKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, evadeKeywords)) {
     pushBonus("dexterity", Math.max(0, Math.floor((stats.dexterity - 10) / 4)), "Quick reflexes improve evasive reactions", "evade");
   }
-  if (socialKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, socialKeywords)) {
     pushBonus("charisma", Math.max(0, Math.floor((stats.charisma - 10) / 4)), "Presence and confidence improve social influence", "social_check");
   }
 
   for (const [key, val] of Object.entries(customStats)) {
     if (typeof val !== "number") continue;
-    if (key.toLowerCase().includes("armor") && text.includes("damage")) {
+    if (key.toLowerCase().includes("armor") && mentionsAny(words, ["damage"])) {
       pushBonus(key, Math.max(0, Math.floor(val / 5)), "Defensive training softens incoming hits", "damage_taken");
     }
     if (key.toLowerCase().includes("luck")) {

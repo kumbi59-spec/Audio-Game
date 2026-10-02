@@ -6,6 +6,7 @@ import { useAudioStore } from "@/store/audio-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import type { CharacterData } from "@/types/character";
 import type { AchievementUnlock, NpcRelationship, CodexEntry } from "@/types/game";
+import { xpToReachLevel } from "@/lib/game/character-reducer";
 
 interface CharacterSheetProps {
   character: CharacterData;
@@ -103,11 +104,11 @@ function StatItem({ label, value }: { label: string; value: number }) {
   );
 }
 
-function xpForNextLevel(level: number) { return level * 100; }
+/** XP needed to get from the start of `level` to the next one. */
+function xpForNextLevel(level: number) { return xpToReachLevel(level + 1) - xpToReachLevel(level); }
+/** XP earned since reaching `level`. */
 function xpIntoLevel(totalXp: number, level: number) {
-  let cumulative = 0;
-  for (let l = 1; l < level; l++) cumulative += xpForNextLevel(l);
-  return Math.max(0, totalXp - cumulative);
+  return Math.max(0, totalXp - xpToReachLevel(level));
 }
 
 function StatsTab({ character }: { character: CharacterData }) {
@@ -525,7 +526,7 @@ function LoreTab({ codex }: { codex: CodexEntry[] }) {
       </div>
     );
   }
-  const sorted = [...codex].sort((a, b) => b.unlockedAt - a.unlockedAt);
+  const sorted = [...codex].sort((a, b) => (b.unlockedAt ?? 0) - (a.unlockedAt ?? 0));
   return (
     <ul className="space-y-3" aria-label="Discovered lore">
       {sorted.map((entry) => (

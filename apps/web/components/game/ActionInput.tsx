@@ -4,8 +4,12 @@ import { useRef, useState } from "react";
 import { VoiceCommandListener } from "@/components/accessibility/VoiceCommandListener";
 import type { PlayerAction } from "@/types/game";
 
+/** Longest action the server accepts (app/api/game/action ActionSchema). */
+export const MAX_ACTION_LENGTH = 2000;
+
 interface ActionInputProps {
-  onAction: (action: PlayerAction) => void;
+  /** Resolves false when the turn didn't go through, so the text can be restored. */
+  onAction: (action: PlayerAction) => void | Promise<boolean | void>;
   choices?: string[];
   disabled?: boolean;
   id?: string;
@@ -16,12 +20,15 @@ export function ActionInput({ onAction, choices = [], disabled = false, id = "ac
   const [voiceActive, setVoiceActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
-    onAction({ type: "free_text", content: trimmed });
     setText("");
+    const landed = await onAction({ type: "free_text", content: trimmed });
+    // The turn failed: put the player's words back unless they've already
+    // started typing something new.
+    if (landed === false) setText((current) => current || trimmed);
   }
 
   function handleVoiceAction(transcript: string) {
@@ -47,6 +54,7 @@ export function ActionInput({ onAction, choices = [], disabled = false, id = "ac
           disabled={disabled}
           placeholder="Type or speak your action…"
           autoComplete="off"
+          maxLength={MAX_ACTION_LENGTH}
           className="min-h-[44px] flex-1 rounded-lg border border-input bg-background px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         />
         <button

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { streamGMTurn } from "@/lib/ai/gm-engine";
 import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/safety/moderator";
-import type { InMemorySession, PlayerAction } from "@/types/game";
+import type { AchievementUnlock, CodexEntry, InMemorySession, NpcRelationship, PlayerAction } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
 import { authorizeAiUsage, aiUsageDenialResponse } from "@/lib/ai/usage-guard";
@@ -11,6 +11,7 @@ import { getOwnedSession } from "@/lib/db/queries/sessions";
 import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
 import { applyCharacterChanges } from "@/lib/game/character-reducer";
 import { stripEmDashes } from "@/lib/ai/style";
+import { applySessionProgress } from "@/lib/game/session-progress";
 import {
   CharacterSchema,
   LegacyGuestIdSchema,
@@ -240,26 +241,16 @@ export async function POST(req: NextRequest) {
               const flagPatch = (stateChanges as { flags?: Record<string, unknown> }).flags;
 
               // Merge new achievements/relationships/codex from this turn onto
-              // the stored (server-side) values.
-              const prevAch = session.achievements as unknown[];
-              const newAch = ((stateChanges as { achievementUnlocks?: unknown[] }).achievementUnlocks ?? []) as Array<{ key: string }>;
-              const mergedAch = [...prevAch, ...newAch.filter((a) => !prevAch.some((e) => (e as { key: string }).key === a.key))];
-
-              const prevRels = session.relationships as unknown[];
-              const relChanges = ((stateChanges as { npcRelationshipChanges?: unknown[] }).npcRelationshipChanges ?? []) as Array<{ npcId: string; name: string; standing: number; notes?: string }>;
-              const mergedRels = relChanges.reduce((acc: unknown[], rel) => {
-                const idx = acc.findIndex((r) => (r as { npcId: string }).npcId === rel.npcId);
-                if (idx >= 0) {
-                  const updated = [...acc];
-                  updated[idx] = { ...acc[idx] as object, standing: rel.standing, notes: rel.notes };
-                  return updated;
-                }
-                return [...acc, rel];
-              }, [...prevRels]);
-
-              const prevCodex = session.codex as unknown[];
-              const newCodex = ((stateChanges as { codexEntries?: unknown[] }).codexEntries ?? []) as Array<{ key: string }>;
-              const mergedCodex = [...prevCodex, ...newCodex.filter((c) => !prevCodex.some((e) => (e as { key: string }).key === c.key))];
+              // the stored (server-side) values, by the same rules as the client.
+              const progress = applySessionProgress(
+                {
+                  achievements: session.achievements as AchievementUnlock[],
+                  relationships: session.relationships as NpcRelationship[],
+                  codex: session.codex as CodexEntry[],
+                },
+                stateChanges,
+                newTurn,
+              );
 
               await updateGameState(sessionId, ownerId, {
                 currentLocationId: (stateChanges as { locationId?: string }).locationId ?? session.currentLocationId,
@@ -269,9 +260,9 @@ export async function POST(req: NextRequest) {
                   ? { ...session.globalFlags, ...flagPatch }
                   : undefined,
                 npcStates: storedNpcStateRest,
-                achievements: mergedAch,
-                relationships: mergedRels,
-                codex: mergedCodex,
+                achievements: progress.achievements,
+                relationships: progress.relationships,
+                codex: progress.codex,
               });
             }
 
