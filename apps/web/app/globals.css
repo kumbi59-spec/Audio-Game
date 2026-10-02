@@ -14,10 +14,14 @@
   /* Text */
   --text:         #e8e6f0;
   --text-muted:   #8b8fa8;
-  --text-subtle:  #525873;
+  --text-subtle:  #858a9d; /* 4.6:1 on --surface-2, the darkest pairing it's used on */
 
   /* Brand / accent */
-  --accent:       #7c6af7;
+  --accent:       #8979f8; /* text/links: 4.6:1 on every dark surface */
+  /* Filled buttons and bars. A violet light enough for accent text is too
+     light for white text on it (and the reverse), so fills get their own. */
+  --accent-solid: #7261e3; /* 4.6:1 under --on-accent */
+  --on-accent:    #ffffff;
   --accent-hover: #9580ff;
   --accent-dim:   rgba(124, 106, 247, 0.15);
 
@@ -48,7 +52,7 @@
   --background:   var(--bg);
   --foreground:   var(--text);
   --primary:      var(--accent);
-  --primary-foreground: #ffffff;
+  --primary-foreground: var(--on-accent);
   --secondary:    var(--surface);
   --secondary-foreground: var(--text);
   --muted:        var(--surface-2);
@@ -65,8 +69,10 @@
   --surface-3:    #e5e2f5;
   --text:         #1a1730;
   --text-muted:   #5c5880;
-  --text-subtle:  #9490b0;
+  --text-subtle:  #6e6b83; /* 4.6:1 on --bg */
   --accent:       #5a47f0;
+  --accent-solid: #5a47f0;
+  --on-accent:    #ffffff;
   --accent-hover: #4535dc;
   --accent-dim:   rgba(90, 71, 240, 0.12);
   --border:       #d4d0ee;
@@ -87,6 +93,8 @@
   --text-muted:   #cccccc;
   --text-subtle:  #999999;
   --accent:       #ffff00;
+  --accent-solid: #ffff00;
+  --on-accent:    #000000; /* white on yellow is 1.07:1 */
   --accent-hover: #ffff66;
   --accent-dim:   rgba(255, 255, 0, 0.15);
   --border:       #666666;

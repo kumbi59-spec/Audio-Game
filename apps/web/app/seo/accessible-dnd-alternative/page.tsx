@@ -98,7 +98,7 @@ export default function Page() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/campaigns" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+          <Link href="/campaigns" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
             Explore official campaigns
           </Link>
           <Link href="/library" className="rounded-lg border px-4 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)", color: "var(--text)" }}>

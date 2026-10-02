@@ -316,7 +316,7 @@ export default function LobbyPage() {
             <button
               onClick={() => window.location.reload()}
               className="mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold"
-              style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               Retry
             </button>
@@ -383,8 +383,8 @@ export default function LobbyPage() {
                   onClick={() => markReady(!me?.ready)}
                   className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
                   style={{
-                    backgroundColor: me?.ready ? "var(--surface3)" : "var(--accent)",
-                    color: me?.ready ? "var(--text-muted)" : "#fff",
+                    backgroundColor: me?.ready ? "var(--surface3)" : "var(--accent-solid)",
+                    color: me?.ready ? "var(--text-muted)" : "var(--on-accent)",
                   }}
                   aria-pressed={me?.ready ?? false}
                 >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/game-store";
 import { GameShell } from "@/components/game/GameShell";
@@ -8,12 +8,19 @@ import { GameShell } from "@/components/game/GameShell";
 export default function PlayPage() {
   const router = useRouter();
   const { session, character, world } = useGameStore();
+  // The first client render hydrates against the server's (empty) store, so
+  // the saved game in browser storage isn't visible yet. Only decide there is
+  // no game once mounted and the store has loaded — otherwise reloading /play
+  // mid-game bounced the player back to the library.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    if (!mounted || !useGameStore.persist.hasHydrated()) return;
     if (!session || !character || !world) {
       router.replace("/library");
     }
-  }, [session, character, world, router]);
+  }, [mounted, session, character, world, router]);
 
   if (!session || !character || !world) {
     return (

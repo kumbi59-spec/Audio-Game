@@ -197,8 +197,8 @@ export default function AccountPage() {
           {tier === "free" ? (
             <Link
               href="/#pricing"
-              className="inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)" }}
+              className="inline-block rounded-lg px-4 py-2 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90"
+              style={{ backgroundColor: "var(--accent-solid)" }}
             >
               Upgrade plan
             </Link>
@@ -250,7 +250,7 @@ export default function AccountPage() {
                 style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
               >
                 {pack.badge && (
-                  <span className="mb-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+                  <span className="mb-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
                     {pack.badge}
                   </span>
                 )}
@@ -261,7 +261,7 @@ export default function AccountPage() {
                   onClick={() => buyPack(pack.id)}
                   disabled={packBuying === pack.id}
                   className="mt-auto rounded-lg py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
-                  style={{ backgroundColor: "var(--accent)", color: "#fff", minHeight: 40 }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)", minHeight: 40 }}
                 >
                   {packBuying === pack.id ? "Opening…" : "Buy"}
                 </button>
@@ -298,8 +298,8 @@ export default function AccountPage() {
               <button
                 type="submit"
                 disabled={nameSaving || !name.trim()}
-                className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-                style={{ backgroundColor: "var(--accent)", minHeight: 44 }}
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40"
+                style={{ backgroundColor: "var(--accent-solid)", minHeight: 44 }}
               >
                 {nameSaving ? "Saving…" : "Save name"}
               </button>
@@ -356,8 +356,8 @@ export default function AccountPage() {
             <button
               type="submit"
               disabled={pwSaving || !currentPw || !newPw || !confirmPw}
-              className="w-full rounded-lg py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ backgroundColor: "var(--accent)" }}
+              className="w-full rounded-lg py-3 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40"
+              style={{ backgroundColor: "var(--accent-solid)" }}
             >
               {pwSaving ? "Changing…" : "Change password"}
             </button>
@@ -423,7 +423,7 @@ export default function AccountPage() {
             <Link
               href="/admin"
               className="block w-full rounded-lg py-3 text-center text-sm font-semibold"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               Open Admin Dashboard
             </Link>

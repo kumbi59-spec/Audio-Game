@@ -95,3 +95,30 @@ jobs:
           name: mobile-web-playwright-report
           path: apps/mobile/playwright-report/
           retention-days: 7
+
+  web-e2e:
+    name: "web e2e (Next.js + Playwright + axe-core)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.11.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
+      - run: pnpm --filter @audio-rpg/web test:e2e:install
+      # Builds and serves the production bundle itself (playwright.config.ts);
+      # needs no database, AI key, or third-party network.
+      - run: pnpm --filter @audio-rpg/web test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 7

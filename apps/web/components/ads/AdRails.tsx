@@ -46,7 +46,7 @@ function SponsoredCard() {
       </span>
       <span
         className="mt-3 inline-block rounded px-3 py-1.5 text-xs font-semibold"
-        style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
         Take a look
       </span>

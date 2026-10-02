@@ -96,6 +96,12 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
   // focused button while the narrator voice is still mid-sentence, so the
   // player hears two voices at once. We poll isSpeaking() and defer the
   // announce + focus until the narrator is quiet.
+  // A turn that fails rolls back to the very same choices array, so the
+  // effect below doesn't re-run; unlock the buttons whenever a turn ends.
+  useEffect(() => {
+    if (!disabled) setSubmittedIdx(null);
+  }, [disabled]);
+
   useEffect(() => {
     if (choices.length === 0) return;
     setSubmittedIdx(null);

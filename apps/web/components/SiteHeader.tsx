@@ -80,7 +80,7 @@ export function SiteHeader() {
           <Link
             href="/auth/sign-in"
             className="rounded-lg px-3 py-1.5 text-sm font-semibold"
-            style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
           >
             Sign in
           </Link>

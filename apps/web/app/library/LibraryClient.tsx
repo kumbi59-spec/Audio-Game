@@ -51,7 +51,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
           <Link
             href="/worlds/new/upload"
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             aria-label="Share your world with the community"
           >
             Share Your World
@@ -86,7 +86,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                 <button
                   onClick={() => { saveCurrentCampaign(); router.push("/play"); }}
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                 >
                   Resume →
                 </button>
@@ -218,7 +218,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                 <Link
                   href="/worlds/new"
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                 >
                   Create the first one →
                 </Link>
@@ -322,7 +322,7 @@ function WorldCard({
             onClick={() => onPlay(world.id)}
             aria-label={`Play ${world.name}`}
             className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
           >
             Play Game →
           </button>

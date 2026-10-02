@@ -177,7 +177,7 @@ function StatsTab({ character }: { character: CharacterData }) {
           >
             <div
               className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${xpPct}%`, backgroundColor: "var(--accent)" }}
+              style={{ width: `${xpPct}%`, backgroundColor: "var(--accent-solid)" }}
             />
           </div>
         </div>
@@ -759,8 +759,8 @@ export function CharacterSheet({
               onClick={() => switchTab(t)}
               className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{
-                backgroundColor: tab === t ? "var(--accent)" : "transparent",
-                color: tab === t ? "#ffffff" : "var(--text-muted)",
+                backgroundColor: tab === t ? "var(--accent-solid)" : "transparent",
+                color: tab === t ? "var(--on-accent)" : "var(--text-muted)",
               }}
             >
               {TAB_LABELS[t]}

@@ -75,9 +75,9 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
             aria-hidden="true"
             className="inline-flex gap-1"
           >
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: "var(--accent)" }} />
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: "var(--accent)" }} />
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full" style={{ backgroundColor: "var(--accent)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: "var(--accent-solid)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: "var(--accent-solid)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full" style={{ backgroundColor: "var(--accent-solid)" }} />
           </span>
           <span>The Game Master is narrating…</span>
         </div>
