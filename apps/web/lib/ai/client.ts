@@ -11,7 +11,30 @@ export function getAnthropicClient(): Anthropic {
   return _client;
 }
 
-export const MODEL = "claude-sonnet-4-6";
+// The web game's GM model. Its own variable, separate from CLAUDE_GM_MODEL,
+// which the api service validates against its own allowlist.
+export const MODEL = process.env["CLAUDE_WEB_GM_MODEL"] || "claude-sonnet-5-5";
+
+/**
+ * Model-specific request settings. Claude Sonnet 5.5 thinks before replying
+ * by default, which delays the first narration token; the GM writes short
+ * structured turns, so it runs with no extended thinking ("between_tools",
+ * the model's lowest thinking setting). Other models get the API defaults,
+ * so overriding CLAUDE_WEB_GM_MODEL can't send a field they reject.
+ */
+export function gmModelParams(model: string = MODEL): {
+  thinking?: Anthropic.ThinkingConfigParam;
+  output_config?: Anthropic.OutputConfig;
+} {
+  if (model === "claude-sonnet-5-5") {
+    return {
+      // Not yet in this SDK version's ThinkingConfigParam union.
+      thinking: { type: "between_tools" } as unknown as Anthropic.ThinkingConfigParam,
+      output_config: { effort: "high" },
+    };
+  }
+  return {};
+}
 // A ceiling, not a target — billing is for the tokens actually generated. At
 // 1024 the JSON reply (narration + choices + stateChanges + codex) was often
 // cut off, which lost that turn's state changes to the parse fallback.

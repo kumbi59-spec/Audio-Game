@@ -17,22 +17,14 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
+import { trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
-// Mirrors the server-side window in lib/ai/memory/context-window.ts: keep the
-// most recent ~40k chars of history. The server trims again on receipt; this
-// just keeps us from uploading 100s of KB on long sessions.
-const HISTORY_TRIM_CHARS = 40_000 * 4;
-
+// Same trim the server applies (lib/ai/memory/context-window.ts): the most
+// recent ~40k tokens of history, cut in blocks so the cached prompt prefix
+// stays stable. Keeps us from uploading 100s of KB on long sessions.
 function trimSessionHistory(session: InMemorySession): InMemorySession {
-  const history = session.history ?? [];
-  let totalChars = history.reduce((sum, m) => sum + m.content.length, 0);
-  if (totalChars <= HISTORY_TRIM_CHARS) return session;
-  const trimmed = [...history];
-  while (totalChars > HISTORY_TRIM_CHARS && trimmed.length > 2) {
-    const removed = trimmed.shift();
-    if (removed) totalChars -= removed.content.length;
-  }
-  return { ...session, history: trimmed };
+  const history = trimHistoryForContext(session.history ?? []);
+  return history === session.history ? session : { ...session, history };
 }
 
 export function useGameSession() {

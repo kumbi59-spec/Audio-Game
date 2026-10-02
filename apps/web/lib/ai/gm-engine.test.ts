@@ -144,6 +144,53 @@ describe("resolveSkillCheck", () => {
   });
 });
 
+describe("request layout", () => {
+  it("caches the system prompt and history, and sends per-turn state after them", async () => {
+    mocks.stream.mockReturnValueOnce(fakeStream({ text: [REPLY] }));
+    const withHistory: InMemorySession = {
+      ...session,
+      memorySummary: "The gate was sealed long ago.",
+      history: [
+        { role: "user", content: "I look around" },
+        { role: "assistant", content: '{"narration":"A gate."}' },
+      ],
+    };
+
+    await collect(streamGMTurn(action, withHistory, character, world));
+
+    const params = mocks.stream.mock.calls[0]![0];
+    expect(params.model).toBe("claude-sonnet-5-5");
+    expect(params.thinking).toEqual({ type: "between_tools" });
+    expect(params.output_config).toEqual({ effort: "high" });
+
+    expect(params.system).toHaveLength(2);
+    expect(params.system[0].cache_control).toBeUndefined();
+    expect(params.system[1]).toMatchObject({ text: "WORLD CONTEXT:\n\nA test world.", cache_control: { type: "ephemeral" } });
+    // Per-turn state values never land in the cached system prompt.
+    expect(JSON.stringify(params.system)).not.toContain("Name: Mara");
+    expect(JSON.stringify(params.system)).not.toContain("sealed long ago");
+
+    expect(params.messages).toHaveLength(3);
+    expect(params.messages[0]).toEqual({ role: "user", content: "I look around" });
+    expect(params.messages[1]).toEqual({
+      role: "assistant",
+      content: [{ type: "text", text: '{"narration":"A gate."}', cache_control: { type: "ephemeral" } }],
+    });
+    const turn = params.messages[2];
+    expect(turn.role).toBe("user");
+    expect(turn.content).toMatch(/^CHARACTER STATE:\n\nName: Mara/);
+    expect(turn.content).toContain("WORLD STATE:");
+    expect(turn.content).toContain("CAMPAIGN HISTORY SUMMARY:\nThe gate was sealed long ago.");
+    expect(turn.content).toMatch(/PLAYER ACTION:\nI force the gate open$/);
+  });
+
+  it("only sends Sonnet 5.5 thinking settings to Sonnet 5.5", async () => {
+    const { gmModelParams } = await import("./client");
+    expect(gmModelParams("claude-sonnet-4-6")).toEqual({});
+    expect(gmModelParams("claude-sonnet-5-5")).toMatchObject({ thinking: { type: "between_tools" } });
+  });
+});
+
 describe("streamGMTurn", () => {
   it("streams a turn without a skill check", async () => {
     mocks.stream.mockReturnValueOnce(fakeStream({ text: [REPLY.slice(0, 20), REPLY.slice(20)] }));
@@ -215,7 +262,8 @@ describe("streamGMTurn", () => {
     expect(eventData(events, "skill_check_result")).toMatchObject({ roll: 14, modifier: 2, bonus: 2, total: 18, success: true });
 
     const second = mocks.stream.mock.calls[1]![0];
-    expect(second.tool_choice).toEqual({ type: "none" });
+    // Unchanged tool_choice keeps the cached history valid.
+    expect(second.tool_choice).toEqual({ type: "auto", disable_parallel_tool_use: true });
     expect(second.messages.at(-2)).toEqual({ role: "assistant", content: [toolUse] });
     const toolResult = second.messages.at(-1).content[0];
     expect(toolResult).toMatchObject({ type: "tool_result", tool_use_id: "toolu_1" });
@@ -226,6 +274,27 @@ describe("streamGMTurn", () => {
     expect(changes.flags.gate_open).toBe(true);
     expect(JSON.parse(changes.flags.last_skill_check as string)).toMatchObject({ success: true, total: 18 });
     expect(changes.passiveBonusNarration).toEqual(["LUCK granted +2 on general risk."]);
+  });
+
+  it("refuses a second roll and forces the narration on the last round", async () => {
+    const roll = (id: string) => ({
+      type: "tool_use",
+      id,
+      name: "roll_skill_check",
+      input: { stat: "strength", dc: 12, label: "Force the gate" },
+    });
+    mocks.stream
+      .mockReturnValueOnce(fakeStream({ final: { content: [roll("toolu_a")] as never, stop_reason: "tool_use" } }))
+      .mockReturnValueOnce(fakeStream({ final: { content: [roll("toolu_b")] as never, stop_reason: "tool_use" } }))
+      .mockReturnValueOnce(fakeStream({ text: [REPLY] }));
+
+    const events = await collect(streamGMTurn(action, session, character, world, { rng: () => 0.5 }));
+
+    expect(events.filter((e) => e.type === "skill_check_result")).toHaveLength(1);
+    const third = mocks.stream.mock.calls[2]![0];
+    expect(third.tool_choice).toEqual({ type: "none" });
+    expect(third.messages.at(-1).content[0]).toMatchObject({ tool_use_id: "toolu_b", is_error: true });
+    expect(eventData<{ narration: string }>(events, "choices_ready").narration).toBe("The gate groans and gives way.");
   });
 
   it("answers an invalid tool call with an error result and no roll", async () => {

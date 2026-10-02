@@ -2,13 +2,14 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import {
   getAnthropicClient,
+  gmModelParams,
   MODEL,
   MAX_TOKENS,
   classifyProviderError,
   isRetryableProviderError,
   type ProviderErrorClass,
 } from "./client";
-import { buildWorldSystemPrompt } from "./prompts/system";
+import { buildSystemBlocks, buildTurnContext } from "./prompts/system";
 import {
   buildContextMessages,
   buildCharacterStateBlock,
@@ -76,6 +77,8 @@ class GMRefusalError extends Error {
 const SKILL_STATS = ["strength", "dexterity", "intelligence", "charisma"] as const satisfies readonly SkillCheckResult["stat"][];
 
 export const SKILL_CHECK_TOOL_NAME = "roll_skill_check";
+/** Model requests per turn: the roll, the narration, and one spare. */
+const MAX_TOOL_ROUNDS = 3;
 
 const SKILL_CHECK_TOOL: Anthropic.Tool = {
   name: SKILL_CHECK_TOOL_NAME,
@@ -229,26 +232,42 @@ function degradedMessage(errorClass: ProviderErrorClass): string {
   return base;
 }
 
-// Build the full system prompt for a session
-function buildSystemPrompt(
-  session: InMemorySession,
-  character: CharacterData,
-  world: WorldData
-): string {
-  const worldContext = world.systemPrompt;
-  const characterState = buildCharacterStateBlock(character);
-  const worldState = buildWorldStateBlock(session, world);
-  const memorySummary = session.memorySummary;
-
-  return buildWorldSystemPrompt(worldContext, characterState, worldState, memorySummary);
-}
-
 // Convert a player action into the user message content
 function buildUserMessage(action: PlayerAction): string {
   if (action.type === "choice") {
     return `I choose option ${(action.choiceIndex ?? 0) + 1}: ${action.content}`;
   }
   return action.content;
+}
+
+/**
+ * System prompt and messages for one GM turn, laid out for prompt caching:
+ * tools and system never change within a session (breakpoint on the world
+ * block), the history only grows (breakpoint on its last message), and the
+ * per-turn state rides in the new user message after both breakpoints.
+ */
+function buildTurnRequest(
+  action: PlayerAction,
+  session: InMemorySession,
+  character: CharacterData,
+  world: WorldData,
+): { system: Anthropic.TextBlockParam[]; messages: Anthropic.MessageParam[] } {
+  const history = buildContextMessages(session, character, world);
+  const messages: Anthropic.MessageParam[] = history.map((m, i) =>
+    i === history.length - 1
+      ? { role: m.role, content: [{ type: "text", text: m.content, cache_control: { type: "ephemeral" } }] }
+      : { role: m.role, content: m.content },
+  );
+  const turnContext = buildTurnContext(
+    buildCharacterStateBlock(character),
+    buildWorldStateBlock(session, world),
+    session.memorySummary,
+  );
+  messages.push({
+    role: "user",
+    content: `${turnContext}\n\n---\nPLAYER ACTION:\n${buildUserMessage(action)}`,
+  });
+  return { system: buildSystemBlocks(world.systemPrompt), messages };
 }
 
 function textOf(message: Anthropic.Message): string {
@@ -266,18 +285,17 @@ export async function runGMTurn(
   world: WorldData
 ): Promise<GMResponse> {
   const client = getAnthropicClient();
-  const systemPrompt = buildSystemPrompt(session, character, world);
-  const history = buildContextMessages(session, character, world);
-
-  const messages: Anthropic.MessageParam[] = [
-    ...history.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: buildUserMessage(action) },
-  ];
+  const { system, messages } = buildTurnRequest(action, session, character, world);
 
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
-    system: systemPrompt,
+    ...gmModelParams(),
+    system,
+    // Same tool list as the turns that follow, so this request warms the
+    // tools + system cache they read. No rolls in the opening scene.
+    tools: [SKILL_CHECK_TOOL],
+    tool_choice: { type: "none" },
     messages,
   });
 
@@ -320,6 +338,14 @@ async function* streamRound(
     }
     const message = await stream.finalMessage();
     finished = true;
+    const usage = message.usage;
+    if (usage) {
+      console.info(
+        `[gm] usage model=${params.model} stop=${message.stop_reason} input=${usage.input_tokens} ` +
+          `cache_read=${usage.cache_read_input_tokens ?? 0} cache_write=${usage.cache_creation_input_tokens ?? 0} ` +
+          `output=${usage.output_tokens}`,
+      );
+    }
     return message;
   } catch (err) {
     if (timedOut) throw new GMTurnTimeoutError();
@@ -342,12 +368,7 @@ export async function* streamGMTurn(
   options: StreamGMTurnOptions = {},
 ): AsyncGenerator<GMStreamEvent> {
   const { signal, rng = Math.random } = options;
-  const systemPrompt = buildSystemPrompt(session, character, world);
-  const history = buildContextMessages(session, character, world);
-  const baseMessages: Anthropic.MessageParam[] = [
-    ...history.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: buildUserMessage(action) },
-  ];
+  const { system, messages: baseMessages } = buildTurnRequest(action, session, character, world);
   const passive = computePassiveBonuses(action, character);
 
   let lastErrorClass: ProviderErrorClass = "provider_error";
@@ -361,18 +382,20 @@ export async function* streamGMTurn(
       let skillCheck: SkillCheckResult | null = null;
       let final: Anthropic.Message | null = null;
 
-      // Round 1 may call roll_skill_check; round 2 (only after a roll) must
-      // write the narration, so it gets tool_choice "none".
-      for (let round = 0; round < 2; round += 1) {
+      // Round 1 may call roll_skill_check; after a roll the GM writes the
+      // narration. tool_choice stays "auto" on the follow-up round because
+      // changing it would miss the cached history; a second roll gets an
+      // error result, and only a third round is forced to "none".
+      for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
+        const lastRound = round === MAX_TOOL_ROUNDS - 1;
         final = yield* streamRound(
           {
             model: MODEL,
             max_tokens: MAX_TOKENS,
-            system: systemPrompt,
+            ...gmModelParams(),
+            system,
             tools: [SKILL_CHECK_TOOL],
-            tool_choice: round === 0
-              ? { type: "auto", disable_parallel_tool_use: true }
-              : { type: "none" },
+            tool_choice: lastRound ? { type: "none" } : { type: "auto", disable_parallel_tool_use: true },
             messages,
           },
           signal,
@@ -380,7 +403,7 @@ export async function* streamGMTurn(
         );
 
         if (final.stop_reason === "refusal") throw new GMRefusalError();
-        if (final.stop_reason !== "tool_use" || round > 0) break;
+        if (final.stop_reason !== "tool_use" || lastRound) break;
 
         // Anything written before the tool call is preamble, not the reply.
         tap.resetText();
@@ -405,7 +428,9 @@ export async function* streamGMTurn(
               type: "tool_result",
               tool_use_id: block.id,
               is_error: true,
-              content: "No roll was made. Narrate the action without a skill check.",
+              content: skillCheck
+                ? "The skill check for this turn has already been rolled. Write your JSON response now."
+                : "No roll was made. Narrate the action without a skill check.",
             });
           }
         }
