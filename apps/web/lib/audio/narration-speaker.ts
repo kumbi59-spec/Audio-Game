@@ -1,4 +1,4 @@
-import { speak, beginNarrationSession, endNarrationSession } from "./tts-provider";
+import { speak, prefetchSpeech, beginNarrationSession, endNarrationSession } from "./tts-provider";
 import { ELEVENLABS_PRESET_VOICES } from "./voices-catalog";
 import { useAudioStore } from "@/store/audio-store";
 import type { VoiceGender } from "@/types/audio";
@@ -162,8 +162,10 @@ export function resolveNpcVoiceAssignment(
 
 export type NpcGenderLookup = (npcName: string) => VoiceGender;
 
+export type NewAssignmentHandler = (entry: { key: string; voiceId: string; gender: VoiceGender; displayName: string }) => void;
+
 /**
- * Speaks a full narration string using per-speaker voices.
+ * Splits narration into consecutive runs that share a voice:
  *
  * - Narrator prose uses the default narrator voice (ttsVoiceId).
  * - The player character uses characterVoiceId.
@@ -173,31 +175,25 @@ export type NpcGenderLookup = (npcName: string) => VoiceGender;
  *   reassign mid-session. New assignments are reported via onNewAssignment
  *   so the caller can persist them server-side (cross-device memory).
  *
- * When `premiumTts` is false (free tier) the feature is skipped and the
- * caller should just use plain `speakText` instead.
+ * Adjacent segments with the same voice are coalesced into one run — fewer
+ * TTS requests, fewer audible voice flips.
  */
-export async function speakNarrationMultiVoice(
+export function planNarrationVoices(
   narration: string,
   characterName: string,
   assignments: Map<string, NpcVoiceAssignment>,
   genderLookup: NpcGenderLookup,
-  onNewAssignment: (entry: { key: string; voiceId: string; gender: VoiceGender; displayName: string }) => void,
-  signal: AbortSignal,
-  speakFn: typeof speak = speak,
-): Promise<void> {
-  const audio = useAudioStore.getState();
-  const { ttsSpeed, ttsPitch, volume, ttsVoiceId, characterVoiceId, enabledNpcVoiceIds } = audio;
-
-  const segments = parseNarrationSegments(narration, characterName);
+  onNewAssignment: NewAssignmentHandler,
+): { voiceId: string | undefined; text: string }[] {
+  const { ttsVoiceId, characterVoiceId, enabledNpcVoiceIds } = useAudioStore.getState();
   const excludeIds = [ttsVoiceId, characterVoiceId].filter((v): v is string => Boolean(v));
 
   function voiceForSegment(seg: NarrationSegment): string | undefined {
     if (seg.speaker === "character") return characterVoiceId || ttsVoiceId || undefined;
     if (seg.speaker === "npc" && seg.npcName) {
-      const gender = genderLookup(seg.npcName);
       const result = resolveNpcVoiceAssignment(
         seg.npcName,
-        gender,
+        genderLookup(seg.npcName),
         assignments,
         enabledNpcVoiceIds,
         excludeIds,
@@ -215,10 +211,8 @@ export async function speakNarrationMultiVoice(
     return ttsVoiceId || undefined;
   }
 
-  // Coalesce adjacent segments that resolve to the same voice into one TTS
-  // request — fewer HTTP gaps means fewer audible voice flips between groups.
   const grouped: { voiceId: string | undefined; text: string }[] = [];
-  for (const seg of segments) {
+  for (const seg of parseNarrationSegments(narration, characterName)) {
     const voiceId = voiceForSegment(seg);
     const last = grouped[grouped.length - 1];
     if (last && last.voiceId === voiceId) {
@@ -227,18 +221,61 @@ export async function speakNarrationMultiVoice(
       grouped.push({ voiceId, text: seg.text });
     }
   }
+  return grouped;
+}
+
+/**
+ * Speaks a full narration string using per-speaker voices (see
+ * planNarrationVoices). When `premiumTts` is false (free tier) the feature
+ * is skipped and the caller should just use plain `speakText` instead.
+ */
+export async function speakNarrationMultiVoice(
+  narration: string,
+  characterName: string,
+  assignments: Map<string, NpcVoiceAssignment>,
+  genderLookup: NpcGenderLookup,
+  onNewAssignment: NewAssignmentHandler,
+  signal: AbortSignal,
+  speakFn: typeof speak = speak,
+  prefetchFn: typeof prefetchSpeech = prefetchSpeech,
+): Promise<void> {
+  const { ttsSpeed, ttsPitch, volume } = useAudioStore.getState();
+  const grouped = planNarrationVoices(narration, characterName, assignments, genderLookup, onNewAssignment);
 
   // Open a narration session so isSpeaking() stays true across the per-voice
   // HTTP gaps between groups — keeps ambient ducking and choice focus stable.
   beginNarrationSession();
   try {
-    for (const group of grouped) {
+    for (let i = 0; i < grouped.length; i++) {
       if (signal.aborted) break;
+      const group = grouped[i]!;
+      // Fetch the next voice's audio while this one plays, so the switch
+      // between speakers doesn't wait on the network.
+      const next = grouped[i + 1];
+      if (next) prefetchFn(next.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: next.voiceId });
       await speakFn(group.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: group.voiceId });
     }
   } finally {
     endNarrationSession();
   }
+}
+
+/**
+ * Starts fetching the audio for the first voice group of `narration`, so a
+ * later speakNarrationMultiVoice() of the same text starts without a network
+ * wait (it prefetches the rest itself as it goes).
+ */
+export function prefetchNarrationMultiVoice(
+  narration: string,
+  characterName: string,
+  assignments: Map<string, NpcVoiceAssignment>,
+  genderLookup: NpcGenderLookup,
+  onNewAssignment: NewAssignmentHandler,
+  prefetchFn: typeof prefetchSpeech = prefetchSpeech,
+): void {
+  const { ttsSpeed, ttsPitch, volume } = useAudioStore.getState();
+  const first = planNarrationVoices(narration, characterName, assignments, genderLookup, onNewAssignment)[0];
+  if (first) prefetchFn(first.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: first.voiceId });
 }
 
 /**

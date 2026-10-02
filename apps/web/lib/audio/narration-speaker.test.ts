@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+  speakNarrationMultiVoice,
   npcKeyFromName,
   npcVoicesResolvable,
   pickVoiceForNpc,
@@ -122,5 +123,32 @@ describe("npcVoicesResolvable", () => {
     expect(npcVoicesResolvable('[Captain Voss]: "Halt." [Imp]: "Hee."', "Mara", assignments, hints)).toBe(true);
     expect(npcVoicesResolvable('[The Stranger]: "Hello."', "Mara", assignments, hints)).toBe(false);
     expect(npcVoicesResolvable('Prose only. [Mara]: "Me."', "Mara", new Map(), new Map())).toBe(true);
+  });
+});
+
+describe("speakNarrationMultiVoice", () => {
+  it("fetches the next voice's audio while the current one plays", async () => {
+    const order: string[] = [];
+    const speakFn = vi.fn(async (text: string) => { order.push(`speak:${text}`); });
+    const prefetchFn = vi.fn((text: string) => { order.push(`prefetch:${text}`); });
+
+    await speakNarrationMultiVoice(
+      'The guard steps forward. [Captain Voss]: "Halt." You stop.',
+      "Mara",
+      new Map(),
+      () => "male",
+      () => undefined,
+      new AbortController().signal,
+      speakFn,
+      prefetchFn,
+    );
+
+    expect(order).toEqual([
+      'prefetch:Halt.',
+      "speak:The guard steps forward.",
+      "prefetch:You stop.",
+      "speak:Halt.",
+      "speak:You stop.",
+    ]);
   });
 });

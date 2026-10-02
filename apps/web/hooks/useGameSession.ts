@@ -6,7 +6,14 @@ import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
-import { speakNarrationMultiVoice, npcKeyFromName, npcVoicesResolvable, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
+import {
+  speakNarrationMultiVoice,
+  prefetchNarrationMultiVoice,
+  npcKeyFromName,
+  npcVoicesResolvable,
+  type NewAssignmentHandler,
+  type NpcVoiceAssignment,
+} from "@/lib/audio/narration-speaker";
 import { StreamingNarrator } from "@/lib/audio/streaming-narrator";
 import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
@@ -182,36 +189,42 @@ export function useGameSession() {
       // than after the whole reply (choices, state changes) has arrived.
       const premiumVoices = entitlements.premiumTts;
       const worldId = session.worldId;
+      const genderLookup = (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral";
+      const persistAssignment: NewAssignmentHandler = (entry) => {
+        // Fire-and-forget upsert. If the request fails the assignment is
+        // still good for the current session via the in-memory map; next
+        // session will just re-pick (and likely land on the same voice
+        // because the gender hint and usage counts are stable).
+        void fetch("/api/me/npc-voices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            worldId,
+            npcKey: entry.key,
+            voiceId: entry.voiceId,
+            gender: entry.gender,
+            displayName: entry.displayName,
+          }),
+        }).catch(() => undefined);
+      };
       const speakSegment = (text: string, signal: AbortSignal): Promise<void> => {
         if (!premiumVoices) return signal.aborted ? Promise.resolve() : speakText(text);
         return speakNarrationMultiVoice(
           text,
           character.name,
           npcVoiceAssignmentsRef.current,
-          (npcName) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
-          (entry) => {
-            // Fire-and-forget upsert. If the request fails the
-            // assignment is still good for the current session via
-            // the in-memory map; next session will just re-pick
-            // (and likely land on the same voice because the gender
-            // hint and usage counts are stable).
-            void fetch("/api/me/npc-voices", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                worldId,
-                npcKey: entry.key,
-                voiceId: entry.voiceId,
-                gender: entry.gender,
-                displayName: entry.displayName,
-              }),
-            }).catch(() => undefined);
-          },
+          genderLookup,
+          persistAssignment,
           signal,
         );
       };
       const createNarrator = () => new StreamingNarrator({
         speakSegment,
+        // Premium voices come over the network: fetch the next sentence's
+        // audio while this one plays so there's no gap between them.
+        prefetchSegment: premiumVoices
+          ? (text) => prefetchNarrationMultiVoice(text, character.name, npcVoiceAssignmentsRef.current, genderLookup, persistAssignment)
+          : undefined,
         // A new NPC's voice is picked by gender on first use and remembered
         // across sessions, so hold their lines until the GM has said who
         // they are (speakers / relationship changes) or the reply is done.

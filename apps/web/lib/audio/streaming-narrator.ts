@@ -34,6 +34,11 @@ export interface StreamingNarratorOptions {
   canSpeak?: (text: string) => boolean;
   /** The first segment waits for at least this much text, ending a sentence. */
   minFirstSegmentChars?: number;
+  /**
+   * When set, the next segment is cut as soon as it is ready while the
+   * current one plays, and handed here so its audio can be fetched ahead.
+   */
+  prefetchSegment?: (text: string) => void;
   /** Test seams. */
   stopCount?: () => number;
   narrationSession?: { begin: () => void; end: () => void };
@@ -54,6 +59,9 @@ export class StreamingNarrator {
   private finished = false;
   private isCancelled = false;
   private spokeFirst = false;
+  private speaking = false;
+  // The next segment, already cut (and prefetched) while the current one plays.
+  private upNext: string | null = null;
   private wake: (() => void) | null = null;
   private loop: Promise<void> | null = null;
   private readonly controller = new AbortController();
@@ -84,6 +92,7 @@ export class StreamingNarrator {
     if (this.finished || this.isCancelled || !delta) return;
     this.buffer += delta;
     this.start();
+    this.lookAhead();
     this.notify();
   }
 
@@ -96,6 +105,7 @@ export class StreamingNarrator {
       this.buffer = rest;
       this.finished = true;
       this.start();
+      this.lookAhead();
       this.notify();
     }
     return this.done;
@@ -103,6 +113,7 @@ export class StreamingNarrator {
 
   /** Re-check a held segment (e.g. NPC genders just arrived). */
   nudge(): void {
+    this.lookAhead();
     this.notify();
   }
 
@@ -127,6 +138,15 @@ export class StreamingNarrator {
     return this.isCancelled;
   }
 
+  /** While a segment plays, cut the next one as soon as it's ready and prefetch it. */
+  private lookAhead(): void {
+    if (!this.opts.prefetchSegment || !this.speaking || this.upNext !== null || this.isCancelled) return;
+    const next = this.takeSegment();
+    if (next === null) return;
+    this.upNext = next;
+    if (next.trim()) this.opts.prefetchSegment(next.trim());
+  }
+
   private takeSegment(): string | null {
     if (!this.buffer) return null;
     let cut = this.buffer.length;
@@ -149,7 +169,8 @@ export class StreamingNarrator {
     session.begin();
     try {
       while (!this.stopped()) {
-        const segment = this.takeSegment();
+        const segment = this.upNext ?? this.takeSegment();
+        this.upNext = null;
         if (segment === null) {
           if (this.finished) break;
           await new Promise<void>((resolve) => {
@@ -159,12 +180,16 @@ export class StreamingNarrator {
         }
         const text = segment.trim();
         if (!text) continue;
+        this.speaking = true;
+        this.lookAhead();
         try {
           await this.opts.speakSegment(text, this.controller.signal);
         } catch (err) {
           // One sentence failing to play (a TTS request error) shouldn't
           // silence the rest of the narration.
           console.error("[narrator] segment failed:", err);
+        } finally {
+          this.speaking = false;
         }
       }
     } finally {
