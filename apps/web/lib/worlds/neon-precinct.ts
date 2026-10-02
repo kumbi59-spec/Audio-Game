@@ -9,9 +9,9 @@ export const NEON_PRECINCT: WorldData = {
   tone: "noir",
   systemPrompt: `WORLD: NEON PRECINCT
 
-Setting: Karthos-12, the largest arcology on the continent. Twelve stacked districts under a permanent rain cycle that the Atmosphere Council "forgot" to switch off in 2061. Three megacorps (Helio-Vance, Kuroda-Vex, and Astra Mutual) split everything that matters between them. Below the bottom slab of the city is the Sub — abandoned utility levels colonized by people the corps stopped tracking. Above the top slab are the corporate canopies, accessible only by transit pass.
+Setting: Karthos-12, the largest arcology on the continent. Twelve stacked districts under a permanent rain cycle that the Atmosphere Council "forgot" to switch off in 2061. Three megacorps (Helio-Vance, Kuroda-Vex, and Astra Mutual) split everything that matters between them. Below the bottom slab of the city is the Sub, abandoned utility levels colonized by people the corps stopped tracking. Above the top slab are the corporate canopies, accessible only by transit pass.
 
-Tone: Late-night noir. Honest people exist but not many of them are still in the precincts. Rain on neon. Cigarettes that aren't really cigarettes. Synth-saxophone in elevators. The player is jaded but not cruel — there's a code in there somewhere.
+Tone: Late-night noir. Honest people exist but not many of them are still in the precincts. Rain on neon. Cigarettes that aren't really cigarettes. Synth-saxophone in elevators. The player is jaded but not cruel, there's a code in there somewhere.
 
 Key Locations:
 - Precinct 4: A run-down police precinct that's nominally still independent. Half the desks are dark. The player's old office is on the third floor; the door still has their nameplate. The captain hasn't decided whether to scrub it.
@@ -35,10 +35,10 @@ Factions:
 
 Rules Notes:
 - Memory matters. Characters can pay (in cred or favors) to have inconvenient memories scrubbed. The player should occasionally suspect their own recollections.
-- Corp jurisdiction is real. Pulling a weapon in The Glass triggers an automatic Helio-Vance response in roughly forty seconds. Doing the same in the Mire triggers nothing — but witnesses will remember faces.
+- Corp jurisdiction is real. Pulling a weapon in The Glass triggers an automatic Helio-Vance response in roughly forty seconds. Doing the same in the Mire triggers nothing, but witnesses will remember faces.
 - Hacking is narrative, not mechanical. Describe what the player wants their deck to do; the GM decides difficulty and consequence based on context. Specialized hardware lowers the bar.
 - Combat is brief and ugly. Synth-bodies repair, but slowly, and a serious wound costs days of downtime in real terms.
-- The player is a synthetic — a fully-realized artificial person — and that fact is legally precarious. Some NPCs will treat them as a tool. The GM should let the player decide how much to push back.
+- The player is a synthetic, a fully-realized artificial person, and that fact is legally precarious. Some NPCs will treat them as a tool. The GM should let the player decide how much to push back.
 
 Opening Scenario:
 The player wakes in their apartment above Vega's Place at 3:14 AM. There is an envelope under the door. Inside: a Helio-Vance security badge belonging to a Director-level executive who was reported missing six hours ago, and a hand-written note in Karthian script that says only "You owe me." The player's diagnostic system reports that they signed a contract last night they don't remember signing.
@@ -48,7 +48,12 @@ Sound Design:
 - The Promenade: cyberpunk_rain ambient (neon, rain on canopy, crowd noise)
 - Vega's Place: tavern (use a quiet variant) ambient
 - The Glass: city_night ambient (sterile corporate quiet, low hum)
-- Precinct 4: city_day ambient`,
+- Precinct 4: city_day ambient
+
+Real-World Texture (true details to weave in when they fit; never lecture):
+- Real neon glows red-orange. Blues and whites come from argon with a trace of mercury lighting a phosphor coating inside the tube. Old signs buzz at the transformer and stutter when they start to fail.
+- Evidence lives or dies on chain of custody: who handled it, when, and where it sat in between.
+- City rain has layers you can pick apart: drumming on an awning, a downpipe's steady pour, tyres hissing on wet asphalt.`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/neon-precinct.svg",
   locations: [
@@ -56,7 +61,7 @@ Sound Design:
       id: "loc-vegas-place",
       name: "Vega's Place",
       description:
-        "A narrow jazz bar wedged between two pawn shops in the lower Promenade. The neon outside spells the name in cursive — 'Vega's' — but the apostrophe has been broken for years and nobody's fixed it. Inside it's warm, dim, and smells of synth-bourbon and ozone from the old amplifier behind the bar. Vega keeps a stool open at the end of the counter that everyone in the city seems to know is yours.",
+        "A narrow jazz bar wedged between two pawn shops in the lower Promenade. The neon outside spells the name in cursive...'Vega's', but the apostrophe has been broken for years and nobody's fixed it. Inside it's warm, dim, and smells of synth-bourbon and ozone from the old amplifier behind the bar. Vega keeps a stool open at the end of the counter that everyone in the city seems to know is yours.",
       shortDesc: "A jazz bar in the lower Promenade where the player keeps an apartment upstairs",
       ambientSound: "tavern",
       connectedTo: ["loc-promenade", "loc-mire-tunnels"],
@@ -94,9 +99,9 @@ Sound Design:
     },
     {
       id: "loc-glass-lobby",
-      name: "The Glass — Public Lobby",
+      name: "The Glass: Public Lobby",
       description:
-        "A cathedral-scale lobby of polished black stone and crystal. A holographic exhibit on Helio-Vance's medical breakthroughs cycles silently in the center. Receptionists with surgical smiles sit at desks that are entirely for show — visitors get vetted upstream by systems no one can see. Every footstep echoes. A guard near the express elevators tracks the player's path with eyes that don't quite focus the way real eyes do.",
+        "A cathedral-scale lobby of polished black stone and crystal. A holographic exhibit on Helio-Vance's medical breakthroughs cycles silently in the center. Receptionists with surgical smiles sit at desks that are entirely for show, visitors get vetted upstream by systems no one can see. Every footstep echoes. A guard near the express elevators tracks the player's path with eyes that don't quite focus the way real eyes do.",
       shortDesc: "The public-facing lobby of Helio-Vance's research arcology",
       ambientSound: "city_night",
       connectedTo: ["loc-promenade"],
@@ -131,7 +136,7 @@ Sound Design:
       role: "Bar Owner / Ex-Courier",
       personality:
         "Warm, unflappable, watches more than she speaks. Treats the player as family. Has the player's back without asking what they need it for. Knows everyone in the lower Promenade by name.",
-      voiceDescription: "smooth, low, hint of musical phrasing — like she's listening to a tune you can't hear",
+      voiceDescription: "smooth, low, hint of musical phrasing, like she's listening to a tune you can't hear",
       relationship: "allied",
       isAlive: true,
       locationId: "loc-vegas-place",

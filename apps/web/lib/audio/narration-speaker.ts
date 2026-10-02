@@ -14,9 +14,12 @@ interface NarrationSegment {
   npcName?: string;
 }
 
-// Matches: [Some Name]: "dialogue text"
-// Also handles single quotes and multi-line quoted text.
-const DIALOGUE_RE = /\[([^\]]+)\]:\s*["']([\s\S]*?)["']/g;
+// Matches: [Some Name]: "dialogue text", across lines too. A line opened with
+// a double quote (straight or curly) only closes on a double quote, so an
+// apostrophe inside it ("Don't move.") doesn't cut the line short. A line in
+// single quotes only closes on a ' that isn't followed by a letter, which
+// skips the apostrophe in a contraction.
+const DIALOGUE_RE = /\[([^\]]+)\]:\s*(?:["\u201C]([\s\S]*?)["\u201D]|'([\s\S]*?)'(?!\p{L}))/gu;
 
 /**
  * Splits narration text into segments keyed by speaker.
@@ -33,7 +36,8 @@ export function parseNarrationSegments(
   DIALOGUE_RE.lastIndex = 0;
 
   while ((match = DIALOGUE_RE.exec(text)) !== null) {
-    const [fullMatch, speakerName = "", dialogue = ""] = match;
+    const [fullMatch, speakerName = "", doubleQuoted, singleQuoted] = match;
+    const dialogue = doubleQuoted ?? singleQuoted ?? "";
     const matchStart = match.index;
 
     // Prose before this dialogue tag

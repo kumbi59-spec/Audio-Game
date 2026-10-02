@@ -10,6 +10,7 @@ import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { getOwnedSession } from "@/lib/db/queries/sessions";
 import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
 import { applyCharacterChanges } from "@/lib/game/character-reducer";
+import { stripEmDashes } from "@/lib/ai/style";
 import {
   CharacterSchema,
   LegacyGuestIdSchema,
@@ -231,7 +232,7 @@ export async function POST(req: NextRequest) {
             await Promise.all([
               persistTurn(sessionId, ownerId, newTurn, "user", action.content, action.type),
               fullNarration
-                ? persistTurn(sessionId, ownerId, newTurn, "assistant", fullNarration)
+                ? persistTurn(sessionId, ownerId, newTurn, "assistant", stripEmDashes(fullNarration))
                 : Promise.resolve(),
             ]);
 

@@ -351,7 +351,31 @@ describe("streamGMTurn", () => {
 
     expect(mocks.stream).toHaveBeenCalledTimes(1);
     expect(eventData(events, "error")).toMatchObject({ degraded: true, errorClass: "safety_refusal" });
-    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Search the area for threats");
+    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Push on toward what you came for");
+  });
+
+  it("points the fallback turn at the next open objective", async () => {
+    mocks.stream.mockReturnValueOnce(fakeStream({ final: { content: [], stop_reason: "refusal" } }));
+    const questing = {
+      ...character,
+      quests: [
+        {
+          id: "q1",
+          title: "The Bell",
+          description: "",
+          status: "active" as const,
+          objectives: [
+            { id: "o1", text: "Find the bell-ringer", completed: true },
+            { id: "o2", text: "Climb the tower", completed: false },
+          ],
+          reward: null,
+        },
+      ],
+    };
+
+    const events = await collect(streamGMTurn(action, session, questing, world));
+
+    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Push on: Climb the tower");
   });
 
   it("does not retry a request the API rejected as invalid", async () => {

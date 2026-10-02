@@ -18,23 +18,23 @@ Key Locations:
 - The Korst Library: A long room with twenty-foot ceilings, oak shelves on three sides, a leaded-glass window onto the back gardens. Approximately 14,000 volumes. The catalogue Korst kept by hand is in a green leather binder on the central reading table. The book is in a glass case on a side table by the window. The case key is in Mrs. Halvorsen's possession.
 - The Grounds: Rain-soaked, wooded, steep paths down to a small private cove. Crows. A maintained Japanese garden in the south corner. A guesthouse where the player has been put up for the duration of the contract.
 - The Reading Room (upstairs): Korst's private study. Smaller, warmer, a single window onto a stand of cedars. His unfinished annotations on the book are on the desk under a glass paperweight. The annotations stop mid-sentence on a page dated three weeks before his death.
-- The Cove: A pebble beach at the foot of the cliff path. Tidepools. Driftwood. At low tide, an old fishing weir is visible — the wood is impossibly old and arranged in a geometry that makes it hard to count the stakes.
+- The Cove: A pebble beach at the foot of the cliff path. Tidepools. Driftwood. At low tide, an old fishing weir is visible, the wood is impossibly old and arranged in a geometry that makes it hard to count the stakes.
 
 Key NPCs:
 - Mrs. Greta Halvorsen (id: npc-halvorsen): The caretaker. Sixty, unflappable, served Korst for forty years. Knows what was happening but has decided that whatever the player wants to know, the player should ask plainly.
 - Marius Korst (id: npc-marius): The doctor's grandnephew and executor. Thirties, tired, businesslike. Doesn't believe any of "what Allard was into" but also doesn't quite want to be in the library after dark.
-- Dr. Anneli Seto (id: npc-seto): A folklorist at the University of Washington who has read the book — once, twenty years ago, briefly. She left academia for two years afterward. Will speak to the player by phone if reception holds.
-- The Three (id: npc-the-three): Eira Vance, Jules Park, Tomas Riedel — the previous archivists. The player has their published professional records and their last emails to the estate. Each email's tone deteriorates over the six weeks they worked. None of them came in for a fourth week.
+- Dr. Anneli Seto (id: npc-seto): A folklorist at the University of Washington who has read the book, once, twenty years ago, briefly. She left academia for two years afterward. Will speak to the player by phone if reception holds.
+- The Three (id: npc-the-three): Eira Vance, Jules Park, Tomas Riedel, the previous archivists. The player has their published professional records and their last emails to the estate. Each email's tone deteriorates over the six weeks they worked. None of them came in for a fourth week.
 - The Book (id: npc-book): Not a person. The GM should treat the book as an entity with intentions but no voice. It is patient. It does not need to be opened to act on the world. It very much wants to be opened.
 
 Factions:
 - The Korst Estate: Wants the library catalogued and sold. Will pay the player promptly. Will not ask too many questions.
-- The Society for the Study of Anomalous Marginalia: A small, secretive correspondence circle Dr. Seto used to belong to. Has files on the book and may help — for a price they don't usually name in the first email.
+- The Society for the Study of Anomalous Marginalia: A small, secretive correspondence circle Dr. Seto used to belong to. Has files on the book and may help, for a price they don't usually name in the first email.
 
 Rules Notes:
 - Sanity is not a stat. Costs of investigation are concrete: lost sleep, neglected relationships, things forgotten, a growing reluctance to be in certain rooms. The GM should narrate these.
 - The book's content should never be quoted directly. The book's effects on the world should be unmistakable.
-- Investigation rewards patience and method. Reckless approaches reveal the book's reach faster — but accelerate consequences.
+- Investigation rewards patience and method. Reckless approaches reveal the book's reach faster, but accelerate consequences.
 - The player can decline. Walking away is a real option. The Korsts have other archivists. The book will still be there.
 - Keep the supernatural specific. The GM should commit to internal consistency: what the book wants, what it can do, how. The mystery is "what is this thing" not "is anything happening."
 
@@ -45,8 +45,15 @@ Sound Design:
 - Front Parlor: tavern (use a quiet variant) ambient
 - The Library: cave (very quiet, with reverb) ambient
 - The Grounds: forest_day ambient
-- The Reading Room: cosmic_void ambient (ultra-low sub drone, eerie sweeps — the book's presence)
-- The Cove: ocean ambient`,
+- The Reading Room: cosmic_void ambient (ultra-low sub drone, eerie sweeps, the book's presence)
+- The Cove: ocean ambient
+
+Real-World Texture (true details to weave in when they fit; never lecture):
+- The Hoh Rain Forest on the Olympic Peninsula gets roughly 140 to 170 inches of rain a year, most of it between October and March.
+- Old paper smells faintly of vanilla, because lignin breaks down into compounds close to vanillin. Damp turns that sweetness musty.
+- Foxing is the rust-brown speckling on old pages, usually blamed on mould and impurities in damp storage.
+- Vellum is calfskin parchment. It cockles and warps with humidity, and many rare-book librarians prefer clean, dry hands to cotton gloves, which snag brittle pages.
+- A cataloguer records the collation, the binding and any provenance marks such as bookplates, inscriptions and auction stickers.`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/black-vellum.svg",
   locations: [
@@ -152,7 +159,7 @@ Sound Design:
       role: "The Book",
       personality:
         "Not a person. The GM treats it as a patient, intentional presence. It does not need to be opened to act on the world. It exerts influence through suggestion, dreams, neglected handwriting, and the gradual rearrangement of small things in the player's surroundings.",
-      voiceDescription: "no voice — communicates by effect, never by speech",
+      voiceDescription: "no voice, communicates by effect, never by speech",
       relationship: "hostile",
       isAlive: true,
       locationId: "loc-library",

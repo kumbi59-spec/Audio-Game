@@ -1,4 +1,5 @@
 import type { VoiceGender } from "@/types/audio";
+import { EmDashStripper } from "./style";
 
 const NARRATION_KEY_RE = /"narration"\s*:\s*"/;
 const SOUND_CUE_RE = /"soundCue"\s*:\s*(?:"([^"\\]*)"|null)/;
@@ -129,6 +130,9 @@ export type NarrationStreamEvent =
  */
 export class NarrationStreamTap {
   private extractor = new NarrationStreamExtractor();
+  // Same clean-up parseGMResponse applies to the final narration, so the
+  // streamed prose stays a prefix of it.
+  private stripper = new EmDashStripper();
   private head = "";
   private speakersSent = false;
   /** Cue already sent this turn, so the end-of-turn cue isn't played twice. */
@@ -160,7 +164,8 @@ export class NarrationStreamTap {
         }
       }
     }
-    const prose = this.extractor.push(text);
+    let prose = this.stripper.push(this.extractor.push(text));
+    if (this.extractor.done) prose += this.stripper.flush();
     if (prose) events.push({ type: "narration_delta", data: { text: prose } });
     return events;
   }
@@ -168,6 +173,7 @@ export class NarrationStreamTap {
   /** Forget streamed text (a tool round or retry discarded it). */
   resetText(): void {
     this.extractor = new NarrationStreamExtractor();
+    this.stripper = new EmDashStripper();
     this.head = "";
   }
 }

@@ -13,3 +13,5 @@ export * from "./session-machine.js";
 export * from "./transport.js";
 
 export * from "./reliability.js";
+
+export * from "./gm-voice.js";
