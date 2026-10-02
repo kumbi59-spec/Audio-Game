@@ -152,4 +152,56 @@ describe("StreamingNarrator", () => {
     expect(speakSegment.mock.calls.map((c) => c[0])).toEqual(["The rain falls hard on the cobbles.", "A door bangs."]);
     errors.mockRestore();
   });
+
+  describe("with prefetching", () => {
+    it("cuts and prefetches the next segment while the current one plays", async () => {
+      const speaker = controlledSpeaker();
+      const prefetchSegment = vi.fn();
+      const { n } = narrator({ speakSegment: speaker.speakSegment, prefetchSegment });
+
+      n.push("The rain falls hard on the cobbles. ");
+      await tick();
+      expect(prefetchSegment).not.toHaveBeenCalled();
+
+      n.push("A door bangs. Someone shouts. Then");
+      expect(prefetchSegment).toHaveBeenCalledWith("A door bangs. Someone shouts.");
+
+      // Text arriving after the cut waits for the segment after that.
+      n.push(" silence. ");
+      await speaker.finishCurrent();
+      expect(speaker.spoken).toEqual(["The rain falls hard on the cobbles.", "A door bangs. Someone shouts."]);
+      // The next one was prefetched as soon as segment 2 started.
+      expect(prefetchSegment).toHaveBeenLastCalledWith("Then silence.");
+    });
+
+    it("prefetches the remainder handed to finish", async () => {
+      const speaker = controlledSpeaker();
+      const prefetchSegment = vi.fn();
+      const { n } = narrator({ speakSegment: speaker.speakSegment, prefetchSegment });
+
+      n.push("The rain falls hard on the cobbles. ");
+      await tick();
+      const done = n.finish("The end");
+      expect(prefetchSegment).toHaveBeenCalledWith("The end");
+      await speaker.finishCurrent();
+      await speaker.finishCurrent();
+      await done;
+      expect(speaker.spoken).toEqual(["The rain falls hard on the cobbles.", "The end"]);
+    });
+
+    it("never prefetches a segment held back by canSpeak", async () => {
+      const speaker = controlledSpeaker();
+      const prefetchSegment = vi.fn();
+      const { n } = narrator({
+        speakSegment: speaker.speakSegment,
+        prefetchSegment,
+        canSpeak: (text) => !text.includes("Voss"),
+      });
+
+      n.push("The rain falls hard on the cobbles. ");
+      await tick();
+      n.push('[Voss]: "Halt." ');
+      expect(prefetchSegment).not.toHaveBeenCalled();
+    });
+  });
 });

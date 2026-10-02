@@ -71,7 +71,7 @@ export default async function CampaignDetailPage({ params }: Props) {
           <h2 className="text-xl font-semibold" style={{ color: "var(--text)" }}>Story hook</h2>
           <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>{campaign.cta}</p>
           <div className="mt-5 flex gap-3">
-            <Link href="/library" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent)", color: "#fff" }}>
+            <Link href="/library" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
               Start playing
             </Link>
             <Link href="/blog" className="rounded-lg border px-4 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)", color: "var(--text)" }}>

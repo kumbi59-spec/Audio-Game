@@ -241,7 +241,7 @@ export default function WorldWizardPage() {
       <a
         href="#wizard-main"
         className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
-        style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
         Skip to wizard
       </a>
@@ -290,7 +290,7 @@ export default function WorldWizardPage() {
           >
             <div
               className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${pct}%`, backgroundColor: "var(--accent)" }}
+              style={{ width: `${pct}%`, backgroundColor: "var(--accent-solid)" }}
             />
           </div>
         </div>
@@ -466,7 +466,7 @@ export default function WorldWizardPage() {
                       className="mr-3 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2"
                       style={{
                         borderColor: selected ? "var(--accent)" : "var(--border)",
-                        backgroundColor: selected ? "var(--accent)" : "transparent",
+                        backgroundColor: selected ? "var(--accent-solid)" : "transparent",
                       }}
                       aria-hidden="true"
                     >
@@ -544,7 +544,7 @@ export default function WorldWizardPage() {
               aria-label={isLast ? "Finish and create your world" : "Advance to next step"}
               aria-busy={busy}
               className="ml-auto rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               {busy ? "Creating…" : isLast ? "Create World →" : "Next →"}
             </button>

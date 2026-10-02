@@ -126,8 +126,8 @@ export default function DiscussionPage() {
           <button
             disabled={!canPost || !title.trim() || !body.trim()}
             onClick={() => { void handlePostThread(); }}
-            className="mt-2 rounded px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent)" }}
+            className="mt-2 rounded px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-50"
+            style={{ backgroundColor: "var(--accent-solid)" }}
           >
             Post Thread
           </button>

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import type { CharacterData } from "@/types/character";
+import { characterProgressData } from "./characters";
 
 export async function createDbSession(
   worldId: string,
@@ -64,7 +66,10 @@ export async function listUserSessions(userId: string) {
 export async function getOwnedSession(sessionId: string, userId: string) {
   return prisma.gameSession.findFirst({
     where: { id: sessionId, userId },
-    include: { gameState: true },
+    include: {
+      gameState: true,
+      character: { select: { id: true, snapshot: true } },
+    },
   });
 }
 
@@ -180,4 +185,74 @@ export async function markSummarized(
     data: { memorySummary, summarizedThroughTurn: newThrough, lastUpdatedAt: new Date() },
   });
   return result.count > 0;
+}
+
+/** What a session looked like before its last turn, for undo. */
+export interface UndoSnapshot {
+  turnCount: number;
+  gameState: {
+    currentLocationId: string | null;
+    timeOfDay: string;
+    weather: string;
+    globalFlags: string;
+    npcStates: string;
+    memorySummary: string;
+    summarizedThroughTurn: number;
+  };
+  /** Null when the character had no stored progress before the turn. */
+  character: CharacterData | null;
+}
+
+export async function setUndoSnapshot(sessionId: string, ownerId: string, snapshot: UndoSnapshot) {
+  return prisma.gameState.updateMany({
+    where: { sessionId, session: { userId: ownerId } },
+    data: { undoSnapshot: JSON.stringify(snapshot) },
+  });
+}
+
+function parseUndoSnapshot(raw: string | null | undefined): UndoSnapshot | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as UndoSnapshot;
+    return typeof parsed?.turnCount === "number" && parsed.gameState && typeof parsed.gameState === "object"
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export type UndoResult =
+  | { ok: true; character: CharacterData | null }
+  | { ok: false; reason: "not_found" | "nothing_to_undo" };
+
+/**
+ * Rolls an owned session back to before its last turn: removes that turn's
+ * history, and restores the turn count, game state and character progress.
+ * Single-step — the snapshot is cleared once used.
+ */
+export async function undoLastTurn(sessionId: string, ownerId: string): Promise<UndoResult> {
+  return prisma.$transaction(async (tx) => {
+    const session = await tx.gameSession.findFirst({
+      where: { id: sessionId, userId: ownerId },
+      include: { gameState: true },
+    });
+    if (!session) return { ok: false, reason: "not_found" } as const;
+    const snapshot = parseUndoSnapshot(session.gameState?.undoSnapshot);
+    if (!snapshot) return { ok: false, reason: "nothing_to_undo" } as const;
+
+    await tx.gameHistoryEntry.deleteMany({ where: { sessionId, turnNumber: { gt: snapshot.turnCount } } });
+    await tx.gameSession.update({ where: { id: sessionId }, data: { turnCount: snapshot.turnCount } });
+    await tx.gameState.update({
+      where: { sessionId },
+      data: { ...snapshot.gameState, undoSnapshot: null, lastUpdatedAt: new Date() },
+    });
+    if (snapshot.character) {
+      await tx.character.updateMany({
+        where: { id: session.characterId, userId: ownerId },
+        data: characterProgressData(snapshot.character),
+      });
+    }
+    return { ok: true, character: snapshot.character } as const;
+  });
 }

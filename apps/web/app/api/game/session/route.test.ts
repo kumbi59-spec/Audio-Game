@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   listUserSessions: vi.fn(),
   getSessionWithHistory: vi.fn(),
   createDbSession: vi.fn(),
-  createDbCharacter: vi.fn(),
+  createSessionCharacter: vi.fn(),
   resolvePlayableWorld: vi.fn(),
 }));
 
@@ -20,7 +20,10 @@ vi.mock("@/lib/rate-limit", () => ({
   consumeRateLimit: mocks.consumeRateLimit,
   getClientIp: () => "203.0.113.7",
 }));
-vi.mock("@/lib/db/queries/users", () => ({ createDbCharacter: mocks.createDbCharacter }));
+vi.mock("@/lib/db/queries/characters", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/db/queries/characters")>()),
+  createSessionCharacter: mocks.createSessionCharacter,
+}));
 vi.mock("@/lib/db/queries/sessions", () => ({
   listUserSessions: mocks.listUserSessions,
   getSessionWithHistory: mocks.getSessionWithHistory,
@@ -33,7 +36,15 @@ vi.mock("@/lib/worlds/resolve-playable-world", () => ({
 import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 
-const character = { id: "c1", name: "Hero", class: "warrior", backstory: "", stats: {}, inventory: [] };
+const character = {
+  id: "c1",
+  name: "Hero",
+  class: "warrior",
+  backstory: "",
+  stats: { hp: 10, maxHp: 10, strength: 10, dexterity: 10, intelligence: 10, charisma: 10, level: 1, experience: 0 },
+  inventory: [],
+  quests: [],
+};
 
 describe("/api/game/session", () => {
   beforeEach(() => {
@@ -47,7 +58,7 @@ describe("/api/game/session", () => {
     mocks.userCreate.mockImplementation(async ({ data }: { data: { id: string } }) => ({ id: data.id, tier: "free" }));
     mocks.consumeRateLimit.mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
     mocks.listUserSessions.mockResolvedValue([]);
-    mocks.createDbCharacter.mockResolvedValue({ id: "db-char" });
+    mocks.createSessionCharacter.mockResolvedValue({ id: "db-char" });
     mocks.createDbSession.mockResolvedValue({ id: "db-session" });
     mocks.resolvePlayableWorld.mockResolvedValue({ ok: true, world: { id: "w1", locations: [{ id: "l1" }] } });
   });
@@ -73,7 +84,9 @@ describe("/api/game/session", () => {
     expect(res.status).toBe(200);
     const ownerId = mocks.createDbSession.mock.calls[0]![1];
     expect(ownerId).toMatch(/^guest_/);
-    expect(mocks.createDbCharacter.mock.calls[0]![0]).toBe(ownerId);
+    expect(mocks.createSessionCharacter.mock.calls[0]![0]).toBe(ownerId);
+    expect(mocks.createDbSession.mock.calls[0]![2]).toBe("db-char");
+    expect(await res.json()).toEqual({ sessionId: "db-session", characterId: "db-char" });
     expect(res.headers.get("set-cookie")).toContain("eq_guest=");
   });
 
@@ -86,5 +99,50 @@ describe("/api/game/session", () => {
     }));
     expect(res.status).toBe(403);
     expect(mocks.createDbSession).not.toHaveBeenCalled();
+  });
+
+  it("GET returns everything needed to resume a saved game", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "real-user" } });
+    const { id: _id, ...snapshot } = { ...character, stats: { ...character.stats, hp: 4 } };
+    mocks.getSessionWithHistory.mockResolvedValue({
+      session: {
+        id: "s1",
+        userId: "real-user",
+        worldId: "w1",
+        characterId: "char-db",
+        status: "active",
+        turnCount: 1,
+        gameState: {
+          currentLocationId: "l1",
+          timeOfDay: "night",
+          weather: "rain",
+          globalFlags: "{}",
+          npcStates: JSON.stringify({ _codex: [{ key: "k" }] }),
+          memorySummary: "",
+        },
+        character: { id: "char-db", name: "Hero", class: "warrior", backstory: "", stats: "{}", snapshot: JSON.stringify(snapshot), inventory: [], quests: [] },
+      },
+      history: [
+        { id: "h0", role: "assistant", content: JSON.stringify({ narration: "You arrive.", choices: ["Look"] }), createdAt: new Date(0) },
+        { id: "h1", role: "user", content: "Look", createdAt: new Date(1) },
+        { id: "h2", role: "assistant", content: JSON.stringify({ narration: "A gate.", choices: ["Open it", "Leave"] }), createdAt: new Date(2) },
+      ],
+    });
+
+    const res = await GET(new NextRequest("http://localhost/api/game/session?sessionId=s1"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+
+    expect(mocks.resolvePlayableWorld).toHaveBeenCalledWith("w1", "real-user");
+    expect(body.world).toEqual({ id: "w1", locations: [{ id: "l1" }], systemPrompt: "" });
+    expect(body.character).toMatchObject({ id: "char-db", stats: { hp: 4 } });
+    expect(body.session.narrationLog.map((e: { type: string; text: string }) => [e.type, e.text])).toEqual([
+      ["narration", "You arrive."],
+      ["player_action", "Look"],
+      ["narration", "A gate."],
+    ]);
+    expect(body.session.choices).toEqual(["Open it", "Leave"]);
+    expect(body.session.codex).toEqual([{ key: "k" }]);
+    expect(body.session.history).toHaveLength(3);
   });
 });

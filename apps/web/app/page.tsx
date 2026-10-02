@@ -209,7 +209,7 @@ export default function LandingPage() {
               <Link
                 href="/library"
                 className="rounded-lg px-6 py-3 text-base font-semibold transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                 aria-label="Start playing — go to the Adventure Library"
               >
                 Start Playing →
@@ -250,7 +250,7 @@ export default function LandingPage() {
                 <li key={h.step} className="flex gap-4 rounded-xl border p-6" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
                   <span
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
-                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                     aria-hidden="true"
                   >
                     {h.step}
@@ -315,7 +315,7 @@ export default function LandingPage() {
                   }}
                 >
                   {p.highlight && (
-                    <p className="mb-3 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
+                    <p className="mb-3 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
                       Most popular
                     </p>
                   )}
@@ -336,8 +336,8 @@ export default function LandingPage() {
                     href={p.href}
                     className="block rounded-lg py-3 text-center text-sm font-semibold transition-opacity hover:opacity-90"
                     style={{
-                      backgroundColor: p.highlight ? "var(--accent)" : "transparent",
-                      color: p.highlight ? "#ffffff" : "var(--text-muted)",
+                      backgroundColor: p.highlight ? "var(--accent-solid)" : "transparent",
+                      color: p.highlight ? "var(--on-accent)" : "var(--text-muted)",
                       border: p.highlight ? undefined : "1px solid var(--border)",
                     }}
                     aria-label={`${p.cta} — ${p.tier} plan at ${p.price}${p.period}`}
@@ -363,8 +363,8 @@ export default function LandingPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
                   href="/forks"
-                  className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)" }}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: "var(--accent-solid)" }}
                 >
                   Explore forkable worlds
                 </Link>
@@ -386,7 +386,7 @@ export default function LandingPage() {
             <Link
               href="/library"
               className="inline-block rounded-lg px-8 py-3 text-base font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
               aria-label="Browse the adventure library and start playing"
             >
               Browse the Library →

@@ -44,7 +44,7 @@ function HouseAd() {
       <Link
         href="/account"
         className="rounded px-2 py-1 text-xs font-semibold hover:opacity-90"
-        style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
         Upgrade to remove ads
       </Link>

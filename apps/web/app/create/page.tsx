@@ -300,7 +300,12 @@ function CreateCharacterPage() {
       const res = await fetch("/api/game/opening", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ world: { id: world.id }, character, guestId }),
+        body: JSON.stringify({
+          world: { id: world.id },
+          character,
+          guestId,
+          dbSessionId: useGameStore.getState().dbSessionId,
+        }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const opening = await res.json();

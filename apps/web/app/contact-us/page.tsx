@@ -113,7 +113,7 @@ export default function ContactUsPage() {
               Include your email if you want a reply. We don&rsquo;t use it
               for marketing.
             </p>
-            <button className="mt-4 rounded px-4 py-2 text-sm font-semibold text-white" style={{ backgroundColor: "var(--accent)" }} type="submit">
+            <button className="mt-4 rounded px-4 py-2 text-sm font-semibold text-on-accent" style={{ backgroundColor: "var(--accent-solid)" }} type="submit">
               Send message
             </button>
             {submitted && <p className="mt-3 text-sm text-green-400">Thanks &mdash; we received your message and will reply within two business days.</p>}

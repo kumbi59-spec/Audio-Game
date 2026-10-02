@@ -130,7 +130,7 @@ function ResetPasswordForm() {
             type="submit"
             disabled={busy}
             className="w-full rounded-lg py-3 text-sm font-semibold disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
           >
             {busy ? "Saving…" : "Set new password"}
           </button>

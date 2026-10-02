@@ -603,7 +603,7 @@ export default function AdminPage() {
                 onClick={generateCovers}
                 disabled={generatingCovers}
                 className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 transition-opacity hover:opacity-80"
-                style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
               >
                 {generatingCovers ? "Generating…" : "Generate Official Covers"}
               </button>
@@ -641,8 +641,8 @@ export default function AdminPage() {
                           aria-label={w.isPublic ? `Unpublish ${w.name}` : `Publish ${w.name}`}
                           className="rounded px-2 py-1 text-xs font-medium transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
                           style={{
-                            backgroundColor: w.isPublic ? "transparent" : "var(--accent)",
-                            color: w.isPublic ? "var(--text-muted)" : "#ffffff",
+                            backgroundColor: w.isPublic ? "transparent" : "var(--accent-solid)",
+                            color: w.isPublic ? "var(--text-muted)" : "var(--on-accent)",
                             border: w.isPublic ? "1px solid var(--border)" : "none",
                           }}>
                           {toggling === w.id ? "…" : w.isPublic ? "Unpublish" : "Publish"}
@@ -678,7 +678,7 @@ export default function AdminPage() {
                   </button>
                   <button onClick={openNewPost}
                     className="rounded px-3 py-1.5 text-sm font-semibold"
-                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
+                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
                     + New post
                   </button>
                   <button onClick={applySeoFixes} disabled={seoFixing}
@@ -697,7 +697,7 @@ export default function AdminPage() {
                     onClick={() => generateBlogCovers(false)}
                     disabled={generatingBlogCovers}
                     className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                     title="Calls BFL (or Replicate) for every post that doesn't yet have a coverImageUrl. Skips posts that already have a cover.">
                     {generatingBlogCovers ? "Generating covers…" : "Generate Blog Covers"}
                   </button>
@@ -713,7 +713,7 @@ export default function AdminPage() {
                     onClick={() => generateSectionImages(false)}
                     disabled={generatingSectionImages}
                     className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                     title="Generates up to 3 in-body illustrations per post, interleaved between H2 sections. Skips slots already generated.">
                     {generatingSectionImages ? "Generating images…" : "Generate Section Images"}
                   </button>
@@ -772,7 +772,7 @@ export default function AdminPage() {
                       </button>
                       <button onClick={() => openEditPost(p)}
                         className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                        style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
+                        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
                         Edit
                       </button>
                       <button onClick={() => deletePost(p.id)}
@@ -838,7 +838,7 @@ export default function AdminPage() {
                 <div className="flex gap-3">
                   <button onClick={saveBlogPost} disabled={blogSaving}
                     className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}>
+                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
                     {blogSaving ? "Saving…" : editingPost ? "Save changes" : "Create post"}
                   </button>
                   {editingPost && (

@@ -15,6 +15,8 @@ const config: Config = {
         "surface-2": "var(--surface-2)",
         "surface-3": "var(--surface-3)",
         accent:   "var(--accent)",
+        "accent-solid": "var(--accent-solid)",
+        "on-accent":    "var(--on-accent)",
         "accent-hover": "var(--accent-hover)",
         "accent-dim":   "var(--accent-dim)",
         success:  "var(--success)",
@@ -29,7 +31,7 @@ const config: Config = {
         foreground:  "var(--text)",
         primary: {
           DEFAULT:    "var(--accent)",
-          foreground: "#ffffff",
+          foreground: "var(--on-accent)",
         },
         secondary: {
           DEFAULT:    "var(--surface)",
@@ -40,6 +42,10 @@ const config: Config = {
           foreground: "var(--text-muted)",
         },
         ring: "var(--focus-ring)",
+      },
+      // bg-primary is a fill under primary-foreground text: use the fill shade.
+      backgroundColor: {
+        primary: "var(--accent-solid)",
       },
       textColor: {
         DEFAULT: "var(--text)",

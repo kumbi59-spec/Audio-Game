@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   updateGameState: vi.fn(),
   getHistoryEntriesInTurnRange: vi.fn(),
   markSummarized: vi.fn(),
+  setUndoSnapshot: vi.fn(),
+  saveCharacterSnapshot: vi.fn(),
   summarizeHistory: vi.fn(),
   resolvePlayableWorld: vi.fn(),
   moderatePlayerInput: vi.fn(),
@@ -39,6 +41,11 @@ vi.mock("@/lib/db/queries/sessions", () => ({
   updateGameState: mocks.updateGameState,
   getHistoryEntriesInTurnRange: mocks.getHistoryEntriesInTurnRange,
   markSummarized: mocks.markSummarized,
+  setUndoSnapshot: mocks.setUndoSnapshot,
+}));
+vi.mock("@/lib/db/queries/characters", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/db/queries/characters")>()),
+  saveCharacterSnapshot: mocks.saveCharacterSnapshot,
 }));
 vi.mock("@/lib/ai/memory/summarizer", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/memory/summarizer")>()),
@@ -144,6 +151,8 @@ describe("POST /api/game/action", () => {
     mocks.updateGameState.mockResolvedValue({ count: 1 });
     mocks.getHistoryEntriesInTurnRange.mockResolvedValue([]);
     mocks.markSummarized.mockResolvedValue(true);
+    mocks.setUndoSnapshot.mockResolvedValue({ count: 1 });
+    mocks.saveCharacterSnapshot.mockResolvedValue(true);
     mocks.summarizeHistory.mockResolvedValue("new summary");
     mocks.resolvePlayableWorld.mockResolvedValue({ ok: true, world: serverWorld });
     mocks.moderatePlayerInput.mockReturnValue({ safe: true });
@@ -377,11 +386,113 @@ describe("POST /api/game/action", () => {
       expect(mocks.persistTurn).not.toHaveBeenCalled();
     });
 
+    it("plays from the stored character and saves the turn's changes to it", async () => {
+      const stored = { ...basePayload.character, stats: { ...basePayload.character.stats, hp: 7 }, inventory: [] };
+      const { id: _id, ...storedWithoutId } = stored;
+      mocks.getOwnedSession.mockResolvedValue({
+        ...ownedSession(),
+        characterId: "char-db",
+        character: { id: "char-db", snapshot: JSON.stringify(storedWithoutId) },
+      });
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "state_change", data: { hp: -2, inventoryChanges: [{ op: "add", name: "Lantern", quantity: 1 }] } };
+        yield { type: "done", data: null };
+      });
+
+      const res = await POST(asGuest({
+        ...basePayload,
+        dbSessionId: "sess",
+        character: { ...basePayload.character, stats: { ...basePayload.character.stats, hp: 999 } },
+      }) as never);
+      const body = await readStream(res);
+
+      // The forged client HP never reaches the model.
+      expect(mocks.streamGMTurn.mock.calls[0]![2].stats.hp).toBe(7);
+      const [characterId, ownerId, saved] = mocks.saveCharacterSnapshot.mock.calls[0]!;
+      expect([characterId, ownerId]).toEqual(["char-db", GUEST_ID]);
+      expect(saved.stats.hp).toBe(5);
+      expect(saved.inventory.map((i: { name: string }) => i.name)).toEqual(["Lantern"]);
+      expect(body).toContain("event: character_sync");
+
+      // The pre-turn state is kept for undo.
+      expect(mocks.setUndoSnapshot).toHaveBeenCalledWith("sess", GUEST_ID, expect.objectContaining({
+        turnCount: 7,
+        gameState: expect.objectContaining({ memorySummary: "old summary", summarizedThroughTurn: 0 }),
+        character: expect.objectContaining({ id: "char-db", stats: expect.objectContaining({ hp: 7 }) }),
+      }));
+    });
+
+    it("uses the client's character for a session saved before progress was stored", async () => {
+      mocks.getOwnedSession.mockResolvedValue({
+        ...ownedSession(),
+        characterId: "char-db",
+        character: { id: "char-db", snapshot: null },
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.streamGMTurn.mock.calls[0]![2].name).toBe(basePayload.character.name);
+      expect(mocks.saveCharacterSnapshot).toHaveBeenCalledWith("char-db", GUEST_ID, expect.objectContaining({ name: basePayload.character.name }));
+    });
+
     it("passes the request's abort signal to the GM stream", async () => {
       const res = await POST(asGuest(basePayload) as never);
       await readStream(res);
       const options = mocks.streamGMTurn.mock.calls[0]![4] as { signal?: AbortSignal };
       expect(options.signal).toBeInstanceOf(AbortSignal);
+    });
+  });
+
+  describe("memory for unsaved games", () => {
+    const pendingSummary = {
+      fromMessage: 0,
+      messages: [
+        { role: "user", content: "open the door" },
+        { role: "assistant", content: '{"narration":"It creaks."}' },
+      ],
+    };
+
+    it("summarises what the client is about to drop and says how far the summary reaches", async () => {
+      const res = await POST(asGuest({
+        ...basePayload,
+        session: { ...basePayload.session, memorySummary: "earlier events" },
+        pendingSummary,
+      }) as never);
+      const body = await readStream(res);
+
+      expect(mocks.summarizeHistory).toHaveBeenCalledWith(
+        [
+          { role: "user", content: "open the door", turnNumber: 0 },
+          { role: "assistant", content: '{"narration":"It creaks."}', turnNumber: 1 },
+        ],
+        "earlier events",
+        "Server World",
+      );
+      expect(body).toContain('event: memory_summary\ndata: {"summary":"new summary","throughMessage":2}');
+    });
+
+    it("leaves saved games to the database summary, and skips failed turns", async () => {
+      mocks.getOwnedSession.mockResolvedValue({
+        id: "sess", worldId: "w1", turnCount: 1,
+        gameState: { currentLocationId: null, timeOfDay: "day", weather: "clear", globalFlags: "{}", npcStates: "{}", memorySummary: "", summarizedThroughTurn: 0 },
+      });
+      await readStream(await POST(asGuest({ ...basePayload, dbSessionId: "sess", pendingSummary }) as never));
+      expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+
+      mocks.getOwnedSession.mockResolvedValue(null);
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "error", data: { message: "unstable", degraded: true } };
+        yield { type: "done", data: null };
+      });
+      await readStream(await POST(asGuest({ ...basePayload, pendingSummary }) as never));
+      expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+    });
+
+    it("rejects an oversized backlog", async () => {
+      const res = await POST(asGuest({
+        ...basePayload,
+        pendingSummary: { fromMessage: 0, messages: Array.from({ length: 41 }, () => ({ role: "user", content: "x" })) },
+      }) as never);
+      expect(res.status).toBe(400);
     });
   });
 

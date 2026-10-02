@@ -154,7 +154,7 @@ export default function ImportNotesPage() {
               disabled={busy || notes.trim().length < 20}
               aria-disabled={busy || notes.trim().length < 20}
               className="rounded-xl px-6 py-3 text-sm font-bold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               {busy ? "Extracting…" : "Extract World Details"}
             </button>

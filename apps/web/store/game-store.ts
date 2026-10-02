@@ -4,6 +4,14 @@ import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, Quest
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
+import {
+  applyHpDelta,
+  applyInventoryMutation,
+  applyQuestMutation,
+  applyStatDelta,
+  isItemMutation,
+  isQuestMutation,
+} from "@/lib/game/character-reducer";
 
 /**
  * Hard cap on the in-memory narrationLog. Long sessions otherwise grow it
@@ -114,156 +122,24 @@ export const useGameStore = create<GameStore>()(
         })),
 
       updateHP: (delta) =>
-        set((state) => {
-          if (!state.character) return {};
-          const newHp = Math.max(
-            0,
-            Math.min(state.character.stats.maxHp, state.character.stats.hp + delta)
-          );
-          return {
-            character: { ...state.character, stats: { ...state.character.stats, hp: newHp } },
-          };
-        }),
+        set((state) => (state.character ? { character: applyHpDelta(state.character, delta) } : {})),
 
       updateStat: (statName, delta) =>
-        set((state) => {
-          if (!state.character) return {};
-          const knownStats = ["hp", "maxHp", "strength", "dexterity", "intelligence", "charisma", "level", "experience"] as const;
-          type KnownStat = typeof knownStats[number];
-          if ((knownStats as readonly string[]).includes(statName)) {
-            const key = statName as KnownStat;
-            const current = state.character.stats[key] ?? 0;
-            const newStats = { ...state.character.stats, [key]: Math.max(0, current + delta) };
-
-            // Auto-level on XP gain. Mirrors packages/gm-engine/src/reducer.ts:
-            //   threshold = level² × 100
-            //   per level: +5 maxHp, +5 hp (capped at new maxHp)
-            //   odd levels: +1 STR, +1 DEX
-            //   even levels: +1 INT, +1 CHA
-            // The reducer keeps applying levels in a loop while XP exceeds the
-            // threshold, so a large XP grant can cross multiple levels in one
-            // turn. The GM's prompt also says "the system handles leveling
-            // automatically" — this is what makes that true on the web side.
-            if (key === "experience") {
-              while (true) {
-                const lvl = newStats.level ?? 1;
-                const threshold = lvl * lvl * 100;
-                if ((newStats.experience ?? 0) < threshold) break;
-                const next = lvl + 1;
-                newStats.level = next;
-                newStats.maxHp = (newStats.maxHp ?? 10) + 5;
-                newStats.hp = Math.min((newStats.hp ?? 0) + 5, newStats.maxHp);
-                if (next % 2 !== 0) {
-                  newStats.strength = (newStats.strength ?? 10) + 1;
-                  newStats.dexterity = (newStats.dexterity ?? 10) + 1;
-                } else {
-                  newStats.intelligence = (newStats.intelligence ?? 10) + 1;
-                  newStats.charisma = (newStats.charisma ?? 10) + 1;
-                }
-              }
-            }
-
-            return {
-              character: { ...state.character, stats: newStats },
-            };
-          }
-          const current = state.character.customStats?.[statName] ?? 0;
-          return {
-            character: {
-              ...state.character,
-              customStats: { ...state.character.customStats, [statName]: Math.max(0, current + delta) },
-            },
-          };
-        }),
+        set((state) => (state.character ? { character: applyStatDelta(state.character, statName, delta) } : {})),
 
       applyInventoryMutation: (mutation) =>
-        set((state) => {
-          if (!state.character) return {};
-          const inv = state.character.inventory;
-          if (mutation.op === "add") {
-            const idx = inv.findIndex((i) => i.name.toLowerCase() === mutation.name.toLowerCase());
-            if (idx >= 0) {
-              const updated = inv.map((item, i) =>
-                i === idx ? { ...item, quantity: item.quantity + mutation.quantity } : item
-              );
-              return { character: { ...state.character, inventory: updated } };
-            }
-            return {
-              character: {
-                ...state.character,
-                inventory: [
-                  ...inv,
-                  {
-                    id: `item-${Date.now()}`,
-                    name: mutation.name,
-                    quantity: mutation.quantity,
-                    description: mutation.description ?? "",
-                    category: mutation.category ?? "misc",
-                    properties: {},
-                  },
-                ],
-              },
-            };
-          }
-          // remove
-          const updated = inv
-            .map((item) =>
-              item.name.toLowerCase() === mutation.name.toLowerCase()
-                ? { ...item, quantity: Math.max(0, item.quantity - mutation.quantity) }
-                : item
-            )
-            .filter((item) => item.quantity > 0);
-          return { character: { ...state.character, inventory: updated } };
-        }),
+        set((state) =>
+          state.character && isItemMutation(mutation)
+            ? { character: applyInventoryMutation(state.character, mutation) }
+            : {},
+        ),
 
       applyQuestMutation: (mutation) =>
-        set((state) => {
-          if (!state.character) return {};
-          const quests = state.character.quests;
-          if (mutation.op === "start") {
-            if (quests.some((q) => q.title.toLowerCase() === mutation.title.toLowerCase())) {
-              return {};
-            }
-            return {
-              character: {
-                ...state.character,
-                quests: [
-                  ...quests,
-                  {
-                    id: `quest-${Date.now()}`,
-                    title: mutation.title,
-                    description: mutation.description ?? "",
-                    status: "active" as const,
-                    objectives: (mutation.objectives ?? []).map((text, i) => ({
-                      id: `obj-${Date.now()}-${i}`,
-                      text,
-                      completed: false,
-                    })),
-                    reward: null,
-                  },
-                ],
-              },
-            };
-          }
-          if (mutation.op === "update") {
-            const updated = quests.map((q) => {
-              if (q.title.toLowerCase() !== mutation.title.toLowerCase()) return q;
-              return {
-                ...q,
-                objectives: q.objectives.map((o) =>
-                  o.text === mutation.objective ? { ...o, completed: mutation.done ?? true } : o
-                ),
-              };
-            });
-            return { character: { ...state.character, quests: updated } };
-          }
-          // complete or fail
-          const status = mutation.op === "complete" ? "completed" : "failed";
-          const updated = quests.map((q) =>
-            q.title.toLowerCase() === mutation.title.toLowerCase() ? { ...q, status: status as "completed" | "failed" } : q
-          );
-          return { character: { ...state.character, quests: updated } };
-        }),
+        set((state) =>
+          state.character && isQuestMutation(mutation)
+            ? { character: applyQuestMutation(state.character, mutation) }
+            : {},
+        ),
 
       unlockAchievement: (achievement) =>
         set((s) =>

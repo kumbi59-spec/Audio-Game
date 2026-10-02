@@ -188,6 +188,9 @@ model Character {
   class     String
   backstory String
   stats     String
+  /// Full CharacterData JSON (stats, inventory, quests, custom fields), kept
+  /// current after every turn. Null for characters saved before it existed.
+  snapshot  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -256,6 +259,9 @@ model GameState {
   memorySummary     String
   /// Highest turn number already folded into memorySummary.
   summarizedThroughTurn Int @default(0)
+  /// JSON of the session, game state and character as they were before the
+  /// last turn, so that turn can be undone. Cleared once used.
+  undoSnapshot      String?
   lastUpdatedAt     DateTime @default(now())
 
   sessionId String      @unique

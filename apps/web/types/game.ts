@@ -141,6 +141,11 @@ export interface InMemorySession {
   globalFlags: Record<string, unknown>;
   npcStates: Record<string, unknown>;
   memorySummary: string;
+  /**
+   * Unsaved games only: how many leading history messages are already folded
+   * into memorySummary (saved games are summarised from the database).
+   */
+  summarizedMessages?: number;
   history: HistoryMessage[];
   narrationLog: NarrationEntry[];
   choices: string[];

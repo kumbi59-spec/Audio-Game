@@ -109,7 +109,7 @@ export default function QuickBuildPage() {
       <a
         href="#quick-main"
         className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
-        style={{ backgroundColor: "var(--accent)", color: "#fff" }}
+        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
         Skip to form
       </a>
@@ -331,7 +331,7 @@ export default function QuickBuildPage() {
               disabled={busy}
               aria-busy={busy}
               className="w-full rounded-xl py-3.5 text-base font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               {busy ? (
                 <span className="flex items-center justify-center gap-2">

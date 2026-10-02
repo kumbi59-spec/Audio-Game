@@ -6,7 +6,14 @@ import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
-import { speakNarrationMultiVoice, npcKeyFromName, npcVoicesResolvable, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
+import {
+  speakNarrationMultiVoice,
+  prefetchNarrationMultiVoice,
+  npcKeyFromName,
+  npcVoicesResolvable,
+  type NewAssignmentHandler,
+  type NpcVoiceAssignment,
+} from "@/lib/audio/narration-speaker";
 import { StreamingNarrator } from "@/lib/audio/streaming-narrator";
 import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
@@ -17,7 +24,7 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
-import { trimHistoryForContext } from "@/lib/ai/memory/context-window";
+import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
 // Same trim the server applies (lib/ai/memory/context-window.ts): the most
 // recent ~40k tokens of history, cut in blocks so the cached prompt prefix
@@ -182,36 +189,42 @@ export function useGameSession() {
       // than after the whole reply (choices, state changes) has arrived.
       const premiumVoices = entitlements.premiumTts;
       const worldId = session.worldId;
+      const genderLookup = (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral";
+      const persistAssignment: NewAssignmentHandler = (entry) => {
+        // Fire-and-forget upsert. If the request fails the assignment is
+        // still good for the current session via the in-memory map; next
+        // session will just re-pick (and likely land on the same voice
+        // because the gender hint and usage counts are stable).
+        void fetch("/api/me/npc-voices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            worldId,
+            npcKey: entry.key,
+            voiceId: entry.voiceId,
+            gender: entry.gender,
+            displayName: entry.displayName,
+          }),
+        }).catch(() => undefined);
+      };
       const speakSegment = (text: string, signal: AbortSignal): Promise<void> => {
         if (!premiumVoices) return signal.aborted ? Promise.resolve() : speakText(text);
         return speakNarrationMultiVoice(
           text,
           character.name,
           npcVoiceAssignmentsRef.current,
-          (npcName) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
-          (entry) => {
-            // Fire-and-forget upsert. If the request fails the
-            // assignment is still good for the current session via
-            // the in-memory map; next session will just re-pick
-            // (and likely land on the same voice because the gender
-            // hint and usage counts are stable).
-            void fetch("/api/me/npc-voices", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                worldId,
-                npcKey: entry.key,
-                voiceId: entry.voiceId,
-                gender: entry.gender,
-                displayName: entry.displayName,
-              }),
-            }).catch(() => undefined);
-          },
+          genderLookup,
+          persistAssignment,
           signal,
         );
       };
       const createNarrator = () => new StreamingNarrator({
         speakSegment,
+        // Premium voices come over the network: fetch the next sentence's
+        // audio while this one plays so there's no gap between them.
+        prefetchSegment: premiumVoices
+          ? (text) => prefetchNarrationMultiVoice(text, character.name, npcVoiceAssignmentsRef.current, genderLookup, persistAssignment)
+          : undefined,
         // A new NPC's voice is picked by gender on first use and remembered
         // across sessions, so hold their lines until the GM has said who
         // they are (speakers / relationship changes) or the reply is done.
@@ -248,6 +261,11 @@ export function useGameSession() {
               world: { id: reqWorld.id },
               dbSessionId: reqDbSessionId,
               guestId: readLegacyGuestId(),
+              // A saved game is summarised from the database; an unsaved one
+              // sends whatever the trim above is about to drop unsummarised.
+              pendingSummary: reqDbSessionId
+                ? undefined
+                : pendingSummaryFor(reqSession.history ?? [], reqSession.summarizedMessages) ?? undefined,
             }),
           });
 
@@ -506,13 +524,27 @@ export function useGameSession() {
                   if (narrator.cancelled) break;
                   await speakText(msg);
                 }
+              } else if (eventType === "character_sync") {
+                // The server's stored copy after this turn — the source of
+                // truth for a saved game.
+                const synced = (data as { character?: CharacterData }).character;
+                if (synced) useGameStore.setState({ character: synced });
               } else if (eventType === "memory_summary") {
                 // Server compacted older history into a memory summary; persist
                 // it so subsequent turns send the compacted form rather than
                 // re-sending the long uncompacted history.
-                const summaryData = data as { summary?: unknown };
+                const summaryData = data as { summary?: unknown; throughMessage?: unknown };
                 if (typeof summaryData.summary === "string") {
                   setMemorySummary(summaryData.summary);
+                }
+                // Unsaved games: how much of the history the summary now covers.
+                const through = summaryData.throughMessage;
+                if (typeof through === "number") {
+                  useGameStore.setState((s) => ({
+                    session: s.session
+                      ? { ...s.session, summarizedMessages: Math.max(s.session.summarizedMessages ?? 0, through) }
+                      : null,
+                  }));
                 }
               } else if (eventType === "error") {
                 receivedStreamError = true;
@@ -626,11 +658,30 @@ export function useGameSession() {
   );
 
   const previousTurn = useGameStore((s) => s.previousTurn);
-  const undoLastTurn = useCallback(() => {
+  const undoLastTurn = useCallback(async () => {
     // Stop any in-flight TTS before snapping back so the user doesn't hear a
     // sentence from the now-stale state continuing over the restored scene.
     stopSpeech();
+    const { previousTurn, dbSessionId: savedId } = useGameStore.getState();
+    if (!previousTurn) {
+      announce("Nothing to undo.", "polite");
+      return false;
+    }
+    // A saved game keeps its progress on the server, so roll that back too —
+    // otherwise the next turn would bring the undone changes back.
+    let serverCharacter: CharacterData | null = null;
+    if (savedId) {
+      try {
+        const res = await fetch("/api/game/undo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dbSessionId: savedId }),
+        });
+        if (res.ok) serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
+      } catch { /* local undo still applies */ }
+    }
     const ok = useGameStore.getState().undoLastTurn();
+    if (ok && serverCharacter) useGameStore.setState({ character: serverCharacter });
     announce(ok ? "Last turn undone." : "Nothing to undo.", "polite");
     return ok;
   }, [announce]);

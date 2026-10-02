@@ -527,8 +527,8 @@ export default function VoiceSettingsPage() {
             disabled={previewing}
             className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{
-              backgroundColor: "var(--accent)",
-              color: "#ffffff",
+              backgroundColor: "var(--accent-solid)",
+              color: "var(--on-accent)",
               minHeight: 44,
               minWidth: 120,
             }}

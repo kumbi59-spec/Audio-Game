@@ -201,7 +201,7 @@ export default function MyWorldsPage() {
             <Link
               href="/worlds/new"
               className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               + Create New World
             </Link>
@@ -223,7 +223,7 @@ export default function MyWorldsPage() {
             <Link
               href="/worlds/new/upload"
               className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               Upload a World
             </Link>
@@ -318,8 +318,8 @@ export default function MyWorldsPage() {
                         className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
                         style={{
                           borderColor: "var(--accent)",
-                          backgroundColor: "var(--accent)",
-                          color: "#ffffff",
+                          backgroundColor: "var(--accent-solid)",
+                          color: "var(--on-accent)",
                         }}
                       >
                         Resume Session →
@@ -332,8 +332,8 @@ export default function MyWorldsPage() {
                       className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
                       style={{
                         borderColor: activeWorldId === world.id ? "var(--border)" : "var(--accent)",
-                        backgroundColor: activeWorldId === world.id ? "transparent" : "var(--accent)",
-                        color: activeWorldId === world.id ? "var(--text-muted)" : "#ffffff",
+                        backgroundColor: activeWorldId === world.id ? "transparent" : "var(--accent-solid)",
+                        color: activeWorldId === world.id ? "var(--text-muted)" : "var(--on-accent)",
                       }}
                     >
                       {activeWorldId === world.id ? "New Session" : "Play This World"}
@@ -347,8 +347,8 @@ export default function MyWorldsPage() {
                         className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                         style={{
                           borderColor: world.isPublic ? "var(--border)" : "var(--accent)",
-                          backgroundColor: world.isPublic ? "transparent" : "var(--accent)",
-                          color: world.isPublic ? "var(--text-muted)" : "#ffffff",
+                          backgroundColor: world.isPublic ? "transparent" : "var(--accent-solid)",
+                          color: world.isPublic ? "var(--text-muted)" : "var(--on-accent)",
                         }}
                       >
                         {toggling === world.id
@@ -480,7 +480,7 @@ export default function MyWorldsPage() {
             <Link
               href="/worlds/new"
               className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               + Create Another World
             </Link>

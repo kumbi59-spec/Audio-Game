@@ -161,7 +161,7 @@ export default function UploadBiblePage() {
               disabled={!file || isProcessing}
               aria-label={file ? `Upload ${file.name} and create world` : "Select a file first"}
               className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             >
               Create World from File
             </button>
@@ -180,7 +180,7 @@ export default function UploadBiblePage() {
                   onClick={() => router.push(`/create?worldId=${worldId}`)}
                   aria-label={`Play your world ${worldName ?? ""}. Start your adventure now.`}
                   className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
                 >

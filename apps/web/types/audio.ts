@@ -33,6 +33,14 @@ export interface TTSProvider {
   isSupported(): boolean;
   isSpeaking(): boolean;
   isPaused(): boolean;
+  /**
+   * Start fetching the audio for text that will be spoken next, so speak()
+   * with the same text and options can start without a network wait.
+   * Optional: local engines (browser TTS) have nothing to fetch.
+   */
+  prefetch?(text: string, options?: TTSOptions): void;
+  /** Drop any prefetched audio (the narration it was for was stopped). */
+  clearPrefetched?(): void;
 }
 
 export type AudioQueueEntryType = "tts" | "sound_cue" | "ambient" | "pause";

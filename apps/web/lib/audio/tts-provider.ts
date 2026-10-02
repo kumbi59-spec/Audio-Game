@@ -51,9 +51,9 @@ export function getTTSProvider(forceProvider?: TTSProviderType): ITTSProvider {
   return instanceFor(type);
 }
 
-export async function speak(text: string, options: TTSOptions = {}): Promise<void> {
+function resolveOptions(options: TTSOptions): TTSOptions {
   const state = useAudioStore.getState();
-  const resolvedOpts: TTSOptions = {
+  return {
     rate: options.rate ?? state.ttsSpeed,
     pitch: options.pitch ?? state.ttsPitch,
     volume: options.volume ?? curvedVolume(state.volume),
@@ -61,6 +61,20 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
     ...(options.onEnd ? { onEnd: options.onEnd } : {}),
     ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),
   };
+}
+
+/**
+ * Starts fetching audio for text that will be passed to speak() next with
+ * the same options, so it plays without a network wait. A no-op for the
+ * browser engine.
+ */
+export function prefetchSpeech(text: string, options: TTSOptions = {}): void {
+  instanceFor(useAudioStore.getState().ttsProvider).prefetch?.(text, resolveOptions(options));
+}
+
+export async function speak(text: string, options: TTSOptions = {}): Promise<void> {
+  const state = useAudioStore.getState();
+  const resolvedOpts = resolveOptions(options);
 
   try {
     return await instanceFor(state.ttsProvider).speak(text, resolvedOpts);
@@ -80,16 +94,7 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
  * change the user's provider selection.
  */
 export async function speakPreview(text: string, options: TTSOptions = {}): Promise<void> {
-  const state = useAudioStore.getState();
-  const resolvedOpts: TTSOptions = {
-    rate: options.rate ?? state.ttsSpeed,
-    pitch: options.pitch ?? state.ttsPitch,
-    volume: options.volume ?? curvedVolume(state.volume),
-    voiceId: options.voiceId ?? state.ttsVoiceId,
-    ...(options.onEnd ? { onEnd: options.onEnd } : {}),
-    ...(options.onBoundary ? { onBoundary: options.onBoundary } : {}),
-  };
-  return instanceFor(state.ttsProvider).speak(text, resolvedOpts);
+  return instanceFor(useAudioStore.getState().ttsProvider).speak(text, resolveOptions(options));
 }
 
 // Bumped by every stopSpeech(). A narration made of several speak() calls
@@ -104,7 +109,10 @@ export function speechStopCount(): number {
 export function stopSpeech(): void {
   _stopCount++;
   // Stop all providers — switching mid-narration shouldn't leak audio.
-  for (const inst of Object.values(instances)) inst?.stop();
+  for (const inst of Object.values(instances)) {
+    inst?.stop();
+    inst?.clearPrefetched?.();
+  }
   // Manual stop also tears down any in-flight narration session so its
   // speaking-state guard doesn't outlive the audio it was protecting.
   _narrationDepth = 0;

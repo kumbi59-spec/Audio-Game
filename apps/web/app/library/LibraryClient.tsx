@@ -7,6 +7,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
+import { ServerSaves } from "./ServerSaves";
 import {
   sortWorldsByOrder,
   filterWorldsByTab,
@@ -21,7 +22,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
   const router = useRouter();
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session, world: savedWorld, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
+  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [tab, setTab] = useState<Tab>("official");
@@ -50,7 +51,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
           <Link
             href="/worlds/new/upload"
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
             aria-label="Share your world with the community"
           >
             Share Your World
@@ -85,7 +86,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                 <button
                   onClick={() => { saveCurrentCampaign(); router.push("/play"); }}
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                 >
                   Resume →
                 </button>
@@ -100,6 +101,13 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
               </div>
             </div>
           )}
+
+          <ServerSaves
+            excludeSessionIds={[
+              ...(hasSavedGame && dbSessionId ? [dbSessionId] : []),
+              ...savedCampaigns.flatMap((c) => (c.dbSessionId ? [c.dbSessionId] : [])),
+            ]}
+          />
 
           {savedCampaigns.length > 0 && (
             <div className="mb-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
@@ -210,7 +218,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                 <Link
                   href="/worlds/new"
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
                 >
                   Create the first one →
                 </Link>
@@ -314,7 +322,7 @@ function WorldCard({
             onClick={() => onPlay(world.id)}
             aria-label={`Play ${world.name}`}
             className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent)", color: "#ffffff" }}
+            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
           >
             Play Game →
           </button>

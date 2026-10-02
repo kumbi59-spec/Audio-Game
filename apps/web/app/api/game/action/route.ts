@@ -8,9 +8,12 @@ import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth
 import { authorizeAiUsage, aiUsageDenialResponse } from "@/lib/ai/usage-guard";
 import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { getOwnedSession } from "@/lib/db/queries/sessions";
+import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
+import { applyCharacterChanges } from "@/lib/game/character-reducer";
 import {
   CharacterSchema,
   LegacyGuestIdSchema,
+  PendingSummarySchema,
   SessionSnapshotSchema,
   WorldRefSchema,
 } from "@/lib/game/request-schemas";
@@ -26,6 +29,7 @@ const ActionSchema = z.object({
   world: WorldRefSchema,
   dbSessionId: z.string().max(200).nullish(),
   guestId: LegacyGuestIdSchema,
+  pendingSummary: PendingSummarySchema.nullish(),
 });
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -59,7 +63,6 @@ export async function POST(req: NextRequest) {
   const respond = (res: Response) => withPlayerCookie(res, setCookie);
 
   const action: PlayerAction = body.action;
-  const character = body.character as CharacterData;
   const dbSessionId = body.dbSessionId;
 
   const inputCheck = moderatePlayerInput(action.content);
@@ -91,6 +94,12 @@ export async function POST(req: NextRequest) {
   if (ownedSession && ownedSession.worldId !== world.id) {
     return respond(NextResponse.json({ error: "session_world_mismatch" }, { status: 409 }));
   }
+
+  // Like the session state, a saved character's stored progress wins over the
+  // client's copy. A session saved before progress was stored has none yet:
+  // its client copy is the most current, and is stored after this turn.
+  const storedCharacter = ownedSession?.character ? characterSnapshotFromRow(ownedSession.character) : null;
+  const character: CharacterData = storedCharacter ?? (body.character as CharacterData);
 
   const storedState = ownedSession?.gameState ?? null;
   const storedNpcStates = parseJson<Record<string, unknown>>(storedState?.npcStates, {});
@@ -175,8 +184,15 @@ export async function POST(req: NextRequest) {
 
         if (ownedSession && completed && !degraded) {
           try {
-            const { persistTurn, updateGameState, incrementTurnCount, getHistoryEntriesInTurnRange, markSummarized } =
-              await import("@/lib/db/queries/sessions");
+            const {
+              persistTurn,
+              updateGameState,
+              incrementTurnCount,
+              getHistoryEntriesInTurnRange,
+              markSummarized,
+              setUndoSnapshot,
+            } = await import("@/lib/db/queries/sessions");
+            const { saveCharacterSnapshot } = await import("@/lib/db/queries/characters");
             const { summarizeHistory, SUMMARIZE_AFTER_TURNS, TURNS_PER_SUMMARY } =
               await import("@/lib/ai/memory/summarizer");
             const sessionId = ownedSession.id;
@@ -185,6 +201,32 @@ export async function POST(req: NextRequest) {
             // Turn numbers come from the stored session, never the client.
             const newTurn = await incrementTurnCount(sessionId, ownerId);
             if (newTurn === null) throw new Error("Session is no longer owned by the caller");
+
+            // Everything this turn is about to change, as it stood before,
+            // so the player can undo it.
+            if (storedState) {
+              await setUndoSnapshot(sessionId, ownerId, {
+                turnCount: newTurn - 1,
+                gameState: {
+                  currentLocationId: storedState.currentLocationId,
+                  timeOfDay: storedState.timeOfDay,
+                  weather: storedState.weather,
+                  globalFlags: storedState.globalFlags,
+                  npcStates: storedState.npcStates,
+                  memorySummary: storedState.memorySummary,
+                  summarizedThroughTurn: storedState.summarizedThroughTurn,
+                },
+                character,
+              });
+            }
+
+            // Apply this turn's HP/stat/inventory/quest changes to the stored
+            // character with the same rules the client uses, store it, and
+            // send it back so the client converges on the stored copy.
+            const nextCharacter = applyCharacterChanges(character, stateChanges);
+            if (await saveCharacterSnapshot(ownedSession.characterId, ownerId, nextCharacter)) {
+              send("character_sync", { character: nextCharacter });
+            }
 
             await Promise.all([
               persistTurn(sessionId, ownerId, newTurn, "user", action.content, action.type),
@@ -254,6 +296,24 @@ export async function POST(req: NextRequest) {
           } catch (dbErr) {
             // DB persistence is best-effort — don't fail the game turn
             console.error("DB persistence error:", dbErr);
+          }
+        }
+
+        // An unsaved game has no stored history to summarise, so the client
+        // sends what it is about to drop from the context window; fold it
+        // into the memory summary it sent, and tell it how far that reaches.
+        if (!ownedSession && completed && !degraded && body.pendingSummary) {
+          try {
+            const { summarizeHistory } = await import("@/lib/ai/memory/summarizer");
+            const { fromMessage, messages } = body.pendingSummary;
+            const summary = await summarizeHistory(
+              messages.map((m, i) => ({ role: m.role, content: m.content, turnNumber: fromMessage + i })),
+              session.memorySummary,
+              world.name,
+            );
+            send("memory_summary", { summary, throughMessage: fromMessage + messages.length });
+          } catch (summaryErr) {
+            console.error("Guest summary error:", summaryErr);
           }
         }
       } catch (err) {

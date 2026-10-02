@@ -49,10 +49,67 @@ async function fetchWithRetry(input: RequestInfo, init: RequestInit): Promise<Re
   }
 }
 
+/** At most this many clips are fetched ahead of playback. */
+const MAX_PREFETCHED = 3;
+
+interface TtsRequest {
+  body: string;
+  playbackCompensation: number;
+}
+
+function buildRequest(text: string, options: TTSOptions): TtsRequest {
+  const requestedRate = options.rate ?? 1.0;
+  const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, requestedRate));
+  return {
+    body: JSON.stringify({ text, voiceId: options.voiceId ?? DEFAULT_VOICE_ID, speed: apiSpeed }),
+    // The server clamps to the same range; keeping the math here lets us
+    // compute the exact playbackRate compensation the client should apply.
+    playbackCompensation: requestedRate / apiSpeed,
+  };
+}
+
+function requestAudio(body: string): Promise<Response> {
+  return fetchWithRetry(TTS_PROXY, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+  });
+}
+
 export class ElevenLabsTTS implements TTSProvider {
   private audio: HTMLAudioElement | null = null;
   private _speaking = false;
   private _paused = false;
+  // Bumped by stop(). A speak() whose request was still in flight when it was
+  // stopped must not start playing once the response arrives.
+  private generation = 0;
+  // Request body → response, for clips fetched ahead of playback.
+  private prefetched = new Map<string, Promise<Response>>();
+
+  prefetch(text: string, options: TTSOptions = {}): void {
+    if (!this.isSupported() || !text.trim()) return;
+    const { body } = buildRequest(text, options);
+    if (this.prefetched.has(body)) return;
+    while (this.prefetched.size >= MAX_PREFETCHED) {
+      const oldest = this.prefetched.keys().next().value as string;
+      this.discard(oldest);
+    }
+    const pending = requestAudio(body);
+    // Nobody may ever await it; don't let a failure surface as unhandled.
+    pending.catch(() => undefined);
+    this.prefetched.set(body, pending);
+  }
+
+  clearPrefetched(): void {
+    for (const key of [...this.prefetched.keys()]) this.discard(key);
+  }
+
+  private discard(key: string): void {
+    const pending = this.prefetched.get(key);
+    this.prefetched.delete(key);
+    // Release the unread audio stream.
+    pending?.then((res) => res.body?.cancel()).catch(() => undefined);
+  }
 
   isSupported(): boolean {
     return typeof window !== "undefined" && typeof Audio !== "undefined";
@@ -65,22 +122,18 @@ export class ElevenLabsTTS implements TTSProvider {
   async speak(text: string, options: TTSOptions = {}): Promise<void> {
     if (!this.isSupported()) return;
     this.stop();
+    const gen = this.generation;
 
-    const requestedRate = options.rate ?? 1.0;
-    const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, requestedRate));
-    // The server clamps to the same range; keeping the math here lets us
-    // compute the exact playbackRate compensation the client should apply.
-    const playbackCompensation = requestedRate / apiSpeed;
+    const { body, playbackCompensation } = buildRequest(text, options);
+    const prefetched = this.prefetched.get(body);
+    this.prefetched.delete(body);
+    const res = await (prefetched ?? requestAudio(body));
 
-    const res = await fetchWithRetry(TTS_PROXY, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text,
-        voiceId: options.voiceId ?? DEFAULT_VOICE_ID,
-        speed: apiSpeed,
-      }),
-    });
+    if (gen !== this.generation) {
+      // Stopped (or superseded) while the request was in flight.
+      res.body?.cancel().catch(() => undefined);
+      return;
+    }
 
     if (!res.ok) {
       this._speaking = false;
@@ -254,6 +307,7 @@ export class ElevenLabsTTS implements TTSProvider {
   }
 
   stop(): void {
+    this.generation++;
     if (this.audio) {
       this.audio.pause();
       this.audio.src = "";

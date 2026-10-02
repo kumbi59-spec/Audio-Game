@@ -185,9 +185,9 @@ describe("request layout", () => {
   });
 
   it("only sends Sonnet 5.5 thinking settings to Sonnet 5.5", async () => {
-    const { gmModelParams } = await import("./client");
-    expect(gmModelParams("claude-sonnet-4-6")).toEqual({});
-    expect(gmModelParams("claude-sonnet-5-5")).toMatchObject({ thinking: { type: "between_tools" } });
+    const { modelParams } = await import("./client");
+    expect(modelParams("claude-sonnet-4-6")).toEqual({});
+    expect(modelParams("claude-sonnet-5-5")).toMatchObject({ thinking: { type: "between_tools" } });
   });
 });
 

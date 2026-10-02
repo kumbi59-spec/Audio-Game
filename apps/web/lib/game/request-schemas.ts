@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PENDING_SUMMARY_MESSAGES } from "@/lib/ai/memory/context-window";
 
 // Request schemas shared by the game API routes. Every string and array is
 // bounded: these payloads end up in model prompts, so unbounded input is an
@@ -78,6 +79,8 @@ export const SessionSnapshotSchema = z.object({
   globalFlags: z.record(z.unknown()).default({}),
   npcStates: z.record(z.unknown()).default({}),
   memorySummary: z.string().max(20_000).default(""),
+  /** Leading history messages already folded into memorySummary (unsaved games). */
+  summarizedMessages: z.number().int().min(0).optional(),
   history: z.array(
     z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(20_000) })
   ).max(1_000).default([]),
@@ -88,4 +91,18 @@ export const SessionSnapshotSchema = z.object({
   achievements: z.array(z.unknown()).max(500).default([]),
   relationships: z.array(z.unknown()).max(500).default([]),
   codex: z.array(z.unknown()).max(1_000).default([]),
+});
+
+
+/**
+ * History an unsaved game is about to drop from its context window without
+ * having summarised it. The server folds it into the memory summary (saved
+ * games are summarised from the database instead).
+ */
+export const PendingSummarySchema = z.object({
+  /** Index in the client's full history of the first message here. */
+  fromMessage: z.number().int().min(0),
+  messages: z.array(
+    z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(20_000) }),
+  ).min(1).max(MAX_PENDING_SUMMARY_MESSAGES),
 });

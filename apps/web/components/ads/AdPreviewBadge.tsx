@@ -22,7 +22,7 @@ export function AdPreviewBadge() {
         type="button"
         onClick={clearAdPreview}
         className="rounded-full px-2 py-1 font-semibold hover:opacity-90"
-        style={{ backgroundColor: "var(--accent)", color: "#fff", minHeight: 32 }}
+        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)", minHeight: 32 }}
       >
         Turn off
       </button>
