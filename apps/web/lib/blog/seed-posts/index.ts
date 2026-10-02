@@ -3,7 +3,10 @@ import { AUTUMN_2026_B } from "./2026-autumn-b";
 import { AUTUMN_2026_C } from "./2026-autumn-c";
 import type { ScheduledSeedPost } from "./types";
 
-export { scheduledPublishDate } from "./types";
+export { LAUNCH_POSTS, launchPublishDate } from "./2026-launch";
+export type { LaunchSeedPost } from "./2026-launch";
+
+export { scheduledPublishDate, seedPostSlug } from "./types";
 export type { ScheduledSeedPost } from "./types";
 
 /** SEO series released one post per day, 24 Sep – 23 Oct 2026. */

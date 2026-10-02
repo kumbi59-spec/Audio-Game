@@ -1,0 +1,1021 @@
+[
+  {
+    "slug": "welcome-to-echoquest-the-ai-rpg-built-for-everyone",
+    "title": "Welcome to EchoQuest: The AI RPG Built for Everyone",
+    "h2": [
+      "What Is EchoQuest?",
+      "Built for Blind and Sighted Adventurers",
+      "A Living, Breathing AI Game Master",
+      "Three Official Worlds, Endless Possibilities",
+      "Free to Start",
+      "How EchoQuest Compares to Other AI RPGs",
+      "What's Coming",
+      "A Word to Sighted Players",
+      "Ready to Begin?"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-play-your-first-echoquest-adventure-beginners-guide",
+    "title": "How to Play Your First EchoQuest Adventure (Beginner's Guide)",
+    "h2": [
+      "Before You Start: What to Expect",
+      "Step 1: Browse the Adventure Library",
+      "Step 2: Choose Your Character",
+      "Step 3: Listen to the Opening Scene",
+      "Step 4: Take Your First Action",
+      "Step 5: Keep Going",
+      "Tips for New Players",
+      "What If I Get Stuck?"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "why-audio-first-gaming-is-a-revolution-for-blind-players",
+    "title": "Why Audio-First Gaming Is a Revolution for Blind Players",
+    "h2": [
+      "The Problem with \"Accessible\" Games",
+      "The Long History of Audio Games",
+      "What Audio-First Actually Means",
+      "The Voice Command Layer",
+      "Why AI Changes Everything",
+      "Misconceptions About Audio Games",
+      "Building a More Inclusive Gaming Future"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "5-world-building-tips-that-make-great-rpg-campaigns",
+    "title": "5 World-Building Tips That Make Great RPG Campaigns",
+    "h2": [
+      "1. Give Your World a Central Tension",
+      "2. Make Your Factions Want Incompatible Things",
+      "3. History Leaves Ruins — Use Them",
+      "4. Give NPCs Goals That Exist Without the Players",
+      "5. Establish Clear Sensory Language",
+      "Putting It All Together"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "how-claude-ai-powers-the-echoquest-game-master",
+    "title": "How Claude AI Powers the EchoQuest Game Master",
+    "h2": [
+      "The Old Way: Decision Trees",
+      "The New Way: Language Models",
+      "What the GM Actually Knows",
+      "Why Responses Feel Consistent",
+      "The Human Design Behind the AI",
+      "What This Means for You"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "the-best-fantasy-rpg-tropes-and-when-to-subvert-them",
+    "title": "The Best Fantasy RPG Tropes — And When to Subvert Them",
+    "h2": [
+      "The Chosen Hero",
+      "The Dark Lord",
+      "The Ancient Ruin With a Secret",
+      "The Wise Old Mentor",
+      "The Magical MacGuffin",
+      "The Meta-Trope: Earned Subversion"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "keyboard-navigation-in-echoquest-play-without-a-mouse",
+    "title": "Keyboard Navigation in EchoQuest: Play Without a Mouse",
+    "h2": [
+      "The Core Navigation Model",
+      "In-Game Shortcuts",
+      "Screen Reader Compatibility",
+      "The Skip Link",
+      "Setting Up Your Preferred Voice",
+      "Tips for Power Users",
+      "Reporting Issues"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "elevenlabs-premium-narration-why-voice-quality-changes-everything",
+    "title": "ElevenLabs Premium Narration: Why Voice Quality Changes Everything",
+    "h2": [
+      "The Difference Is Emotional Expressiveness",
+      "Handling Fantasy Proper Nouns",
+      "Choosing Your Voice",
+      "Speed and Pitch Controls",
+      "Is Free TTS Good Enough?",
+      "When Premium Really Shines"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "10-classic-rpg-character-archetypes-and-how-to-play-them-well",
+    "title": "10 Classic RPG Character Archetypes (And How to Play Them Well)",
+    "h2": [
+      "1. The Reluctant Hero",
+      "2. The Disgraced Noble",
+      "3. The True Believer",
+      "4. The Cynical Veteran",
+      "5. The Eager Apprentice",
+      "6. The Outsider",
+      "7. The Reluctant Monster",
+      "8. The Con Artist with a Heart",
+      "9. The Scholar Out of Their Depth",
+      "10. The Haunted Survivor",
+      "Mixing Archetypes"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-write-a-game-bible-the-world-builders-template",
+    "title": "How to Write a Game Bible: The World-Builder's Template",
+    "h2": [
+      "What Goes in a Game Bible",
+      "Section 1: World Overview (1–2 paragraphs)",
+      "Section 2: The Central Conflict",
+      "Section 3: Factions (3–5)",
+      "Section 4: Tone & Sensory Language",
+      "Section 5: Rules & Constraints",
+      "Section 6: Opening Scenario",
+      "Section 7 (Optional): Pronunciation Notes",
+      "Uploading Your Bible"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "accessibility-in-gaming-the-state-of-play-in-2026",
+    "title": "Accessibility in Gaming: The State of Play in 2026",
+    "h2": [
+      "What's Improved",
+      "Where Significant Gaps Remain",
+      "Why EchoQuest Takes a Different Approach",
+      "What You Can Do"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-ambient-sound-design-elevates-rpg-storytelling",
+    "title": "How Ambient Sound Design Elevates RPG Storytelling",
+    "h2": [
+      "The Neuroscience of Audio Immersion",
+      "How EchoQuest's Soundscapes Work",
+      "The Layers of a Good Soundscape",
+      "The Power of Silence",
+      "Volume Control"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "from-tabletop-to-ai-how-echoquest-reimagines-dd",
+    "title": "From Tabletop to AI: How EchoQuest Reimagines D&D",
+    "h2": [
+      "What D&D Got Right",
+      "What Tabletop Couldn't Solve",
+      "What's Different About AI as GM",
+      "The Hybrid Future"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "writing-compelling-npcs-7-techniques-that-work",
+    "title": "Writing Compelling NPCs: 7 Techniques That Work",
+    "h2": [
+      "1. Give Them One Specific Want",
+      "2. Give Them One Thing They Won't Do",
+      "3. Let Them Want Something From the Players Specifically",
+      "4. Give Them a Physical Habit or Mannerism",
+      "5. Make Them Competent at Something Unrelated to Their Role",
+      "6. Let Them Be Partly Wrong",
+      "7. Let Them Change",
+      "A Worked Example"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "the-power-of-choice-how-branching-narratives-work-in-ai-rpgs",
+    "title": "The Power of Choice: How Branching Narratives Work in AI RPGs",
+    "h2": [
+      "The Old Model: Choose Your Own Adventure",
+      "The AI Model: Responsive Generation",
+      "The Texture of Meaningful Choice",
+      "What Choice Reveals About Story",
+      "The Limits of AI Choice"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-create-your-first-custom-world-on-echoquest",
+    "title": "How to Create Your First Custom World on EchoQuest",
+    "h2": [
+      "Path 1: Upload a Game Bible (Storyteller Plan)",
+      "Path 2: World Builder Wizard (Creator Plan)",
+      "Tips for First-Time World Builders"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template",
+      "/worlds/new"
+    ]
+  },
+  {
+    "slug": "voice-commands-in-echoquest-play-completely-hands-free",
+    "title": "Voice Commands in EchoQuest: Play Completely Hands-Free",
+    "h2": [
+      "How It Works",
+      "Setting Up Voice Input",
+      "Navigation Voice Commands",
+      "Tips for Best Accuracy",
+      "Combining Voice and Screen Reader",
+      "Beyond Disability: Why Sighted Players Use Voice"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "the-science-of-immersion-why-audio-storytelling-is-so-powerful",
+    "title": "The Science of Immersion: Why Audio Storytelling Is So Powerful",
+    "h2": [
+      "What Happens in Your Brain During a Story",
+      "Reading vs. Listening",
+      "The Role of Voice Performance",
+      "Ambient Sound as Cognitive Scaffolding",
+      "Why This Matters for Blind Players",
+      "Why This Matters for Sighted Players"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "setting-difficulty-in-ai-rpgs-from-beginner-to-power-player",
+    "title": "Setting Difficulty in AI RPGs: From Beginner to Power Player",
+    "h2": [
+      "The Three Dials of Difficulty",
+      "How to Communicate Difficulty to Your AI GM",
+      "The Beginner Experience",
+      "The Power Player Experience",
+      "The Middle Path",
+      "A Note on Content Rating"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "the-history-of-interactive-fiction-and-where-ai-takes-it-next",
+    "title": "The History of Interactive Fiction — And Where AI Takes It Next",
+    "h2": [
+      "1976: The Colossal Cave",
+      "The Parser Era (1977–1993)",
+      "The Hyperlink Era (1993–2010)",
+      "The Hybrid Era (2010–2019)",
+      "The AI Era (2020–present)",
+      "What Comes Next"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-run-a-horror-rpg-campaign-without-any-visuals",
+    "title": "How to Run a Horror RPG Campaign Without Any Visuals",
+    "h2": [
+      "Why Audio Horror Works",
+      "The Craft of Audio Horror",
+      "Building a Horror World in EchoQuest"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "crafting-moral-dilemmas-how-to-make-players-truly-think",
+    "title": "Crafting Moral Dilemmas: How to Make Players Truly Think",
+    "h2": [
+      "The Anatomy of a Real Dilemma",
+      "The Four Ingredients",
+      "Types of Moral Dilemmas That Work",
+      "Timing and Delivery",
+      "After the Choice"
+    ],
+    "internalLinks": []
+  },
+  {
+    "slug": "5-classic-dd-campaigns-that-inspired-echoquest",
+    "title": "5 Classic D&D Campaigns That Inspired EchoQuest",
+    "h2": [
+      "1. Planescape: Torment (1999)",
+      "2. The Curse of Strahd (1983 / 2016)",
+      "3. Campaigns of Keith Baker's Eberron",
+      "4. Matt Mercer's Critical Role (2015–present)",
+      "5. Apocalypse World (2010)",
+      "What These Five Have in Common"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "solo-rpg-vs-group-play-the-case-for-playing-alone",
+    "title": "Solo RPG vs. Group Play: The Case for Playing Alone",
+    "h2": [
+      "The Scheduling Problem, Honestly",
+      "The Performance Anxiety Problem",
+      "The Pacing Problem",
+      "The Privacy of Choice",
+      "What You Lose",
+      "Who Solo Play Is For"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "the-world-builder-wizard-a-complete-guide-for-creators",
+    "title": "The World Builder Wizard: A Complete Guide for Creators",
+    "h2": [
+      "Step 1: The Pitch",
+      "Step 2: Genre and Tone",
+      "Step 3: Factions",
+      "Step 4: Key NPCs",
+      "Step 5: The Opening Location",
+      "Step 6: Constraints and Rules",
+      "Step 7: Review and Launch"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template"
+    ]
+  },
+  {
+    "slug": "storytelling-for-mental-health-the-therapeutic-power-of-rpgs",
+    "title": "Storytelling for Mental Health: The Therapeutic Power of RPGs",
+    "h2": [
+      "What the Research Shows",
+      "Why Stories Help",
+      "The Specific Benefits",
+      "Why Audio RPGs Extend This",
+      "What Doesn't Replace"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-screen-readers-work-with-echoquest-a-technical-deep-dive",
+    "title": "How Screen Readers Work with EchoQuest: A Technical Deep Dive",
+    "h2": [
+      "How Screen Readers Work",
+      "EchoQuest's Approach: Semantic HTML First",
+      "ARIA Live Regions for Dynamic Content",
+      "Focus Management",
+      "Skip Links and Heading Navigation",
+      "Testing Process",
+      "Reporting Issues"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "behind-the-gm-how-we-prompt-claude-to-run-your-adventures",
+    "title": "Behind the GM: How We Prompt Claude to Run Your Adventures",
+    "h2": [
+      "The Structure of a GM Prompt",
+      "What We Ask the GM to Do",
+      "What We Ask the GM Not to Do",
+      "The Ongoing Refinement",
+      "What We Don't Promise"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "building-community-worlds-tips-from-echoquest-creators",
+    "title": "Building Community Worlds: Tips from EchoQuest Creators",
+    "h2": [
+      "Start With the Opening Scene, Not the Lore",
+      "Write for Listening, Not Reading",
+      "Give the AI Specific Constraints",
+      "Design for Replayability",
+      "Let the AI Improvise",
+      "Iterate After Publication",
+      "Be Generous With Other Creators"
+    ],
+    "internalLinks": [
+      "/worlds/new"
+    ]
+  },
+  {
+    "slug": "whats-next-for-echoquest-our-vision-for-the-future",
+    "title": "What's Next for EchoQuest: Our Vision for the Future",
+    "h2": [
+      "Near-Term: Deeper World Customization",
+      "Near-Term: Collaborative Play",
+      "Medium-Term: Voice-First Interface",
+      "Medium-Term: Adaptive Storytelling",
+      "Medium-Term: A Creator Marketplace",
+      "Long-Term: Native Multiplatform Apps",
+      "Long-Term: An Open Platform for Accessibility-First Games",
+      "What We Won't Do",
+      "A Note of Gratitude"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "best-ai-dungeon-alternatives-in-2026-what-to-look-for-in-an-ai-rpg",
+    "title": "Best AI Dungeon Alternatives in 2026: What to Look For in an AI RPG",
+    "h2": [
+      "1. Does It Track Real Game State?",
+      "2. How Good Is Its Memory?",
+      "3. Is There a Game Master or Just a Narrator?",
+      "4. Can You Listen Instead of Read?",
+      "5. Is It Genuinely Accessible?",
+      "6. Can You Bring Your Own World?",
+      "7. Is the Pricing Honest?",
+      "Quick Comparison: Types of AI Dungeon Alternatives",
+      "Who Should Try EchoQuest?",
+      "Try It Free"
+    ],
+    "internalLinks": [
+      "/blog/how-claude-ai-powers-the-echoquest-game-master",
+      "/blog/why-audio-first-gaming-is-a-revolution-for-blind-players",
+      "/library"
+    ]
+  },
+  {
+    "slug": "audio-games-for-blind-people-10-genres-you-can-play-entirely-by-ear",
+    "title": "Audio Games for Blind People: 10 Genres You Can Play Entirely by Ear",
+    "h2": [
+      "What Makes a Game Truly \"Audio-Accessible\"?",
+      "1. Audio RPGs and Interactive Stories",
+      "2. Text Adventures and Interactive Fiction",
+      "3. Audio Action and Adventure Games",
+      "4. Racing Games With Audio Assists",
+      "5. Card and Board Games",
+      "6. Puzzle and Word Games",
+      "7. Rhythm and Music Games",
+      "8. MUDs and Multiplayer Text Worlds",
+      "9. Fighting Games",
+      "10. Strategy and Simulation",
+      "How to Choose Your First Audio Game",
+      "Tips for Getting Started",
+      "Why This Matters"
+    ],
+    "internalLinks": [
+      "/blog/the-history-of-interactive-fiction-and-where-ai-takes-it-next",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-play-dd-solo-with-an-ai-dungeon-master",
+    "title": "How to Play D&D Solo With an AI Dungeon Master",
+    "h2": [
+      "What Is an AI Dungeon Master?",
+      "Solo D&D Options Compared",
+      "Step 1: Pick a Setting That Suits Solo Play",
+      "Step 2: Build a Character With Built-In Hooks",
+      "Step 3: Tell the DM What You Want",
+      "Step 4: Play Actively",
+      "Step 5: Use Companions to Replace the Party",
+      "Step 6: Pace Your Sessions",
+      "Common Solo D&D Pitfalls (and Fixes)",
+      "Is Solo D&D \"Real\" D&D?",
+      "Start Your Solo Campaign"
+    ],
+    "internalLinks": [
+      "/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well",
+      "/blog/writing-compelling-npcs-7-techniques-that-work",
+      "/blog/setting-difficulty-in-ai-rpgs-from-beginner-to-power-player",
+      "/blog/solo-rpg-vs-group-play-the-case-for-playing-alone",
+      "/library"
+    ]
+  },
+  {
+    "slug": "text-adventure-games-online-a-modern-players-guide",
+    "title": "Text Adventure Games Online: A Modern Player's Guide",
+    "h2": [
+      "What Is a Text Adventure?",
+      "Classic Parser Games vs. AI Text Adventures",
+      "Why Text Adventures Are Perfect for Accessibility",
+      "How to Play a Text Adventure Well",
+      "Where to Play Text Adventure Games Online",
+      "Tips for Your First AI Text Adventure",
+      "The Future of Text Adventures"
+    ],
+    "internalLinks": [
+      "/blog/how-to-play-your-first-echoquest-adventure-beginners-guide",
+      "/library"
+    ]
+  },
+  {
+    "slug": "what-is-an-ai-game-master-everything-you-need-to-know",
+    "title": "What Is an AI Game Master? Everything You Need to Know",
+    "h2": [
+      "The Short Answer",
+      "How an AI Game Master Works",
+      "What an AI Game Master Does Well",
+      "Where AI GMs Are Still Improving",
+      "AI GM vs. Human GM: Which Is Better?",
+      "How to Get the Best From an AI Game Master",
+      "Try an AI Game Master Today"
+    ],
+    "internalLinks": [
+      "/blog/from-tabletop-to-ai-how-echoquest-reimagines-dd",
+      "/library"
+    ]
+  },
+  {
+    "slug": "accessible-video-games-a-checklist-for-blind-and-low-vision-gamers",
+    "title": "Accessible Video Games: A Checklist for Blind and Low-Vision Gamers",
+    "h2": [
+      "Part 1: Screen Reader and Speech Support",
+      "Part 2: Audio Design",
+      "Part 3: Visual Options for Low Vision",
+      "Part 4: Controls and Timing",
+      "Part 5: Information Design",
+      "Part 6: Support and Community",
+      "How EchoQuest Scores",
+      "How to Use This Checklist",
+      "The Bigger Picture"
+    ],
+    "internalLinks": [
+      "/blog/keyboard-navigation-in-echoquest-play-without-a-mouse",
+      "/blog/voice-commands-in-echoquest-play-completely-hands-free",
+      "/blog/accessibility-in-gaming-the-state-of-play-in-2026",
+      "/library"
+    ]
+  },
+  {
+    "slug": "choose-your-own-adventure-games-for-adults-where-to-start",
+    "title": "Choose Your Own Adventure Games for Adults: Where to Start",
+    "h2": [
+      "What Makes a CYOA Game \"for Adults\"?",
+      "The Three Types of Modern CYOA Games",
+      "Why Adults Are Rediscovering CYOA",
+      "How to Choose Your First Adult CYOA Game",
+      "Making Better Choices: Tips for CYOA Players",
+      "A Sample Adult CYOA Moment",
+      "Start Your Adventure"
+    ],
+    "internalLinks": [
+      "/blog/the-power-of-choice-how-branching-narratives-work-in-ai-rpgs",
+      "/blog/crafting-moral-dilemmas-how-to-make-players-truly-think",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-write-a-dd-backstory-with-10-prompts-and-examples",
+    "title": "How to Write a D&D Backstory (With 10 Prompts and Examples)",
+    "h2": [
+      "The 5-Part Backstory Formula",
+      "Example Backstory Using the Formula",
+      "Common Backstory Mistakes",
+      "10 D&D Backstory Prompts",
+      "How Backstory Works With an AI Game Master",
+      "Quick Backstory Checklist",
+      "Put Your Backstory to Work"
+    ],
+    "internalLinks": [
+      "/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well",
+      "/library"
+    ]
+  },
+  {
+    "slug": "games-you-can-play-with-a-screen-reader-nvda-jaws-and-voiceover-tips",
+    "title": "Games You Can Play With a Screen Reader: NVDA, JAWS and VoiceOver Tips",
+    "h2": [
+      "Which Kinds of Games Work Best With Screen Readers?",
+      "NVDA Tips for Gaming (Windows, Free)",
+      "JAWS Tips for Gaming (Windows)",
+      "VoiceOver Tips (macOS and iOS)",
+      "TalkBack Tips (Android)",
+      "Avoiding \"Double Speech\" in Self-Voicing Games",
+      "What to Look for in a Screen-Reader-Friendly Game",
+      "A Quick Test You Can Run on Any Browser Game",
+      "Play EchoQuest With Your Screen Reader"
+    ],
+    "internalLinks": [
+      "/blog/how-screen-readers-work-with-echoquest-a-technical-deep-dive",
+      "/library"
+    ]
+  },
+  {
+    "slug": "games-you-can-play-with-your-eyes-closed-audio-rpgs-for-commutes-chores-and-bedtime",
+    "title": "Games You Can Play With Your Eyes Closed: Audio RPGs for Commutes, Chores and Bedtime",
+    "h2": [
+      "Why Eyes-Free Gaming Is Taking Off",
+      "What Makes an Audio RPG Work Eyes-Free?",
+      "Scenario 1: The Commute",
+      "Scenario 2: Chores and Cooking",
+      "Scenario 3: Winding Down at Night",
+      "Scenario 4: Walking and Exercise",
+      "Tips for the Best Eyes-Free Experience",
+      "Eyes-Free Doesn't Mean Shallow",
+      "Start an Eyes-Free Adventure"
+    ],
+    "internalLinks": [
+      "/blog/voice-commands-in-echoquest-play-completely-hands-free",
+      "/blog/elevenlabs-premium-narration-why-voice-quality-changes-everything",
+      "/blog/how-ambient-sound-design-elevates-rpg-storytelling",
+      "/library"
+    ]
+  },
+  {
+    "slug": "13-halloween-horror-rpg-one-shot-ideas-for-spooky-season",
+    "title": "13 Halloween Horror RPG One-Shot Ideas for Spooky Season",
+    "h2": [
+      "Why Horror Works So Well as a One-Shot",
+      "The 13 Hooks",
+      "Tips for Running (or Playing) a Horror One-Shot",
+      "Playing Solo With an AI Game Master"
+    ],
+    "internalLinks": [
+      "/blog/how-to-run-a-horror-rpg-campaign-without-any-visuals",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-start-a-cyberpunk-rpg-campaign-setting-tone-and-plot-hooks",
+    "title": "How to Start a Cyberpunk RPG Campaign: Setting, Tone and Plot Hooks",
+    "h2": [
+      "Start With the Themes, Not the Tech",
+      "Build the City in Layers",
+      "Create Three to Five Factions",
+      "Decide Your Tech Rules",
+      "Nail the Tone",
+      "8 Cyberpunk Plot Hooks",
+      "Running Cyberpunk With an AI Game Master",
+      "Jack In"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template",
+      "/library"
+    ]
+  },
+  {
+    "slug": "interactive-audio-stories-how-they-differ-from-audiobooks-and-podcasts",
+    "title": "Interactive Audio Stories: How They Differ From Audiobooks and Podcasts",
+    "h2": [
+      "What Is an Interactive Audio Story?",
+      "How It Compares",
+      "The Types of Interactive Audio Stories",
+      "Why Listeners Are Moving to Interactive Audio",
+      "What Makes a Great Interactive Audio Story?",
+      "A Taste of the Experience",
+      "Who Enjoys Interactive Audio Stories?",
+      "The Science Behind the Immersion",
+      "Try an Interactive Audio Story Free"
+    ],
+    "internalLinks": [
+      "/blog/how-ambient-sound-design-elevates-rpg-storytelling",
+      "/blog/the-science-of-immersion-why-audio-storytelling-is-so-powerful",
+      "/library"
+    ]
+  },
+  {
+    "slug": "20-dd-one-shot-ideas-you-can-run-tonight",
+    "title": "20 D&D One-Shot Ideas You Can Run Tonight",
+    "h2": [
+      "How to Structure a One-Shot",
+      "Classic Fantasy",
+      "Mystery and Intrigue",
+      "Heists",
+      "Horror",
+      "Comedy and Light-Hearted",
+      "Exploration and Survival",
+      "Making Any One-Shot Better",
+      "Running One-Shots Solo With an AI DM"
+    ],
+    "internalLinks": [
+      "/blog/how-to-play-dd-solo-with-an-ai-dungeon-master",
+      "/library"
+    ]
+  },
+  {
+    "slug": "ai-storytelling-games-for-families-a-parents-guide",
+    "title": "AI Storytelling Games for Families: A Parent's Guide",
+    "h2": [
+      "Important First: Age Requirements",
+      "The Benefits of Family Storytelling Games",
+      "Choosing Age-Appropriate Worlds",
+      "Ways to Play Together",
+      "Tips for a Great Family Session",
+      "Safety Checklist for Parents",
+      "Learning Through Play",
+      "Start a Family Adventure"
+    ],
+    "internalLinks": [
+      "/blog/storytelling-for-mental-health-the-therapeutic-power-of-rpgs",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-build-a-fantasy-world-without-drawing-a-map",
+    "title": "How to Build a Fantasy World Without Drawing a Map",
+    "h2": [
+      "Why Word-First Worldbuilding Works",
+      "Step 1: Choose a Spine",
+      "Step 2: Describe Places by Relationship",
+      "Step 3: Measure Distance in Time",
+      "Step 4: Give Every Place Three Senses",
+      "Step 5: Connect Places Through Conflict",
+      "Step 6: Write a Regional Summary",
+      "Step 7: Put It Into a Game Bible",
+      "Should You Ever Draw a Map?",
+      "Build Your World"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template",
+      "/blog/the-world-builder-wizard-a-complete-guide-for-creators",
+      "/library"
+    ]
+  },
+  {
+    "slug": "gaming-with-low-vision-settings-tools-and-tips-that-actually-help",
+    "title": "Gaming With Low Vision: Settings, Tools and Tips That Actually Help",
+    "h2": [
+      "Start With Your Display",
+      "Magnification Tools",
+      "In-Game Settings to Look For",
+      "Let Your Ears Do Some of the Work",
+      "Reduce Eye Strain",
+      "Choosing Games That Work for Low Vision",
+      "EchoQuest's Low-Vision Features",
+      "A Note on Changing Vision"
+    ],
+    "internalLinks": [
+      "/blog/accessible-video-games-a-checklist-for-blind-and-low-vision-gamers",
+      "/library"
+    ]
+  },
+  {
+    "slug": "pirate-rpg-campaign-guide-ships-crews-and-island-politics",
+    "title": "Pirate RPG Campaign Guide: Ships, Crews and Island Politics",
+    "h2": [
+      "The Core Promise of a Pirate Campaign",
+      "Your Ship Is a Character",
+      "The Crew and Morale",
+      "Build an Archipelago of Politics",
+      "Naval Combat Without a Grid",
+      "10 Pirate Adventure Hooks",
+      "Playing a Pirate Campaign Solo"
+    ],
+    "internalLinks": [
+      "/blog/writing-compelling-npcs-7-techniques-that-work",
+      "/library"
+    ]
+  },
+  {
+    "slug": "ai-roleplay-games-vs-ai-chatbots-whats-the-difference",
+    "title": "AI Roleplay Games vs. AI Chatbots: What's the Difference?",
+    "h2": [
+      "The Short Version",
+      "Difference 1: State and Consistency",
+      "Difference 2: Rules and Uncertainty",
+      "Difference 3: A World With Boundaries",
+      "Difference 4: Pacing and Structure",
+      "Difference 5: Multiple Characters",
+      "Difference 6: Presentation and Accessibility",
+      "Side-by-Side",
+      "When a Chatbot Is the Better Choice",
+      "When an AI RPG Is the Better Choice",
+      "How EchoQuest Is Built"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template",
+      "/blog/behind-the-gm-how-we-prompt-claude-to-run-your-adventures",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-get-better-at-roleplaying-9-habits-of-great-rpg-players",
+    "title": "How to Get Better at Roleplaying: 9 Habits of Great RPG Players",
+    "h2": [
+      "1. Want Something Specific",
+      "2. Play Your Flaws",
+      "3. Describe Intent, Not Just Action",
+      "4. Ask Questions",
+      "5. Talk to NPCs Like People",
+      "6. Say Yes to Complications",
+      "7. Make Choices That Cost Something",
+      "8. Speak in Character (a Little)",
+      "9. Let the Story Change Your Character",
+      "Bonus: Habits for Solo Play With an AI GM",
+      "Practice Makes Stories"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-dd-backstory-with-10-prompts-and-examples",
+      "/blog/crafting-moral-dilemmas-how-to-make-players-truly-think",
+      "/library"
+    ]
+  },
+  {
+    "slug": "mystery-rpgs-how-to-solve-cases-without-getting-stuck",
+    "title": "Mystery RPGs: How to Solve Cases Without Getting Stuck",
+    "h2": [
+      "Why Mystery RPGs Go Wrong",
+      "Habit 1: Search With a Purpose",
+      "Habit 2: Keep a Case File",
+      "Habit 3: Question Suspects Like a Detective",
+      "Habit 4: Follow Motive, Means and Opportunity",
+      "Habit 5: Test Theories Out Loud",
+      "Habit 6: When Stuck, Change the Scene",
+      "For Game Masters: The Three-Clue Rule",
+      "Great Mystery Setups to Try",
+      "Solve Your First Case"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "voice-controlled-games-the-complete-guide-to-playing-by-speech",
+    "title": "Voice-Controlled Games: The Complete Guide to Playing by Speech",
+    "h2": [
+      "Who Benefits From Voice Control?",
+      "How Voice Input Works in Games",
+      "Which Game Genres Suit Voice Control?",
+      "Setting Up for Voice Gaming",
+      "Voice Gaming and Accessibility",
+      "Common Problems and Fixes",
+      "The Future of Voice Gaming"
+    ],
+    "internalLinks": [
+      "/blog/voice-commands-in-echoquest-play-completely-hands-free",
+      "/library"
+    ]
+  },
+  {
+    "slug": "free-online-rpgs-you-can-play-in-your-browser-no-download",
+    "title": "Free Online RPGs You Can Play in Your Browser (No Download)",
+    "h2": [
+      "Why Play RPGs in a Browser?",
+      "Types of Free Browser RPGs",
+      "What EchoQuest's Free Tier Includes",
+      "How to Choose a Browser RPG",
+      "Tips for Browser Gaming",
+      "Is \"Free\" Really Free?",
+      "Start Playing Now"
+    ],
+    "internalLinks": [
+      "/blog/text-adventure-games-online-a-modern-players-guide",
+      "/library"
+    ]
+  },
+  {
+    "slug": "magic-systems-101-how-to-design-magic-that-feels-fair",
+    "title": "Magic Systems 101: How to Design Magic That Feels Fair",
+    "h2": [
+      "Hard Magic vs. Soft Magic",
+      "The Three Pillars: Source, Cost, Limit",
+      "Make Magic Say Something",
+      "Sensory Signatures",
+      "Writing Magic Rules for an AI Game Master",
+      "Common Magic System Mistakes",
+      "Try It Out"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-game-bible-the-world-builders-template",
+      "/library"
+    ]
+  },
+  {
+    "slug": "assistive-technology-for-gaming-switches-braille-displays-and-adaptive-controllers",
+    "title": "Assistive Technology for Gaming: Switches, Braille Displays and Adaptive Controllers",
+    "h2": [
+      "Adaptive Controllers",
+      "Switches",
+      "Braille Displays",
+      "Eye Tracking",
+      "Voice Input",
+      "One-Handed Keyboards and Mice",
+      "Screen Readers and Magnifiers",
+      "What Makes a Game Assistive-Tech Friendly?",
+      "How EchoQuest Supports Assistive Tech",
+      "Everyone Deserves to Play"
+    ],
+    "internalLinks": [
+      "/blog/voice-controlled-games-the-complete-guide-to-playing-by-speech",
+      "/blog/games-you-can-play-with-a-screen-reader-nvda-jaws-and-voiceover-tips",
+      "/blog/gaming-with-low-vision-settings-tools-and-tips-that-actually-help",
+      "/library"
+    ]
+  },
+  {
+    "slug": "how-to-create-a-villain-players-love-to-hate",
+    "title": "How to Create a Villain Players Love to Hate",
+    "h2": [
+      "1. Give the Villain a Goal You Understand",
+      "2. Show Their Method, and Where It Goes Too Far",
+      "3. Make Them Present Early",
+      "4. Let Them Win Sometimes",
+      "5. Make It Personal",
+      "6. Give Them Distinct Presence",
+      "7. Give Them Lieutenants and Resources",
+      "8. Build to a Final Choice",
+      "Villain Archetypes to Build From",
+      "Bring Your Villain to Life"
+    ],
+    "internalLinks": [
+      "/blog/how-to-write-a-dd-backstory-with-10-prompts-and-examples",
+      "/library"
+    ]
+  },
+  {
+    "slug": "best-tabletop-rpg-systems-for-beginners-and-which-suit-ai-play",
+    "title": "Best Tabletop RPG Systems for Beginners (And Which Suit AI Play)",
+    "h2": [
+      "What Is an RPG \"System\"?",
+      "The Main Styles",
+      "Beginner Comparison",
+      "Which Style Works Best With an AI Game Master?",
+      "Advice for Total Beginners"
+    ],
+    "internalLinks": [
+      "/blog/mystery-rpgs-how-to-solve-cases-without-getting-stuck",
+      "/blog/how-to-play-your-first-echoquest-adventure-beginners-guide",
+      "/library"
+    ]
+  },
+  {
+    "slug": "game-master-tips-how-to-pace-a-session-like-a-pro",
+    "title": "Game Master Tips: How to Pace a Session Like a Pro",
+    "h2": [
+      "1. Frame Every Scene With a Question",
+      "2. Start Late, Leave Early",
+      "3. Alternate Tension and Release",
+      "4. Use Clocks and Deadlines",
+      "5. Vary the Rhythm of Description",
+      "6. Watch for Energy Drops",
+      "7. Don't Let Combat Drag",
+      "8. End on a Hook",
+      "How EchoQuest's AI GM Handles Pacing",
+      "Quick Pacing Checklist"
+    ],
+    "internalLinks": [
+      "/blog/how-ambient-sound-design-elevates-rpg-storytelling",
+      "/blog/behind-the-gm-how-we-prompt-claude-to-run-your-adventures",
+      "/library"
+    ]
+  },
+  {
+    "slug": "learn-english-with-rpgs-how-interactive-stories-build-language-skills",
+    "title": "Learn English With RPGs: How Interactive Stories Build Language Skills",
+    "h2": [
+      "Why RPGs Work for Language Learning",
+      "Skills You Practise in an Audio RPG",
+      "How to Use EchoQuest for English Practice",
+      "A Sample Exchange",
+      "Tips for Teachers",
+      "Beyond English",
+      "Start Learning Through Play"
+    ],
+    "internalLinks": [
+      "/library"
+    ]
+  },
+  {
+    "slug": "post-apocalyptic-rpg-campaign-guide-survival-stories-that-stick",
+    "title": "Post-Apocalyptic RPG Campaign Guide: Survival Stories That Stick",
+    "h2": [
+      "Step 1: Choose Your Apocalypse",
+      "Step 2: Make Survival Matter (But Not Tedious)",
+      "Step 3: Build Settlements as Characters",
+      "Step 4: Create Factions With Competing Visions",
+      "Step 5: Find Hope",
+      "Step 6: Use Sound to Build the Wasteland",
+      "8 Post-Apocalyptic Plot Hooks",
+      "Playing Post-Apocalypse Solo",
+      "Build Your Wasteland"
+    ],
+    "internalLinks": [
+      "/blog/how-to-play-dd-solo-with-an-ai-dungeon-master",
+      "/library"
+    ]
+  }
+]
