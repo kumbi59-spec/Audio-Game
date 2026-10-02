@@ -13,6 +13,7 @@ import { applyCharacterChanges } from "@/lib/game/character-reducer";
 import {
   CharacterSchema,
   LegacyGuestIdSchema,
+  PendingSummarySchema,
   SessionSnapshotSchema,
   WorldRefSchema,
 } from "@/lib/game/request-schemas";
@@ -28,6 +29,7 @@ const ActionSchema = z.object({
   world: WorldRefSchema,
   dbSessionId: z.string().max(200).nullish(),
   guestId: LegacyGuestIdSchema,
+  pendingSummary: PendingSummarySchema.nullish(),
 });
 
 function parseJson<T>(raw: string | null | undefined, fallback: T): T {
@@ -294,6 +296,24 @@ export async function POST(req: NextRequest) {
           } catch (dbErr) {
             // DB persistence is best-effort — don't fail the game turn
             console.error("DB persistence error:", dbErr);
+          }
+        }
+
+        // An unsaved game has no stored history to summarise, so the client
+        // sends what it is about to drop from the context window; fold it
+        // into the memory summary it sent, and tell it how far that reaches.
+        if (!ownedSession && completed && !degraded && body.pendingSummary) {
+          try {
+            const { summarizeHistory } = await import("@/lib/ai/memory/summarizer");
+            const { fromMessage, messages } = body.pendingSummary;
+            const summary = await summarizeHistory(
+              messages.map((m, i) => ({ role: m.role, content: m.content, turnNumber: fromMessage + i })),
+              session.memorySummary,
+              world.name,
+            );
+            send("memory_summary", { summary, throughMessage: fromMessage + messages.length });
+          } catch (summaryErr) {
+            console.error("Guest summary error:", summaryErr);
           }
         }
       } catch (err) {

@@ -24,7 +24,7 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
-import { trimHistoryForContext } from "@/lib/ai/memory/context-window";
+import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
 // Same trim the server applies (lib/ai/memory/context-window.ts): the most
 // recent ~40k tokens of history, cut in blocks so the cached prompt prefix
@@ -261,6 +261,11 @@ export function useGameSession() {
               world: { id: reqWorld.id },
               dbSessionId: reqDbSessionId,
               guestId: readLegacyGuestId(),
+              // A saved game is summarised from the database; an unsaved one
+              // sends whatever the trim above is about to drop unsummarised.
+              pendingSummary: reqDbSessionId
+                ? undefined
+                : pendingSummaryFor(reqSession.history ?? [], reqSession.summarizedMessages) ?? undefined,
             }),
           });
 
@@ -528,9 +533,18 @@ export function useGameSession() {
                 // Server compacted older history into a memory summary; persist
                 // it so subsequent turns send the compacted form rather than
                 // re-sending the long uncompacted history.
-                const summaryData = data as { summary?: unknown };
+                const summaryData = data as { summary?: unknown; throughMessage?: unknown };
                 if (typeof summaryData.summary === "string") {
                   setMemorySummary(summaryData.summary);
+                }
+                // Unsaved games: how much of the history the summary now covers.
+                const through = summaryData.throughMessage;
+                if (typeof through === "number") {
+                  useGameStore.setState((s) => ({
+                    session: s.session
+                      ? { ...s.session, summarizedMessages: Math.max(s.session.summarizedMessages ?? 0, through) }
+                      : null,
+                  }));
                 }
               } else if (eventType === "error") {
                 receivedStreamError = true;

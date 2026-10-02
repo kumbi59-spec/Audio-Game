@@ -442,6 +442,60 @@ describe("POST /api/game/action", () => {
     });
   });
 
+  describe("memory for unsaved games", () => {
+    const pendingSummary = {
+      fromMessage: 0,
+      messages: [
+        { role: "user", content: "open the door" },
+        { role: "assistant", content: '{"narration":"It creaks."}' },
+      ],
+    };
+
+    it("summarises what the client is about to drop and says how far the summary reaches", async () => {
+      const res = await POST(asGuest({
+        ...basePayload,
+        session: { ...basePayload.session, memorySummary: "earlier events" },
+        pendingSummary,
+      }) as never);
+      const body = await readStream(res);
+
+      expect(mocks.summarizeHistory).toHaveBeenCalledWith(
+        [
+          { role: "user", content: "open the door", turnNumber: 0 },
+          { role: "assistant", content: '{"narration":"It creaks."}', turnNumber: 1 },
+        ],
+        "earlier events",
+        "Server World",
+      );
+      expect(body).toContain('event: memory_summary\ndata: {"summary":"new summary","throughMessage":2}');
+    });
+
+    it("leaves saved games to the database summary, and skips failed turns", async () => {
+      mocks.getOwnedSession.mockResolvedValue({
+        id: "sess", worldId: "w1", turnCount: 1,
+        gameState: { currentLocationId: null, timeOfDay: "day", weather: "clear", globalFlags: "{}", npcStates: "{}", memorySummary: "", summarizedThroughTurn: 0 },
+      });
+      await readStream(await POST(asGuest({ ...basePayload, dbSessionId: "sess", pendingSummary }) as never));
+      expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+
+      mocks.getOwnedSession.mockResolvedValue(null);
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "error", data: { message: "unstable", degraded: true } };
+        yield { type: "done", data: null };
+      });
+      await readStream(await POST(asGuest({ ...basePayload, pendingSummary }) as never));
+      expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+    });
+
+    it("rejects an oversized backlog", async () => {
+      const res = await POST(asGuest({
+        ...basePayload,
+        pendingSummary: { fromMessage: 0, messages: Array.from({ length: 41 }, () => ({ role: "user", content: "x" })) },
+      }) as never);
+      expect(res.status).toBe(400);
+    });
+  });
+
   it("returns 402 without calling the model when AI minutes are exhausted", async () => {
     mocks.consumeFreeAiMinute.mockResolvedValue(false);
     const res = await POST(asGuest(basePayload) as never);

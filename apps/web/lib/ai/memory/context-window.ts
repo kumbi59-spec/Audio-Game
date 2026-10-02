@@ -31,6 +31,27 @@ export function trimHistoryForContext<T extends { content: string }>(
   return drop === 0 ? history : history.slice(drop);
 }
 
+/** Most history messages an unsaved game sends for summarising in one turn. */
+export const MAX_PENDING_SUMMARY_MESSAGES = 40;
+
+/**
+ * For an unsaved game: the history about to drop out of the context window
+ * (see trimHistoryForContext) that isn't in the memory summary yet, oldest
+ * first and at most MAX_PENDING_SUMMARY_MESSAGES at a time — a long backlog
+ * catches up over a few turns. Null when nothing is pending.
+ */
+export function pendingSummaryFor<T extends { content: string }>(
+  history: T[],
+  summarizedMessages: number | undefined,
+  maxChars: number = MAX_HISTORY_CHARS,
+): { fromMessage: number; messages: T[] } | null {
+  const dropped = history.length - trimHistoryForContext(history, maxChars).length;
+  const from = Math.min(summarizedMessages ?? 0, history.length);
+  if (dropped <= from) return null;
+  const to = Math.min(dropped, from + MAX_PENDING_SUMMARY_MESSAGES);
+  return { fromMessage: from, messages: history.slice(from, to) };
+}
+
 export function buildContextMessages(
   session: InMemorySession,
   character: CharacterData,
