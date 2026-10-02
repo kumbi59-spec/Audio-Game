@@ -10,6 +10,7 @@ import {
   sanitizeAction,
   selectChoice,
   withNpcActionDialogue,
+  wovenTail,
   shouldPlaySoundCue,
 } from "./use-cases";
 
@@ -149,5 +150,29 @@ describe("game domain use-cases", () => {
     expect(formatSkillCheckLine({ ...base, modifier: -1, bonus: 2, total: 15, dc: 16, success: false })).toBe(
       "🎲 STRENGTH check — Force the gate: rolled 14 -1 +2 bonus = 15 vs DC 16 — Failure.",
     );
+  });
+
+  describe("wovenTail", () => {
+    const relationships = [{ npcId: "village_doctor", name: "Doctor Hale", standing: 0, lastSeenTurn: 1 }];
+    const npcAction = { npcId: "village_doctor", action: "speaks", dialogue: "Rest now." };
+
+    it("returns the unspoken remainder", () => {
+      expect(wovenTail("One. Two. Three.", "One. ", null, relationships)).toBe("Two. Three.");
+      expect(wovenTail("One. Two.", "", null, relationships)).toBe("One. Two.");
+    });
+
+    it("appends npcAction dialogue the narration left out", () => {
+      expect(wovenTail("She leans close.", "She leans close.", npcAction, relationships))
+        .toBe(' [Doctor Hale]: "Rest now."');
+    });
+
+    it("tags quoted dialogue that hasn't been spoken yet", () => {
+      expect(wovenTail('She leans close. "Rest now." She leaves.', "She leans close. ", npcAction, relationships))
+        .toBe('[Doctor Hale]: "Rest now." She leaves.');
+    });
+
+    it("speaks the streamed rest when the dialogue was already spoken untagged", () => {
+      expect(wovenTail('"Rest now." She leaves.', '"Rest now." ', npcAction, relationships)).toBe("She leaves.");
+    });
   });
 });

@@ -7,11 +7,12 @@ AUDIO NARRATION RULES:
 - Use natural spoken rhythm: vary sentence length, avoid walls of text
 - Separate narration, NPC dialogue, and player options clearly in your response
 
-RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structure:
+RESPONSE FORMAT — you MUST respond with valid JSON matching this exact structure, with the keys in this order:
 {
+  "soundCue": "one of: combat_start|combat_end|level_up|item_pickup|door_open|door_locked|discovery|danger_near|npc_friendly|npc_hostile|quest_complete|quest_fail|magic_cast|spell_fail|treasure_found|death_nearby|null",
+  "speakers": [{ "name": "Captain Voss", "gender": "male|female|neutral" }],
   "narration": "string — 2-4 paragraphs of immersive audio-optimised prose",
   "choices": ["string", "string", "string"],
-  "soundCue": "one of: combat_start|combat_end|level_up|item_pickup|door_open|door_locked|discovery|danger_near|npc_friendly|npc_hostile|quest_complete|quest_fail|magic_cast|spell_fail|treasure_found|death_nearby|null",
   "stateChanges": {
     "hp": number_delta_or_null,
     "statDeltas": { "stat_name": number_delta } or null,
@@ -96,6 +97,7 @@ NPC DIALOGUE FORMAT — when any character speaks out loud you MUST tag every li
 - If the GM has an npcAction with a "dialogue" field this turn, the SAME dialogue text must also appear inline inside the narration with a [Name]: tag — never omit it from the narration string.
 - Keep tags consistent: always use the same display name for the same character across all turns (e.g. always "[Captain Voss]", never alternating with "[The Captain]" or "[Voss]").
 - Short environmental/narrator lines do NOT need tags — only actual spoken dialogue.
+- "speakers" lists every NPC who has a [Name]: tag in this turn's narration, with the same display name and their gender ("male", "female", or "neutral"). Use [] when nobody speaks. The narration is played aloud while you are still writing, so soundCue and speakers must come before narration — that is how each voice is chosen before its first line.
 
 CHOICE RULES:
 - Always provide 3 to 5 choices at the end of each scene

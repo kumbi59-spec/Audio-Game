@@ -152,18 +152,39 @@ describe("streamGMTurn", () => {
 
     expect(types(events)).toEqual([
       "narration_chunk",
+      "narration_delta",
       "narration_chunk",
+      "narration_delta",
       "sound_cue",
       "state_change",
       "choices_ready",
       "done",
     ]);
+    const prose = events.filter((e) => e.type === "narration_delta").map((e) => (e.data as { text: string }).text);
+    expect(prose.join("")).toBe("The gate groans and gives way.");
     expect(mocks.stream).toHaveBeenCalledTimes(1);
     const params = mocks.stream.mock.calls[0]![0];
     expect(params.tools.map((t: { name: string }) => t.name)).toEqual(["roll_skill_check"]);
     expect(params.tool_choice).toEqual({ type: "auto", disable_parallel_tool_use: true });
     expect(eventData<{ narration: string }>(events, "choices_ready").narration).toBe("The gate groans and gives way.");
     expect(eventData<Record<string, unknown>>(events, "state_change").passiveBonusNarration).toBeUndefined();
+  });
+
+  it("sends the sound cue and speakers written ahead of the narration before any prose", async () => {
+    const reply = JSON.stringify({
+      soundCue: "npc_hostile",
+      speakers: [{ name: "Captain Voss", gender: "male" }],
+      narration: '[Captain Voss]: "Halt."',
+      choices: ["Halt"],
+    });
+    mocks.stream.mockReturnValueOnce(fakeStream({ text: [reply.slice(0, 30), reply.slice(30, 95), reply.slice(95)] }));
+
+    const events = await collect(streamGMTurn(action, session, character, world));
+
+    const order = types(events).filter((t) => t !== "narration_chunk");
+    expect(order.slice(0, 3)).toEqual(["sound_cue", "speakers", "narration_delta"]);
+    expect(order.filter((t) => t === "sound_cue")).toHaveLength(1);
+    expect(eventData(events, "speakers")).toEqual({ speakers: [{ name: "Captain Voss", gender: "male" }] });
   });
 
   it("rolls a requested skill check before the narration is written", async () => {
@@ -184,7 +205,9 @@ describe("streamGMTurn", () => {
       "narration_reset",
       "skill_check_result",
       "narration_chunk",
+      // The whole reply arrived in one chunk, so its cue is found first.
       "sound_cue",
+      "narration_delta",
       "state_change",
       "choices_ready",
       "done",
@@ -241,7 +264,13 @@ describe("streamGMTurn", () => {
 
     const events = await collect(streamGMTurn(action, session, character, world));
 
-    expect(types(events).slice(0, 3)).toEqual(["narration_chunk", "narration_reset", "narration_chunk"]);
+    expect(types(events).filter((t) => t !== "sound_cue").slice(0, 5)).toEqual([
+      "narration_chunk",
+      "narration_delta",
+      "narration_reset",
+      "narration_chunk",
+      "narration_delta",
+    ]);
     expect(eventData(events, "narration_reset")).toEqual({ reason: "retry" });
     expect(types(events)).not.toContain("error");
   });

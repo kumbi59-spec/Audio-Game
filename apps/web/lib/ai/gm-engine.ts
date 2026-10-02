@@ -15,13 +15,19 @@ import {
   buildWorldStateBlock,
 } from "./memory/context-window";
 import { parseGMResponse } from "./gm-response";
+import { NarrationStreamTap } from "./narration-stream";
 import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus, SkillCheckResult } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 
 export interface GMStreamEvent {
   type:
+    // Raw text of the GM's JSON reply, for history.
     | "narration_chunk"
+    // Decoded narration prose as it streams, for speaking early.
+    | "narration_delta"
+    // NPCs who speak in this narration, with genders, sent before the prose.
+    | "speakers"
     // Text streamed so far this turn has been discarded (a retry, or a round
     // that ended in a tool call). Clients drop what they buffered.
     | "narration_reset"
@@ -286,6 +292,7 @@ export async function runGMTurn(
 async function* streamRound(
   params: Anthropic.MessageStreamParams,
   signal: AbortSignal | undefined,
+  tap: NarrationStreamTap,
 ): AsyncGenerator<GMStreamEvent, Anthropic.Message> {
   const stream = getAnthropicClient().messages.stream(params);
   let idleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -308,6 +315,7 @@ async function* streamRound(
       armIdleTimer();
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
         yield { type: "narration_chunk", data: { text: event.delta.text } };
+        for (const evt of tap.onText(event.delta.text)) yield evt;
       }
     }
     const message = await stream.finalMessage();
@@ -349,6 +357,7 @@ export async function* streamGMTurn(
 
     try {
       const messages = [...baseMessages];
+      const tap = new NarrationStreamTap();
       let skillCheck: SkillCheckResult | null = null;
       let final: Anthropic.Message | null = null;
 
@@ -367,12 +376,14 @@ export async function* streamGMTurn(
             messages,
           },
           signal,
+          tap,
         );
 
         if (final.stop_reason === "refusal") throw new GMRefusalError();
         if (final.stop_reason !== "tool_use" || round > 0) break;
 
         // Anything written before the tool call is preamble, not the reply.
+        tap.resetText();
         yield { type: "narration_reset", data: { reason: "tool_use" } };
 
         const toolResults: Anthropic.ToolResultBlockParam[] = [];
@@ -406,7 +417,8 @@ export async function* streamGMTurn(
 
       const gmResponse = parseGMResponse(final ? textOf(final) : "");
 
-      if (gmResponse.soundCue) {
+      // Usually already sent while streaming, ahead of the narration.
+      if (gmResponse.soundCue && gmResponse.soundCue !== tap.cueSent) {
         yield { type: "sound_cue", data: { cue: gmResponse.soundCue } };
       }
 

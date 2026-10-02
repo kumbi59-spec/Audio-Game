@@ -187,6 +187,24 @@ export function withNpcActionDialogue(
   return needsPeriod ? `${trimmed}. ${tagged}` : `${trimmed} ${tagged}`;
 }
 
+/**
+ * What is left to speak once the final narration is known, given the prefix
+ * that was already spoken while it streamed. Applies withNpcActionDialogue's
+ * weaving to the unspoken part, so dialogue that only exists in npcAction is
+ * still voiced; if the weaving landed inside text already spoken, the rest is
+ * spoken as streamed.
+ */
+export function wovenTail(
+  narration: string,
+  spoken: string,
+  npcAction: import("@/types/game").NPCAction | null | undefined,
+  relationships: import("@/types/game").NpcRelationship[],
+): string {
+  const woven = withNpcActionDialogue(narration, npcAction, relationships);
+  if (woven.startsWith(spoken)) return woven.slice(spoken.length);
+  return narration.slice(spoken.length);
+}
+
 function prettifyNpcId(npcId: string): string {
   if (!npcId) return "";
   return npcId

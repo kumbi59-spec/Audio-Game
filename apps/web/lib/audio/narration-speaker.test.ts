@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   npcKeyFromName,
+  npcVoicesResolvable,
   pickVoiceForNpc,
   resolveNpcVoiceAssignment,
   type NpcVoiceAssignment,
@@ -111,5 +112,15 @@ describe("resolveNpcVoiceAssignment", () => {
     expect(FEMALE_VOICES).toContain(first.voiceId);
     const second = resolveNpcVoiceAssignment("Maria", "male", assignments, [], []);
     expect(second.voiceId).toBe(first.voiceId);
+  });
+});
+
+describe("npcVoicesResolvable", () => {
+  it("is true only when every speaking NPC has a voice or a gender hint", () => {
+    const assignments = new Map<string, NpcVoiceAssignment>([["captain voss", { voiceId: "v1", gender: "male" }]]);
+    const hints = new Map([["imp", "neutral" as const]]);
+    expect(npcVoicesResolvable('[Captain Voss]: "Halt." [Imp]: "Hee."', "Mara", assignments, hints)).toBe(true);
+    expect(npcVoicesResolvable('[The Stranger]: "Hello."', "Mara", assignments, hints)).toBe(false);
+    expect(npcVoicesResolvable('Prose only. [Mara]: "Me."', "Mara", new Map(), new Map())).toBe(true);
   });
 });

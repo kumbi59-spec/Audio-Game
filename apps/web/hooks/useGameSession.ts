@@ -6,11 +6,12 @@ import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { speak, stopSpeech } from "@/lib/audio/tts-provider";
-import { speakNarrationMultiVoice, npcKeyFromName, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
+import { speakNarrationMultiVoice, npcKeyFromName, npcVoicesResolvable, type NpcVoiceAssignment } from "@/lib/audio/narration-speaker";
+import { StreamingNarrator } from "@/lib/audio/streaming-narrator";
 import type { VoiceGender } from "@/types/audio";
 import { playSoundCue } from "@/lib/audio/sound-cues";
 import type { PlayerAction, NarrationEntry, GMResponse, SoundCue, SceneTransition, PassiveBonus, AchievementUnlock, CodexEntry, SkillCheckResult } from "@/types/game";
-import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, formatSkillCheckLine, retryWithBackoff, sanitizeAction, shouldPlaySoundCue, withNpcActionDialogue } from "@/src/domain/game/use-cases";
+import { createOptimisticTurn, extractNarrationFromChoiceEvent, finalizeTurn, formatSkillCheckLine, retryWithBackoff, sanitizeAction, shouldPlaySoundCue, withNpcActionDialogue, wovenTail } from "@/src/domain/game/use-cases";
 import { advanceSession, validateActionEligibility, type ActionRequestGateway } from "@/src/domain/session/use-cases";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
@@ -182,9 +183,55 @@ export function useGameSession() {
       abortRef.current = abort;
 
       let accumulatedNarration = "";
-      let narrationBuffer = "";
       let receivedStreamError = false;
       let streamErrorMessage: string | null = null;
+
+      // Narration is spoken sentence by sentence while it streams, rather
+      // than after the whole reply (choices, state changes) has arrived.
+      const premiumVoices = entitlements.premiumTts;
+      const worldId = session.worldId;
+      const speakSegment = (text: string, signal: AbortSignal): Promise<void> => {
+        if (!premiumVoices) return signal.aborted ? Promise.resolve() : speakText(text);
+        return speakNarrationMultiVoice(
+          text,
+          character.name,
+          npcVoiceAssignmentsRef.current,
+          (npcName) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
+          (entry) => {
+            // Fire-and-forget upsert. If the request fails the
+            // assignment is still good for the current session via
+            // the in-memory map; next session will just re-pick
+            // (and likely land on the same voice because the gender
+            // hint and usage counts are stable).
+            void fetch("/api/me/npc-voices", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                worldId,
+                npcKey: entry.key,
+                voiceId: entry.voiceId,
+                gender: entry.gender,
+                displayName: entry.displayName,
+              }),
+            }).catch(() => undefined);
+          },
+          signal,
+        );
+      };
+      const createNarrator = () => new StreamingNarrator({
+        speakSegment,
+        // A new NPC's voice is picked by gender on first use and remembered
+        // across sessions, so hold their lines until the GM has said who
+        // they are (speakers / relationship changes) or the reply is done.
+        canSpeak: premiumVoices
+          ? (text) => npcVoicesResolvable(text, character.name, npcVoiceAssignmentsRef.current, npcGenderHintsRef.current)
+          : undefined,
+      });
+      let narrator = createNarrator();
+      abort.signal.addEventListener("abort", () => narrator.cancel());
+      // Level-up and achievement callouts wait for the narration to finish
+      // instead of cutting into it.
+      const speakAfterNarration: string[] = [];
 
       try {
         const postAction = (
@@ -281,14 +328,22 @@ export function useGameSession() {
               const data = JSON.parse(dataLine);
 
               if (eventType === "narration_chunk") {
-                narrationBuffer += data.text;
                 accumulatedNarration += data.text;
+              } else if (eventType === "narration_delta") {
+                narrator.push(data.text as string);
+              } else if (eventType === "speakers") {
+                for (const sp of (data.speakers ?? []) as Array<{ name: string; gender: VoiceGender }>) {
+                  npcGenderHintsRef.current.set(npcKeyFromName(sp.name), sp.gender);
+                }
+                narrator.nudge();
               } else if (eventType === "narration_reset") {
                 // The server discarded what it streamed so far (a retry, or
                 // text written before a skill-check roll). Drop it here too so
-                // it never lands in history.
-                narrationBuffer = "";
+                // it never lands in history, and stop speaking it.
                 accumulatedNarration = "";
+                narrator.cancel();
+                if (narrator.committedText) stopSpeech();
+                narrator = createNarrator();
               } else if (eventType === "skill_check_result") {
                 // The roll is resolved before the narration is written, so the
                 // dice line goes in the log ahead of the narration that
@@ -323,7 +378,7 @@ export function useGameSession() {
                   if (levelAfter > levelBefore) {
                     const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
                     announce(levelUpMsg, "assertive");
-                    speakText(levelUpMsg);
+                    speakAfterNarration.push(levelUpMsg);
                     if (soundCuesEnabled) playSoundCue("level_up");
                     addNarrationEntry({
                       id: `levelup-${Date.now()}`,
@@ -343,7 +398,7 @@ export function useGameSession() {
                     unlockAchievement({ ...ach, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
                     const achMsg = `🏆 Achievement unlocked: ${ach.title} — ${ach.description}`;
                     announce(achMsg, "assertive");
-                    speakText(achMsg);
+                    speakAfterNarration.push(achMsg);
                     if (soundCuesEnabled) playSoundCue("discovery");
                     addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
                   }
@@ -360,6 +415,7 @@ export function useGameSession() {
                       npcGenderHintsRef.current.set(npcKeyFromName(rel.name), rel.gender);
                     }
                   }
+                  narrator.nudge();
                 }
                 if (Array.isArray(change.codexEntries)) {
                   for (const entry of change.codexEntries as CodexEntry[]) {
@@ -449,41 +505,14 @@ export function useGameSession() {
                 };
                 addNarrationEntry(narEntry);
 
-                if (entitlements.premiumTts && character) {
-                  const worldId = session.worldId;
-                  await speakNarrationMultiVoice(
-                    narration,
-                    character.name,
-                    npcVoiceAssignmentsRef.current,
-                    (npcName) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
-                    (entry) => {
-                      // Fire-and-forget upsert. If the request fails the
-                      // assignment is still good for the current session via
-                      // the in-memory map; next session will just re-pick
-                      // (and likely land on the same voice because the gender
-                      // hint and usage counts are stable).
-                      void fetch("/api/me/npc-voices", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          worldId,
-                          npcKey: entry.key,
-                          voiceId: entry.voiceId,
-                          gender: entry.gender,
-                          displayName: entry.displayName,
-                        }),
-                      }).catch(() => undefined);
-                    },
-                    abort.signal,
-                  );
-                } else {
-                  // Browser TTS (browser-tts.ts) splits long narration into
-                  // short chunks and queues them all at once, so the engine
-                  // plays them back-to-back with no gap and no single
-                  // utterance hits Chrome's ~15s cutoff.
-                  if (!abort.signal.aborted) {
-                    await speakText(narration);
-                  }
+                // Speak whatever the stream hasn't already covered, with
+                // npcAction dialogue woven in, then the deferred callouts.
+                const rest = wovenTail(rawNarration, narrator.committedText, gmResp.npcAction, relationships);
+                await narrator.finish(rest);
+                for (const msg of speakAfterNarration.splice(0)) {
+                  // The player stopped the narration — don't start talking again.
+                  if (narrator.cancelled) break;
+                  await speakText(msg);
                 }
               } else if (eventType === "memory_summary") {
                 // Server compacted older history into a memory summary; persist
@@ -516,6 +545,9 @@ export function useGameSession() {
         }
 
         if (receivedStreamError) {
+          // The turn is rolled back, so stop narrating it too.
+          narrator.cancel();
+          if (narrator.committedText) stopSpeech();
           // Full rollback: restore the pre-turn character + session and only
           // re-apply the player-action narration entry + the (system) error
           // message. Any mid-stream state mutations are discarded.
@@ -573,6 +605,8 @@ export function useGameSession() {
 
         incrementTurnCount();
       } catch (err) {
+        narrator.cancel();
+        if (narrator.committedText) stopSpeech();
         if ((err as Error).name !== "AbortError") {
           console.error("Game session error:", err);
           // Full rollback to the pre-turn snapshot — same reasoning as the
