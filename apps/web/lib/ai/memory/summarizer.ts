@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { narrationFromStoredTurn } from "../gm-response";
 
 const client = new Anthropic();
 
@@ -19,7 +20,13 @@ export async function summarizeHistory(
   if (entries.length === 0) return existingSummary;
 
   const historyText = entries
-    .map((e) => `[${e.role === "user" ? "PLAYER" : "GM"}] ${e.content}`)
+    .map((e) =>
+      e.role === "user"
+        ? `[PLAYER] ${e.content}`
+        // Assistant turns are stored as the GM's raw JSON; only the prose
+        // carries story facts worth summarising.
+        : `[GM] ${narrationFromStoredTurn(e.content)}`
+    )
     .join("\n\n");
 
   const systemPrompt = `You are a concise story summarizer for an audio RPG called EchoQuest, set in ${worldName}.
@@ -56,5 +63,11 @@ ${existingSummary ? `\nPrevious summary to extend:\n${existingSummary}` : ""}`;
   return text.text.trim();
 }
 
-export const SUMMARIZE_THRESHOLD = 40;
-export const ENTRIES_TO_COMPRESS = 20;
+/**
+ * Summarise once at least this many turns sit beyond the summarised-through
+ * marker. Recent turns stay out of the summary because the client still sends
+ * them verbatim as history.
+ */
+export const SUMMARIZE_AFTER_TURNS = 20;
+/** Turns folded into the summary per run. */
+export const TURNS_PER_SUMMARY = 10;

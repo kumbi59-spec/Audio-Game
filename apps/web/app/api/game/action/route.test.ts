@@ -11,7 +11,9 @@ const mocks = vi.hoisted(() => ({
   incrementTurnCount: vi.fn(),
   persistTurn: vi.fn(),
   updateGameState: vi.fn(),
-  countHistoryEntries: vi.fn(),
+  getHistoryEntriesInTurnRange: vi.fn(),
+  markSummarized: vi.fn(),
+  summarizeHistory: vi.fn(),
   resolvePlayableWorld: vi.fn(),
   moderatePlayerInput: vi.fn(),
   moderateGMOutput: vi.fn(),
@@ -35,8 +37,12 @@ vi.mock("@/lib/db/queries/sessions", () => ({
   incrementTurnCount: mocks.incrementTurnCount,
   persistTurn: mocks.persistTurn,
   updateGameState: mocks.updateGameState,
-  countHistoryEntries: mocks.countHistoryEntries,
-  getOldestHistoryEntries: vi.fn(),
+  getHistoryEntriesInTurnRange: mocks.getHistoryEntriesInTurnRange,
+  markSummarized: mocks.markSummarized,
+}));
+vi.mock("@/lib/ai/memory/summarizer", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ai/memory/summarizer")>()),
+  summarizeHistory: mocks.summarizeHistory,
 }));
 vi.mock("@/lib/worlds/resolve-playable-world", () => ({
   resolvePlayableWorld: mocks.resolvePlayableWorld,
@@ -136,7 +142,9 @@ describe("POST /api/game/action", () => {
     mocks.incrementTurnCount.mockResolvedValue(8);
     mocks.persistTurn.mockResolvedValue({});
     mocks.updateGameState.mockResolvedValue({ count: 1 });
-    mocks.countHistoryEntries.mockResolvedValue(0);
+    mocks.getHistoryEntriesInTurnRange.mockResolvedValue([]);
+    mocks.markSummarized.mockResolvedValue(true);
+    mocks.summarizeHistory.mockResolvedValue("new summary");
     mocks.resolvePlayableWorld.mockResolvedValue({ ok: true, world: serverWorld });
     mocks.moderatePlayerInput.mockReturnValue({ safe: true });
     mocks.moderateGMOutput.mockReturnValue({ safe: true });
@@ -266,6 +274,115 @@ describe("POST /api/game/action", () => {
       globalFlags: undefined,
       achievements: [{ key: "a1" }],
     }));
+  });
+
+  describe("persistence and memory summaries", () => {
+    function ownedSession(gameState: Record<string, unknown> = {}) {
+      return {
+        id: "sess",
+        worldId: "w1",
+        turnCount: 19,
+        gameState: {
+          currentLocationId: "l1",
+          timeOfDay: "night",
+          weather: "storm",
+          globalFlags: "{}",
+          npcStates: "{}",
+          memorySummary: "old summary",
+          summarizedThroughTurn: 0,
+          ...gameState,
+        },
+      };
+    }
+
+    it("summarises the oldest unsummarised window once 20 turns have piled up", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.incrementTurnCount.mockResolvedValue(20);
+      mocks.getHistoryEntriesInTurnRange.mockResolvedValue([
+        { role: "user", content: "open the door", turnNumber: 1 },
+        { role: "assistant", content: '{"narration":"It creaks."}', turnNumber: 1 },
+      ]);
+
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      const body = await readStream(res);
+
+      expect(mocks.getHistoryEntriesInTurnRange).toHaveBeenCalledWith("sess", 0, 10);
+      expect(mocks.summarizeHistory).toHaveBeenCalledWith(
+        [
+          { role: "user", content: "open the door", turnNumber: 1 },
+          { role: "assistant", content: '{"narration":"It creaks."}', turnNumber: 1 },
+        ],
+        "old summary",
+        "Server World",
+      );
+      expect(mocks.markSummarized).toHaveBeenCalledWith("sess", GUEST_ID, 0, 10, "new summary");
+      expect(body).toContain("event: memory_summary");
+    });
+
+    it("advances from the stored marker instead of re-summarising the oldest turns", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession({ summarizedThroughTurn: 10 }));
+      mocks.incrementTurnCount.mockResolvedValue(25);
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+
+      mocks.incrementTurnCount.mockResolvedValue(30);
+      const res2 = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res2);
+      expect(mocks.getHistoryEntriesInTurnRange).toHaveBeenCalledWith("sess", 10, 20);
+      expect(mocks.markSummarized).toHaveBeenCalledWith("sess", GUEST_ID, 10, 20, "new summary");
+    });
+
+    it("does not announce a summary another request already applied", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.incrementTurnCount.mockResolvedValue(20);
+      mocks.markSummarized.mockResolvedValue(false);
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      expect(await readStream(res)).not.toContain("event: memory_summary");
+    });
+
+    it("persists only the narration that survived a reset", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "narration_chunk", data: { text: "partial attempt" } };
+        yield { type: "narration_reset", data: { reason: "retry" } };
+        yield { type: "narration_chunk", data: { text: '{"narration":"Second try."}' } };
+        yield { type: "done", data: null };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.persistTurn).toHaveBeenCalledWith("sess", GUEST_ID, 8, "assistant", '{"narration":"Second try."}');
+    });
+
+    it("does not persist or count a degraded fallback turn", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "error", data: { message: "unstable", degraded: true } };
+        yield { type: "done", data: null };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.incrementTurnCount).not.toHaveBeenCalled();
+      expect(mocks.persistTurn).not.toHaveBeenCalled();
+    });
+
+    it("does not persist a turn the player abandoned mid-stream", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "narration_chunk", data: { text: '{"narration": "The ga' } };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.incrementTurnCount).not.toHaveBeenCalled();
+      expect(mocks.persistTurn).not.toHaveBeenCalled();
+    });
+
+    it("passes the request's abort signal to the GM stream", async () => {
+      const res = await POST(asGuest(basePayload) as never);
+      await readStream(res);
+      const options = mocks.streamGMTurn.mock.calls[0]![4] as { signal?: AbortSignal };
+      expect(options.signal).toBeInstanceOf(AbortSignal);
+    });
   });
 
   it("returns 402 without calling the model when AI minutes are exhausted", async () => {

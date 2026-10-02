@@ -254,6 +254,8 @@ model GameState {
   globalFlags       String
   npcStates         String
   memorySummary     String
+  /// Highest turn number already folded into memorySummary.
+  summarizedThroughTurn Int @default(0)
   lastUpdatedAt     DateTime @default(now())
 
   sessionId String      @unique

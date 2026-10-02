@@ -1,4 +1,4 @@
-import type { GMResponse, ItemMutation, NarrationEntry, PlayerAction, QuestMutation, SoundCue } from "@/types/game";
+import type { GMResponse, ItemMutation, NarrationEntry, PlayerAction, QuestMutation, SkillCheckResult, SoundCue } from "@/types/game";
 
 export function selectChoice(choiceLabel: string): string {
   return choiceLabel.replace(/\s+/g, " ").trim();
@@ -187,6 +187,24 @@ export function withNpcActionDialogue(
   return needsPeriod ? `${trimmed}. ${tagged}` : `${trimmed} ${tagged}`;
 }
 
+/**
+ * What is left to speak once the final narration is known, given the prefix
+ * that was already spoken while it streamed. Applies withNpcActionDialogue's
+ * weaving to the unspoken part, so dialogue that only exists in npcAction is
+ * still voiced; if the weaving landed inside text already spoken, the rest is
+ * spoken as streamed.
+ */
+export function wovenTail(
+  narration: string,
+  spoken: string,
+  npcAction: import("@/types/game").NPCAction | null | undefined,
+  relationships: import("@/types/game").NpcRelationship[],
+): string {
+  const woven = withNpcActionDialogue(narration, npcAction, relationships);
+  if (woven.startsWith(spoken)) return woven.slice(spoken.length);
+  return narration.slice(spoken.length);
+}
+
 function prettifyNpcId(npcId: string): string {
   if (!npcId) return "";
   return npcId
@@ -198,4 +216,18 @@ function prettifyNpcId(npcId: string): string {
 
 export function shouldPlaySoundCue(soundCuesEnabled: boolean, eventType: string, cue: SoundCue | null): cue is SoundCue {
   return soundCuesEnabled && eventType === "sound_cue" && Boolean(cue);
+}
+
+function signed(n: number): string {
+  return n >= 0 ? `+${n}` : `${n}`;
+}
+
+/**
+ * Player-facing dice line for a resolved skill check, e.g.
+ * "🎲 STR check — Force the gate: rolled 14 +2 = 16 vs DC 12 — Success!".
+ * Passive bonuses appear as their own term so the arithmetic adds up.
+ */
+export function formatSkillCheckLine(sc: SkillCheckResult): string {
+  const bonus = sc.bonus ? ` ${signed(sc.bonus)} bonus` : "";
+  return `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${signed(sc.modifier)}${bonus} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`;
 }

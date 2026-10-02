@@ -240,3 +240,21 @@ export async function speakNarrationMultiVoice(
     endNarrationSession();
   }
 }
+
+/**
+ * True when every NPC who speaks in `text` already has a voice or a gender
+ * hint, so speaking it now won't lock a new NPC to a voice picked before the
+ * GM said whether they are male, female, or neutral.
+ */
+export function npcVoicesResolvable(
+  text: string,
+  characterName: string,
+  assignments: Map<string, NpcVoiceAssignment>,
+  genderHints: Map<string, VoiceGender>,
+): boolean {
+  return parseNarrationSegments(text, characterName).every((seg) => {
+    if (seg.speaker !== "npc" || !seg.npcName) return true;
+    const key = npcKeyFromName(seg.npcName);
+    return assignments.has(key) || genderHints.has(key);
+  });
+}

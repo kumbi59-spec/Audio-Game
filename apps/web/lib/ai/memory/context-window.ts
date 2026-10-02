@@ -4,26 +4,44 @@ import type { WorldData } from "@/types/world";
 
 const APPROX_CHARS_PER_TOKEN = 4;
 const MAX_HISTORY_TOKENS = 40_000;
-const MAX_HISTORY_CHARS = MAX_HISTORY_TOKENS * APPROX_CHARS_PER_TOKEN;
+export const MAX_HISTORY_CHARS = MAX_HISTORY_TOKENS * APPROX_CHARS_PER_TOKEN;
+/** History is dropped from the front this many messages at a time. */
+const TRIM_BLOCK = 10;
+
+/**
+ * Keeps the most recent history that fits in `maxChars`, dropping the oldest
+ * messages in blocks of TRIM_BLOCK rather than one at a time. The history is
+ * the cached prefix of every GM request; dropping one message per turn would
+ * change that prefix on every turn and miss the cache each time, while
+ * dropping a block keeps it identical for several turns in a row. The client
+ * applies the same function before posting, so both sides agree on the cut.
+ */
+export function trimHistoryForContext<T extends { content: string }>(
+  history: T[],
+  maxChars: number = MAX_HISTORY_CHARS,
+): T[] {
+  const lengths = history.map((m) => m.content.length);
+  let total = lengths.reduce((sum, n) => sum + n, 0);
+  let drop = 0;
+  while (total > maxChars && history.length - drop > 2) {
+    const next = Math.min(drop + TRIM_BLOCK, history.length - 2);
+    for (let i = drop; i < next; i++) total -= lengths[i]!;
+    drop = next;
+  }
+  return drop === 0 ? history : history.slice(drop);
+}
 
 export function buildContextMessages(
   session: InMemorySession,
   character: CharacterData,
   world: WorldData
 ): HistoryMessage[] {
-  const messages: HistoryMessage[] = [...session.history];
+  const messages = [...trimHistoryForContext(session.history)];
 
   // Anthropic requires the first message to have role "user"; drop any leading
   // assistant messages that may have been stored from the opening narration.
   while (messages.length > 0 && messages[0]?.role === "assistant") {
     messages.shift();
-  }
-
-  // Trim to fit within the token budget
-  let totalChars = messages.reduce((sum, m) => sum + m.content.length, 0);
-  while (totalChars > MAX_HISTORY_CHARS && messages.length > 2) {
-    const removed = messages.shift();
-    if (removed) totalChars -= removed.content.length;
   }
 
   return messages;

@@ -92,7 +92,17 @@ export async function speakPreview(text: string, options: TTSOptions = {}): Prom
   return instanceFor(state.ttsProvider).speak(text, resolvedOpts);
 }
 
+// Bumped by every stopSpeech(). A narration made of several speak() calls
+// (streamed sentences, voice groups) checks it between calls so a manual stop
+// ends the whole narration, not just the sentence playing at the time.
+let _stopCount = 0;
+
+export function speechStopCount(): number {
+  return _stopCount;
+}
+
 export function stopSpeech(): void {
+  _stopCount++;
   // Stop all providers — switching mid-narration shouldn't leak audio.
   for (const inst of Object.values(instances)) inst?.stop();
   // Manual stop also tears down any in-flight narration session so its
