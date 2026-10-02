@@ -6,11 +6,14 @@ import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth
 import { authorizeAiUsage, aiUsageDenialResponse } from "@/lib/ai/usage-guard";
 import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { CharacterSchema, LegacyGuestIdSchema, WorldRefSchema } from "@/lib/game/request-schemas";
+import { getOwnedSession, persistTurn } from "@/lib/db/queries/sessions";
 
 const Schema = z.object({
   world: WorldRefSchema,
   character: CharacterSchema,
   guestId: LegacyGuestIdSchema,
+  /** The saved session this opening belongs to, so a resumed game starts with it. */
+  dbSessionId: z.string().max(200).nullish(),
 });
 
 export async function POST(req: NextRequest) {
@@ -45,6 +48,18 @@ export async function POST(req: NextRequest) {
       worldResult.world,
       body.character as CharacterData
     );
+    if (body.dbSessionId) {
+      // Stored as turn 0 so the opening scene is there when the game is
+      // resumed. Best-effort, and only into the caller's own fresh session.
+      try {
+        const owned = await getOwnedSession(body.dbSessionId, player.userId);
+        if (owned && owned.worldId === worldResult.world.id && owned.turnCount === 0) {
+          await persistTurn(owned.id, player.userId, 0, "assistant", JSON.stringify(opening));
+        }
+      } catch (err) {
+        console.error("[opening] could not store opening:", err);
+      }
+    }
     return respond(NextResponse.json(opening));
   } catch (err) {
     console.error("[opening] GM error:", err);

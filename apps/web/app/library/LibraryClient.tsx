@@ -7,6 +7,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
+import { ServerSaves } from "./ServerSaves";
 import {
   sortWorldsByOrder,
   filterWorldsByTab,
@@ -21,7 +22,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
   const router = useRouter();
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session, world: savedWorld, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
+  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [tab, setTab] = useState<Tab>("official");
@@ -100,6 +101,13 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
               </div>
             </div>
           )}
+
+          <ServerSaves
+            excludeSessionIds={[
+              ...(hasSavedGame && dbSessionId ? [dbSessionId] : []),
+              ...savedCampaigns.flatMap((c) => (c.dbSessionId ? [c.dbSessionId] : [])),
+            ]}
+          />
 
           {savedCampaigns.length > 0 && (
             <div className="mb-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>

@@ -14,51 +14,6 @@ export async function ensureGuestUser(guestId: string) {
   });
 }
 
-export async function createDbCharacter(
-  userId: string,
-  data: {
-    id: string;
-    name: string;
-    class: string;
-    backstory: string;
-    stats: Record<string, unknown>;
-    inventory: Array<{
-      id: string;
-      name: string;
-      description: string;
-      category: string;
-      quantity: number;
-      properties: Record<string, unknown>;
-    }>;
-  }
-) {
-  return prisma.character.upsert({
-    where: { id: data.id },
-    create: {
-      id: data.id,
-      userId,
-      name: data.name,
-      class: data.class,
-      backstory: data.backstory,
-      stats: JSON.stringify(data.stats),
-      inventory: {
-        create: data.inventory.map((item) => ({
-          id: item.id,
-          name: item.name,
-          description: item.description,
-          category: item.category,
-          quantity: item.quantity,
-          properties: JSON.stringify(item.properties),
-        })),
-      },
-    },
-    update: {
-      name: data.name,
-      backstory: data.backstory,
-    },
-  });
-}
-
 export async function getUserTier(userId: string): Promise<string> {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, email: true } });
   if (!user) return "free";

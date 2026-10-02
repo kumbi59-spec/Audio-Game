@@ -506,6 +506,11 @@ export function useGameSession() {
                   if (narrator.cancelled) break;
                   await speakText(msg);
                 }
+              } else if (eventType === "character_sync") {
+                // The server's stored copy after this turn — the source of
+                // truth for a saved game.
+                const synced = (data as { character?: CharacterData }).character;
+                if (synced) useGameStore.setState({ character: synced });
               } else if (eventType === "memory_summary") {
                 // Server compacted older history into a memory summary; persist
                 // it so subsequent turns send the compacted form rather than
@@ -626,11 +631,30 @@ export function useGameSession() {
   );
 
   const previousTurn = useGameStore((s) => s.previousTurn);
-  const undoLastTurn = useCallback(() => {
+  const undoLastTurn = useCallback(async () => {
     // Stop any in-flight TTS before snapping back so the user doesn't hear a
     // sentence from the now-stale state continuing over the restored scene.
     stopSpeech();
+    const { previousTurn, dbSessionId: savedId } = useGameStore.getState();
+    if (!previousTurn) {
+      announce("Nothing to undo.", "polite");
+      return false;
+    }
+    // A saved game keeps its progress on the server, so roll that back too —
+    // otherwise the next turn would bring the undone changes back.
+    let serverCharacter: CharacterData | null = null;
+    if (savedId) {
+      try {
+        const res = await fetch("/api/game/undo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dbSessionId: savedId }),
+        });
+        if (res.ok) serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
+      } catch { /* local undo still applies */ }
+    }
     const ok = useGameStore.getState().undoLastTurn();
+    if (ok && serverCharacter) useGameStore.setState({ character: serverCharacter });
     announce(ok ? "Last turn undone." : "Nothing to undo.", "polite");
     return ok;
   }, [announce]);

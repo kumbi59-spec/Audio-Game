@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   updateGameState: vi.fn(),
   getHistoryEntriesInTurnRange: vi.fn(),
   markSummarized: vi.fn(),
+  setUndoSnapshot: vi.fn(),
+  saveCharacterSnapshot: vi.fn(),
   summarizeHistory: vi.fn(),
   resolvePlayableWorld: vi.fn(),
   moderatePlayerInput: vi.fn(),
@@ -39,6 +41,11 @@ vi.mock("@/lib/db/queries/sessions", () => ({
   updateGameState: mocks.updateGameState,
   getHistoryEntriesInTurnRange: mocks.getHistoryEntriesInTurnRange,
   markSummarized: mocks.markSummarized,
+  setUndoSnapshot: mocks.setUndoSnapshot,
+}));
+vi.mock("@/lib/db/queries/characters", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/db/queries/characters")>()),
+  saveCharacterSnapshot: mocks.saveCharacterSnapshot,
 }));
 vi.mock("@/lib/ai/memory/summarizer", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai/memory/summarizer")>()),
@@ -144,6 +151,8 @@ describe("POST /api/game/action", () => {
     mocks.updateGameState.mockResolvedValue({ count: 1 });
     mocks.getHistoryEntriesInTurnRange.mockResolvedValue([]);
     mocks.markSummarized.mockResolvedValue(true);
+    mocks.setUndoSnapshot.mockResolvedValue({ count: 1 });
+    mocks.saveCharacterSnapshot.mockResolvedValue(true);
     mocks.summarizeHistory.mockResolvedValue("new summary");
     mocks.resolvePlayableWorld.mockResolvedValue({ ok: true, world: serverWorld });
     mocks.moderatePlayerInput.mockReturnValue({ safe: true });
@@ -375,6 +384,54 @@ describe("POST /api/game/action", () => {
       await readStream(res);
       expect(mocks.incrementTurnCount).not.toHaveBeenCalled();
       expect(mocks.persistTurn).not.toHaveBeenCalled();
+    });
+
+    it("plays from the stored character and saves the turn's changes to it", async () => {
+      const stored = { ...basePayload.character, stats: { ...basePayload.character.stats, hp: 7 }, inventory: [] };
+      const { id: _id, ...storedWithoutId } = stored;
+      mocks.getOwnedSession.mockResolvedValue({
+        ...ownedSession(),
+        characterId: "char-db",
+        character: { id: "char-db", snapshot: JSON.stringify(storedWithoutId) },
+      });
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "state_change", data: { hp: -2, inventoryChanges: [{ op: "add", name: "Lantern", quantity: 1 }] } };
+        yield { type: "done", data: null };
+      });
+
+      const res = await POST(asGuest({
+        ...basePayload,
+        dbSessionId: "sess",
+        character: { ...basePayload.character, stats: { ...basePayload.character.stats, hp: 999 } },
+      }) as never);
+      const body = await readStream(res);
+
+      // The forged client HP never reaches the model.
+      expect(mocks.streamGMTurn.mock.calls[0]![2].stats.hp).toBe(7);
+      const [characterId, ownerId, saved] = mocks.saveCharacterSnapshot.mock.calls[0]!;
+      expect([characterId, ownerId]).toEqual(["char-db", GUEST_ID]);
+      expect(saved.stats.hp).toBe(5);
+      expect(saved.inventory.map((i: { name: string }) => i.name)).toEqual(["Lantern"]);
+      expect(body).toContain("event: character_sync");
+
+      // The pre-turn state is kept for undo.
+      expect(mocks.setUndoSnapshot).toHaveBeenCalledWith("sess", GUEST_ID, expect.objectContaining({
+        turnCount: 7,
+        gameState: expect.objectContaining({ memorySummary: "old summary", summarizedThroughTurn: 0 }),
+        character: expect.objectContaining({ id: "char-db", stats: expect.objectContaining({ hp: 7 }) }),
+      }));
+    });
+
+    it("uses the client's character for a session saved before progress was stored", async () => {
+      mocks.getOwnedSession.mockResolvedValue({
+        ...ownedSession(),
+        characterId: "char-db",
+        character: { id: "char-db", snapshot: null },
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      await readStream(res);
+      expect(mocks.streamGMTurn.mock.calls[0]![2].name).toBe(basePayload.character.name);
+      expect(mocks.saveCharacterSnapshot).toHaveBeenCalledWith("char-db", GUEST_ID, expect.objectContaining({ name: basePayload.character.name }));
     });
 
     it("passes the request's abort signal to the GM stream", async () => {
