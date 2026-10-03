@@ -28,13 +28,13 @@ Long campaigns need long memory. Look for an app that summarises earlier events 
 
 To be fair to AI Dungeon, it takes this seriously. Its own help pages describe a [Memory System](https://help.aidungeon.com/faq/the-memory-system) that keeps a running Story Summary, refreshed every 15 actions, and stores short summaries of every six actions in a Memory Bank, pulling back whichever ones match the current scene. So a "memory" feature on a spec sheet won't settle much by itself these days. Test it in a long game instead.
 
-In EchoQuest, once enough turns pile up, a smaller and quicker Claude model folds each batch of ten turns into a compact factual summary that the GM reads on every turn. Honestly, that part bit me too. On October 2 I found that once a game passed a certain length, every turn re-summarised turns 1 to 10 and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns once the history filled up. Both are fixed now, but I'd never have caught them without playing long sessions myself. That's my advice to you as well.
+In EchoQuest, once enough turns pile up, a smaller and quicker Claude model folds each batch of ten turns into a compact factual summary that the GM reads on every turn. Honestly, that part bit me too. I found that once a game passed a certain length, every turn re-summarised turns 1 to 10 and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns once the history filled up. Both are fixed now, but I'd never have caught them without playing long sessions myself. That's my advice to you as well.
 
 ## 3. Is There a Game Master or Just a Narrator?
 
 A narrator describes things. A Game Master **runs a game**. That means pacing scenes and asking for rolls when the outcome is genuinely uncertain. It also means handing out consequences with teeth and steering toward a satisfying climax instead of wandering forever. If every session with an app feels like an endless middle, you're talking to a narrator.
 
-EchoQuest's GM, powered by Claude, is prompted specifically to act as a Game Master. It respects the world's rules and keeps its NPCs consistent from one scene to the next. It also builds toward story beats on purpose. When you try something risky, it can't just decide you succeed, either. The server rolls a d20, adds your stat modifier and compares the total against a difficulty number, and since October 2 the GM narrates that result in the same turn. That same day I also rewrote its instructions so it talks like a seasoned human GM leaning over the screen instead of reciting like a manual. You can read how all of that fits together in [How Claude AI Powers the EchoQuest Game Master](/blog/how-claude-ai-powers-the-echoquest-game-master).
+EchoQuest's GM, powered by Claude, is prompted specifically to act as a Game Master. It respects the world's rules and keeps its NPCs consistent from one scene to the next. It also builds toward story beats on purpose. When you try something risky, it can't just decide you succeed, either. The server rolls a d20, adds your stat modifier and compares the total against a difficulty number, and the GM narrates that result in the same turn. That same day I also rewrote its instructions so it talks like a seasoned human GM leaning over the screen instead of reciting like a manual. You can read how all of that fits together in [How Claude AI Powers the EchoQuest Game Master](/blog/how-claude-ai-powers-the-echoquest-game-master).
 
 ## 4. Can You Listen Instead of Read?
 
@@ -202,7 +202,7 @@ I'll own my bias up front. I built EchoQuest, an audio-first RPG where an AI Gam
 
 An AI Dungeon Master is a language model that's been given instructions to run a tabletop-style game. It describes the world and voices the NPCs. It asks what you do and decides how things turn out, often with dice rolled behind the scenes. It also keeps track of your character as you go.
 
-The dice deserve a closer look, because that's where plenty of AI storytelling apps cut corners. In D&D, an ability check is refreshingly plain: you [roll a d20 and add the relevant ability modifier](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), then compare the total to a Difficulty Class, where 10 counts as easy and 20 as hard. EchoQuest follows the same spirit. When you try something with a real chance of failing, the game itself rolls a d20 and adds your stat modifier. Then it checks the total against a difficulty somewhere between 5 (trivial) and 24 (near impossible). The GM never gets to decide you succeeded because it would make a prettier story. It narrates whatever the dice said. Since October 2, that check also resolves in the same turn, so you hear whether you cleared the gap straight away instead of waiting a whole exchange to find out.
+The dice deserve a closer look, because that's where plenty of AI storytelling apps cut corners. In D&D, an ability check is refreshingly plain: you [roll a d20 and add the relevant ability modifier](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), then compare the total to a Difficulty Class, where 10 counts as easy and 20 as hard. EchoQuest follows the same spirit. When you try something with a real chance of failing, the game itself rolls a d20 and adds your stat modifier. Then it checks the total against a difficulty somewhere between 5 (trivial) and 24 (near impossible). The GM never gets to decide you succeeded because it would make a prettier story. It narrates whatever the dice said. That check also resolves in the same turn, so you hear whether you cleared the gap straight away instead of waiting a whole exchange to find out.
 
 In EchoQuest, the thinking behind the GM comes from Claude, the model Anthropic makes, and it's tied to structured game state: HP, inventory, quests, how each NPC feels about you, and the story flags that record what you've done. As a result, the world stays consistent from one turn to the next. Everything is narrated aloud too, so it feels far closer to sitting across from a real DM than scrolling through a chat log.
 
@@ -262,7 +262,7 @@ The most common beginner mistake in solo play is waiting for the story to happen
 - **Chase the odd detail.** A strange smell, a guard who won't meet your eye. These are hooks, and a good GM plants them on purpose.
 - **Take risks.** Solo campaigns go stale fast when you play it safe.
 
-That last point is where I changed EchoQuest's rules most recently. On October 2 I gave 0 HP some real bite. If you go down, you don't die permanently, but you don't shrug it off either. You might be captured or robbed. Someone with an agenda of their own might drag you clear, or you might wake hours later with a price to pay. I'm convinced that's the right balance for solo play. Permanent death makes people timid, and a fight with no consequences at all weighs nothing.
+That last point is where I changed EchoQuest's rules most recently. I gave 0 HP some real bite. If you go down, you don't die permanently, but you don't shrug it off either. You might be captured or robbed. Someone with an agenda of their own might drag you clear, or you might wake hours later with a price to pay. I'm convinced that's the right balance for solo play. Permanent death makes people timid, and a fight with no consequences at all weighs nothing.
 
 And if you truly fumble (a mis-tapped choice, or a voice transcript that went sideways), press U to undo your last turn. It's a single step back, not a time machine, which keeps things honest.
 
@@ -282,7 +282,7 @@ Solo play can run on forever, and that's a problem. With no group yawning at 1 a
 - Stop at a **cliffhanger** so you're itching to come back
 - Keep a one-line **session log** so you remember what happened
 
-EchoQuest saves your campaign state, so you can pick up exactly where you left off. It auto-saves every five turns, and there's a manual Save button for when the kettle boils mid-scene. Since October 2, your character's progress lives on the server too, which means you can start on your phone and carry on from your laptop. And if you come back after a week with a foggy memory, the Recap button reads the last three scenes aloud.
+EchoQuest saves your campaign state, so you can pick up exactly where you left off. It auto-saves every five turns, and there's a manual Save button for when the kettle boils mid-scene. Your character's progress lives on the server too, which means you can start on your phone and carry on from your laptop. And if you come back after a week with a foggy memory, the Recap button reads the last three scenes aloud.
 
 I'd still keep the one-line log, though. It takes ten seconds, and reading it back a month later is oddly satisfying. By the way, the free tier gives you 60 AI turns a day, which turns out to be a comfortable size for an evening chapter.
 
@@ -367,7 +367,7 @@ A few lines about names, clues and unanswered questions help a lot on longer adv
 
 ### Be Specific About Intent
 
-"I attack" is fine. "I feint left, then drive my shield into his knee to knock him off the bridge" is better. An AI can reward creativity in a way a parser never could. When something's genuinely risky, EchoQuest rolls a d20, adds your stat modifier and compares it with a difficulty. Since October 2 the result lands in the same turn, so you're no longer left dangling on the bridge for a whole exchange.
+"I attack" is fine. "I feint left, then drive my shield into his knee to knock him off the bridge" is better. An AI can reward creativity in a way a parser never could. When something's genuinely risky, EchoQuest rolls a d20, adds your stat modifier and compares it with a difficulty. The result lands in the same turn, so you're not left dangling on the bridge for a whole exchange.
 
 ## Where to Play Text Adventure Games Online
 
@@ -388,7 +388,7 @@ If you've never tried one, our [beginner's guide to your first EchoQuest adventu
 
 Text adventures were written off as a relic once graphics arrived. It turns out words were never the limitation. Early computers just couldn't understand them very well. Now they can, and I'm convinced the genre that started gaming will be one of its most flexible futures.
 
-I've watched that gap close from the inside. On October 2 I rewrote the GM's instructions so it talks like a seasoned person behind the screen rather than a manual. On the same day I got narration speaking while the GM's reply is still being written, so the pause between your sentence and the story's answer keeps shrinking. Crowther's cave needed two words from you. These days you can just talk. So, what's the first thing you'll type?
+I've watched that gap close from the inside. I rewrote the GM's instructions so it talks like a seasoned person behind the screen rather than a manual. On the same day I got narration speaking while the GM's reply is still being written, so the pause between your sentence and the story's answer keeps shrinking. Crowther's cave needed two words from you. These days you can just talk. So, what's the first thing you'll type?
 
 **[Play a text adventure online for free →](/library)**
 `,
@@ -415,7 +415,7 @@ What separates it from a chatbot is **structure**. A good AI GM pairs a language
 
 At the core sits a large language model. In EchoQuest's case that's Claude, made by Anthropic. The model handles the stuff that's miserable to program by hand, like working out what you actually meant, or giving a sulky ferryman a voice you'd believe.
 
-Here's a lesson I learned the hard way, though. The model copies the style of its instructions. My first GM prompt read like a technical spec, and sure enough, the narration came back sounding like one, full of tidy lists and wrap-up sentences. On October 2 I rewrote the whole thing so it talks like a seasoned person behind the screen. Now it opens on one concrete detail and ends on a direct question to you.
+Here's a lesson I learned the hard way, though. The model copies the style of its instructions. My first GM prompt read like a technical spec, and sure enough, the narration came back sounding like one, full of tidy lists and wrap-up sentences. I rewrote the whole thing to talk like a seasoned person behind the screen. Now it opens on one concrete detail and ends on a direct question to you.
 
 ### 2. The World Definition
 
@@ -439,17 +439,17 @@ In EchoQuest, the game engine writes your character's state and the world's stat
 
 When the outcome of an action is uncertain (picking a lock, say, or dodging a blade), a good AI GM settles it with **dice rolls**, never mere narrative convenience. Randomness creates tension, and it makes success feel earned.
 
-Tabletop D&D does it by having you [roll a d20, add a modifier and compare the total to a Difficulty Class](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), on a ladder that runs from 5 for very easy up to 30 for nearly impossible. EchoQuest borrows the idea with a shorter ladder (5 trivial up to 24 near impossible). The part that matters most is who rolls. The GM isn't allowed to decide whether you succeed. It asks the game for a check, the server rolls d20 plus your stat modifier, and the GM has to narrate whatever came up. I'll confess this was broken on the web for longer than I'd like: the roll result got filtered out before the GM ever saw it. Since October 2 the check resolves in the same turn, and the dice line shows up before the narration.
+Tabletop D&D does it by having you [roll a d20, add a modifier and compare the total to a Difficulty Class](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), on a ladder that runs from 5 for very easy up to 30 for nearly impossible. EchoQuest borrows the idea with a shorter ladder (5 trivial up to 24 near impossible). The part that matters most is who rolls. The GM isn't allowed to decide whether you succeed. It asks the game for a check, the server rolls d20 plus your stat modifier, and the GM has to narrate whatever came up. I'll confess this was broken on the web for longer than I'd like: the roll result got filtered out before the GM ever saw it. Now the check resolves in the same turn, and the dice line shows up before the narration.
 
 ### 5. Memory and Summaries
 
 Long campaigns outgrow what any model can hold at once. Anthropic describes a model's context window as its [working memory](https://platform.claude.com/docs/en/about-claude/glossary), and even big windows have soft spots. One Stanford-led study found that models [use information in the middle of a long context noticeably worse](https://aclanthology.org/2024.tacl-1.9/) than information at the start or end. So AI GMs lean on rolling summaries and key facts, which lets earlier events resurface. The informant you betrayed can still hold a grudge ten sessions later.
 
-In EchoQuest, the most recent turns go to the GM word for word. Once a game runs long, a smaller and quicker Claude model folds older turns, ten at a time, into a compact factual summary of decisions, NPCs, places, items and quests. That system bit me too. On October 2 I found that past a certain length, every turn re-summarised the first ten turns and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns. Both are fixed now.
+In EchoQuest, the most recent turns go to the GM word for word. Once a game runs long, a smaller and quicker Claude model folds older turns, ten at a time, into a compact factual summary of decisions, NPCs, places, items and quests. That system bit me too. I found that past a certain length, every turn re-summarised the first ten turns and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns. Both are fixed now.
 
 ### 6. Narration and Voice
 
-Finally, the output has to reach your ears. In EchoQuest, every response is **narrated aloud**. The free tier uses your browser's speech, and the paid plans use expressive ElevenLabs voices, with a different voice for each character, chosen to match that character's gender. Getting that right took some doing. In late May, NPC voices refused to switch because the dialogue wasn't woven into the narration. Then the October rewrite made the GM talk more casually, and all those contractions exposed an old parser bug: a line like "Don't move." switched voices mid-word at the apostrophe. I fixed it in the same change. Narration now starts speaking while the GM's reply is still being written, so you're not sat in silence waiting for a whole paragraph.
+Finally, the output has to reach your ears. In EchoQuest, every response is **narrated aloud**. The free tier uses your browser's speech, and the paid plans use expressive ElevenLabs voices, with a different voice for each character, chosen to match that character's gender. Getting that right took some doing. In late May, NPC voices refused to switch because the dialogue wasn't woven into the narration. Then my rewrite made the GM talk more casually, and all those contractions exposed an old parser bug: a line like "Don't move." switched voices mid-word at the apostrophe. I fixed it in the same change. Narration now starts speaking while the GM's reply is still being written, so you're not sat in silence waiting for a whole paragraph.
 
 ## What an AI Game Master Does Well
 
@@ -681,7 +681,7 @@ Still torn? My advice is to start with whatever you can play tonight, because a 
 ## Making Better Choices: Tips for CYOA Players
 
 1. **Play in character, not to "win".** The best stories come from choices your character would make, not the ones that look optimal on paper.
-2. **Don't reload after every bad outcome.** Failure is often where the best story beats are hiding. I did build single-step undo into EchoQuest (press U), but mainly for slipped fingers and misheard voice commands. Please don't use it to dodge every bruise. Since October, hitting 0 HP brings a genuine setback, and honestly, that's often where a session finally gets good.
+2. **Don't reload after every bad outcome.** Failure is often where the best story beats are hiding. I did build single-step undo into EchoQuest (press U), but mainly for slipped fingers and misheard voice commands. Please don't use it to dodge every bruise. Hitting 0 HP brings a genuine setback, and honestly, that's often where a session finally gets good.
 3. **Explore the unusual option.** In AI games, try things the story never suggested.
 4. **Replay with a different personality.** A cautious scholar and a reckless mercenary will pull very different stories out of the same world.
 
@@ -773,7 +773,7 @@ To show how a prompt turns into something playable, here's a second example of m
 
 When you create a character in EchoQuest, the backstory you write goes straight to the AI Game Master, which runs on Claude. It's the third step of character creation, next to a few optional fields for things like pronouns and appearance. You can skip it entirely if you'd rather find out who you are as you play. And if a world comes with its own backgrounds, they're listed right there so you can mention one.
 
-Here's the design choice I care about most: your backstory isn't read once and then forgotten. It sits in the character block the GM reads at the top of every turn, right beside your HP and your inventory. On top of that, when I rewrote the GM's instructions on October 2, I told it to plant small details and pay them off turns later, and to bring old threads back when they hurt or help the most. In practice, the GM uses your details to:
+Here's the design choice I care about most: your backstory isn't read once and then forgotten. It sits in the character block the GM reads at the top of every turn, right beside your HP and your inventory. On top of that, when I rewrote the GM's instructions, I told it to plant small details and pay them off turns later, and to bring old threads back when they hurt or help the most. In practice, the GM uses your details to:
 
 - Introduce NPCs connected to your past
 - Add complications that test your flaw
@@ -782,7 +782,7 @@ Here's the design choice I care about most: your backstory isn't read once and t
 
 Short, concrete backstories work best. A few specific names and one clear goal beat a vague paragraph about "a troubled past" every time. So name the informant, even if it's just "a man called Pell". Anything with a name, the GM can put in a room with you. Once one of those people shows up, EchoQuest also tracks how they feel about you on a scale from -100 to +100, so a reunion can go very sweetly or very sour.
 
-There's a darker bonus, too. Since October 2, dropping to 0 HP brings a real setback instead of a shrug, and one option the GM has is having you dragged clear by someone with an agenda. Nobody dies permanently, but a loose thread from your past makes a wonderful rescuer with strings attached.
+There's a darker bonus, too. Dropping to 0 HP brings a real setback instead of a shrug, and one option the GM has is having you dragged clear by someone with an agenda. Nobody dies permanently, but a loose thread from your past makes a wonderful rescuer with strings attached.
 
 ## Quick Backstory Checklist
 

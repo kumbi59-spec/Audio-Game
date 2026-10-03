@@ -424,7 +424,7 @@ If horror is your thing, I've put together [thirteen more horror hooks for spook
 - **End with a choice:** the best finales ask players to decide something, not just win a fight. Do you hand the oracle over to save the caravan? That's a finale.
 - **Cut ruthlessly:** if a scene doesn't serve the goal, skip it. I'm convinced the scene you cut is the one nobody misses.
 
-And plan for overruns anyway, because they happen to everyone. EchoQuest auto-saves every five turns and has a manual Save button. Since early October your character's progress lives on the server as well, so a one-shot that spills past bedtime can pick up tomorrow on a different device. Saving properly took some work, too. Back in May I found that a turn which errored halfway could leave half-applied changes behind, so now a turn either lands completely or rolls back completely. Single-step undo arrived around the same time, so U takes back your last move if you'd like a second go at that door.
+And plan for overruns anyway, because they happen to everyone. EchoQuest auto-saves every five turns and has a manual Save button. Your character's progress lives on the server as well, so a one-shot that spills past bedtime can pick up tomorrow on a different device. Saving properly took some work, too. Back in May I found that a turn which errored halfway could leave half-applied changes behind, so now a turn either lands completely or rolls back completely. Single-step undo arrived around the same time, so U takes back your last move if you'd like a second go at that door.
 
 ## Running One-Shots Solo With an AI DM
 
@@ -560,7 +560,7 @@ So this guide shows you how to build a coherent fantasy world entirely in words.
 - **It's accessible.** Blind and low-vision creators can build whole worlds without a single visual tool.
 - **An AI Game Master understands descriptions better than images.** Text is what it reasons about, so as far as the GM is concerned, your sentences *are* the world.
 
-There's decent science behind this, by the way. Psychologists have studied for decades how people picture places they've only read about, and [a 1992 paper co-written by Stanford's Barbara Tversky](https://www.tc.columbia.edu/faculty/bt2158/faculty-profile/files/ntsofviewinspatialmentalmodelsacquiredfromtext.pdf) explains that readers build mental models of a scene straight from the text. Those models hold on to plain relations like "above", "north of" and "across from". The same paper points to earlier work in which readers formed a usable model of an environment from route descriptions (the kind that walk you through it) and from survey descriptions (the kind that lay it out from above). So your readers' heads are already doing the cartography. You only have to hand them good sentences.
+There's decent science behind this, by the way. Psychologists have studied for decades how people picture places they've only read about, and [a 1992 paper co-written by Stanford's Barbara Tversky](https://www.tc.columbia.edu/faculty/bt2158/faculty-profile/files/ntsofviewinspatialmentalmodelsacquiredfromtext.pdf) explains that readers build mental models of a scene straight from the text. Those models hold on to plain relations like "above", "north of" and "across from". The same paper also cites a study in which readers formed a usable model of an environment from route descriptions (the kind that walk you through it) and from survey descriptions (the kind that lay it out from above). So your readers' heads are already doing the cartography. You only have to hand them good sentences.
 
 That last bullet is a lesson I learned from the inside, too. EchoQuest's world format has no map field at all. Each location is a name, a few sentences of description, a one-line summary, an ambient sound and a list of the places it connects to. No picture. No coordinates. And the GM runs whole campaigns on that.
 
@@ -819,11 +819,11 @@ A pirate crew isn't an army. It's a democracy with knives. So track **morale**:
 
 Morale rises with fair shares, victories, good food and rest. It falls with losses, broken promises and long stretches without plunder. Give three or four crew members names and personalities: the quartermaster who speaks for the crew, the old gunner, the stowaway, the cook who knows everyone's secrets. See [Writing Compelling NPCs](/blog/writing-compelling-npcs-7-techniques-that-work).
 
-History backs up every line of this. Pirates agreed written articles before a voyage, and Leeson reprints the ones Bartholomew Roberts' crew swore to, taken from [A General History of the Pyrates](https://www.gutenberg.org/ebooks/40580) (1724). The split was exact: two shares each for the captain and quartermaster, one and a half for the master, boatswain and gunner, one and a quarter for other officers, and one share for everyone else. Roberts' articles even promised 800 dollars to anyone who lost a limb in service, and they banned brawling aboard, since "every Man's Quarrels to be ended on Shore, at Sword and Pistol." Low morale had teeth, too. When Charles Vane's crew judged him a coward, his behaviour "was obliged to stand the Test of a Vote", and they deposed him.
+History backs up every line of this. Pirates agreed written articles before a voyage and swore to them, sometimes on a Bible and, in one crew's case, "upon a Hatchet for want of a Bible." Leeson reprints the articles of Bartholomew Roberts' crew as recorded in Captain Charles Johnson's [A General History of the Pyrates](https://www.gutenberg.org/ebooks/40580), first published in 1724. The split was exact: two shares each for the captain and quartermaster, one and a half for the master, boatswain and gunner, one and a quarter for other officers, and one share for everyone else. Roberts' articles even promised 800 dollars to anyone who lost a limb in service, and they banned brawling aboard: "every Man's Quarrels to be ended on Shore, at Sword and Pistol." Low morale had teeth, too. When Charles Vane's crew judged him a coward, his behaviour "was obliged to stand the Test of a Vote", and they deposed him.
 
 Real crews ran bigger than most people assume. Leeson puts the average at about 80, based on 37 pirate ships between 1716 and 1726. The Mercy's forty-eight is cosier, which honestly suits a GM who has to give the loud ones a voice.
 
-Speaking of loud ones, Saltbound's crew is where I spent the most love. First Mate Joss Wren will tell you what the crew thinks before the crew says it themselves. Bosun Marra Quint couldn't stand the previous captain and is watching you very narrowly. Then there's Old Ben, the mostly deaf cook, who makes a superb fish stew and knows every story in the archipelago, and he'll share the gossip if you drink his coffee. On the Storyteller plan each of them gets a distinct premium voice, so Marra's fast, salty delivery sounds nothing like Ben's creaky warmth. Getting those voices to actually change took some doing. In late May I discovered NPC voices weren't switching at all, because an NPC's lines weren't being woven into the narration, and I ended up matching voices by gender across the whole voice catalogue while I was at it.
+Speaking of loud ones, Saltbound's crew is where I spent the most love. First Mate Joss Wren will tell you what the crew thinks before the crew says it themselves. Bosun Marra Quint couldn't stand the previous captain and is watching you very narrowly. Then there's Old Ben, the mostly deaf cook, who makes a superb fish stew and knows every story in the archipelago, and he'll share the gossip if you drink his coffee. On the Storyteller plan each of them gets a distinct premium voice, so the bosun and the cook never sound like the same person. Getting those voices to actually change took some doing. In late May I discovered NPC voices weren't switching at all, because an NPC's lines weren't being woven into the narration, and I ended up matching voices by gender across the whole voice catalogue while I was at it.
 
 ## Build an Archipelago of Politics
 
@@ -839,7 +839,7 @@ Then give each island three answers: **what it wants**, **what it fears** and **
 
 Each of these has a real ancestor. In the 1710s the free port was the Bahamas, and when King George I's pardon proclamation came out in 1717, it drove many pirates ["out of their nest in the Bahama Islands"](https://www.ccpl.org/charleston-time-machine/pirate-hunting-expeditions-1718), as the Charleston County Public Library puts it. The Merchant Isle's privateers were real as well. A privateer's commission, a letter of marque, was what [legally separated them from pirates](https://www.congress.gov/crs_external_products/LSB/PDF/LSB11272/LSB11272.5.pdf), according to the Congressional Research Service. Privateers fitted out their ships at their own expense and took a large share of whatever their prizes sold for, and the British Crown sometimes let colonial governors hand those commissions out. So a governor with a pen is every bit as dangerous as a frigate.
 
-EchoQuest's official **Saltbound** campaign is built along these lines, although its politics come in blocs rather than one faction per island. The Stradovine Archipelago is split between the Crown of Vallaria, with its navy and customs cutters and the frigate Argent, and the loose Confederacy of Free Captains, who are pirates by the Crown's definition and free traders by their own. Salt-Tongue Village is your free port: by old treaty the Crown's writ doesn't run there, and the harbour master takes her tithe in goods rather than coin. Elsewhere, the Stradovine Free Towns pay the Crown a nominal tithe but govern themselves, and they turn on pirates who burn their own. And in a stone cottage above the cove, three hedge-witches sell remedies and weather warnings, payable in fresh fish. My favourite rule in the whole world, though, is about reputation. Whatever you do in Salt-Tongue this week becomes a song in the next port within a fortnight.
+EchoQuest's official **Saltbound** campaign is built along these lines, although its politics come in blocs rather than one faction per island. The Stradovine Archipelago is split between the Crown of Vallaria, with its navy and customs cutters and the frigate Argent, and the loose Confederacy of Free Captains, who are pirates by the Crown's definition and free traders by their own. Salt-Tongue Village is your free port: by old treaty the Crown's writ doesn't run there, and the harbour master takes her tithe in goods rather than coin. Elsewhere, the Stradovine Free Towns pay the Crown a nominal tithe but govern themselves, and they turn on pirates who burn their own. And in a stone cottage in the village, three hedge-witches sell remedies and weather warnings, payable in fresh fish. My favourite rule in the whole world, though, is about reputation. Whatever you do in Salt-Tongue this week becomes a song in the next port within a fortnight.
 
 ## Naval Combat Without a Grid
 
@@ -852,7 +852,7 @@ Ship battles can bog down in rules. In narrative and audio play, keep it cinemat
 
 Sound carries naval combat: creaking timbers, cannon thunder, splintering wood, shouted orders. That makes it ideal for audio-first play.
 
-Don't be afraid to let the chase *be* the fight, either. The Salisbury's own records from that 1747 cruise describe losing her jib boom and topgallant mast chasing a ship that wouldn't stop until twelve shots had been fired. It turned out to be an English privateer, and the navy had to let her go. That's a whole session, and nobody boarded anybody. Saltbound's rules push the same way. Combat there is gun-and-board, drawn-out fights cost crew, sails and reputation, and most engagements end "in chase or surrender, not slaughter." I'm convinced that's the right call for a story game.
+Don't be afraid to let the chase *be* the fight, either. The Salisbury's papers from that same 1747 cruise, pieced together in the Lind article above, describe her losing the jib boom and topgallant mast chasing a ship that wouldn't stop until twelve shots had been fired. It turned out to be an English privateer, and the navy simply had to let her pass. That's a whole session, and nobody boarded anybody. Saltbound's rules push the same way. Combat there is gun-and-board, drawn-out fights cost crew, sails and reputation, and most engagements end "in chase or surrender, not slaughter." I'm convinced that's the right call for a story game.
 
 The soundscape taught me a few lessons of its own. In May I added a storm track to the ambient soundtrack and taught the soundtrack to duck under sound cues, so a cannon blast doesn't drown in the wind. I also started dropping duplicate sound cues that fire within 80 milliseconds of each other, so a flurry of identical effects can't stack into one ear-splitting smear. Then on October 2, skill checks started resolving in the same turn. Swing across on a line, and you find out whether you made it before the next broadside, not a whole exchange later. Dropping to 0 HP brings a real setback now as well, which keeps boarding actions honest.
 
@@ -887,76 +887,92 @@ So, do you sail west to safety, or east to find Hanno?
   {
     publishAt: "2026-10-12",
     title: "AI Roleplay Games vs. AI Chatbots: What's the Difference?",
-    excerpt: "AI roleplay games and AI chatbots both tell stories, but they work very differently. Learn how game state, rules, pacing, and world design change the experience.",
+    excerpt: "AI roleplay games and AI chatbots can run on the same model, yet they play very differently. Here's how game state, dice, pacing and world rules change things.",
     content: `# AI Roleplay Games vs. AI Chatbots: What's the Difference?
 
-Type "roleplay with me" into almost any AI chatbot and it will happily oblige. So why do dedicated **AI roleplay games** exist? Isn't it all the same technology?
+Ask almost any AI chatbot to "roleplay with me" and it'll cheerfully play along. So why would anybody bother building a dedicated **AI roleplay game**? Isn't it all the same tech under the hood?
 
-The underlying model can be the same. The experience is very different. This article explains what separates a chatbot roleplay from a real AI RPG, and when you might want each.
+Sometimes it literally is. EchoQuest's Game Master runs on Claude, and you could open Claude in a plain chat window tonight and start a fantasy story there. The model can be identical and the experience still miles apart. I've spent months building the scaffolding that wraps around the model, and surprisingly little of that work touched the words it writes. Most of it was bookkeeping, dice, timing and sound. So here's what actually separates a chatbot roleplay from a proper AI RPG, and when I think you should reach for each one.
 
 ## The Short Version
 
-- An **AI chatbot** is a conversational partner. It says whatever seems most fitting next.
-- An **AI roleplay game** is a *system*: a world, rules, tracked state, and a Game Master prompt, with the language model as one component.
+- An **AI chatbot** is a conversation partner. It says whatever seems most fitting next, and that's its whole job.
+- An **AI roleplay game** is a *system*: a world, rules, tracked state and a Game Master prompt, with the language model as one part of the machine.
 
-It's the difference between improvising a story with a friend and sitting down to a game with a Game Master who has prepared.
+It's the gap between making up a story with a friend on a long car ride and sitting down at a table where the Game Master has done the prep. Both can be a blast. Only one of them knows how many arrows you've got left.
 
 ## Difference 1: State and Consistency
 
-A chatbot's "memory" is the conversation itself. If you had 50 gold three hundred messages ago, whether you still have it depends on whether the model notices.
+A chatbot's "memory" is mostly the conversation itself. Anthropic's own documentation calls the context window the model's ["working memory"](https://platform.claude.com/docs/en/build-with-claude/context-windows), and it's refreshingly frank about the catch: as that window fills up, accuracy and recall degrade, something they call *context rot*. A 2023 study from Stanford and collaborators, [Lost in the Middle](https://arxiv.org/abs/2307.03172), found a related quirk. Models are best at using facts near the start or end of a long input, and noticeably worse at fishing out details buried in the middle. So if you had 50 gold three hundred messages ago, whether you still have it depends on whether the model happens to notice.
 
-A roleplay game keeps **explicit game state**: HP, inventory, gold, conditions, quest flags, reputation, location. The narration reads from that state and updates it. Your 50 gold is a number in a database, not a hopeful memory.
+To be fair, chatbots keep getting better at remembering. In April 2025, OpenAI announced that [ChatGPT's memory could now reference all your past conversations](https://community.openai.com/t/chatgpt-can-now-reference-all-past-conversations-april-10-2025/1229453), and Sam Altman framed it as AI that gets to "know you over your life." That's memory about *you*, though: your tastes and your ongoing projects. It was never meant to be a ledger for a dwarf's coin purse.
+
+A roleplay game keeps **explicit game state** instead. In EchoQuest that means HP, inventory, quests, a standing with every named NPC on a scale from -100 (sworn enemy) to +100 (loyal ally), story flags, your current location and the time of day. Every single turn, the engine re-sends that state to the GM at the very end of your message and tells it to treat it as fact. The narration reads from it, and the GM's reply comes back with precise changes for the game to apply. Your 50 gold is an inventory line with a quantity, sitting in a database, not a hopeful memory.
+
+I learned how seriously to take this the hard way. Early on, a turn that errored halfway through could leave half-applied state behind, meaning a merchant could pocket your coins and the lantern you paid for would never reach your pack. So I added a full rollback, and now a turn lands completely or not at all. Older turns don't simply evaporate either. When they scroll out of the GM's window, they get folded into a compact, factual campaign summary that keeps hold of your big decisions and the people you've met.
 
 ## Difference 2: Rules and Uncertainty
 
-In chatbot roleplay, outcomes are usually decided by what makes a nice story, which often means you succeed. That feels good briefly, then hollow.
+In chatbot roleplay, outcomes tend to bend toward whatever makes a nice story, which in practice often means you win. There's research behind that hunch, too. Anthropic's paper [Towards Understanding Sycophancy in Language Models](https://arxiv.org/abs/2310.13548) found that five leading AI assistants consistently tilted toward what users wanted to hear, partly because people rate agreeable answers highly. Carry that pull into a fantasy story and you get a narrator who can't quite bear to let you fall. It feels lovely for about ten minutes. Then it feels hollow.
 
-AI RPGs add **mechanics**: dice rolls, difficulty, resources, and consequences. When you try to leap the chasm, you might fail, and that's what makes success meaningful.
+AI RPGs add **mechanics**: dice rolls, difficulty, resources and consequences. Tabletop players will recognise the shape. The [free D&D rules](https://www.dndbeyond.com/sources/dnd/free-rules/playing-the-game) have you roll a d20, add your modifier and compare the total with a Difficulty Class the DM sets. EchoQuest does the same thing in code. When you try something with a real chance of failing, the GM has to call a skill check. The game rolls d20 plus your stat modifier against a difficulty the GM picks (5 for trivial, all the way up to 24 for near impossible). Then it tells the GM whether that worked, and the GM narrates exactly that outcome. It isn't allowed to decide success on its own. The check also resolves in the same turn, so you hear the result straight away.
+
+So when you leap for the far side of the chasm, you might miss, and that's precisely what makes landing it mean something. What happens at 0 HP? No cheerful reprieve. You get a real setback that fits the moment, such as being captured or waking hours later with a cost to pay. Nobody dies permanently, though.
 
 ## Difference 3: A World With Boundaries
 
-A chatbot will add laser guns to your medieval fantasy if the conversation drifts that way. An AI RPG runs within an **authored world**: its lore, factions, magic, and technology rules. The Game Master can improvise details, but it respects the setting. On EchoQuest, that's defined in the campaign's [Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template).
+A chatbot will happily hand out laser guns in your medieval fantasy if the chat drifts that way. Why wouldn't it? Nothing tells it otherwise. An AI RPG runs inside an **authored world** with its own lore, factions, magic and technology rules. The Game Master improvises details constantly, yet it respects the setting. EchoQuest's GM instructions are blunt on this point: the world's Game Bible is the source of truth, and the GM must never break an established fact about the setting or about your own history. On EchoQuest, those rules live in the campaign's [Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template).
 
 ## Difference 4: Pacing and Structure
 
-Chatbots follow your lead indefinitely, which is why chatbot stories often feel like an endless middle. A Game Master **pushes back**: it introduces complications, raises stakes, cuts to the next important scene, and steers toward climaxes.
+Chatbots follow your lead indefinitely, which is why so many chatbot stories feel like one endless middle act. A Game Master **pushes back**. It throws in complications, raises the stakes, cuts to the next scene that matters and steers toward a climax.
+
+When I rewrote EchoQuest's GM to talk like a human Game Master, pacing was the thing I fussed over most. The instructions now tell it to open each scene on one concrete detail. After that it tightens the screw with a complication, and it stops the moment it lands on a hook. Fights get two quick sentences and no padding. And every scene closes on one direct question to you. Honestly, a GM that asks "Do you trust her?" keeps a story moving far better than one that waits politely for orders.
 
 ## Difference 5: Multiple Characters
 
-Chatbots are usually one character talking to you. A Game Master plays **the whole world**: the innkeeper, the villain, the crowd, and the weather, each with distinct motives, and in EchoQuest's premium narration, distinct voices.
+Most chatbots are one character talking to you. A Game Master plays **the whole world**: the innkeeper, the villain, the crowd and the weather, each with motives of their own. On EchoQuest's premium narration, they get distinct voices as well.
+
+That last bit took real effort. At one point I discovered NPC voices weren't switching at all, because the NPC's dialogue wasn't woven into the narration, so everything came out in the narrator's voice. Now every spoken line carries its speaker's name, and voices are gender-matched across the whole catalogue. The GM also tracks how each named character feels about you, so the guard you insulted early on still holds a grudge later.
 
 ## Difference 6: Presentation and Accessibility
 
-Chatbots present a chat log. AI RPGs can offer a fuller experience: narration, ambient sound, character sheets, quick actions, save slots, and accessibility designed for play, including screen-reader announcements, keyboard shortcuts, and voice input.
+A chatbot gives you a chat log. An AI RPG can offer a much fuller experience: spoken narration, ambient sound, a character sheet, quick-pick choices, saves, and accessibility designed around play. That means screen reader announcements and keyboard shortcuts, and you can speak your moves aloud with voice input.
+
+The W3C's accessibility guidelines have a rule about [status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html), which says important changes should reach screen reader users without needlessly interrupting what they're doing. In a game, that's your health. So EchoQuest announces HP and inventory changes as they happen, and single keys cover the everyday stuff (S reads your status, I lists your inventory, Q lists your quests and L tells you where you are). I also once caught the choices being announced while the narrator was still mid-sentence, which meant screen reader users heard two voices at once. Now the choices wait their turn. A chat window never has to worry about that sort of thing. A game does.
 
 ## Side-by-Side
 
 | | AI chatbot roleplay | AI roleplay game |
 | --- | --- | --- |
-| Memory | Conversation history | Structured state plus summaries |
+| Memory | Conversation history (plus personal memory in some apps) | Structured state plus summaries |
 | Outcomes | Narrative convenience | Rules and dice |
 | World | Whatever emerges | Authored setting with constraints |
 | Pacing | Follows you | Game Master drives structure |
 | Characters | Usually one | Full cast |
-| Saves | Chat history | Campaign saves |
-| Audio | Rare | Core feature (EchoQuest) |
+| Saves | Chat history | Campaign saves (auto-save every 5 turns, plus a Save button) |
+| Audio | Varies by app | Core feature (EchoQuest) |
 
 ## When a Chatbot Is the Better Choice
 
-- You want a **freeform creative writing** partner
-- You're exploring **one character relationship** in depth
-- You don't want rules or failure at all
+I'm not anti-chatbot. They're genuinely good at some things, and I'd send you to one in these cases:
+
+- You want a **freeform creative writing** partner with no rails at all
+- You're exploring **one character relationship** in depth and the plot barely matters
+- You don't want rules or failure, full stop
 
 ## When an AI RPG Is the Better Choice
 
-- You want a **game**: challenge, risk, and progression
+- You want a **game**, with real risk and a character who grows
 - You want a **consistent world** across many sessions
 - You want to **listen** rather than read
 - You want **accessibility** built for play
 
 ## How EchoQuest Is Built
 
-EchoQuest uses Claude as the Game Master's voice and reasoning, wrapped in structured state tracking, campaign definitions, dice resolution, and narration. We explain the prompting side in [Behind the GM: How We Prompt Claude to Run Your Adventures](/blog/behind-the-gm-how-we-prompt-claude-to-run-your-adventures).
+EchoQuest uses Claude, Anthropic's model, as the Game Master's voice and reasoning. Around it sits the part I actually build: structured state tracking, campaign definitions, dice resolution and narration. Each turn, the engine hands the GM your character and world state. Claude writes the scene along with a list of changes, and the game checks those before applying them. Narration even starts speaking while the GM's reply is still being written, so you're not left sitting in silence. I walk through the prompting side in [Behind the GM: How We Prompt Claude to Run Your Adventures](/blog/behind-the-gm-how-we-prompt-claude-to-run-your-adventures).
+
+Would you rather hear the difference than read about it? Three campaigns are free, with 60 AI turns a day.
 
 **[Feel the difference: play free →](/library)**
 `,
@@ -964,81 +980,103 @@ EchoQuest uses Claude as the Game Master's voice and reasoning, wrapped in struc
   {
     publishAt: "2026-10-13",
     title: "How to Get Better at Roleplaying: 9 Habits of Great RPG Players",
-    excerpt: "Want to get better at roleplaying? These 9 habits, from playing flaws to asking questions, will make your RPG sessions richer with a human or AI Game Master.",
+    excerpt: "Nine roleplaying habits anyone can learn, from playing your flaws to asking better questions, for richer RPG sessions with a human or AI Game Master.",
     content: `# How to Get Better at Roleplaying: 9 Habits of Great RPG Players
 
-Some players make every session better. Their characters feel real, their choices create stories, and the Game Master lights up when it's their turn. That isn't talent. It's habits you can learn.
+You probably know a player like this. Their character feels like an actual person, and their choices keep kicking off whole storylines. Watch the Game Master, too: they perk up the second it's that player's turn. It's tempting to call that talent. I don't buy it. Mostly it comes down to a handful of habits, and habits can be learned.
 
-Here are nine habits that will help you **get better at roleplaying**, whether you're at a table with friends or playing solo with an AI Game Master.
+Building EchoQuest's AI Game Master has meant months of staring at the other side of the screen, asking what a player can hand a GM that makes the next scene better. So here are nine habits that'll help you **get better at roleplaying**, at a table full of friends or alone with an AI Game Master at midnight.
 
 ## 1. Want Something Specific
 
-The most important thing about a character is what they **want right now**. Not "adventure" or "justice", but something concrete:
+The single most useful thing to know about a character is what they **want right now**. Not "adventure" or "justice", which are moods more than goals, but something concrete:
 
 - "Pay off my family's debt to the Ferrier Guild"
 - "Find out who sent the assassin"
 - "Get the apprentice home alive"
 
-A specific want gives the Game Master something to work with and gives you a reason to act. See [How to Write a D&D Backstory](/blog/how-to-write-a-dd-backstory-with-10-prompts-and-examples) for building goals into your character.
+A specific want gives the Game Master something to grab hold of, and it gives you a reason to get off your stool and act. Solo game designers figured this out years ago. In Shawn Tomkin's Ironsworn, a tabletop RPG whose digital edition is free, [vows are "the core of playing"](https://tomkinpress.com/pages/ironsworn): your character swears to accomplish something concrete, and the whole adventure hangs off that promise. EchoQuest's GM leans the same way. Its instructions say at least one of the choices it offers each turn has to push your active quest or the main story forward, so a clear goal gives it something to aim at. For help building goals into a character from scratch, see [How to Write a D&D Backstory](/blog/how-to-write-a-dd-backstory-with-10-prompts-and-examples).
 
 ## 2. Play Your Flaws
 
-Perfect characters are boring. Great players **lean into** their flaws: the proud knight who won't retreat, the gambler who can't walk past a card table, the healer who trusts too easily. Flaws create complications, and complications create stories.
+Perfect characters are dull. Great players **lean into** their flaws: the proud knight who won't retreat, the gambler who can't walk past a card table, the healer who trusts far too easily, the thief who can't resist showing off. Flaws breed complications, and complications are where stories come from.
+
+Tabletop designers actually reward you for this. The D&D basic rules describe a flaw as anything ["that someone else could exploit to bring you to ruin"](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/personality-and-background), and they suggest DMs hand out inspiration when you give in to one. Fate goes a step further. When someone [compels one of your aspects](https://fate-srd.com/fate-core/invoking-compelling-aspects), you can accept the complication and pocket a fate point for your trouble. Neither game treats a weakness as a mistake. It's fuel.
+
+On EchoQuest, put the flaw in your backstory, because the GM reads your backstory on every single turn. Then actually play it.
 
 ## 3. Describe Intent, Not Just Action
 
-Compare:
+Compare these two:
 
 - "I search the room."
 - "I search the room *for anything with the baron's seal*. I think he's been forging letters."
 
-The second tells the Game Master what matters to you, so the result can be more interesting whether you succeed or fail.
+The second one tells the Game Master what matters to you, so the result gets more interesting even when you fail. A miss might still turn up a half-burned envelope that proves nothing yet.
+
+With an AI GM there's a mechanical reason too. When you try something risky in EchoQuest, the GM picks which stat to test and how hard the check should be, based on what you said you're attempting. "I search the room" is vague. "I'm hunting for forged letters" is plainly an investigation job, which the game treats as intelligence, and the GM can pitch the difficulty to match. That roll resolves in the same turn, so you hear straight away how your hunch played out.
 
 ## 4. Ask Questions
 
-Great players are curious. They ask the Game Master and NPCs questions:
+Great players are nosy, in the best possible way. They ask the Game Master and the NPCs things like:
 
 - "What does the room smell like?"
 - "Does she seem afraid of him, or of me?"
 - "What do the locals say about the old mill?"
 
-Every question is an invitation for the world to reveal itself. AI Game Masters are especially good at answering, because they never run out of details.
+Every question is an open door for the world to show itself. GMs have known this for ages. Vincent Baker's Apocalypse World tells its GM to "ask provocative questions and build on the answers", and Phil Vecchione at Gnome Stew has [a good write-up of how that plays out at a real table](https://gnomestew.com/the-book-of-vincent-gming-apocalypse-world/). Honestly, it works just as well in reverse, with players doing the asking.
+
+AI Game Masters are especially good at answering, because they never run out of details. Smell questions land particularly well on EchoQuest. I wrote the GM's instructions with blind players in mind, so every scene has to come through sound, touch, smell and action, and asking about any of those usually gets you something rich back. When I rewrote the GM to talk like a human Game Master, I also had it end each scene on a direct question to you. It's only fair you get to fire a few back, right?
 
 ## 5. Talk to NPCs Like People
 
-Don't treat NPCs as vending machines. Ask about their lives. Remember their names. Come back to them. The shopkeeper you chatted with in session one can become an ally, an informant, or a heartbreaking loss in session ten.
+Please don't treat NPCs like vending machines. Ask about their lives and remember their names, then drop back in on them later. The shopkeeper you chatted with in session one could be your best informant by session ten. Or your most heartbreaking loss.
+
+EchoQuest tracks this for real. Every named NPC holds a standing with you from -100 (sworn enemy) to +100 (loyal ally), and the GM is told to shift it whenever you meaningfully help, harm, persuade or offend someone. Kindness gets written down. So do grudges.
+
+Voices matter here more than I expected, too. At one point I found NPC voices weren't switching at all, because their dialogue wasn't woven into the narration, so every character came out sounding like the narrator. Fixing that, and gender-matching voices across the whole catalogue, made a chat with a shopkeeper feel like talking to somebody instead of reading a menu. Distinct premium NPC voices come with the Storyteller plan.
 
 ## 6. Say Yes to Complications
 
-When the Game Master throws a twist ("the bridge is out", "the guard recognises you"), don't look for a way to cancel it. **Engage.** The complication is the story. Players who fight every twist get stalled sessions. Players who embrace them get legendary ones.
+When the Game Master throws a twist at you ("the bridge is out", "the guard recognises you"), don't hunt for a way to cancel it. **Engage.** The complication *is* the story. Improvisers call this "yes, and": accept what your scene partner offers, then build on it. Players who fight every twist end up with stalled sessions. Players who embrace them get the sessions people retell for years.
+
+Blades in the Dark even turns this into a trade. The GM or another player can offer you a [Devil's Bargain](https://bladesinthedark.com/action-roll), such as collateral damage or an angry faction, in exchange for a bonus die, and you pay the price no matter how the dice fall.
+
+EchoQuest's GM is built to hand you these. Its instructions tell it to tighten every scene with a complication, or a detail that keeps nagging, and then land on a hook. Even dropping to 0 HP doesn't end your story. You get a real setback instead, like being captured or waking hours later with a cost to pay, and nobody dies permanently. That's a complication too, so say yes to it.
 
 ## 7. Make Choices That Cost Something
 
-The most memorable moments come from hard choices: saving one person instead of another, breaking a promise to keep a bigger one. When you face one, don't look for the loophole. Pick, and live with it. More on this in [Crafting Moral Dilemmas](/blog/crafting-moral-dilemmas-how-to-make-players-truly-think).
+The moments people remember come from hard choices: saving one person instead of another, or breaking a promise to keep a bigger one. When you face one, don't go looking for the loophole. Pick, and live with it.
+
+EchoQuest does have a single-step undo on the U key. My advice? Keep it for typos and misheard voice commands, not for wriggling out of a decision you don't like. The GM is also told that past choices shape what happens now, and to bring old threads back when it hurts or helps the most, so a hard call will echo later. That's rather the point. There's more on this in [Crafting Moral Dilemmas](/blog/crafting-moral-dilemmas-how-to-make-players-truly-think).
 
 ## 8. Speak in Character (a Little)
 
-You don't need an accent or a costume. But now and then, say what your character says in first person:
+You don't need an accent or a costume. Every now and then, though, say what your character says in first person:
 
 - "I tell him I'm a merchant." becomes
 - "*Merchant*, friend. Just a merchant with very heavy crates."
 
-A few lines of dialogue per scene makes the whole game feel more alive. With voice input on EchoQuest, you can literally speak your character's lines.
+A few lines of dialogue per scene make the whole game feel more alive. With voice input on EchoQuest, you can literally speak your character's lines out loud. Press V and talk, and the game shows you the transcript to confirm before anything reaches the GM, because speech recognition does mishear people now and then. The GM also tags spoken lines with the speaker's name, your character included, so your own words get treated as dialogue rather than stage directions.
 
 ## 9. Let the Story Change Your Character
 
-The best character arcs aren't planned. They happen because of what the character goes through. Let a betrayal make your trusting healer suspicious. Let a victory make your coward brave, briefly. Ask yourself after big moments: *how has this changed them?*
+The best character arcs aren't planned. They happen because of what the character lives through. Let a betrayal make your trusting healer suspicious. Let a victory make your coward brave, if only for a night. After big moments, ask yourself: *how has this changed them?*
+
+On EchoQuest the game keeps a record that makes this easier to notice. When older turns scroll out of the GM's window, they get folded into a short, factual summary of your key decisions and the promises you made, so the betrayal from twenty turns back is still on the books. Your character's progress lives on the server as well, so the changed version of your healer is waiting on whatever device you pick up next.
 
 ## Bonus: Habits for Solo Play With an AI GM
 
-- **Restate goals** at the start of each session
-- **Ask for a recap** if you've been away
+- **Restate your goals** at the start of each session, in a sentence or two
+- **Ask for a recap** if you've been away. Just ask the GM what's happened so far, and on EchoQuest the Q, S, I and L keys read out your quests, status, inventory and location
 - **Tell the GM what you're enjoying** so it can give you more of it
-- **Invite companions** so there's someone to talk to
+- **Invite companions** so there's someone to talk to on the road
+
+Solo roleplay has a longer pedigree than people think, by the way. Ironsworn, which I mentioned earlier, is built for solo play as well as co-op and GM-led games. An AI GM simply takes over the part where you'd otherwise be running the whole world yourself.
 
 ## Practice Makes Stories
 
-Roleplaying is a skill like any other. The more you play, and the more deliberately you practise these habits, the better your stories become. An AI Game Master that's available whenever you are makes practice easy.
+Roleplaying is a skill like any other. The more you play, and the more deliberately you practise these habits, the better your stories get. An AI Game Master that's around whenever you are makes practice easy, at lunchtime or at 2 a.m. Free accounts get three campaigns and 60 AI turns a day, which is plenty of room to try out a flaw or two. So which habit are you going to test first?
 
 **[Practice your roleplaying tonight →](/library)**
 `,
