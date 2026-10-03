@@ -191,99 +191,120 @@ Gaming is social and cultural. It's a shared language for millions of people. Wh
   {
     publishAt: "2026-09-26",
     title: "How to Play D&D Solo With an AI Dungeon Master",
-    excerpt: "No group? No problem. Learn how to play D&D-style adventures solo with an AI Dungeon Master: setup, character creation, pacing, and tips for better sessions.",
+    excerpt: "No group? You can still play D&D. How to run a solo campaign with an AI Dungeon Master: setting, character hooks, companions, pacing and quick fixes.",
     content: `# How to Play D&D Solo With an AI Dungeon Master
 
-The hardest part of Dungeons & Dragons usually isn't the rules. It's scheduling. Five adults with jobs, kids, and time zones rarely line up. That's why so many people are looking for ways to **play D&D solo**, and why AI Dungeon Masters have become one of the most popular options.
+The hardest part of Dungeons & Dragons usually isn't the rules. It's the calendar. Five adults with jobs and kids, scattered across time zones, almost never line up, and sooner or later the group chat goes quiet. That's why so many people go hunting for ways to **play D&D solo**, and it's why AI Dungeon Masters have become one of the most popular answers.
 
-This guide explains how solo play with an AI DM works, how to set up a good session, and the habits that make solo campaigns feel as rich as a table full of friends.
+I'll own my bias up front. I built EchoQuest, an audio-first RPG where an AI Game Master narrates every scene aloud, partly so that nobody has to wait for a Friday night that never comes. So this guide is half field manual and half a record of things I learned the hard way while building one of these GMs. It explains how solo play with an AI DM works and how to set up a good session. After that come the habits that make a one-person campaign feel as full as a crowded table.
 
 ## What Is an AI Dungeon Master?
 
-An AI Dungeon Master is a language model prompted to run a tabletop-style game. It describes the world, voices NPCs, asks what you do, decides outcomes (often using dice rolls behind the scenes), and keeps track of your character.
+An AI Dungeon Master is a language model that's been given instructions to run a tabletop-style game. It describes the world and voices the NPCs. It asks what you do and decides how things turn out, often with dice rolled behind the scenes. It also keeps track of your character as you go.
 
-In EchoQuest, the AI Game Master is powered by Claude and tied to structured game state (HP, inventory, conditions, and story flags), so the world stays consistent between turns. Everything is narrated aloud, so it feels closer to sitting across from a real DM than reading a chat log.
+The dice deserve a closer look, because that's where plenty of AI storytelling apps cut corners. In D&D, an ability check is refreshingly plain: you [roll a d20 and add the relevant ability modifier](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), then compare the total to a Difficulty Class, where 10 counts as easy and 20 as hard. EchoQuest follows the same spirit. When you try something with a real chance of failing, the game itself rolls a d20 and adds your stat modifier. Then it checks the total against a difficulty somewhere between 5 (trivial) and 24 (near impossible). The GM never gets to decide you succeeded because it would make a prettier story. It narrates whatever the dice said. Since October 2, that check also resolves in the same turn, so you hear whether you cleared the gap straight away instead of waiting a whole exchange to find out.
+
+In EchoQuest, the thinking behind the GM comes from Claude, the model Anthropic makes, and it's tied to structured game state: HP, inventory, quests, how each NPC feels about you, and the story flags that record what you've done. As a result, the world stays consistent from one turn to the next. Everything is narrated aloud too, so it feels far closer to sitting across from a real DM than scrolling through a chat log.
+
+Honestly, keeping that state trustworthy took more work than the storytelling did. Back in May, a turn that errored halfway could leave half-applied changes behind (gold gone from your purse, say, but no sword in your pack). So I added a full rollback, and now a turn either lands completely or not at all.
 
 ## Solo D&D Options Compared
 
-- **Solo gamebooks and oracle systems:** you roll on tables and interpret the results yourself. Rewarding, but you're doing all the work.
-- **Solo adventure modules:** pre-written, but limited branches.
-- **AI Dungeon Master:** responds to anything you try, voices every NPC, and handles rules and bookkeeping.
+Solo play is older than most people assume, and the tools fall into three rough families:
 
-An AI DM is the only option where you can simply *play* and let someone else run the game.
+- **Solo gamebooks and oracle systems:** you roll on tables and interpret the results yourself. The big name here is Mythic, which [introduced solo "oracle" engines back in 2003](https://www.wordmillgames.com/). You ask the oracle yes-or-no questions ("Is the guard asleep?") and the dice answer. There's also Ironsworn, whose [complete digital edition is free](https://shawn-tomkin.itch.io/ironsworn) and comes with a dedicated solo mode. Both are rewarding. Still, you're doing all the work, playing GM and hero at once.
+- **Solo adventure modules:** pre-written and tidy, but the branches run out quickly. The moment you want something the author didn't plan for, the book just shrugs.
+- **AI Dungeon Master:** responds to anything you try and voices every NPC. It handles the rules and the bookkeeping too.
+
+I have real affection for oracle play. Even so, my view here is firm: an AI DM is the only option where you can simply *play* and let someone else run the game. For most of us, that's the whole point.
 
 ## Step 1: Pick a Setting That Suits Solo Play
 
-Some adventures work better solo than others. Good choices:
+Some adventures suit a lone hero far better than others. Good choices:
 
 - **Investigation and mystery**, where one sharp mind is enough
 - **Survival and exploration**, where isolation is part of the mood
-- **Intrigue and politics**, which are all about conversations
+- **Intrigue and politics**, which mostly come down to conversations
 - **Heist stories**, especially if you can recruit NPC allies
 
-Big set-piece battles against armies are harder solo unless the story gives you companions. The AI can provide those. Just ask.
+Big set-piece battles against whole armies are harder alone, unless the story hands you companions. The AI can supply those. Just ask.
 
-On EchoQuest, **Iron Citadel** (a fantasy siege), **Neon Precinct** (cyberpunk noir), and **Saltbound** (pirate archipelago) are all tuned for solo play.
+On EchoQuest, the prebuilt campaigns are written with a single player in mind. Three I'd point any solo player toward are **The Iron Citadel** (a steampunk thriller in a city-sized iron fortress whose Engines are about to go dark), **Neon Precinct** (cyberpunk noir, where you play a freshly decommissioned synthetic detective) and **Saltbound** (age-of-sail piracy, where your crew has just elected you captain and the navigator has vanished). Notice how each one opens on a problem that lands squarely on *you*. That's the whole solo trick in miniature.
 
 ## Step 2: Build a Character With Built-In Hooks
 
-When you play solo, your character is the whole party, so give them:
+When you play solo, your character is the entire party, so give them handles the story can grab:
 
 - **A goal** they can act on right away ("find my missing brother")
 - **A flaw** that creates trouble ("can't resist a wager")
 - **A connection** the world can use ("owes money to the harbour guild")
 
-Hooks give the AI Dungeon Master something to work with. Our guide to [classic RPG character archetypes](/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well) is a good place for ideas.
+Hooks give the AI Dungeon Master something to chew on. A character with no goal tends to drift, and a drifting hero makes for a drifting story. Need a starting shape? Our guide to [classic RPG character archetypes](/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well) is a handy place to borrow ideas.
+
+One small tip of my own: phrase the goal as something a stranger could help with or stand in the way of. "Find my missing brother" practically invites the GM to put a witness in the next tavern. "Be the greatest swordsman alive," on the other hand, gives nobody in the world a reason to talk to you tonight.
 
 ## Step 3: Tell the DM What You Want
 
-Human DMs run a "session zero" to agree on tone. Do the same with an AI DM in your first message or backstory:
+Human DMs run a "session zero" before a campaign begins. In James Haeck's words on D&D Beyond, ["session 0 is a time for everyone in a D&D group to express what they want out of the campaign."](https://www.dndbeyond.com/posts/929-how-to-run-a-session-0-for-your-d-d-game) He also calls managing expectations its most important job. You're the whole group now, so do the same with your AI DM in your first message or your backstory:
 
 - "I want a gritty tone with real danger."
-- "Keep combat quick. I'm here for mystery."
+- "Keep combat quick. I'm here for the mystery."
 - "Give me a loyal companion NPC I can talk to."
 
-A good AI Game Master will adapt.
+A good AI Game Master will adapt. EchoQuest's should, anyway, because following the player's creativity instead of herding them back onto a path is written straight into its instructions.
 
 ## Step 4: Play Actively
 
-The most common beginner mistake in solo play is waiting for the story to happen. Instead:
+The most common beginner mistake in solo play is waiting for the story to happen to you. It won't, or at least not well. Instead:
 
-- **Declare intentions, not just actions.** "I search the desk *because I think the mayor is hiding letters*" gives the DM more to work with than "I search the desk."
-- **Talk to NPCs.** They're your party. Ask their opinions, argue with them, recruit them.
-- **Chase the odd detail.** A strange smell, a nervous guard. These are hooks.
-- **Take risks.** Solo campaigns get dull when you play it safe.
+- **Declare intentions, not just actions.** "I search the desk *because I think the mayor is hiding letters*" gives the DM far more to work with than "I search the desk."
+- **Talk to NPCs.** They're your party now. Ask their opinions and argue with them. Better still, recruit them.
+- **Chase the odd detail.** A strange smell, a guard who won't meet your eye. These are hooks, and a good GM plants them on purpose.
+- **Take risks.** Solo campaigns go stale fast when you play it safe.
+
+That last point is where I changed EchoQuest's rules most recently. On October 2 I gave 0 HP some real bite. If you go down, you don't die permanently, but you don't shrug it off either. You might be captured or robbed. Someone with an agenda of their own might drag you clear, or you might wake hours later with a price to pay. I'm convinced that's the right balance for solo play. Permanent death makes people timid, and a fight with no consequences at all weighs nothing.
+
+And if you truly fumble (a mis-tapped choice, or a voice transcript that went sideways), press U to undo your last turn. It's a single step back, not a time machine, which keeps things honest.
 
 ## Step 5: Use Companions to Replace the Party
 
-A solo hero doesn't need to be alone. Ask the AI DM for a companion: a sarcastic rogue, a worried young cleric, a mercenary with their own agenda. Good companion NPCs give you banter, alternative views, and someone to save, or be betrayed by. See [Writing Compelling NPCs](/blog/writing-compelling-npcs-7-techniques-that-work) for what makes them work.
+A solo hero doesn't need to be alone. Wizards of the Coast clearly agrees. When the D&D Essentials Kit came out in 2019, D&D Beyond noted that people had been ["clamoring for one-on-one D&D adventures"](https://www.dndbeyond.com/posts/529-play-one-on-one-or-party-style-with-the-d-d) for a very long time, and the kit answered with sidekick rules built for one Dungeon Master and one player.
+
+With an AI DM you don't even need special rules. Just ask for a companion: a sarcastic rogue, say, or a worried young cleric. A mercenary with private plans works nicely too. Good companion NPCs bring banter and a second opinion. They also give you someone to save, or someone to be betrayed by. See [Writing Compelling NPCs](/blog/writing-compelling-npcs-7-techniques-that-work) for what makes them tick.
+
+On EchoQuest, the GM tracks how each named NPC feels about you on a scale running from sworn enemy to loyal ally, so a companion you keep letting down will notice. On the Storyteller plan, every companion gets a distinct voice as well. Getting that right was one of my more stubborn bugs, as it happens. In late May the NPC voices simply refused to switch, because the characters' dialogue wasn't being woven into the narration, so the narrator kept reading their lines for them. Once that was fixed, I matched NPC voices to each character's gender across the whole voice catalogue. When you're the only human in the room, a companion who sounds like an actual person changes the whole mood.
 
 ## Step 6: Pace Your Sessions
 
-Solo play can go on without end, and that's a problem. Structure helps:
+Solo play can run on forever, and that's a problem. With no group yawning at 1 a.m., nothing tells you to stop. A bit of structure helps:
 
 - Aim for **one clear objective per session** (reach the tower, question the witness)
-- Stop at a **cliffhanger** so you're excited to come back
+- Stop at a **cliffhanger** so you're itching to come back
 - Keep a one-line **session log** so you remember what happened
 
-EchoQuest saves your campaign state, so you can pick up exactly where you left off.
+EchoQuest saves your campaign state, so you can pick up exactly where you left off. It auto-saves every five turns, and there's a manual Save button for when the kettle boils mid-scene. Since October 2, your character's progress lives on the server too, which means you can start on your phone and carry on from your laptop. And if you come back after a week with a foggy memory, the Recap button reads the last three scenes aloud.
+
+I'd still keep the one-line log, though. It takes ten seconds, and reading it back a month later is oddly satisfying. By the way, the free tier gives you 60 AI turns a day, which turns out to be a comfortable size for an evening chapter.
 
 ## Common Solo D&D Pitfalls (and Fixes)
 
 | Problem | Fix |
 | --- | --- |
-| "I don't know what to do next." | Ask the DM: "What are my options?" or "What would my character notice?" |
-| Combat feels flat | Describe tactics and the environment, not just "I attack." |
+| "I don't know what to do next." | Ask the DM: "What are my options?" or "What would my character notice?" On EchoQuest you can also press L to hear where you are, or S for your status. |
+| Combat feels flat | Describe tactics and the environment, not just "I attack." Kick over the brazier. Fight on the stairs. |
 | The story wanders | Restate your goal to the DM and ask for complications. |
-| Too easy | Ask for higher difficulty. See our guide to [setting difficulty in AI RPGs](/blog/setting-difficulty-in-ai-rpgs-from-beginner-to-power-player). |
+| Too easy | Ask for higher difficulty and real danger. See our guide to [setting difficulty in AI RPGs](/blog/setting-difficulty-in-ai-rpgs-from-beginner-to-power-player). |
+| You instantly regret a choice | Press U to undo your last turn. Only one step, mind you. Living with the rest is half the fun. |
 
 ## Is Solo D&D "Real" D&D?
 
-Yes. Roleplaying games are about making choices in a shared imaginary world, and in solo play you share it with the DM. Many players find solo campaigns more personal: every story beat is about *your* character. For more on this, read [Solo RPG vs. Group Play](/blog/solo-rpg-vs-group-play-the-case-for-playing-alone).
+Yes, and I won't hedge on it. Roleplaying games are about making choices in a shared imaginary world, and in solo play you share it with the DM. The game's own basic rules open by calling D&D a game ["about storytelling in worlds of swords and sorcery"](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/introduction), with no winning or losing in the usual sense. Nothing in that description says you need five chairs filled.
+
+Plenty of players actually find solo campaigns more personal, since every story beat is about *your* character. Nobody else's subplot steals the spotlight, and you never sit through twenty minutes of someone else haggling over rope. For the longer argument, read [Solo RPG vs. Group Play](/blog/solo-rpg-vs-group-play-the-case-for-playing-alone).
 
 ## Start Your Solo Campaign
 
-You don't need a group, a rulebook, or a Friday night free. Pick a world, make a character, and your AI Dungeon Master is ready.
+You don't need a group or a rulebook. You don't even need a free Friday night. Pick a world and make a character, and your AI Dungeon Master is ready when you are. So, what kind of hero are you going to be first?
 
 **[Start playing solo for free →](/library)**
 `,
@@ -875,44 +896,54 @@ EchoQuest is built from plain semantic HTML and standard ARIA, so it's meant to 
   {
     publishAt: "2026-10-03",
     title: "Games You Can Play With Your Eyes Closed: Audio RPGs for Commutes, Chores and Bedtime",
-    excerpt: "Looking for games you can play with your eyes closed? Audio RPGs let you adventure while commuting, doing chores, or winding down. Here's how to fit them into your day.",
+    excerpt: "Audio RPGs you can play with your eyes closed, and how to fit one into a commute, the washing-up or bedtime, plus the settings that make eyes-free play easy.",
     content: `# Games You Can Play With Your Eyes Closed: Audio RPGs for Commutes, Chores and Bedtime
 
-Most games demand your eyes and your hands. That's a problem when you're on a crowded train, folding laundry, or trying to wind down without another hour of screen glare. **Games you can play with your eyes closed** fill that gap. The best of them aren't simple distractions. They're full adventures.
+Most games want your eyes and your hands at once. On a packed train that's a non-starter, and with a laundry basket on your hip it isn't much better. Then there's bedtime, when another hour of screen glare is the last thing you need. **Games you can play with your eyes closed** fill that gap neatly. And the best of them aren't throwaway distractions. They're full adventures, with plots that stretch across weeks and characters who remember what you told them.
+
+I've got a stake in this, so I'll say it plainly. I built EchoQuest audio-first, with blind and low-vision players as a first-class audience rather than an afterthought. The happy side effect is that the very same design suits anyone whose eyes happen to be busy elsewhere. Here's how I'd fit an audio RPG into an ordinary day.
 
 ## Why Eyes-Free Gaming Is Taking Off
 
-- **Screen fatigue:** after a day of screens, many people want to rest their eyes but still do something engaging.
-- **The podcast habit:** people already listen during commutes and chores, and audio games add interaction.
-- **Accessibility:** eyes-free design helps blind and low-vision players and suits everyone else too.
-- **Better voice tech:** speech recognition and natural-sounding narration have improved dramatically.
+- **Screen fatigue:** after a day of screens, lots of people want to rest their eyes and still do something absorbing. The American Optometric Association even has a name for the problem, [computer vision syndrome, also called digital eye strain](https://www.aoa.org/healthy-eyes/eye-and-vision-conditions/computer-vision-syndrome), and its advice is a 20-second break every 20 minutes to look at something 20 feet away. An audio game is a pleasant way to stretch that break out.
+- **The podcast habit:** people already listen on commutes and during chores. Edison Research's latest Infinite Dial survey found that [58% of Americans aged 12 and over, around 167 million people, consumed a podcast in the last month](https://ssrs.com/insights/the-infinite-dial-2026/). Audio games simply add a way to talk back.
+- **Accessibility:** eyes-free design helps blind and low-vision players, and it happens to suit everyone else too.
+- **Better voice tech:** speech recognition and natural-sounding narration have come a remarkably long way. Back in 2016, Microsoft researchers announced a recognizer whose [5.9 percent error rate was about equal to that of people asked to transcribe the same conversation](https://blogs.microsoft.com/blog/2016/10/18/historic-milestone-microsoft-researchers-achieve-human-parity-conversational-speech-recognition/). Synthetic voices have grown far warmer since then as well.
 
 ## What Makes an Audio RPG Work Eyes-Free?
 
 A game is truly eyes-free when:
 
-1. **Everything important is spoken**: scenes, choices, and status
+1. **Everything important is spoken**: the scene and your choices, plus your status
 2. **You can respond by voice** or with simple, memorable keys
 3. **There's no time pressure**, so you can pause for a doorbell
 4. **You can ask for a recap** when your attention drifts
 
-EchoQuest was designed for exactly this. Every scene is narrated, you can speak your actions, and you can ask the Game Master "What's happening?" whenever you need to catch up.
+EchoQuest was designed around exactly this checklist. Every scene is narrated, and the choices are read out once the narrator finishes. That "once" took me some work, by the way. Back in May I discovered the choices were being announced and focused while the narrator was still mid-sentence, so screen reader users heard two voices talking over each other. Now the choices politely wait their turn. You can speak your actions as well, and nothing in the game runs on a timer, so the story just sits there patiently while you answer the door.
+
+For catching up, you've got a few routes. Press R (or say "replay") to hear the last scene again. L, or "where am I", tells you your location, and S, or "read status", gives you your health and where you are. The Recap button reads the last three scenes back to back. And since the Game Master answers anything, you can always just ask it, "What's happening?" (that one uses up a turn, mind you).
 
 ## Scenario 1: The Commute
 
-**Best for:** bus, train, or passenger-seat travel. (Never play anything interactive while driving. Keep your attention on the road.)
+**Best for:** bus, train or passenger-seat travel. (Never play anything interactive while driving. Keep your attention on the road.) I'm not being fussy about that. NHTSA counted [3,208 people killed in US crashes involving distracted drivers in 2024](https://crashstats.nhtsa.dot.gov/Api/Public/ViewPublication/813790). No story is worth adding to that figure.
 
-- **Use earbuds** with a built-in mic for voice input, or tap suggested choices.
-- **Pick scenes with natural pauses:** exploration and conversation work better than tense combat when you might be interrupted.
-- **Play 10–20 minute chapters:** aim to reach one objective per journey.
+- **Use earbuds** with a built-in mic for voice input, or tap the suggested choices.
+- **Pick scenes with natural pauses:** exploration and conversation work better than a tense fight when your stop could come up at any moment.
+- **Play 10 to 20 minute chapters:** aim to reach one objective per journey.
+
+Commutes are where the gremlins in my narration code liked to hide, honestly. In May, Chrome's built-in voice had a race condition and gave up after roughly 15 seconds, so I had to engineer around it. Then in late May I found the ambient soundtrack was completely silent on mobile, which is a fine way to make a pirate harbour sound like a library. And on September 28 the browser narrator began cutting out a few seconds into a scene. Each of those is fixed now.
+
+More recently, on October 2, I made the narration start speaking while the GM's reply is still being written. On premium voices, the next clip is fetched while the current one plays, too. On a rattling train, trimming that dead air matters more than you'd guess. Your character's progress is also saved on the server now, so a chapter you start on the bus can finish on your laptop at home.
 
 ## Scenario 2: Chores and Cooking
 
 **Best for:** washing up, laundry, gardening, meal prep.
 
-- **Voice commands are your friend:** your hands are busy, your voice isn't.
-- **Turn up the narration volume** and use a smart speaker or phone speaker.
-- **Choose conversational campaigns:** mysteries and intrigue suit this mode, and you can interrogate suspects while chopping onions.
+- **Voice commands are your friend:** your hands are busy, but your voice isn't. Press V (or nudge the mic button with a knuckle) and say what you do. "Option two" or "pick three" takes a suggested choice, and "pause" stops the narrator when the pan starts spitting.
+- **Turn up the narration volume** and play it through your phone speaker, or pair a Bluetooth speaker on the counter.
+- **Choose conversational campaigns:** mysteries and intrigue suit this mode beautifully, and you can interrogate suspects while chopping onions.
+
+When you speak a free-form action, EchoQuest reads back what it heard and sends it after a few seconds unless you hit Cancel. That way "attack the lizard" never goes out when you clearly said "wizard". Voice input also had its own embarrassing moment. In September I found the microphone was actually blocked on EchoQuest's own pages, so voice input quietly did nothing at all. That one's fixed too.
 
 See [Voice Commands in EchoQuest](/blog/voice-commands-in-echoquest-play-completely-hands-free) for a full guide.
 
@@ -920,34 +951,40 @@ See [Voice Commands in EchoQuest](/blog/voice-commands-in-echoquest-play-complet
 
 **Best for:** relaxing before sleep without bright screens.
 
-- **Enable dark mode and turn the screen off** (or use Screen Curtain on iOS).
-- **Slow the narration speed** slightly for a calmer listen.
-- **Choose gentle genres:** exploration, cozy fantasy, or slow-burn mysteries rather than horror.
-- **Set a stopping point:** end on a calm scene, not a cliffhanger, if you actually want to sleep.
+There's decent science behind putting the screen away. In a 2015 study published in PNAS, people who read on a light-emitting e-reader in the hours before bed [took longer to fall asleep and secreted less melatonin than when they read a printed book](https://www.pnas.org/doi/10.1073/pnas.1418490112), and they felt less alert the next morning. A story you only listen to sidesteps most of that, as long as the screen really does go dark.
+
+- **Pick the dark theme, then hide the screen altogether.** EchoQuest's display settings let you choose dark or light, or follow your system. On an iPhone with VoiceOver running, [Screen Curtain turns the display off while the phone stays active](https://support.apple.com/guide/iphone/keep-the-screen-off-iph756788a12/ios) (triple-tap with three fingers). Android's TalkBack has a similar [Hide screen option](https://support.google.com/accessibility/android/answer/6006589?hl=en). I'd reach for these instead of simply locking the phone, because a web page's audio doesn't always keep going once the screen locks.
+- **Slow the narration speed** slightly for a calmer listen. The [ key lowers it a notch at a time. Premium voices used to drift in pitch whenever the playback speed changed, so in May I locked the pitch in place. A slowed-down narrator now sounds relaxed instead of groggy.
+- **Choose gentle genres:** exploration, cosy fantasy or slow-burn mysteries rather than horror. In the library, The Verdant Wilds (an ancient forest with a hopeful tone) is about as soothing as it gets. Personally, I'd save The Black Vellum, a creeping cosmic-horror investigation, for daylight. And if the cosy world you want doesn't exist yet, the Storyteller plan lets you build a private one with the World Builder Wizard.
+- **Set a stopping point:** end on a calm scene, not a cliffhanger, if you actually want to sleep. Tell the GM you're turning in for the night and ask for a quiet moment to stop on.
 
 ## Scenario 4: Walking and Exercise
 
 **Best for:** long walks, treadmill sessions, stretching.
 
 - Keep sessions **light and exploratory**.
-- Use **suggested choices** for quick decisions without stopping.
-- Stay aware of your surroundings. Use one earbud or transparency mode outdoors.
+- Use **suggested choices** for quick decisions without stopping. "Pick two" is far easier to puff out mid-stride than a full sentence.
+- Stay aware of your surroundings. Wear one earbud outdoors, or use something like [Transparency mode on AirPods](https://support.apple.com/en-us/108918), which lets outside sound in so you can hear what's going on around you.
+
+Here's my unpopular opinion: on a treadmill, an audio RPG beats a podcast outright. A podcast can't ask you whether you trust the smuggler, and that one question does wonders for the last ten minutes of a run.
 
 ## Tips for the Best Eyes-Free Experience
 
-1. **Use good audio.** Premium narration (ElevenLabs on EchoQuest's Storyteller plan) makes long sessions much more pleasant. Read why in [ElevenLabs Premium Narration](/blog/elevenlabs-premium-narration-why-voice-quality-changes-everything).
-2. **Learn the replay command** so you never lose a line of narration.
-3. **Keep your character simple** at first, so there are fewer stats to track mentally.
-4. **Ask for summaries** at the start of each session.
-5. **Let ambience set the mood:** EchoQuest layers ambient sound under the narration. See [How Ambient Sound Design Elevates RPG Storytelling](/blog/how-ambient-sound-design-elevates-rpg-storytelling).
+1. **Use good audio.** Premium narration (ElevenLabs on EchoQuest's Storyteller plan) makes long sessions much gentler on the ears, and each NPC gets a voice of their own. Read why in [ElevenLabs Premium Narration](/blog/elevenlabs-premium-narration-why-voice-quality-changes-everything). On the free tier you get your browser's built-in voices, which are perfectly serviceable once you find one you like.
+2. **Learn the replay command** so you never lose a line of narration. That's R on the keyboard, or "replay" spoken aloud.
+3. **Keep your character simple** at first, so there are fewer stats to juggle in your head. Press S whenever you want your health read out, and C opens the full character sheet.
+4. **Ask for summaries** at the start of each session. The Recap button covers the last three scenes, which is usually all you need to slip back in.
+5. **Let ambience set the mood:** EchoQuest layers ambient sound under the narration. See [How Ambient Sound Design Elevates RPG Storytelling](/blog/how-ambient-sound-design-elevates-rpg-storytelling). In May I added forge, storm and underwater tracks, and made the soundtrack duck under sound cues so the important clunks cut through. Around the same time I gave the volume slider a squared curve, so the bottom of the range is properly quiet for late-night listening. On May 16 I also caught the soundtrack quietly sinking to silence after about five turns. That's precisely the kind of bug a listener notices long before a viewer does. Press M whenever you'd rather hear the narrator alone.
 
 ## Eyes-Free Doesn't Mean Shallow
 
-People sometimes assume audio games must be simple. The opposite is often true. Without graphics, the game can be as big as the story needs: sprawling cities, political schemes, and dozens of characters all live in your imagination, the most detailed renderer there is.
+People sometimes assume audio games must be simple. Often it's the reverse. Without graphics, a game can be as big as its story needs: sprawling cities and political schemes, with dozens of characters, all living in your imagination, which is the most detailed renderer there is.
+
+Audio-only games have been proving this for years. In [A Blind Legend](https://store.steampowered.com/app/437530/A_Blind_Legend/), from the studio Dowino, you play Edward Blake, a blind knight guided by his daughter Louise through binaural 3D sound (headphones are compulsory). [The Vale: Shadow of the Crown](https://www.afb.org/aw/22/12/17800), from Falling Squirrel, casts you as a blind princess, and AccessWorld's reviewer clocked at least five hours of play. Those two are action games built on precise listening. An audio RPG like EchoQuest leans the other way, toward conversation and choice. Still, the lesson holds for both: your ears can carry an entire world. That conviction is why I put EchoQuest's audio layer first and laid the visuals on top, instead of the other way round.
 
 ## Start an Eyes-Free Adventure
 
-Put your phone in your pocket, close your eyes, and let the story come to you.
+Put your phone in your pocket, close your eyes and let the story come to you. Three of the nine worlds in the library are free to play, along with 60 AI turns a day. So where are you going to listen first?
 
 **[Start a free audio adventure →](/library)**
 `,

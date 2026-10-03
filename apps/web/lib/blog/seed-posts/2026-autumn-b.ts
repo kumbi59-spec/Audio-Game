@@ -444,88 +444,101 @@ If you haven't played solo before, read [How to Play D&D Solo With an AI Dungeon
   {
     publishAt: "2026-10-08",
     title: "AI Storytelling Games for Families: A Parent's Guide",
-    excerpt: "Are AI storytelling games good for families? A parent's guide to benefits, safety settings, choosing age-appropriate worlds, and playing together.",
+    excerpt: "An honest parent's guide to AI storytelling games: what kids can gain, sensible safety steps, how to pick gentle worlds and four ways to play as a family.",
     content: `# AI Storytelling Games for Families: A Parent's Guide
 
-Families have always told stories together, around campfires, at bedtime, and on long car journeys. AI storytelling games bring a new partner into that tradition: a tireless narrator who can invent a world on the spot and voice every character in it. For parents, that raises obvious questions. Is it good for kids? Is it safe? How do you do it well?
+Families have always told stories together. Campfires were made for it, and so were bedtimes and long car journeys, where somebody always wants to know if we're nearly there. AI storytelling games bring a new partner into that old habit: a tireless narrator who can invent a world on the spot and voice every character in it. For parents, that raises some obvious questions. Is it good for kids? Is it safe? And how do you do it well?
 
-This guide covers the benefits, the precautions, and practical ways to enjoy **AI storytelling games as a family**.
+I build EchoQuest, an audio-first RPG where an AI Game Master narrates every scene aloud. It wasn't designed as a children's product, and I'd rather tell you that in the opening paragraphs than have you discover it later. Even so, a lot of what makes it work for blind players (no reading required, no fiddly controls, a story that waits for you) also makes it a natural fit for a family huddled around one phone. This guide covers what's genuinely good about **AI storytelling games as a family** and the precautions I'd take. Then we'll get practical.
 
 ## Important First: Age Requirements
 
-Check the terms of any AI platform before your children use it. Many AI services, including EchoQuest, set a minimum age for account holders. For younger children, the right approach is **co-play**: a parent holds the account and plays *with* the child, choosing appropriate worlds and staying in the room.
+Check the terms of any AI platform before your children use it. Many AI services set a minimum age for account holders, and in the US there's a legal backdrop to a lot of them. The Children's Online Privacy Protection Act, usually shortened to COPPA, [imposes requirements on websites and online services directed to children under 13](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa). That's one reason you'll see 13 written into so many sign-up pages.
+
+For younger children, the right approach is **co-play**: a parent holds the account and plays *with* the child, choosing suitable worlds and staying in the room. That's my firm advice for EchoQuest in particular. It has no separate kids' mode and no parental controls, so the parental control is you, sitting on the sofa. Handy detail: the three official campaigns can be played without an account at all, so you can test-drive one on your own after the kids are asleep.
+
+It also helps to remember that "AI" covers wildly different products. Common Sense Media rates social AI companions, the apps built to act as a chatty friend, as an "unacceptable risk", and its verdict is blunt: ["No social AI companions for young people under 18."](https://institute.commonsensemedia.org/risk-assessments/social-ai-companions) A story game you play together, with a parent steering, is a very different animal from a companion bot a child talks to alone at midnight. Still, I'd keep the same instinct. AI for kids works best with a grown-up in the loop.
+
+A few practical facts parents tend to ask me about. The free tier shows ads, and the Storyteller plan removes them. Your session conversations with the GM aren't used to train any AI model. And EchoQuest only touches the microphone once you switch voice input on.
 
 ## The Benefits of Family Storytelling Games
 
 ### Listening and Language
 
-Audio-first games build listening comprehension, vocabulary, and the ability to follow a narrative. Kids hear rich language in context, and many pick up words they'd never meet in everyday conversation.
+Audio-first games build listening comprehension and vocabulary, along with the knack of following a story across many turns. Kids hear rich language in context, and many pick up words they'd never meet in everyday chat. The research on the book side of this is encouraging. When Jessica Montag and her colleagues compared 100 children's picture books with ordinary speech directed at children, [the picture books contained more unique word types than the conversation did](https://pmc.ncbi.nlm.nih.gov/articles/PMC4567506/). That study looked at books, not games, so I won't stretch it. What I can tell you is how EchoQuest's GM is briefed: it's told to reach for the specific, unexpected word over the stock one ("the hinge shrieks like a gull" rather than "the door creaks ominously"), as long as the word still makes sense on first hearing.
 
 ### Creativity and Problem-Solving
 
-Open-ended games reward creative thinking. There's no single right answer to "how do we get past the sleeping giant?" Kids learn that ideas have consequences and that failure can be interesting.
+Open-ended games reward creative thinking. There's no single right answer to "how do we get past the sleeping giant?" Tiptoeing works. So might a lullaby, or a very generous bribe of sausages. Kids learn that ideas have consequences, and that failure can be the most interesting part of the evening.
+
+The American Academy of Pediatrics makes a strong case for this sort of play in general. Its 2018 clinical report, *The Power of Play*, says that [developmentally appropriate play with parents and peers is "a singular opportunity" to promote the skills that build executive function](https://doi.org/10.1542/peds.2018-2058), with social-emotional, language and self-regulation skills among them. A story game isn't the only way to get there, of course. It's simply a very cosy one.
 
 ### Collaboration
 
-Playing as a family means negotiating: whose idea do we try? It's practice in listening to others and building on their ideas.
+Playing as a family means negotiating: whose idea do we try first? It's practice in listening to others and building on their ideas, the same "yes, and" habit improv performers lean on. Honestly, a sibling negotiation over trusting the talking raven can be as entertaining as the story itself.
 
 ### Screen-Light Play
 
-Audio-first games can be played with the screen face-down. It's closer to a radio drama or bedtime story than a video game, which many parents appreciate.
+Audio-first games can be played with the screen face-down. It's closer to a radio drama or a bedtime story than a video game, which many parents appreciate.
+
+I'd add one honest caveat, though. Screen-light isn't screen-free. It's still digital media, so the AAP's general advice applies, and its parenting site puts that advice simply: ["Watch and play alongside your kids. This is the best way to know what they're consuming and how they're responding."](https://www.healthychildren.org/English/family-life/Media/Pages/helping-kids-thrive-in-a-digital-world-AAP-policy-explained.aspx) The same page notes that infants under 18 months learn best from real-world interactions. So the toddlers get you, not the Game Master.
 
 ### Accessibility and Inclusion
 
-Families with a blind or visually impaired member can play together as equals, because nobody needs to see the screen.
+Families with a blind or visually impaired member can play together as equals, because nobody needs to see the screen. That's the use I care about most, frankly. EchoQuest works with screen readers and the keyboard, and since May it announces changes to health and inventory aloud, because a health bar you can't see does nobody any good. I fixed a timing problem that same month as well. The choices used to be announced while the narrator was still talking, so screen reader users heard two voices at once, and now the choices wait their turn. For a family, it means a blind grandparent and a sighted eight-year-old hear the same story at the same moment.
 
 ## Choosing Age-Appropriate Worlds
 
-- **Read the world description** before you start. Genre tags like horror or noir signal mature themes.
-- **Prefer gentle genres** for younger listeners: exploration, fairy-tale fantasy, animal adventures, cozy mysteries.
-- **Set the tone out loud.** Tell the Game Master: "This is a family game with young kids. Keep it gentle, no gore, nothing scary."
-- **Stay in the room** and steer the story if it heads somewhere you don't like.
+- **Read the world description** before you start. Every world in the library carries genre and tone tags, and words like horror, dread or noir signal mature themes.
+- **Prefer gentle genres** for younger listeners: exploration, fairy-tale fantasy, animal adventures, cosy mysteries. Be realistic about the shelf, too. Most of EchoQuest's nine prebuilt worlds lean teen and up, with cosmic horror and cyberpunk noir among them. The one I'd pick for younger kids is The Verdant Wilds, a hopeful forest adventure with talking beasts and a sharp-tongued raven, where kindness genuinely changes how things turn out. There's still some peril in it (a knight made of living wood patrols the outer reaches), so think of it as gentle rather than toothless. And don't let "fairy-tale" fool you on The Mirewood. Its tag says fairy-tale horror, and it means it.
+- **Set the tone out loud.** Tell the Game Master: "This is a family game with young kids. Keep it gentle, no gore, nothing scary." The GM takes that as a strong steer. Even so, it's a request, not a lock.
+- **Build your own gentle world** if you're on the Storyteller plan. The World Builder Wizard asks which content rating fits, offering Family ("safe for everyone"), Teen or Mature, and then asks for one hard rule the GM must respect ("nobody gets badly hurt" would do nicely). The GM is instructed to honour both at all times. That's the closest thing EchoQuest has to a children's setting, and I'd still treat it as a firm instruction rather than a guarantee.
+- **Stay in the room** and steer the story if it heads somewhere you don't like. Space pauses the narrator mid-sentence, and U undoes the last turn. It's a single step back, which is usually all you need.
 
 ## Ways to Play Together
 
 ### The Family Party
 
-One character per family member, taking turns to say what they do. The parent types or speaks the combined action. Works best with children aged about 8 and up.
+One character per family member, taking turns to say what they do. The parent types or speaks the combined action ("Mia climbs the tree while Sam distracts the goat"). EchoQuest keeps one character sheet per game, so pick one hero as the "official" one and introduce everyone else in your first message as travelling companions. The GM will weave them into the story from there. This format works best with children aged about 8 and up, since it involves a fair bit of waiting for your turn.
 
 ### The Shared Hero
 
-The family controls one character together and votes on each decision. Great for younger kids and for avoiding arguments.
+The family controls one character together and votes on each decision. It's great for younger kids, and it heads off squabbles before they start. The number keys 1 to 9 pick a choice, so the youngest player can be in charge of pressing the winner.
 
 ### The Bedtime Chapter
 
-One 15-minute chapter each night, ending at a calm moment. The story becomes a serialised bedtime tale the child helps write.
+One 15-minute chapter each night, ending at a calm moment. The story becomes a serialised bedtime tale the child helps write. EchoQuest auto-saves every five turns and there's a manual Save button, so tomorrow's chapter starts exactly where tonight's left off. Ask the GM for a quiet scene to stop on, and slow the narration a notch with the [ key if you're hoping for yawns.
 
 ### The Road Trip Adventure
 
-The passengers play, with the phone narrating through the car speakers, while the driver just listens.
+The passengers play, with the phone narrating through the car speakers, and the driver just listens. Voice input fits a car nicely. A child can say "pick two" or describe what they do, and for free-form actions EchoQuest reads back what it heard and gives you a few seconds to hit Cancel before sending it. Young voices get misheard, so that pause earns its keep.
 
 ## Tips for a Great Family Session
 
-1. **Let the kids lead.** Resist optimising. If they want to befriend the dragon, let them.
-2. **Model good play.** Describe actions vividly, speak in character, and ask NPCs questions.
-3. **Celebrate failure.** "The rope snapped! What now?" is a teaching moment.
+1. **Let the kids lead.** Resist the urge to optimise. If they want to befriend the dragon, let them. Since I rewrote the GM on October 2, every scene ends on a direct question ("Do you trust her?"), which hands the kids an obvious moment to jump in.
+2. **Model good play.** Describe your actions vividly and speak in character. Ask the NPCs questions, too.
+3. **Celebrate failure.** "The rope snapped! What now?" is a teaching moment. It helps that no hero dies for good in EchoQuest. Since October 2, dropping to 0 HP brings a real setback instead (the hero might be captured, or wake hours later with a price to pay), which gives a family something to fix together rather than a game-over screen.
 4. **Keep it short.** Twenty to thirty minutes beats an exhausted two-hour marathon.
 5. **Talk about it afterwards.** "What was your favourite part?" "What would you do differently?"
 
 ## Safety Checklist for Parents
 
 - [ ] Parent holds the account and meets the platform's age requirement
-- [ ] World chosen for age-appropriate themes
+- [ ] World chosen for age-appropriate themes (check the genre and tone tags)
 - [ ] Tone set explicitly at the start
-- [ ] Parent present during play
+- [ ] Parent present during play, ready to pause (Space) or undo (U)
 - [ ] Session length agreed in advance
 - [ ] Family talks about what's real and what's imagination, and how AI works
 
+That last box matters more than it looks. Writing for the AAP, pediatrician Tiffany Munzer points to research in which [kids between 3 and 6 years old believed that smart speakers had thoughts, feelings and social abilities](https://www.healthychildren.org/English/family-life/Media/Pages/how-will-artificial-intelligence-AI-affect-children.aspx), and she suggests trying AI together and talking it through. A GM that does voices makes that conversation easy to start. The dragon sounds real, but it's a computer program predicting what a good storyteller might say next, and it has never met a dragon either.
+
 ## Learning Through Play
 
-Storytelling games aren't just entertainment. They build skills children use at school and in life. We explore this further in [Storytelling for Mental Health: The Therapeutic Power of RPGs](/blog/storytelling-for-mental-health-the-therapeutic-power-of-rpgs).
+I'd argue storytelling games earn their place well beyond pure fun. They build skills children use at school and in life: listening carefully, taking turns, and weighing a choice and then living with it. We explore this further in [Storytelling for Mental Health: The Therapeutic Power of RPGs](/blog/storytelling-for-mental-health-the-therapeutic-power-of-rpgs).
 
 ## Start a Family Adventure
 
-Choose a gentle world, set the tone, and tell a story together, with a narrator who never runs out of voices.
+Choose a gentle world and set the tone. Then tell a story together, with a narrator who never runs out of voices. So, which of your kids gets to name the hero?
 
 **[Find a family-friendly world →](/library)**
 `,
@@ -533,43 +546,53 @@ Choose a gentle world, set the tone, and tell a story together, with a narrator 
   {
     publishAt: "2026-10-09",
     title: "How to Build a Fantasy World Without Drawing a Map",
-    excerpt: "You don't need drawing skills to build a fantasy world. Learn how to design geography, travel, and places in words, which also makes your world audio-friendly.",
+    excerpt: "Can't draw a map? You don't need one. Build a fantasy world in words, with a spine, travel times, sensory places and conflict that also plays well in audio.",
     content: `# How to Build a Fantasy World Without Drawing a Map
 
-Every worldbuilding guide seems to start with "draw your map." But many creators can't draw, don't want to, or can't see a map at all. The good news: **a map isn't what makes a world feel real**. Relationships between places, the time it takes to travel, and what the places sound and feel like do far more.
+Nearly every worldbuilding guide opens with the same instruction: draw your map. Plenty of creators can't draw, though. Some simply don't want to, and some can't see a map at all. Here's the good news. **A map isn't what makes a world feel real.** The heavy lifting happens elsewhere: in how places relate to each other and how long it takes to get between them, plus what each place sounds and feels like once you arrive.
 
-This guide shows you how to build a coherent fantasy world entirely in words. As a bonus, it's exactly the kind of world that works best in audio-first games.
+So this guide shows you how to build a coherent fantasy world entirely in words. There's a bonus, too. A world built this way is precisely the kind that thrives in an audio-first game. I'd know, because EchoQuest runs on worlds like that, and honestly I didn't set out with a grand theory. Every design decision just kept nudging me in this direction.
 
 ## Why Word-First Worldbuilding Works
 
-- **Players rarely see your map anyway.** In most games they learn geography through the story.
-- **Words carry mood.** "Three days' ride through the Weeping Fens" says more than a green blob on paper.
-- **It's accessible.** Blind and low-vision creators can build worlds without visual tools.
-- **An AI Game Master understands descriptions better than images.** Text is what it reasons about.
+- **Players rarely see your map anyway.** In most games they pick up the geography through the story, one road and one rumour at a time.
+- **Words carry mood.** "Three days' ride through the Weeping Fens" tells a player far more than a green smudge on paper ever could.
+- **It's accessible.** Blind and low-vision creators can build whole worlds without a single visual tool.
+- **An AI Game Master understands descriptions better than images.** Text is what it reasons about, so as far as the GM is concerned, your sentences *are* the world.
+
+There's decent science behind this, by the way. Psychologists have studied for decades how people picture places they've only read about, and [a 1992 paper co-written by Stanford's Barbara Tversky](https://www.tc.columbia.edu/faculty/bt2158/faculty-profile/files/ntsofviewinspatialmentalmodelsacquiredfromtext.pdf) explains that readers build mental models of a scene straight from the text. Those models hold on to plain relations like "above", "north of" and "across from". The same paper points to earlier work in which readers formed a usable model of an environment from route descriptions (the kind that walk you through it) and from survey descriptions (the kind that lay it out from above). So your readers' heads are already doing the cartography. You only have to hand them good sentences.
+
+That last bullet is a lesson I learned from the inside, too. EchoQuest's world format has no map field at all. Each location is a name, a few sentences of description, a one-line summary, an ambient sound and a list of the places it connects to. No picture. No coordinates. And the GM runs whole campaigns on that.
 
 ## Step 1: Choose a Spine
 
-Every world needs a simple organising shape that's easy to remember:
+Every world needs a simple organising shape, something you can hold in your head without notes:
 
-- **A river** running from mountains to sea, with cities along it
-- **A road** connecting two rival capitals
-- **A coastline** of islands, like EchoQuest's Saltbound archipelago
-- **A ring** of kingdoms around a forbidden centre
-- **A vertical world** with sky cities above and caverns below
+- **A river** running from mountains to sea, with cities strung along its banks
+- **A road** linking two rival capitals
+- **A coastline** of islands, like the Stradovine Archipelago in EchoQuest's Saltbound
+- **A ring** of kingdoms circling a forbidden centre
+- **A vertical world**, with sky cities above and caverns below
 
-Your spine lets anyone, including an AI, place things in relation to each other.
+Your spine lets anyone, an AI included, place things in relation to each other. It's the first decision I'd make, every time. Saltbound shows why. Its geography hangs on an island chain, so when the crew mentions that the navigator vanished at the Bone Reef, "three islands east", you know roughly where that is and that it's a real sail away. Nobody unrolls a chart for that.
+
+Which spine would your world hang on? Rivers are my quiet favourite, because "upstream" and "downstream" do so much storytelling for free.
 
 ## Step 2: Describe Places by Relationship
 
-Instead of coordinates, use relationships:
+Forget coordinates. Use relationships instead:
 
 > "Harrowgate sits where the King's Road crosses the River Ashe. Two days upstream is the monastery of Saint Vell. Downstream the river widens into the salt marshes, and then the port of Brine."
 
-This paragraph *is* a map. It tells you what's connected, what's upstream or downstream, and how long journeys take.
+That paragraph *is* a map. It tells you what's connected and what lies upstream or downstream. It even tells you how long the journeys take.
+
+Sailors worked like this for centuries, incidentally. The *Periplus of the Erythraean Sea*, a Greek guide for merchants written in the first century CE, reads remarkably like the paragraph above. Here's a line from [Wilfred Schoff's 1912 translation](https://en.wikisource.org/wiki/Periplus_of_the_Erythraean_Sea): "Two days' sail, or three, beyond Malao is the market-town of Mundus, where the ships lie at anchor more safely behind a projecting island close to the shore." You get a sailing time and a reason to drop anchor, and nothing else. The whole document carries on like that, port after port, down the African coast and across to India.
+
+It's also, more or less, how EchoQuest reads a world. When you upload a Game Bible, the parser picks out each location along with the names of the places directly next to it. So if you write your relationships plainly, the connections land where they belong.
 
 ## Step 3: Measure Distance in Time
 
-Players care about how long a journey takes, not how many miles it covers. Build a simple travel table:
+Players care about how long a journey takes, far more than how many miles it covers. So build a simple travel table:
 
 | From | To | Route | Time | Danger |
 | --- | --- | --- | --- | --- |
@@ -579,45 +602,61 @@ Players care about how long a journey takes, not how many miles it covers. Build
 
 Travel time creates choices: the safe road or the fast one?
 
+Historians lean on the same trick. Stanford's ORBIS project, a model of travel across the Roman Empire, lets researchers [express Roman communication costs "in terms of both time and expense"](https://orbis.stanford.edu/orbis2012/), simulating trips along roads, rivers and sea routes, season by season. If time and expense are good enough for mapping Rome, they're good enough for the Ashe Valley.
+
+Need a yardstick for travel on foot? The D&D Basic Rules put a [normal pace at 24 miles a day](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/adventuring). A fast pace gets you 30 miles but dulls your perception, whereas a slow one manages 18 and lets you sneak. I love that little trade-off, and you can steal it wholesale: speed costs attention.
+
 ## Step 4: Give Every Place Three Senses
 
 For each major location, write:
 
-- **One sound:** gulls and rope creak in Brine, chanting at Saint Vell
+- **One sound:** gulls and creaking rope in Brine, chanting at Saint Vell
 - **One smell:** tar and fish, incense and wax
 - **One feeling:** crowded and suspicious, calm but watchful
 
-Three sensory details are more memorable than a page of architecture. They're also exactly what an audio game needs.
+Three sensory details stick far better than a page of architecture. They're also exactly what an audio game needs.
+
+Give smell a little extra love. Harvard neuroscientist Venkatesh Murthy told the Harvard Gazette that ["the olfactory signals very quickly get to the limbic system"](https://news.harvard.edu/gazette/story/2020/02/how-scent-emotion-and-memory-are-intertwined-and-exploited/), the part of the brain tied up with emotion and memory. That's why one line about tar and fish can bring Brine flooding back to a player weeks later, when the name on its own wouldn't.
+
+Sound was the sense I underestimated. In May I added forge, storm and underwater ambient tracks to EchoQuest, and every location can carry its own background sound. In Saltbound, for instance, the cove gets surf with wind in the cliffs and the village gets tavern noise. Then I discovered the soundtrack was trampling the sound cues, so it had to learn to duck underneath them. Lesson learned: a place's sound belongs in its description, but it has to leave room for the story. Later, on October 2, I rewrote the GM's voice, and one of the first rules I gave it was to open each scene on a single concrete sensory detail. Your three senses hand it something to open on.
 
 ## Step 5: Connect Places Through Conflict
 
-A world comes alive when places *want things from each other*:
+A world wakes up when places *want things from each other*:
 
 - Brine smuggles goods past Harrowgate's river tolls
-- Saint Vell shelters refugees from the Fens that Harrowgate wants expelled
-- The Fens are rising, and each year the causeway floods further
+- Saint Vell shelters refugees from the Fens, and Harrowgate wants them expelled
+- The Fens are rising, and every year the causeway floods a little further
 
 Now the geography is a story engine.
 
+Notice that every one of those conflicts runs along a route from the travel table. That's no accident, and it's the bit I'd urge you to copy. Saltbound does it with the Bone Reef: the navigator was last seen there, and the Crown frigate Argent has been spotted in that same water twice in two days. So the place you most need to reach is exactly where the danger sits. One sentence of geography, and the plot practically writes itself.
+
 ## Step 6: Write a Regional Summary
 
-Pull it together in a short, structured summary:
+Pull it all together in a short, structured summary:
 
 > **The Ashe Valley.** A river kingdom running from the Grey Peaks to the Salt Coast. Its capital Harrowgate controls the river tolls. Upstream: monasteries and mountain passes. Downstream: the smuggling port of Brine and the rising Fens. Tension: the Fens are swallowing the southern farms, and refugees are straining every town.
 
-That's about eighty words, and a Game Master, human or AI, can run a whole campaign from it.
+That's under sixty words, and a Game Master, human or AI, can run a whole campaign from it.
+
+Why keep it so lean? Because the GM leans on it every single turn. When EchoQuest turns an uploaded Game Bible into a playable world, it condenses the setting into a GM briefing of roughly 200 to 400 words, which has to cover tone, tensions, rules and the opening situation as well. A tight regional summary leaves room for all of that. A rambling one crowds it out.
 
 ## Step 7: Put It Into a Game Bible
 
-On EchoQuest, your world lives in a **Game Bible**, a structured document covering setting, locations, factions, NPCs, and rules. Word-first worldbuilding drops straight in. See [How to Write a Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template), or let the [World Builder Wizard](/blog/the-world-builder-wizard-a-complete-guide-for-creators) guide you step by step.
+On EchoQuest, your world lives in a **Game Bible**, a structured document covering setting, locations, factions, NPCs and rules. Word-first worldbuilding drops straight in. See [How to Write a Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template), or let the [World Builder Wizard](/blog/the-world-builder-wizard-a-complete-guide-for-creators) walk you through it step by step.
+
+You don't need fancy formatting either. The upload takes PDF, DOCX, TXT, MD and JSON, so a plain text file with your spine, places, travel table and conflicts is plenty. Afterwards you get to look over the summary it pulled out before you play. Building a private world comes with the Storyteller plan, by the way.
 
 ## Should You Ever Draw a Map?
 
-If you enjoy it, yes. Maps are lovely. But make the map *illustrate* the world rather than *define* it. The words should work on their own.
+If you enjoy it, absolutely. Maps are lovely. But let the map *illustrate* the world rather than *define* it. The words should hold up on their own.
+
+Tolkien, famously, went the other way. In a 1954 letter to Naomi Mitchison he wrote, ["I wisely started with a map, and made the story fit (generally with meticulous care for distances)"](https://en.wikipedia.org/wiki/Tolkien%27s_maps). I'm not about to argue with the man about Middle-earth. Still, look at what his map was protecting: distances. A travel table guards exactly the same thing, and you can read it aloud to someone who has never seen a single line of ink. So my view is firm. A map is a pleasant extra, but the words are the world.
 
 ## Build Your World
 
-Start with a spine, three places, and one conflict. You'll have a playable world in an afternoon, no drawing required.
+Start with a spine and a few places, then give them one conflict to fight over. You'll have a playable world in an afternoon, no drawing required. So, where does your river start?
 
 **[Start building your world →](/library)**
 `,
@@ -625,92 +664,110 @@ Start with a spine, three places, and one conflict. You'll have a playable world
   {
     publishAt: "2026-10-10",
     title: "Gaming With Low Vision: Settings, Tools and Tips That Actually Help",
-    excerpt: "Practical tips for gaming with low vision: display settings, magnification, contrast, audio cues, and game choices that reduce eye strain and increase fun.",
+    excerpt: "Practical low-vision gaming help: OS scaling, magnifiers, contrast and colour filters, in-game settings, eye-strain habits and games that go easy on your eyes.",
     content: `# Gaming With Low Vision: Settings, Tools and Tips That Actually Help
 
-Low vision covers a wide range, from reduced acuity and contrast sensitivity to field loss, light sensitivity, and conditions that change from day to day. Many low-vision gamers aren't served by "blind mode" or by default settings. They need a middle path.
+"Low vision" covers a lot of ground. The National Eye Institute defines it as [a vision problem that makes everyday activities hard and "can't be fixed with glasses, contact lenses, or other standard treatments"](https://www.nei.nih.gov/learn-about-eye-health/eye-conditions-and-diseases/low-vision), and it lists several kinds: central vision loss, peripheral vision loss, night blindness, and blurry or hazy vision. Add reduced contrast sensitivity and light sensitivity to that, plus conditions that drift from one day to the next. No wonder so many low-vision gamers fall through the cracks. A "blind mode" assumes you see nothing. Default settings assume you see everything. Most people need something in between.
 
-This guide collects practical settings, tools, and habits for **gaming with low vision**.
+This guide rounds up the settings and tools that genuinely help with **gaming with low vision**, plus a few habits that spare your eyes on long nights. I've got a personal stake here. I built EchoQuest to be played by ear, but I never wanted it to be ears-only. Lots of people like to read along in big type or glance at their HP between scenes, so the screen has to be kind to them too.
 
 ## Start With Your Display
 
 ### Size and Distance
 
-- **Sit closer** or use a larger screen. It's simple and effective.
-- **Use your OS scaling** (Windows Display settings, macOS Displays, Android and iOS display size) before tweaking individual games.
-- **Browser zoom** (Ctrl/Cmd and +) works for web games. Good ones reflow rather than breaking.
+- **Sit closer** or use a larger screen. It's simple, and it works. Your parents' warning was a myth, by the way: the American Academy of Ophthalmology (AAO) says sitting too close to a TV ["will not damage your eyes but it may cause eyestrain"](https://www.aao.org/eye-health/ask-ophthalmologist-q/can-close-tv-viewing-damage-eyes). So get as close as feels comfortable, and take breaks.
+- **Use your OS scaling** before you start fiddling with individual games. On Windows, that's [Settings > System > Display > Scale, or Settings > Accessibility > Text size](https://support.microsoft.com/en-us/accessibility/windows/make-windows-easier-to-see) if you only want bigger words. On a Mac, choose a lower resolution in System Settings > Displays, or drag the [Text size slider under Accessibility > Display](https://support.apple.com/guide/mac-help/make-text-and-icons-bigger-mchld786f2cd/mac). iPhones have [Display Zoom and Text Size under Display & Brightness](https://support.apple.com/guide/iphone/adjust-iphone-display-and-text-settings-iphd6804774e/ios), and Android has [Font size and Display size](https://support.google.com/accessibility/android/answer/11183305).
+- **Browser zoom** works for web games: Ctrl and + on Windows, [⌘ and + on a Mac](https://support.google.com/chrome/answer/96810?hl=en&co=GENIE.Platform%3DDesktop). Good ones reflow instead of breaking. In fact, the W3C's accessibility guidelines expect a page to [work at a width of 320 CSS pixels](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html), which is what a 1280-pixel-wide browser looks like at 400% zoom, without making you scroll sideways to read a line.
 
 ### Contrast and Colour
 
-- **High-contrast modes** at OS level can help, though some games ignore them.
-- **Dark mode** reduces glare for light-sensitive players. Others read better on light backgrounds. Test both.
-- **Colour filters** (built into Windows, macOS, iOS, and Android) can boost contrast or adjust for colour vision differences.
-- **Reduce blue light** in the evening if eye fatigue builds up.
+- **High-contrast modes** at OS level can help, although some games ignore them. Windows calls them [Contrast themes](https://support.microsoft.com/en-us/accessibility/windows/make-windows-easier-to-see) (Aquatic, Desert, Dusk and Night sky). On a Mac it's [Increase contrast, under Accessibility > Display](https://support.apple.com/guide/mac-help/change-display-settings-for-accessibility-unac089/mac), and iPhones have [Increase Contrast under Display & Text Size](https://support.apple.com/en-us/111773).
+- **Dark mode** cuts glare for light-sensitive players. Others read far better on a light background. Test both, honestly, because your eyes get the final vote. Which camp are you in?
+- **Colour filters** are built into Windows, macOS, iOS and Android, and they can boost contrast or adjust for colour vision differences. On a Mac, the filter types are Grayscale, Red/Green, Green/Red, Blue/Yellow and Color Tint. Android calls its version [colour correction](https://support.google.com/accessibility/android/answer/11183305).
+- **Warm up the screen in the evening** if eye fatigue creeps in. Windows has [Night light](https://support.microsoft.com/en-us/windows/set-your-display-for-night-time-in-windows-18fe903a-e0a1-8326-4c68-fd23d7aaf136), and Apple has Night Shift on the [Mac](https://support.apple.com/en-us/102191) and the [iPhone](https://support.apple.com/en-us/118583). One honest caveat, though. The AAO says ["there is no scientific evidence that blue light from digital devices causes damage to your eye"](https://www.aao.org/eye-health/tips-prevention/should-you-be-worried-about-blue-light), and it tells people to skip blue-light glasses for lack of evidence. Its real concern is sleep. So use warm modes because they feel nicer at night, not because they'll rescue your retinas.
 
 ### Brightness and Glare
 
-- Match screen brightness to room lighting.
-- Use a matte screen protector if reflections are a problem.
+- Match screen brightness to the lighting in your room. That one comes straight from the AAO's [screen-use tips](https://www.aao.org/eye-health/tips-prevention/computer-usage): "Adjust your screen brightness to match the level of light around you."
+- Use a matte screen protector if reflections are a problem. The same AAO page suggests a matte screen filter to cut glare.
 
 ## Magnification Tools
 
-- **Windows Magnifier** (Win and +) with lens or docked modes
-- **macOS Zoom** (Accessibility, then Zoom) with a hover-text option
-- **iOS/Android magnification** gestures
-- **Third-party magnifiers** with smoothing and colour enhancement
+- **[Windows Magnifier](https://support.microsoft.com/en-us/windows/use-magnifier-to-make-things-on-the-screen-easier-to-see-414948ba-8b1c-d3bd-8615-0e5e32204198)** (Windows logo key and +), with full screen, lens and docked views. Ctrl+Alt+F, Ctrl+Alt+L and Ctrl+Alt+D flip between them, and Ctrl+Alt+I inverts the colours on the fly.
+- **[macOS Zoom](https://support.apple.com/guide/mac-help/change-zoom-settings-for-accessibility-mh40579/mac)** (System Settings > Accessibility > Zoom), in a Full Screen, Split Screen or Picture-in-Picture style. Its handy sibling, [Hover Text](https://support.apple.com/guide/mac-help/view-a-larger-version-of-colors-or-text-mchlb203bc78/mac), sits under Accessibility > Hover Text: point at some text, hold Command, and a large copy pops up.
+- **iOS and Android magnification gestures.** On an iPhone, switch on [Zoom](https://support.apple.com/guide/iphone/iph3e2e367e/ios) and double-tap with three fingers. On Android, turn on the [Magnification shortcut](https://support.google.com/accessibility/android/answer/6006949), then triple-tap the screen or tap the accessibility button.
+- **Third-party magnifiers** with smoothing and colour enhancement, such as Freedom Scientific's [ZoomText](https://support.freedomscientific.com/content/documents/manuals/ZoomText/ZoomText_User_Guide_English_US.pdf) or Dolphin's [SuperNova](https://yourdolphin.com/product/features?id=4&pid=4), which magnifies from 1.2 up to 64 times and comes with 24 colour schemes designed to reduce glare.
 
-Magnification works best in **turn-based and text games**. It's hard in fast action games where you need the whole screen at once.
+Magnification works best in **turn-based and text games**. It's hard going in fast action games, where you need the whole screen at once. Even Microsoft's game accessibility guidelines state that [platform magnification tools "aren't an appropriate mitigation for small text size"](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/101). Put simply, a game with tiny text has a problem, and it isn't your eyes.
 
 ## In-Game Settings to Look For
 
 - **UI scale** separate from text size
-- **Subtitle size, background, and colour**
+- **Subtitle size, background and colour**
 - **Outline or highlight modes** for enemies and interactive objects
-- **Camera shake, motion blur, and depth of field toggles** (turn them off)
+- **Camera shake, motion blur and depth of field toggles** (turn them off)
 - **Field of view** adjustment
-- **Audio cues** that supplement visual information
+- **Audio cues** that back up visual information
+
+The Last of Us Part II is still the benchmark I point people to. It shipped with [more than 60 accessibility settings](https://www.playstation.com/en-us/games/the-last-of-us-part-ii/accessibility/), including a High Contrast Display that mutes the scenery and paints allies, enemies, items and interactive objects in distinct colours. There's a Large HUD scale too, and separate sliders for camera shake and motion blur.
+
+Subtitles deserve a closer look. Microsoft's [Xbox Accessibility Guideline 104](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/104) says players should be able to put a solid background behind subtitle text and choose its colour, and it gives a lovely example of why: "white text presented over light desert sand looks virtually invisible to the player." The same guidelines ask for text that scales to at least 200% of the default minimum. If a game you love skips those, I'd say a polite note to the studio is fair game.
 
 ## Let Your Ears Do Some of the Work
 
 One of the most effective strategies is to **shift load from your eyes to your ears**:
 
-- Turn on **screen narration** for menus and text
+- Turn on **screen narration** for menus and text (on Windows, [Narrator](https://support.microsoft.com/en-us/accessibility/windows/make-windows-easier-to-see) starts with Windows key + Ctrl + Enter)
 - Use **audio cues** for navigation and events
 - Choose **audio-first games** for long sessions
 
-Games designed around audio, like EchoQuest, let you play as much or as little by sight as you like. You can read along with large text, listen with your eyes closed, or switch between them as your eyes tire.
+Games designed around audio, like EchoQuest, let you play as much or as little by sight as you like. Read along in large text while you're fresh, then close your eyes and just listen once they start to tire. Switching back and forth is completely fine.
+
+Getting the "just listen" half right took more fiddling than I expected, I'll admit. Back in May I found that the premium voices went squeaky whenever you sped up playback, so I fixed it and the pitch now holds steady at any speed. The [ and ] keys nudge the speed mid-scene, and if a line slips past you, R replays it. Then on October 2 I made the narration start speaking while the GM's reply is still being written, so you're no longer staring at the screen waiting for something to happen. For low-vision players, every second you aren't squinting at an empty screen counts.
 
 ## Reduce Eye Strain
 
-- **The 20-20-20 rule:** every 20 minutes, look at something 20 feet away for 20 seconds.
-- **Blink deliberately.** Concentration reduces blinking.
+- **The 20-20-20 rule:** every 20 minutes, look at something 20 feet away for 20 seconds. That's the [AAO's own advice](https://www.aao.org/eye-health/tips-prevention/should-you-be-worried-about-blue-light) for digital eye strain, and it adds that eye strain "does not cause lasting damage and is easily preventable."
+- **Blink on purpose.** Concentration cuts your blink rate. The AAO notes we normally blink about 15 times a minute, but [only about 5 to 7 times a minute on screens](https://www.aao.org/eye-health/tips-prevention/computer-usage).
 - **Play in shorter sessions** on high-fatigue days.
-- **Use audio mode** when your eyes need a break but you want to keep playing.
+- **Switch to audio mode** when your eyes need a break but you still want to keep playing.
 
 ## Choosing Games That Work for Low Vision
 
 | Game type | Low-vision friendliness | Why |
 | --- | --- | --- |
-| Audio RPGs / interactive fiction | Excellent | Text is scalable, audio does the heavy lifting |
-| Turn-based strategy | Good | No time pressure, can zoom and inspect |
+| Audio RPGs / interactive fiction | Excellent | Text is scalable, and audio does the heavy lifting |
+| Turn-based strategy | Good | No time pressure, so you can zoom and inspect |
 | Card and board games | Good | High contrast, discrete state |
-| Puzzle games | Varies | Depends on colour and detail reliance |
+| Puzzle games | Varies | Depends on how much they lean on colour and fine detail |
 | Fast shooters | Hard | Small targets, fast motion |
+
+If I had to bet on one row, it's the top one. Text you can enlarge and a voice that carries the story is about as forgiving as gaming gets. Turn-based games come a close second, simply because nothing punishes you for taking your time.
 
 ## EchoQuest's Low-Vision Features
 
-- **Large-text and high-contrast options** that reflow cleanly
-- **Browser zoom support** without broken layouts
-- **Reduced-motion mode**
-- **Narration of every scene**, so reading is optional
-- **No time limits**, so you can read at your own pace
-- **Keyboard shortcuts** so you don't need to find small buttons
+First, a confession. Until earlier this month, EchoQuest's light, high-contrast and large-text styles sat in the stylesheet with nothing to switch them on. On October 3 I finally built a proper Display & accessibility settings page, plus a tiny script that applies your choices before the page first paints, so a light-theme player doesn't get a flash of dark screen first. The same day, I went hunting for places where contrast had slipped, and found hover states that put light text on the accent colour at roughly 2.8:1, plus two little white-on-green labels under 2:1. For comparison, WCAG asks for [at least 4.5:1 for normal text](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html). Those are fixed now. It was humbling, and frankly overdue.
+
+Here's what you get today:
+
+- **Large text**, which makes all text and controls 25% bigger
+- **High contrast**: white text on a pure black background with yellow highlights. It overrides whichever theme you picked
+- **A light theme**, a dark one, or "Match my device" if you'd rather your system decide
+- **Browser zoom support.** Most of the interface is sized in relative units, so zooming enlarges it instead of chopping it off, and Large text stacks on top. If anything breaks when you zoom in, I want to hear about it
+- **Reduced-motion mode**, which turns off animations and the pauses between scene transitions
+- **Narration of every scene**, so reading is optional. There's an audio-only mode as well, which skips the visual scene transitions altogether
+- **No time limits**, so you can read at your own pace. The GM simply waits for you
+- **Keyboard shortcuts**, so you don't have to hunt for small buttons. L tells you where you are, S reads your status, I lists your inventory, and the number keys pick a choice
+
+Two smaller details matter more than they look. If your device already tells the browser you want [more contrast](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-contrast) or [less motion](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion), EchoQuest honours that even when its own switch is off. Also, these settings are saved on the device where you set them. That means a quick trip to the settings page on each phone or computer you play on.
 
 For wider context, see [Accessible Video Games: A Checklist for Blind and Low-Vision Gamers](/blog/accessible-video-games-a-checklist-for-blind-and-low-vision-gamers).
 
 ## A Note on Changing Vision
 
-If your vision has changed recently, gaming can feel frustrating, as though something you loved has been taken away. It hasn't. It may just look (and sound) different now. Many players find that audio-first games become a new favourite rather than a compromise.
+If your vision has changed recently, gaming can feel maddening, as though something you loved has been snatched away. It hasn't. It may just look (and sound) different now. And you're far from alone. The NEI points out that low vision is more common in older adults, because so many of the diseases behind it are.
+
+I'll go a step further than "you can adapt". For story games especially, I think listening is often the better way to play, because your imagination does the set design and your eyes get the night off. My bet is that plenty of players who come to audio-first games out of necessity end up keeping them as a favourite rather than a compromise. What's the one setting you'd never play without?
 
 **[Try a game you can read or just listen to →](/library)**
 `,
@@ -718,23 +775,29 @@ If your vision has changed recently, gaming can feel frustrating, as though some
   {
     publishAt: "2026-10-11",
     title: "Pirate RPG Campaign Guide: Ships, Crews and Island Politics",
-    excerpt: "Plan a pirate RPG campaign full of plunder and intrigue: ship rules, crew morale, island factions, naval combat tips, and 10 swashbuckling adventure hooks.",
+    excerpt: "Plan a pirate RPG campaign: ship rules, crew morale, island factions, naval combat without a grid and 10 adventure hooks, backed by real pirate history.",
     content: `# Pirate RPG Campaign Guide: Ships, Crews and Island Politics
 
-Pirate campaigns promise everything roleplaying does best: freedom, danger, treasure, and a crew of colourful characters who might mutiny at any moment. They also bring special challenges: ships as characters, travel across open water, and a crowd of competing factions.
+Pirate campaigns promise what roleplaying does best. There's treasure over the horizon and danger on every tide, plus a crew of loudmouths who might mutiny the moment you blink. They also bring their own headaches, though. The ship is basically a character, travel happens across open water, and a crowd of rival factions all want a piece of you.
 
-This guide covers how to run, or play, a **pirate RPG campaign** that feels like the high seas.
+This guide covers how to run, or play, a **pirate RPG campaign** that actually feels like the high seas. I've chewed on this more than is probably healthy, because building Saltbound, EchoQuest's age-of-sail world, forced me to answer most of these questions in writing. So I'll share what I landed on as we go.
 
 ## The Core Promise of a Pirate Campaign
 
-Pirate stories are about **freedom at a price**. Your players escaped the rules of the land, but the sea has its own: the captain's word, the crew's vote, the wind, and the hangman waiting in every navy port.
+Pirate stories are about **freedom at a price**. Your players slipped the rules of the land, but the sea keeps its own: the captain's word and the crew's vote, the wind, and the hangman waiting in every navy port.
+
+That bit about the vote isn't romantic invention, by the way. The economist Peter Leeson studied pirate governance in a [2007 paper in the Journal of Political Economy](https://www.peterleeson.com/an-arrgh-chy.pdf), and he found that golden-age pirates "could and did democratically elect their captains". They could also depose any captain who didn't suit them. The captain's power was absolute only "in Chase, or in Battle", and the rest of the time he answered to the crew. I find that endlessly useful at the table, because it means every big decision can turn into a scene.
 
 Pick your flavour:
 
-- **Swashbuckling adventure:** daring rescues, sword fights on rigging, treasure maps
-- **Gritty historical:** disease, scurvy, prize law, and brutal naval power
-- **Fantasy seas:** sea gods, krakens, cursed gold, and ghost ships
-- **Political:** pirates as a nation, with councils, treaties, and betrayals
+- **Swashbuckling adventure:** daring rescues, sword fights in the rigging, treasure maps
+- **Gritty historical:** disease, scurvy, prize law and brutal naval power
+- **Fantasy seas:** sea gods, krakens, cursed gold and ghost ships
+- **Political:** pirates as a nation, with councils, treaties and betrayals
+
+If you go gritty, scurvy alone can carry a season of dread. The naval surgeon James Lind ran his famous comparison trial aboard the Salisbury in 1747, and by the end of May the two sailors given oranges and lemons had almost recovered. Even so, [the Royal Navy didn't introduce citrus rations until 1795](https://www.jameslindlibrary.org/wp-data/uploads/2016/08/J-R-Soc-Med-2003-12-Sutton-605-8.pdf). Nearly fifty years of rotting gums while the cure sat in a book! That's a campaign theme in itself.
+
+Saltbound sits firmly at the swashbuckling end. The tone note I gave its GM reads "swashbuckling, fast, generous", and the Crown is a real threat without lurking behind every headland. Which flavour suits your table?
 
 ## Your Ship Is a Character
 
@@ -742,29 +805,41 @@ Give the ship:
 
 - **A name and a history:** who sailed her before, and what did they leave behind?
 - **A quirk:** she lists to port, the figurehead weeps in storms, the hold is never quite dry
-- **Stats that matter:** speed, hull, guns, and cargo capacity
-- **Upgrades as goals:** new sails, more cannons, a better navigator
+- **Stats that matter:** speed, hull, guns and cargo capacity
+- **Upgrades as goals:** new sails, more cannon, a better navigator
+
+The Mercy, Saltbound's brigantine, is my best argument for that first bullet. She carries eighteen guns and forty-eight crew, and she's provisioned for three weeks. Still, the numbers aren't what bring her to life. Her history does. The previous captain's logbook lies open on the desk in the stern cabin, next to a locked chest holding the captain's share of the last prize. His battered tricorne gets handed to you on deck, and it fit him badly and will fit you no better. On top of that, the Confederacy expects you to honour obligations he accepted on the Mercy's behalf. Every one of those details is a hook waiting for someone to pull it.
 
 ## The Crew and Morale
 
-A pirate crew isn't an army. It's a democracy with knives. Track **morale**:
+A pirate crew isn't an army. It's a democracy with knives. So track **morale**:
 
-- **High morale:** the crew takes risks, works hard, and defends the captain
-- **Low morale:** grumbling, desertion, and eventually mutiny
+- **High morale:** the crew takes risks, works hard and defends the captain
+- **Low morale:** grumbling, desertion and, eventually, mutiny
 
-Morale rises with fair shares, victories, good food, and rest. It falls with losses, broken promises, and long stretches without plunder. Give three or four crew members names and personalities: the quartermaster who speaks for the crew, the old gunner, the stowaway, the cook who knows everyone's secrets. See [Writing Compelling NPCs](/blog/writing-compelling-npcs-7-techniques-that-work).
+Morale rises with fair shares, victories, good food and rest. It falls with losses, broken promises and long stretches without plunder. Give three or four crew members names and personalities: the quartermaster who speaks for the crew, the old gunner, the stowaway, the cook who knows everyone's secrets. See [Writing Compelling NPCs](/blog/writing-compelling-npcs-7-techniques-that-work).
+
+History backs up every line of this. Pirates agreed written articles before a voyage, and Leeson reprints the ones Bartholomew Roberts' crew swore to, taken from [A General History of the Pyrates](https://www.gutenberg.org/ebooks/40580) (1724). The split was exact: two shares each for the captain and quartermaster, one and a half for the master, boatswain and gunner, one and a quarter for other officers, and one share for everyone else. Roberts' articles even promised 800 dollars to anyone who lost a limb in service, and they banned brawling aboard, since "every Man's Quarrels to be ended on Shore, at Sword and Pistol." Low morale had teeth, too. When Charles Vane's crew judged him a coward, his behaviour "was obliged to stand the Test of a Vote", and they deposed him.
+
+Real crews ran bigger than most people assume. Leeson puts the average at about 80, based on 37 pirate ships between 1716 and 1726. The Mercy's forty-eight is cosier, which honestly suits a GM who has to give the loud ones a voice.
+
+Speaking of loud ones, Saltbound's crew is where I spent the most love. First Mate Joss Wren will tell you what the crew thinks before the crew says it themselves. Bosun Marra Quint couldn't stand the previous captain and is watching you very narrowly. Then there's Old Ben, the mostly deaf cook, who makes a superb fish stew and knows every story in the archipelago, and he'll share the gossip if you drink his coffee. On the Storyteller plan each of them gets a distinct premium voice, so Marra's fast, salty delivery sounds nothing like Ben's creaky warmth. Getting those voices to actually change took some doing. In late May I discovered NPC voices weren't switching at all, because an NPC's lines weren't being woven into the narration, and I ended up matching voices by gender across the whole voice catalogue while I was at it.
 
 ## Build an Archipelago of Politics
 
-Islands make great campaign structure: each is a self-contained adventure with its own rules.
+Islands make great campaign structure, because each one is a self-contained adventure with its own rules.
 
 - **The Free Port:** pirate haven, neutral ground, run by a council of captains
 - **The Colonial Fortress:** navy stronghold, gallows on the harbour
-- **The Merchant Isle:** rich, well-defended, and willing to hire privateers
+- **The Merchant Isle:** rich, well defended and willing to hire privateers
 - **The Forbidden Island:** sacred, cursed, or both
 - **The Smugglers' Cove:** hidden, useful, and full of people who owe you, or whom you owe
 
-Give each island **what it wants**, **what it fears**, and **what it will pay for**. EchoQuest's official **Saltbound** campaign is built this way: an archipelago where every island has its own politics and gods.
+Then give each island three answers: **what it wants**, **what it fears** and **what it will pay for**.
+
+Each of these has a real ancestor. In the 1710s the free port was the Bahamas, and when King George I's pardon proclamation came out in 1717, it drove many pirates ["out of their nest in the Bahama Islands"](https://www.ccpl.org/charleston-time-machine/pirate-hunting-expeditions-1718), as the Charleston County Public Library puts it. The Merchant Isle's privateers were real as well. A privateer's commission, a letter of marque, was what [legally separated them from pirates](https://www.congress.gov/crs_external_products/LSB/PDF/LSB11272/LSB11272.5.pdf), according to the Congressional Research Service. Privateers fitted out their ships at their own expense and took a large share of whatever their prizes sold for, and the British Crown sometimes let colonial governors hand those commissions out. So a governor with a pen is every bit as dangerous as a frigate.
+
+EchoQuest's official **Saltbound** campaign is built along these lines, although its politics come in blocs rather than one faction per island. The Stradovine Archipelago is split between the Crown of Vallaria, with its navy and customs cutters and the frigate Argent, and the loose Confederacy of Free Captains, who are pirates by the Crown's definition and free traders by their own. Salt-Tongue Village is your free port: by old treaty the Crown's writ doesn't run there, and the harbour master takes her tithe in goods rather than coin. Elsewhere, the Stradovine Free Towns pay the Crown a nominal tithe but govern themselves, and they turn on pirates who burn their own. And in a stone cottage above the cove, three hedge-witches sell remedies and weather warnings, payable in fresh fish. My favourite rule in the whole world, though, is about reputation. Whatever you do in Salt-Tongue this week becomes a song in the next port within a fortnight.
 
 ## Naval Combat Without a Grid
 
@@ -775,14 +850,18 @@ Ship battles can bog down in rules. In narrative and audio play, keep it cinemat
 3. **The boarding:** grapples, swinging lines, hand-to-hand on a heaving deck
 4. **The surrender or the sinking:** what do you take, and whom do you spare?
 
-Sound carries naval combat: creaking timbers, cannon thunder, splintering wood, shouted orders. It's ideal for audio-first play.
+Sound carries naval combat: creaking timbers, cannon thunder, splintering wood, shouted orders. That makes it ideal for audio-first play.
+
+Don't be afraid to let the chase *be* the fight, either. The Salisbury's own records from that 1747 cruise describe losing her jib boom and topgallant mast chasing a ship that wouldn't stop until twelve shots had been fired. It turned out to be an English privateer, and the navy had to let her go. That's a whole session, and nobody boarded anybody. Saltbound's rules push the same way. Combat there is gun-and-board, drawn-out fights cost crew, sails and reputation, and most engagements end "in chase or surrender, not slaughter." I'm convinced that's the right call for a story game.
+
+The soundscape taught me a few lessons of its own. In May I added a storm track to the ambient soundtrack and taught the soundtrack to duck under sound cues, so a cannon blast doesn't drown in the wind. I also started dropping duplicate sound cues that fire within 80 milliseconds of each other, so a flurry of identical effects can't stack into one ear-splitting smear. Then on October 2, skill checks started resolving in the same turn. Swing across on a line, and you find out whether you made it before the next broadside, not a whole exchange later. Dropping to 0 HP brings a real setback now as well, which keeps boarding actions honest.
 
 ## 10 Pirate Adventure Hooks
 
 1. **The Governor's Pardon:** the navy offers every pirate a pardon, for one week only. Half your crew wants it.
 2. **The Map in the Tattoo:** a dying sailor's back holds half a treasure map. Someone else has his brother.
 3. **Ghost Convoy:** merchant ships keep vanishing on a calm, clear trade route.
-4. **The Sea Queen's Tax:** a sea goddess demands a tribute this year, and she's picked your ship.
+4. **The Sea Queen's Tax:** a sea goddess demands tribute this year, and she's picked your ship.
 5. **Mutiny Next Door:** a rival crew mutinied and wants to join yours. Their old captain is alive and furious.
 6. **The Island That Moves:** an island appears on no chart, and it's in a different place every night.
 7. **Stolen Letters of Marque:** forged privateering papers could legitimise your whole fleet, if you can get them signed.
@@ -790,9 +869,17 @@ Sound carries naval combat: creaking timbers, cannon thunder, splintering wood, 
 9. **Council Election:** the pirate council is choosing a new Speaker. Everyone wants your vote, and your guns.
 10. **The Last Voyage:** your captain is dying and has one final destination in mind.
 
+Two of these come almost straight out of history. The Governor's Pardon is the 1717 proclamation in miniature. It offered amnesty to pirates who confessed to a colonial governor and swore an oath of good behaviour within twelve months, and both Stede Bonnet and Blackbeard [took that oath, then "promptly reverted to their wicked ways"](https://www.ccpl.org/charleston-time-machine/pirate-hunting-expeditions-1718). Hook 7, meanwhile, echoes Captain Kidd. He sailed with [two commissions from the King](https://www.thurrock.gov.uk/thurrock-historical-people/captain-kidd-tilbury-connection), one to suppress piracy and one as a privateer against the French, and he still ended up hanged at Execution Dock in Wapping. The rope broke on the first attempt. Afterwards his tarred body hung in a gibbet at Tilbury as a warning to every sailor on the Thames. Paperwork, it turns out, is only as good as the people reading it.
+
+Which of the ten would you run first? I'd start with the pardon, because splitting the crew down the middle is the fastest way I know to make a pirate campaign personal.
+
 ## Playing a Pirate Campaign Solo
 
-Solo pirate play works well with an AI Game Master handling the crew as NPCs. Ask for a quartermaster companion, set your ship's name and quirk in your backstory, and let the Game Master track morale and plunder.
+Solo pirate play works really well with an AI Game Master voicing the crew as NPCs. Ask for a quartermaster companion, put your ship's name and quirk in your backstory, and let the Game Master keep an eye on morale and plunder. EchoQuest tracks your inventory, quests, relationships and story flags turn by turn, so a prize ends up in your hold and the crew's mood shows in how they treat you.
+
+Saltbound gives you a head start. You open the game freshly elected captain of the Mercy, with Joss Wren stepping forward to hand you the hat. Your navigator, Hanno Ash, is a week overdue from the Bone Reef. Meanwhile Captain Nox of the Petrel has rowed over and is sitting in your chair drinking your brandy, and the Argent has been sighted three islands east. Joss, Marra and Ben all get a say in the big decisions, which is exactly how a real pirate crew would want it. And since your character's progress is saved on the server, you can leave the Mercy at anchor on your laptop and pick her back up on your phone.
+
+So, do you sail west to safety, or east to find Hanno?
 
 **[Set sail in Saltbound →](/library)**
 `,
