@@ -1,53 +1,66 @@
 "use client";
 
 import { useEffect } from "react";
-import { unlockAudioContext } from "@/lib/audio/synth";
-
-// 100ms of silent audio, base64-encoded — used to prime the HTMLAudioElement
-// path on the first user gesture so later dynamic `new Audio()` instances
-// (ElevenLabs narration) can play() without tripping Safari's autoplay
-// policy. Decoded once on mount.
-const SILENT_WAV =
-  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+import { resumeAudioContext, unlockAudioContext } from "@/lib/audio/synth";
+import { SILENT_WAV, markAudioUnlocked, narrationAudioElement } from "@/lib/audio/unlock";
 
 /**
  * Mounts once and registers document-level listeners that, on the first
  * user gesture:
- *   1. resume the Web Audio AudioContext (synth path); and
- *   2. play a silent clip on an HTMLAudioElement, which "unlocks" the
- *      audio element path for subsequent dynamic creations on iOS Safari.
+ *   1. resume the Web Audio AudioContext (synth path);
+ *   2. play a silent clip on the shared narration audio element, which
+ *      iOS Safari then allows to play for the rest of the page's life;
+ *   3. speak an empty utterance, which unlocks the browser voice on iOS;
+ *   4. mark audio unlocked, so narration queued behind a fresh page load
+ *      (see whenAudioUnlocked) starts.
  *
- * Without (2), the first ElevenLabs narration after a fresh page load can
- * be rejected by Safari because the play() call doesn't directly trace
- * back to the originating gesture.
+ * It also asks for "playback" audio, so the iOS ring/silent switch doesn't
+ * mute ambience and cues, and wakes the AudioContext when the page comes back
+ * from the background or a phone call.
  */
 export function AudioUnlocker() {
   useEffect(() => {
     let primed = false;
-    const primer = new Audio(SILENT_WAV);
-    primer.muted = true;
-    primer.preload = "auto";
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) {
+      try {
+        session.type = "playback";
+      } catch {
+        /* not settable in this browser */
+      }
+    }
 
     function unlock() {
       unlockAudioContext();
-      if (!primed) {
-        primed = true;
-        // Calling play() inside the gesture handler unlocks the Audio
-        // element path for the rest of the document's lifetime on iOS.
-        // Subsequent failures (e.g. unmounted page) are harmless.
-        primer.play().catch(() => undefined);
+      if (primed) return;
+      primed = true;
+      const audio = narrationAudioElement();
+      // Only prime it if no narration has claimed it yet.
+      if (!audio.src) {
+        audio.src = SILENT_WAV;
+        audio.play().catch(() => undefined);
       }
+      if ("speechSynthesis" in window && !window.speechSynthesis.speaking) {
+        const u = new SpeechSynthesisUtterance("");
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
+      }
+      markAudioUnlocked();
+    }
+
+    function onVisible() {
+      if (document.visibilityState === "visible") resumeAudioContext();
     }
 
     document.addEventListener("click", unlock);
     document.addEventListener("touchstart", unlock);
     document.addEventListener("keydown", unlock);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       document.removeEventListener("click", unlock);
       document.removeEventListener("touchstart", unlock);
       document.removeEventListener("keydown", unlock);
-      primer.pause();
-      primer.src = "";
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
   return null;

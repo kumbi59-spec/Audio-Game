@@ -1,4 +1,4 @@
-import { beginNarrationSession, endNarrationSession, speechStopCount } from "./tts-provider";
+import { openNarrationSession, speechStopCount } from "./tts-provider";
 
 // A sentence end: terminal punctuation, any closing quotes/brackets, then
 // whitespace (so we know the sentence is really over, not "3.5").
@@ -165,7 +165,13 @@ export class StreamingNarrator {
   }
 
   private async run(): Promise<void> {
-    const session = this.opts.narrationSession ?? { begin: beginNarrationSession, end: endNarrationSession };
+    let close = () => {};
+    const session = this.opts.narrationSession ?? {
+      begin: () => {
+        close = openNarrationSession();
+      },
+      end: () => close(),
+    };
     session.begin();
     try {
       while (!this.stopped()) {

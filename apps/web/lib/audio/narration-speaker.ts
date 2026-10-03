@@ -1,4 +1,4 @@
-import { speak, prefetchSpeech, beginNarrationSession, endNarrationSession } from "./tts-provider";
+import { speak, prefetchSpeech, openNarrationSession } from "./tts-provider";
 import { ELEVENLABS_PRESET_VOICES } from "./voices-catalog";
 import { useAudioStore } from "@/store/audio-store";
 import type { VoiceGender } from "@/types/audio";
@@ -243,12 +243,15 @@ export async function speakNarrationMultiVoice(
   speakFn: typeof speak = speak,
   prefetchFn: typeof prefetchSpeech = prefetchSpeech,
 ): Promise<void> {
-  const { ttsSpeed, ttsPitch, volume } = useAudioStore.getState();
-  const grouped = planNarrationVoices(narration, characterName, assignments, genderLookup, onNewAssignment);
+  // Long text (a recap of several scenes) is split so no request goes over
+  // the TTS proxy's character limit.
+  const grouped = planNarrationVoices(narration, characterName, assignments, genderLookup, onNewAssignment).flatMap(
+    (group) => splitForTts(group.text).map((text) => ({ voiceId: group.voiceId, text })),
+  );
 
   // Open a narration session so isSpeaking() stays true across the per-voice
   // HTTP gaps between groups — keeps ambient ducking and choice focus stable.
-  beginNarrationSession();
+  const closeSession = openNarrationSession();
   try {
     for (let i = 0; i < grouped.length; i++) {
       if (signal.aborted) break;
@@ -256,12 +259,35 @@ export async function speakNarrationMultiVoice(
       // Fetch the next voice's audio while this one plays, so the switch
       // between speakers doesn't wait on the network.
       const next = grouped[i + 1];
-      if (next) prefetchFn(next.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: next.voiceId });
-      await speakFn(group.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: group.voiceId });
+      // Speed, pitch and volume are left to the provider, which reads the
+      // current settings (volume on its perceptual curve) for every clip.
+      if (next) prefetchFn(next.text, { voiceId: next.voiceId });
+      await speakFn(group.text, { voiceId: group.voiceId });
     }
   } finally {
-    endNarrationSession();
+    closeSession();
   }
+}
+
+/** Longest text sent in one TTS request (the proxy accepts up to 4000). */
+export const MAX_TTS_CHARS = 3800;
+
+/**
+ * Splits text into pieces of at most `max` characters, at sentence ends when
+ * possible, then at spaces.
+ */
+export function splitForTts(text: string, max = MAX_TTS_CHARS): string[] {
+  const chunks: string[] = [];
+  let rest = text.trim();
+  while (rest.length > max) {
+    const window = rest.slice(0, max);
+    const sentenceEnd = Math.max(window.lastIndexOf(". "), window.lastIndexOf("! "), window.lastIndexOf("? "));
+    const cut = sentenceEnd > max / 2 ? sentenceEnd + 1 : window.lastIndexOf(" ") > 0 ? window.lastIndexOf(" ") : max;
+    chunks.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) chunks.push(rest);
+  return chunks;
 }
 
 /**
@@ -277,9 +303,9 @@ export function prefetchNarrationMultiVoice(
   onNewAssignment: NewAssignmentHandler,
   prefetchFn: typeof prefetchSpeech = prefetchSpeech,
 ): void {
-  const { ttsSpeed, ttsPitch, volume } = useAudioStore.getState();
   const first = planNarrationVoices(narration, characterName, assignments, genderLookup, onNewAssignment)[0];
-  if (first) prefetchFn(first.text, { rate: ttsSpeed, pitch: ttsPitch, volume, voiceId: first.voiceId });
+  const text = first ? splitForTts(first.text)[0] : undefined;
+  if (first && text) prefetchFn(text, { voiceId: first.voiceId });
 }
 
 /**

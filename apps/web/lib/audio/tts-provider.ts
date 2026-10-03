@@ -1,34 +1,57 @@
 import type { TTSProvider as ITTSProvider, TTSOptions, TTSVoice, TTSProviderType } from "@/types/audio";
 import { BrowserTTS } from "./browser-tts";
-import { ElevenLabsTTS } from "./elevenlabs-tts";
+import { ElevenLabsTTS, TtsRequestError } from "./elevenlabs-tts";
 import { useAudioStore } from "@/store/audio-store";
 
 const instances: Partial<Record<TTSProviderType, ITTSProvider>> = {};
 
-// Counter rather than a boolean so nested/overlapping narration sessions
-// (defensive — there's only one caller today) don't end early when the
-// inner one finishes.
-let _narrationDepth = 0;
+// Narrations in progress. Each has its own token, so a narration that ends
+// late (a clip that finished after stopSpeech()) can't end the one that
+// replaced it.
+const _sessions = new Set<symbol>();
 
 /**
  * Mark the start of a multi-segment narration. Keeps isSpeaking() true
  * across the per-voice HTTP gaps so consumers (ambient ducking, choice
  * focus) don't see a false "narration ended" pulse between segments.
+ * Returns the function that ends it; calling that twice is harmless.
  */
-export function beginNarrationSession(): void {
-  _narrationDepth++;
+export function openNarrationSession(): () => void {
+  const token = Symbol("narration");
+  _sessions.add(token);
+  return () => {
+    _sessions.delete(token);
+  };
 }
 
-export function endNarrationSession(): void {
-  _narrationDepth = Math.max(0, _narrationDepth - 1);
+type TtsNoticeListener = (message: string) => void;
+const _noticeListeners = new Set<TtsNoticeListener>();
+
+/**
+ * Subscribe to messages the player should hear about the narrator itself,
+ * such as premium narration falling back to the browser voice. Returns the
+ * unsubscribe function.
+ */
+export function onTtsNotice(listener: TtsNoticeListener): () => void {
+  _noticeListeners.add(listener);
+  return () => {
+    _noticeListeners.delete(listener);
+  };
 }
+
+function notice(message: string): void {
+  for (const listener of _noticeListeners) listener(message);
+}
+
+// The "premium voice isn't answering" notice is said once per page, not per sentence.
+let _toldAboutFallback = false;
 
 /**
  * Apply the same perceptual (squared) curve to the master volume that
  * sound-cues.ts uses, so narration loudness scales evenly with ambient
  * and cues across the slider's range. Anchored at 0 and 1.
  */
-function curvedVolume(linear: number): number {
+export function curvedVolume(linear: number): number {
   if (linear <= 0) return 0;
   if (linear >= 1) return 1;
   return linear * linear;
@@ -79,12 +102,26 @@ export async function speak(text: string, options: TTSOptions = {}): Promise<voi
   try {
     return await instanceFor(state.ttsProvider).speak(text, resolvedOpts);
   } catch (err) {
-    // Monthly ElevenLabs cap hit — switch to browser TTS permanently and re-speak
-    if (err instanceof Error && err.message === "tts_cap_reached") {
+    if (state.ttsProvider !== "elevenlabs") throw err;
+    const browserOpts = { ...resolvedOpts, voiceId: undefined };
+    if (err instanceof TtsRequestError && (err.code === "tts_cap_reached" || err.code === "tts_plan_required")) {
+      // Out of premium characters this month, or the plan lapsed: switch to
+      // the browser voice for good, say why, and carry on with this line.
       useAudioStore.getState().setTTSProvider("browser");
-      return instanceFor("browser").speak(text, { ...resolvedOpts, voiceId: undefined });
+      notice(
+        err.code === "tts_cap_reached"
+          ? "You've used this month's premium narration, so I'm switching to the browser voice."
+          : "Premium narration needs a paid plan, so I'm switching to the browser voice.",
+      );
+      return instanceFor("browser").speak(text, browserOpts);
     }
-    throw err;
+    // Anything else (offline, a server hiccup, a clip that won't play):
+    // read this line in the browser voice rather than skip it.
+    if (!_toldAboutFallback) {
+      _toldAboutFallback = true;
+      notice("Premium narration isn't answering, so I'm using the browser voice for now.");
+    }
+    return instanceFor("browser").speak(text, browserOpts);
   }
 }
 
@@ -115,7 +152,7 @@ export function stopSpeech(): void {
   }
   // Manual stop also tears down any in-flight narration session so its
   // speaking-state guard doesn't outlive the audio it was protecting.
-  _narrationDepth = 0;
+  _sessions.clear();
 }
 
 export function pauseSpeech(): void {
@@ -135,7 +172,7 @@ export function isSpeaking(): boolean {
   // network gap in between. The provider's _speaking goes false in that gap
   // even though the narration as a whole is still going — without the session
   // guard, ambient ducking and choice focus bounce on every voice change.
-  return _narrationDepth > 0 || getTTSProvider().isSpeaking();
+  return _sessions.size > 0 || getTTSProvider().isSpeaking();
 }
 
 export function isPaused(): boolean {
