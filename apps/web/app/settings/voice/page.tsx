@@ -133,13 +133,13 @@ export default function VoiceSettingsPage() {
   if (status === "loading" || status === "unauthenticated") return null;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <header className="px-6 py-8">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }} tabIndex={-1}>
+        <h1 className="text-2xl font-bold text-foreground" tabIndex={-1}>
           Voice Settings
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Choose voices for the narrator, your character, and NPCs. Settings save automatically across devices.
         </p>
       </header>
@@ -147,10 +147,9 @@ export default function VoiceSettingsPage() {
       <main id="main-content" className="mx-auto max-w-xl px-6 pb-16">
         <section
           aria-label="Voice provider"
-          className="mb-6 rounded-xl border p-5"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
+          <h2 className="mb-3 text-base font-semibold text-foreground">
             Provider
           </h2>
           <div role="radiogroup" aria-label="TTS provider" className="space-y-2">
@@ -165,10 +164,10 @@ export default function VoiceSettingsPage() {
                 style={{ minHeight: 20, minWidth: 20 }}
               />
               <span>
-                <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+                <span className="block text-sm font-medium text-foreground">
                   Browser narrator
                 </span>
-                <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                <span className="block text-xs text-muted">
                   Uses your device&apos;s built-in voices. Free, instant, offline-friendly.
                 </span>
               </span>
@@ -186,27 +185,26 @@ export default function VoiceSettingsPage() {
                   style={{ minHeight: 20, minWidth: 20 }}
                 />
                 <span>
-                  <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+                  <span className="block text-sm font-medium text-foreground">
                     ElevenLabs (premium)
                   </span>
-                  <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  <span className="block text-xs text-muted">
                     Studio-quality narration. Requires ElevenLabs to be configured server-side.
                   </span>
                 </span>
               </label>
             ) : (
               <div
-                className="flex items-start gap-3 rounded-lg p-2 opacity-60"
-                style={{ borderColor: "var(--border)" }}
+                className="flex items-start gap-3 rounded-lg p-2 opacity-60 border-border"
               >
-                <span className="mt-1 inline-block h-5 w-5 flex-shrink-0 rounded-full border-2" style={{ borderColor: "var(--border)" }} />
+                <span className="mt-1 inline-block h-5 w-5 flex-shrink-0 rounded-full border-2 border-border" />
                 <span>
-                  <span className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+                  <span className="block text-sm font-medium text-foreground">
                     ElevenLabs (premium) 🔒
                   </span>
-                  <span className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  <span className="block text-xs text-muted">
                     Studio-quality narration. Upgrade to Storyteller to unlock.{" "}
-                    <Link href="/account" className="underline" style={{ color: "var(--accent)" }}>
+                    <Link href="/account" className="underline text-accent">
                       Upgrade
                     </Link>
                   </span>
@@ -218,14 +216,13 @@ export default function VoiceSettingsPage() {
 
         <section
           aria-label="Voice"
-          className="mb-6 rounded-xl border p-5"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
+          <h2 className="mb-3 text-base font-semibold text-foreground">
             Voice
           </h2>
           {availableVoices.length === 0 ? (
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="text-sm text-muted">
               {store.ttsProvider === "browser"
                 ? "No browser voices found. Try Chrome, Edge, or Safari, or switch to ElevenLabs."
                 : "Loading voices…"}
@@ -259,13 +256,12 @@ export default function VoiceSettingsPage() {
             {/* Player character voice */}
             <section
               aria-label="Character voice"
-              className="mb-6 rounded-xl border p-5"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+              className="mb-6 rounded-xl border p-5 border-border bg-surface"
             >
-              <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+              <h2 className="mb-1 text-base font-semibold text-foreground">
                 Your character&apos;s voice
               </h2>
-              <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mb-3 text-xs text-muted">
                 Heard when your character speaks out loud during the story.
               </p>
               <div className="flex gap-2">
@@ -297,20 +293,19 @@ export default function VoiceSettingsPage() {
             {/* NPC voice pool */}
             <section
               aria-label="NPC voices"
-              className="mb-6 rounded-xl border p-5"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+              className="mb-6 rounded-xl border p-5 border-border bg-surface"
             >
-              <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+              <h2 className="mb-1 text-base font-semibold text-foreground">
                 NPC voice pool
               </h2>
-              <p className="mb-4 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mb-4 text-xs text-muted">
                 Each named NPC is automatically assigned a voice from the pool below — gender-matched when the GM tells us the character&apos;s gender, biased toward voices the session hasn&apos;t used yet. Assignments stick to that NPC across all your sessions and devices. Untick a voice to remove it from the rotation.
               </p>
               {(() => {
                 const catalogVoices = availableVoices.filter((v) => v.provider === "elevenlabs");
                 if (catalogVoices.length === 0) {
                   return (
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-sm text-muted">
                       Switch to ElevenLabs above to enable per-NPC voices.
                     </p>
                   );
@@ -340,7 +335,7 @@ export default function VoiceSettingsPage() {
                 const activePoolSize = enabled.length === 0 ? catalogVoices.length : enabled.length;
                 return (
                   <>
-                    <p className="mb-3 text-xs" style={{ color: "var(--text-faint)" }}>
+                    <p className="mb-3 text-xs text-subtle">
                       {activePoolSize} of {catalogVoices.length} voices in the rotation
                     </p>
                     <ul className="space-y-2">
@@ -358,9 +353,9 @@ export default function VoiceSettingsPage() {
                                 className="h-5 w-5"
                                 style={{ minHeight: 20, minWidth: 20 }}
                               />
-                              <span className="text-sm" style={{ color: "var(--text)" }}>
+                              <span className="text-sm text-foreground">
                                 {v.name}
-                                <span className="ml-1 text-xs" style={{ color: "var(--text-faint)" }}>{genderLabel}</span>
+                                <span className="ml-1 text-xs text-subtle">{genderLabel}</span>
                               </span>
                             </label>
                             <button
@@ -384,30 +379,28 @@ export default function VoiceSettingsPage() {
           </>
         ) : (
           <div
-            className="mb-6 rounded-xl border p-5 opacity-60"
-            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+            className="mb-6 rounded-xl border p-5 opacity-60 border-border bg-surface"
           >
-            <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>
+            <h2 className="mb-1 text-base font-semibold text-foreground">
               Character &amp; NPC voices 🔒
             </h2>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="text-sm text-muted">
               Distinct voices for your character and NPCs require the Storyteller plan.{" "}
-              <a href="/account" className="underline" style={{ color: "var(--accent)" }}>Upgrade</a>
+              <a href="/account" className="underline text-accent">Upgrade</a>
             </p>
           </div>
         )}
 
         <section
           aria-label="Speed and pitch"
-          className="mb-6 rounded-xl border p-5"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
+          <h2 className="mb-3 text-base font-semibold text-foreground">
             Speed &amp; pitch
           </h2>
 
           <label className="mb-4 block">
-            <span className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+            <span className="mb-1 flex justify-between text-xs text-muted">
               <span>Speed</span>
               <span aria-hidden="true">{store.ttsSpeed.toFixed(2)}×</span>
             </span>
@@ -428,7 +421,7 @@ export default function VoiceSettingsPage() {
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+            <span className="mb-1 flex justify-between text-xs text-muted">
               <span>Pitch</span>
               <span aria-hidden="true">{store.ttsPitch.toFixed(2)}×</span>
             </span>
@@ -448,14 +441,14 @@ export default function VoiceSettingsPage() {
               style={{ minHeight: 44, opacity: store.ttsProvider === "elevenlabs" ? 0.5 : 1 }}
             />
             {store.ttsProvider === "elevenlabs" && (
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <span className="text-xs text-muted">
                 Pitch is fixed for ElevenLabs voices.
               </span>
             )}
           </label>
 
           <label className="block">
-            <span className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+            <span className="mb-1 flex justify-between text-xs text-muted">
               <span>Volume</span>
               <span aria-hidden="true">{Math.round(store.volume * 100)}%</span>
             </span>
@@ -478,10 +471,9 @@ export default function VoiceSettingsPage() {
 
         <section
           aria-label="Ambient sound"
-          className="mb-6 rounded-xl border p-5"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>
+          <h2 className="mb-3 text-base font-semibold text-foreground">
             Ambient sound
           </h2>
 
@@ -494,11 +486,11 @@ export default function VoiceSettingsPage() {
               className="h-5 w-5"
               style={{ minHeight: 20, minWidth: 20 }}
             />
-            <span className="text-sm" style={{ color: "var(--text)" }}>Enable ambient sound</span>
+            <span className="text-sm text-foreground">Enable ambient sound</span>
           </label>
 
           <label className="block" style={{ opacity: store.ambientEnabled ? 1 : 0.4 }}>
-            <span className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+            <span className="mb-1 flex justify-between text-xs text-muted">
               <span>Ambient volume</span>
               <span aria-hidden="true">{Math.round(store.ambientVolume * 100)}%</span>
             </span>
@@ -535,7 +527,7 @@ export default function VoiceSettingsPage() {
           >
             {previewing ? "Speaking…" : "Preview voice"}
           </button>
-          <span className="text-xs" style={{ color: "var(--text-muted)" }} aria-live="polite">
+          <span className="text-xs text-muted" aria-live="polite">
             {saving ? "Saving…" : savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString()}` : ""}
           </span>
         </div>

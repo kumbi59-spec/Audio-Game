@@ -77,11 +77,11 @@ export default function ImportNotesPage() {
   if (status === "loading" || status === "unauthenticated") return null;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <header className="px-6 py-8">
-        <nav aria-label="Breadcrumb" className="mb-2 text-xs" style={{ color: "var(--text-muted)" }}>
-          <a href="/worlds/new" className="underline hover:opacity-80" style={{ color: "var(--accent)" }}>
+        <nav aria-label="Breadcrumb" className="mb-2 text-xs text-muted">
+          <a href="/worlds/new" className="underline hover:opacity-80 text-accent">
             Create a World
           </a>
           {" / "}
@@ -90,12 +90,11 @@ export default function ImportNotesPage() {
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="text-2xl font-bold"
-          style={{ color: "var(--text)" }}
+          className="text-2xl font-bold text-foreground"
         >
           Import from Session Notes
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Paste your old campaign notes — handwritten transcripts, session summaries, or world descriptions. Claude will extract the setting, tone, and opening scene to seed your new world.
         </p>
       </header>
@@ -105,8 +104,7 @@ export default function ImportNotesPage() {
           <div>
             <label
               htmlFor="notes-input"
-              className="mb-2 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-2 block text-sm font-semibold text-foreground"
             >
               Paste your session notes
             </label>
@@ -127,7 +125,7 @@ export default function ImportNotesPage() {
                 "--tw-ring-color": "var(--accent)",
               } as React.CSSProperties}
             />
-            <p id="notes-hint" className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p id="notes-hint" className="mt-1 text-xs text-muted">
               Minimum 20 characters · Maximum 40,000 characters · {notes.length.toLocaleString()} typed
             </p>
           </div>
@@ -153,21 +151,19 @@ export default function ImportNotesPage() {
               type="submit"
               disabled={busy || notes.trim().length < 20}
               aria-disabled={busy || notes.trim().length < 20}
-              className="rounded-xl px-6 py-3 text-sm font-bold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="rounded-xl px-6 py-3 text-sm font-bold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 bg-accent-solid text-on-accent"
             >
               {busy ? "Extracting…" : "Extract World Details"}
             </button>
             <a
               href="/worlds/new"
-              className="rounded-xl border px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-80"
-              style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+              className="inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-80 border-border text-muted"
             >
               Cancel
             </a>
           </div>
 
-          <p className="text-xs" style={{ color: "var(--text-faint)" }}>
+          <p className="text-xs text-subtle">
             Claude extracts title, pitch, genre, setting, tone, world rules, and opening scene. You can review and edit every field in the wizard before creating your world.
           </p>
         </form>

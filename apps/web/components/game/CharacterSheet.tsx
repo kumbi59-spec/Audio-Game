@@ -67,18 +67,17 @@ function StatBar({ label, value, max, color }: { label: string; value: number; m
   const pct = Math.round((Math.max(0, value) / Math.max(1, max)) * 100);
   return (
     <div>
-      <div className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-muted)" }}>
+      <div className="mb-1 flex justify-between text-xs text-muted">
         <span>{label}</span>
         <span className="font-mono tabular-nums">{value}/{max}</span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full"
+        className="h-2 w-full overflow-hidden rounded-full bg-surface-3"
         role="meter"
         aria-label={`${label}: ${value} of ${max}`}
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={max}
-        style={{ backgroundColor: "var(--surface3)" }}
       >
         <div
           className="h-full rounded-full transition-all duration-500"
@@ -92,13 +91,12 @@ function StatBar({ label, value, max, color }: { label: string; value: number; m
 function StatItem({ label, value }: { label: string; value: number }) {
   return (
     <div
-      className="rounded-lg px-3 py-2 text-center"
-      style={{ backgroundColor: "var(--surface2)" }}
+      className="rounded-lg px-3 py-2 text-center bg-surface-2"
     >
-      <div className="text-lg font-bold tabular-nums" style={{ color: "var(--text)" }}>
+      <div className="text-lg font-bold tabular-nums text-foreground">
         {value}
       </div>
-      <div className="text-xs uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>
+      <div className="text-xs uppercase tracking-wider text-subtle">
         {label}
       </div>
     </div>
@@ -157,25 +155,23 @@ function StatsTab({ character }: { character: CharacterData }) {
           {s.level}
         </div>
         <div className="flex-1">
-          <div className="mb-0.5 text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div className="mb-0.5 text-sm font-semibold text-foreground">
             {character.roleTitle ?? character.class.charAt(0).toUpperCase() + character.class.slice(1)}
           </div>
           {/* XP progress bar */}
           <div
-            className="mb-1 flex justify-between text-xs"
-            style={{ color: "var(--text-muted)" }}
+            className="mb-1 flex justify-between text-xs text-muted"
             aria-label={`Experience: ${s.experience} total, ${xpProgress} of ${xpNeeded} XP towards level ${s.level + 1}`}
           >
             <span>{s.experience} XP total</span>
             <span>{xpProgress}/{xpNeeded} to lv.{s.level + 1}</span>
           </div>
           <div
-            className="h-1.5 w-full overflow-hidden rounded-full"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
             role="meter"
             aria-valuenow={xpProgress}
             aria-valuemin={0}
             aria-valuemax={xpNeeded}
-            style={{ backgroundColor: "var(--surface3)" }}
           >
             <div
               className="h-full rounded-full transition-all duration-700"
@@ -208,7 +204,7 @@ function StatsTab({ character }: { character: CharacterData }) {
 
       {/* Core attributes */}
       <div>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle">
           Attributes
         </h3>
         <div className="grid grid-cols-4 gap-2">
@@ -221,7 +217,7 @@ function StatsTab({ character }: { character: CharacterData }) {
       {/* Extra custom stats (those without a matching Max key and not a Max key themselves) */}
       {customStatEntries.some(([k]) => !k.endsWith("Max") && character.customStats?.[k + "Max"] === undefined) && (
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle">
             Other
           </h3>
           <div className="grid grid-cols-3 gap-2">
@@ -241,7 +237,7 @@ function InventoryTab({ character }: { character: CharacterData }) {
   const inv = character.inventory;
   if (inv.length === 0) {
     return (
-      <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+      <p className="py-8 text-center text-sm text-muted">
         Your pack is empty.
       </p>
     );
@@ -262,8 +258,7 @@ function InventoryTab({ character }: { character: CharacterData }) {
       {sorted.map((cat) => (
         <div key={cat}>
           <h3
-            className="mb-1.5 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "var(--text-faint)" }}
+            className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-subtle"
           >
             {CATEGORY_ICONS[cat] ?? "📦"} {cat.charAt(0).toUpperCase() + cat.slice(1)}s
           </h3>
@@ -271,12 +266,11 @@ function InventoryTab({ character }: { character: CharacterData }) {
             {byCategory[cat]!.map((item) => (
               <li
                 key={item.id}
-                className="flex items-start gap-3 rounded-lg px-3 py-2.5"
-                style={{ backgroundColor: "var(--surface2)" }}
+                className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-surface-2"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                    <span className="text-sm font-semibold text-foreground">
                       {item.name}
                     </span>
                     {item.quantity > 1 && (
@@ -292,13 +286,13 @@ function InventoryTab({ character }: { character: CharacterData }) {
                     )}
                   </div>
                   {item.description && (
-                    <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                    <p className="mt-0.5 text-xs text-muted">
                       {item.description}
                     </p>
                   )}
                   {/* Extra properties from Game Bible */}
                   {Object.keys(item.properties).length > 0 && (
-                    <p className="mt-0.5 text-xs italic" style={{ color: "var(--text-faint)" }}>
+                    <p className="mt-0.5 text-xs italic text-subtle">
                       {Object.entries(item.properties)
                         .map(([k, v]) => `${k}: ${String(v)}`)
                         .join(" · ")}
@@ -321,7 +315,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
 
   if (character.quests.length === 0) {
     return (
-      <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+      <p className="py-8 text-center text-sm text-muted">
         No quests yet. Adventure awaits.
       </p>
     );
@@ -332,8 +326,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
     const total = quest.objectives.length;
     return (
       <li
-        className="rounded-lg p-3"
-        style={{ backgroundColor: "var(--surface2)" }}
+        className="rounded-lg p-3 bg-surface-2"
         aria-label={`${quest.title}: ${quest.status}`}
       >
         <div className="flex items-start gap-2">
@@ -342,7 +335,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+              <span className="text-sm font-semibold text-foreground">
                 {quest.title}
               </span>
               {total > 0 && quest.status === "active" && (
@@ -352,7 +345,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
               )}
             </div>
             {quest.description && (
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-0.5 text-xs text-muted">
                 {quest.description}
               </p>
             )}
@@ -369,7 +362,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
               </ul>
             )}
             {quest.reward && (
-              <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-faint)" }}>
+              <p className="mt-1.5 text-xs italic text-subtle">
                 Reward: {quest.reward}
               </p>
             )}
@@ -383,7 +376,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
     <div className="space-y-5">
       {active.length > 0 && (
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle">
             Active
           </h3>
           <ul className="space-y-2">
@@ -393,7 +386,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
       )}
       {completed.length > 0 && (
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle">
             Completed
           </h3>
           <ul className="space-y-2">
@@ -403,7 +396,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
       )}
       {failed.length > 0 && (
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle">
             Failed
           </h3>
           <ul className="space-y-2">
@@ -430,10 +423,10 @@ function BioTab({ character }: { character: CharacterData }) {
           {character.name.charAt(0).toUpperCase()}
         </div>
         <div>
-          <div className="text-lg font-bold" style={{ color: "var(--text)" }}>
+          <div className="text-lg font-bold text-foreground">
             {character.name}
           </div>
-          <div className="text-sm" style={{ color: "var(--text-muted)" }}>
+          <div className="text-sm text-muted">
             {character.roleTitle ?? character.class.charAt(0).toUpperCase() + character.class.slice(1)}
             {character.pronouns ? ` · ${character.pronouns}` : ""}
             {typeof character.age === "number" ? ` · Age ${character.age}` : ""}
@@ -443,10 +436,10 @@ function BioTab({ character }: { character: CharacterData }) {
 
       {character.shortDescription && (
         <div>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-widest text-subtle">
             Appearance
           </h3>
-          <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm leading-relaxed text-muted">
             {character.shortDescription}
           </p>
         </div>
@@ -454,10 +447,10 @@ function BioTab({ character }: { character: CharacterData }) {
 
       {character.backstory && (
         <div>
-          <h3 className="mb-1 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+          <h3 className="mb-1 text-xs font-semibold uppercase tracking-widest text-subtle">
             Backstory
           </h3>
-          <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+          <p className="text-sm leading-relaxed text-muted">
             {character.backstory}
           </p>
         </div>
@@ -471,7 +464,7 @@ function PeopleTab({ relationships }: { relationships: NpcRelationship[] }) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <span className="text-4xl opacity-20" aria-hidden="true">👥</span>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No NPCs encountered yet.</p>
+        <p className="text-sm text-muted">No NPCs encountered yet.</p>
       </div>
     );
   }
@@ -491,26 +484,25 @@ function PeopleTab({ relationships }: { relationships: NpcRelationship[] }) {
           r.standing >= -49 ? "var(--warning)" : "var(--danger)";
         const barWidth = `${Math.abs(r.standing)}%`;
         return (
-          <li key={r.npcId} className="rounded-lg border p-3" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
+          <li key={r.npcId} className="rounded-lg border p-3 border-border bg-surface-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold" style={{ color: "var(--text)" }}>{r.name}</span>
+              <span className="text-sm font-semibold text-foreground">{r.name}</span>
               <span className="shrink-0 text-xs font-semibold" style={{ color }}>
                 {label} ({r.standing >= 0 ? "+" : ""}{r.standing})
               </span>
             </div>
             <div
-              className="mt-2 h-1.5 w-full overflow-hidden rounded-full"
+              className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
               role="meter"
               aria-label={`${r.name} standing: ${r.standing}`}
               aria-valuenow={r.standing}
               aria-valuemin={-100}
               aria-valuemax={100}
-              style={{ backgroundColor: "var(--surface3)" }}
             >
               <div className="h-full rounded-full transition-all duration-500" style={{ width: barWidth, backgroundColor: color }} />
             </div>
-            {r.notes && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{r.notes}</p>}
-            <p className="mt-0.5 text-xs" style={{ color: "var(--text-faint)" }}>Last seen turn {r.lastSeenTurn}</p>
+            {r.notes && <p className="mt-1.5 text-xs italic text-muted">{r.notes}</p>}
+            <p className="mt-0.5 text-xs text-subtle">Last seen turn {r.lastSeenTurn}</p>
           </li>
         );
       })}
@@ -523,7 +515,7 @@ function LoreTab({ codex }: { codex: CodexEntry[] }) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <span className="text-4xl opacity-20" aria-hidden="true">📖</span>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No lore discovered yet.</p>
+        <p className="text-sm text-muted">No lore discovered yet.</p>
       </div>
     );
   }
@@ -531,12 +523,12 @@ function LoreTab({ codex }: { codex: CodexEntry[] }) {
   return (
     <ul className="space-y-3" aria-label="Discovered lore">
       {sorted.map((entry) => (
-        <li key={entry.key} className="rounded-lg border p-3" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
+        <li key={entry.key} className="rounded-lg border p-3 border-border bg-surface-2">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{entry.title}</p>
-            <span className="shrink-0 text-xs" style={{ color: "var(--text-faint)" }}>Turn {entry.unlockedAt}</span>
+            <p className="text-sm font-semibold text-foreground">{entry.title}</p>
+            <span className="shrink-0 text-xs text-subtle">Turn {entry.unlockedAt}</span>
           </div>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{entry.body}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">{entry.body}</p>
         </li>
       ))}
     </ul>
@@ -548,7 +540,7 @@ function AchievementsTab({ achievements }: { achievements: AchievementUnlock[] }
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <span className="text-4xl opacity-20" aria-hidden="true">🏆</span>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>No achievements yet. Keep adventuring!</p>
+        <p className="text-sm text-muted">No achievements yet. Keep adventuring!</p>
       </div>
     );
   }
@@ -557,14 +549,13 @@ function AchievementsTab({ achievements }: { achievements: AchievementUnlock[] }
       {achievements.map((a) => (
         <li
           key={a.key}
-          className="flex items-start gap-3 rounded-lg border p-3"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}
+          className="flex items-start gap-3 rounded-lg border p-3 border-border bg-surface-2"
         >
           <span className="mt-0.5 text-xl shrink-0" aria-hidden="true">🏆</span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{a.title}</p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{a.description}</p>
-            <p className="mt-0.5 text-xs" style={{ color: "var(--text-faint)" }}>Turn {a.unlockedAt}</p>
+            <p className="text-sm font-semibold text-foreground">{a.title}</p>
+            <p className="text-xs text-muted">{a.description}</p>
+            <p className="mt-0.5 text-xs text-subtle">Turn {a.unlockedAt}</p>
           </div>
         </li>
       ))}
@@ -686,20 +677,17 @@ export function CharacterSheet({
       >
         {/* Header */}
         <div
-          className="flex shrink-0 items-center gap-3 border-b px-4 py-3"
-          style={{ borderColor: "var(--border)" }}
+          className="flex shrink-0 items-center gap-3 border-b px-4 py-3 border-border"
         >
           {/* Mini HP bar in header */}
           <div
-            className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-mono"
-            style={{ backgroundColor: "var(--surface2)" }}
+            className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-mono bg-surface-2"
             aria-label={`HP: ${s.hp} of ${s.maxHp}`}
           >
             <span aria-hidden="true">❤️</span>
-            <span style={{ color: "var(--text)" }}>{s.hp}/{s.maxHp}</span>
+            <span className="text-foreground">{s.hp}/{s.maxHp}</span>
             <div
-              className="h-1.5 w-12 overflow-hidden rounded-full"
-              style={{ backgroundColor: "var(--surface3)" }}
+              className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-3"
               aria-hidden="true"
             >
               <div
@@ -714,12 +702,11 @@ export function CharacterSheet({
               id={headingId}
               ref={headingRef}
               tabIndex={-1}
-              className="truncate text-sm font-bold"
-              style={{ color: "var(--text)" }}
+              className="truncate text-sm font-bold text-foreground"
             >
               {character.name}
             </span>
-            <span className="ml-2 text-xs" style={{ color: "var(--text-muted)" }}>
+            <span className="ml-2 text-xs text-muted">
               Lv.{s.level} {character.roleTitle ?? character.class}
             </span>
           </div>
@@ -728,8 +715,7 @@ export function CharacterSheet({
             onClick={readSheetAloud}
             aria-label="Read character sheet aloud"
             title="Read aloud"
-            className="rounded-lg border px-2 py-1 text-xs hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            className="rounded-lg border px-2 py-1 text-xs hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-border text-muted"
           >
             🔊
           </button>
@@ -738,8 +724,7 @@ export function CharacterSheet({
             ref={closeRef}
             onClick={onClose}
             aria-label="Close character sheet (C or Escape)"
-            className="rounded-lg border px-2.5 py-1 text-xs font-semibold hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            className="rounded-lg border px-2.5 py-1 text-xs font-semibold hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-border text-muted"
           >
             ✕
           </button>
@@ -747,10 +732,9 @@ export function CharacterSheet({
 
         {/* Tab bar */}
         <div
-          className="flex shrink-0 gap-1 border-b px-4 py-2"
+          className="flex shrink-0 gap-1 border-b px-4 py-2 border-border"
           role="tablist"
           aria-label="Character sheet sections"
-          style={{ borderColor: "var(--border)" }}
         >
           {(["stats", "inventory", "quests", "bio", "achievements", "people", "lore"] as Tab[]).map((t) => (
             <button
@@ -805,8 +789,7 @@ export function CharacterSheet({
 
         {/* Footer hint */}
         <div
-          className="shrink-0 border-t px-4 py-2 text-center text-xs"
-          style={{ borderColor: "var(--border)", color: "var(--text-faint)" }}
+          className="shrink-0 border-t px-4 py-2 text-center text-xs border-border text-subtle"
         >
           <kbd>C</kbd> toggle · <kbd>Esc</kbd> close · <kbd>🔊</kbd> read aloud
         </div>

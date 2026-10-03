@@ -35,7 +35,7 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
       className="h-full"
     >
       {entries.length === 0 && (
-        <p className="italic" style={{ color: "var(--text-muted)" }}>
+        <p className="italic text-muted">
           Your adventure awaits. Make a choice below to begin.
         </p>
       )}
@@ -80,16 +80,15 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
         <div
           role="status"
           aria-label="Game Master is responding"
-          className="flex items-center gap-2 text-sm"
-          style={{ color: "var(--text-muted)" }}
+          className="flex items-center gap-2 text-sm text-muted"
         >
           <span
             aria-hidden="true"
             className="inline-flex gap-1"
           >
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.3s]" style={{ backgroundColor: "var(--accent-solid)" }} />
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.15s]" style={{ backgroundColor: "var(--accent-solid)" }} />
-            <span className="h-2 w-2 animate-bounce-subtle rounded-full" style={{ backgroundColor: "var(--accent-solid)" }} />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.3s] bg-accent-solid" />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full [animation-delay:-0.15s] bg-accent-solid" />
+            <span className="h-2 w-2 animate-bounce-subtle rounded-full bg-accent-solid" />
           </span>
           <span>The Game Master is narrating…</span>
         </div>

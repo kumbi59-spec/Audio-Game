@@ -17,5 +17,5 @@ const pages = [
 ];
 
 export default function SeoIndexPage() {
-  return <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}><SiteHeader /><main id="main-content" className="mx-auto max-w-3xl px-6 py-10"><h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>Accessible Audio RPG Guides</h1><ul className="mt-6 space-y-3">{pages.map((page) => <li key={page.href}><Link className="hover:underline" style={{ color: "var(--accent)" }} href={page.href}>{page.label}</Link></li>)}</ul></main></div>;
+  return <div className="min-h-screen bg-bg"><SiteHeader /><main id="main-content" className="mx-auto max-w-3xl px-6 py-10"><h1 className="text-3xl font-bold text-foreground">Accessible Audio RPG Guides</h1><ul className="mt-6 space-y-3">{pages.map((page) => <li key={page.href}><Link className="hover:underline text-accent" href={page.href}>{page.label}</Link></li>)}</ul></main></div>;
 }

@@ -116,7 +116,7 @@ export default async function RootLayout({
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: displayModesBootScript(A11Y_STORAGE_KEY) }} />
       </head>
-      <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
+      <body className="min-h-screen antialiased bg-bg text-foreground">
         <ThemeApplier />
         {ADSENSE_ENABLED && (
           <Script

@@ -707,7 +707,7 @@ export function GameShell() {
             <Link
               href="/library"
               aria-label="Exit game and return to library"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
+              className="inline-flex items-center justify-center toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
             >
               ← Exit
             </Link>

@@ -153,10 +153,10 @@ export default async function BlogPostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
-      <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+      <div className="min-h-screen bg-bg">
         <SiteHeader />
         {post.coverImageUrl && (
-          <div className="border-b" style={{ borderColor: "var(--border)" }}>
+          <div className="border-b border-border">
             {/* Capped in width so the title stays above the fold. */}
             {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
             <img
@@ -168,11 +168,11 @@ export default async function BlogPostPage({ params }: Props) {
             />
           </div>
         )}
-        <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
+        <header className="border-b px-6 py-10 border-border">
           <div className="mx-auto max-w-3xl">
-            <Link href="/blog" className="mb-4 inline-block text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← All posts</Link>
-            <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>{post.title}</h1>
-            <div className="mt-3 flex items-center gap-3 text-sm" style={{ color: "var(--text-muted)" }}>
+            <Link href="/blog" className="mb-4 inline-block text-sm hover:underline text-muted">← All posts</Link>
+            <h1 className="text-3xl font-bold text-foreground">{post.title}</h1>
+            <div className="mt-3 flex items-center gap-3 text-sm text-muted">
               <time dateTime={post.publishedAt.toISOString()}>
                 {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
               </time>
@@ -223,8 +223,8 @@ export default async function BlogPostPage({ params }: Props) {
               <AdBanner fallback={displayAt === "end" ? "display" : "none"} />
             </div>
           </article>
-          <div className="mt-12 border-t pt-8" style={{ borderColor: "var(--border)" }}>
-            <Link href="/blog" className="text-sm font-semibold hover:underline" style={{ color: "var(--accent)" }}>← Back to all posts</Link>
+          <div className="mt-12 border-t pt-8 border-border">
+            <Link href="/blog" className="text-sm font-semibold hover:underline text-accent">← Back to all posts</Link>
           </div>
         </main>
       </div>

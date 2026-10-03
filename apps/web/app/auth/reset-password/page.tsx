@@ -19,10 +19,10 @@ function ResetPasswordForm() {
 
   if (!token || !email) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+      <div className="flex min-h-screen items-center justify-center bg-bg">
         <main id="main-content" className="w-full max-w-sm px-6">
           <p className="text-sm" style={{ color: "var(--danger, #ef4444)" }}>Invalid reset link.</p>
-          <Link href="/auth/forgot-password" className="mt-4 inline-block text-sm underline" style={{ color: "var(--accent)" }}>
+          <Link href="/auth/forgot-password" className="mt-4 inline-block text-sm underline text-accent">
             Request a new one
           </Link>
         </main>
@@ -58,25 +58,25 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+      <div className="flex min-h-screen items-center justify-center bg-bg">
         <main id="main-content" className="w-full max-w-sm px-6 text-center">
-          <p className="text-lg font-semibold" style={{ color: "var(--text)" }}>Password updated!</p>
-          <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>Redirecting to sign in…</p>
+          <p className="text-lg font-semibold text-foreground">Password updated!</p>
+          <p className="mt-2 text-sm text-muted">Redirecting to sign in…</p>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="flex min-h-screen items-center justify-center bg-bg">
       <main id="main-content" className="w-full max-w-sm px-6">
-        <h1 className="mb-2 text-2xl font-bold" style={{ color: "var(--text)" }}>Choose a new password</h1>
-        <p className="mb-6 text-sm" style={{ color: "var(--text-muted)" }}>
-          Resetting password for <strong style={{ color: "var(--text)" }}>{email}</strong>
+        <h1 className="mb-2 text-2xl font-bold text-foreground">Choose a new password</h1>
+        <p className="mb-6 text-sm text-muted">
+          Resetting password for <strong className="text-foreground">{email}</strong>
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="new-password" className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="new-password" className="mb-1 block text-sm font-medium text-muted">
               New password
             </label>
             <div className="relative">
@@ -89,23 +89,21 @@ function ResetPasswordForm() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
-                className="w-full rounded-lg border px-4 py-3 pr-12 text-sm"
-                style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)", color: "var(--text)" }}
+                className="w-full rounded-lg border px-4 py-3 pr-12 text-sm border-border bg-surface-2 text-foreground"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm hover:opacity-80"
-                style={{ color: "var(--text-muted)" }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm hover:opacity-80 text-muted"
               >
                 {showPassword ? "Hide" : "Reveal"}
               </button>
             </div>
-            <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>At least 8 characters.</p>
+            <p className="mt-1 text-xs text-muted">At least 8 characters.</p>
           </div>
           <div>
-            <label htmlFor="confirm-password" className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="confirm-password" className="mb-1 block text-sm font-medium text-muted">
               Confirm password
             </label>
             <input
@@ -117,8 +115,7 @@ function ResetPasswordForm() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               autoComplete="new-password"
-              className="w-full rounded-lg border px-4 py-3 text-sm"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)", color: "var(--text)" }}
+              className="w-full rounded-lg border px-4 py-3 text-sm border-border bg-surface-2 text-foreground"
             />
           </div>
           {error && (
@@ -129,8 +126,7 @@ function ResetPasswordForm() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-lg py-3 text-sm font-semibold disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+            className="w-full rounded-lg py-3 text-sm font-semibold disabled:opacity-50 bg-accent-solid text-on-accent"
           >
             {busy ? "Saving…" : "Set new password"}
           </button>

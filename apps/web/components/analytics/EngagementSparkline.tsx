@@ -83,11 +83,10 @@ export function EngagementSparkline({
         />
       </svg>
       <figcaption
-        className="mt-1 flex items-center justify-between text-xs"
-        style={{ color: "var(--text-muted)" }}
+        className="mt-1 flex items-center justify-between text-xs text-muted"
       >
         <span aria-hidden="true">
-          <span style={{ color: "var(--accent)" }}>━</span> sessions started
+          <span className="text-accent">━</span> sessions started
           {" · "}
           <span>━</span> player turns
         </span>

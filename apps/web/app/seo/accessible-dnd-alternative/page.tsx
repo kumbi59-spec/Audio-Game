@@ -35,17 +35,17 @@ const breadcrumbJsonLd = {
 
 export default function Page() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
-        <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-3xl font-bold text-foreground">
           Accessible D&amp;D alternative
         </h1>
-        <p className="mt-4 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-4 text-base text-muted">
           D&amp;D is built around a battle map, a Dungeon Master, and a table of friends
           who can read minis on a grid. That&rsquo;s a high accessibility bar: no GM, no
           game; can&rsquo;t see the map, can&rsquo;t play. EchoQuest is designed for the
@@ -54,10 +54,10 @@ export default function Page() {
           dependency.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           What you get instead of a battle map
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           Combat, exploration, and social encounters are described aloud by an AI Game
           Master powered by Claude. You respond in plain language &mdash; &ldquo;I draw
           my sword and step in front of the priest&rdquo; &mdash; and the GM resolves it
@@ -66,20 +66,20 @@ export default function Page() {
           just narrated, not rendered.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           What you don&rsquo;t need
         </h2>
-        <ul className="mt-3 list-disc space-y-2 pl-6 text-base" style={{ color: "var(--text-muted)" }}>
+        <ul className="mt-3 list-disc space-y-2 pl-6 text-base text-muted">
           <li>A scheduled session or four other players who all show up.</li>
           <li>A printed rulebook or an experienced DM in the room.</li>
           <li>Vision &mdash; the entire experience is narrated and keyboard-driven.</li>
           <li>A fast computer &mdash; it runs in any modern browser, including on mobile.</li>
         </ul>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           When EchoQuest isn&rsquo;t the right fit
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           If what you love about D&amp;D is the voice acting around a table, the
           friend-time, or the tactile satisfaction of rolling dice in front of people,
           EchoQuest doesn&rsquo;t replace that. It&rsquo;s for the half of tabletop play
@@ -87,10 +87,10 @@ export default function Page() {
           fully accessible.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           Bring your own world
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           On the Storyteller tier and above, you can upload a PDF of your own setting,
           rules, or campaign notes and start playing it immediately. The AI Game Master
           uses your document as its source of truth, so house rules and homebrew worlds
@@ -98,10 +98,10 @@ export default function Page() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/campaigns" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+          <Link href="/campaigns" className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-accent-solid text-on-accent">
             Explore official campaigns
           </Link>
-          <Link href="/library" className="rounded-lg border px-4 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)", color: "var(--text)" }}>
+          <Link href="/library" className="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-semibold border-border text-foreground">
             Open the adventure library
           </Link>
         </div>

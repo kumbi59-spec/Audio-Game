@@ -35,17 +35,15 @@ declare global {
 function HouseAd() {
   return (
     <div
-      className="flex items-center justify-between gap-4 px-4 py-2 text-xs"
-      style={{ backgroundColor: "var(--surface)", borderTop: "1px solid var(--border)" }}
+      className="flex items-center justify-between gap-4 px-4 py-2 text-xs bg-surface border-t border-border"
       aria-label="Advertisement — upgrade to remove ads"
     >
-      <span style={{ color: "var(--text-muted)" }}>
+      <span className="text-muted">
         Playing free — ads keep EchoQuest running.
       </span>
       <Link
         href="/account"
-        className="rounded px-2 py-1 text-xs font-semibold hover:opacity-90"
-        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+        className="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-semibold hover:opacity-90 bg-accent-solid text-on-accent"
       >
         Upgrade to remove ads
       </Link>

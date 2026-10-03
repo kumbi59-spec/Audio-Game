@@ -188,13 +188,12 @@ export default function MyWorldsPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <header className="px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--text)" }}
+            className="text-2xl font-bold text-foreground"
             tabIndex={-1}
             data-focus-on-mount
           >
@@ -203,30 +202,28 @@ export default function MyWorldsPage() {
           {can.worldWizard && (
             <Link
               href="/worlds/new"
-              className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
             >
               + Create New World
             </Link>
           )}
         </div>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Manage your uploaded worlds, play them privately, and publish them to the community.
         </p>
       </header>
 
       <main id="main-content" className="mx-auto max-w-2xl px-6 pb-16">
         {loading ? (
-          <p className="text-sm" style={{ color: "var(--text-muted)" }}>Loading your worlds…</p>
+          <p className="text-sm text-muted">Loading your worlds…</p>
         ) : worlds.length === 0 ? (
           <div className="py-12 text-center">
-            <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-4 text-sm text-muted">
               You haven&apos;t uploaded any worlds yet.
             </p>
             <Link
               href="/worlds/new/upload"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
             >
               Upload a World
             </Link>
@@ -236,14 +233,10 @@ export default function MyWorldsPage() {
             {worlds.map((world) => (
               <li key={world.id}>
                 <article
-                  className="rounded-xl border p-6"
-                  style={{
-                    borderColor: "var(--border)",
-                    backgroundColor: "var(--surface)",
-                  }}
+                  className="rounded-xl border p-6 border-border bg-surface"
                 >
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                    <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
+                    <h2 className="text-lg font-semibold text-foreground">
                       {world.name}
                     </h2>
                     <span
@@ -258,7 +251,7 @@ export default function MyWorldsPage() {
                       {world.isPublic ? "Published" : "Private"}
                     </span>
                   </div>
-                  <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+                  <p className="mb-4 text-sm text-muted">
                     {world.description}
                   </p>
 
@@ -270,20 +263,20 @@ export default function MyWorldsPage() {
                         aria-label="World analytics"
                       >
                         <div>
-                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Sessions</dt>
-                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          <dt className="text-xs text-muted">Sessions</dt>
+                          <dd className="text-lg font-bold text-foreground">
                             {world.analytics.sessionCount}
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Turns</dt>
-                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          <dt className="text-xs text-muted">Turns</dt>
+                          <dd className="text-lg font-bold text-foreground">
                             {world.analytics.totalTurns}
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-xs" style={{ color: "var(--text-muted)" }}>Players</dt>
-                          <dd className="text-lg font-bold" style={{ color: "var(--text)" }}>
+                          <dt className="text-xs text-muted">Players</dt>
+                          <dd className="text-lg font-bold text-foreground">
                             {world.analytics.uniquePlayers}
                           </dd>
                         </div>
@@ -301,8 +294,7 @@ export default function MyWorldsPage() {
                           <button
                             type="button"
                             onClick={loadTrends}
-                            className="mb-4 w-full rounded-lg border py-2 text-xs font-medium transition-opacity hover:opacity-80"
-                            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                            className="mb-4 w-full rounded-lg border py-2 text-xs font-medium transition-opacity hover:opacity-80 border-border text-muted"
                             aria-label={`Show 30-day engagement trend for ${world.name}`}
                           >
                             {trendsLoading ? "Loading trend…" : "Show 30-day engagement trend"}
@@ -318,12 +310,7 @@ export default function MyWorldsPage() {
                         type="button"
                         onClick={() => router.push("/play")}
                         aria-label={`Resume your active session in ${world.name}`}
-                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-                        style={{
-                          borderColor: "var(--accent)",
-                          backgroundColor: "var(--accent-solid)",
-                          color: "var(--on-accent)",
-                        }}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 border-accent bg-accent-solid text-on-accent"
                       >
                         Resume Session →
                       </button>
@@ -365,8 +352,7 @@ export default function MyWorldsPage() {
                         <button
                           disabled
                           aria-disabled="true"
-                          className="w-full cursor-not-allowed rounded-lg border py-3 text-sm font-semibold opacity-40"
-                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                          className="w-full cursor-not-allowed rounded-lg border py-3 text-sm font-semibold opacity-40 border-border text-muted"
                         >
                           {world.isPublic ? "Unpublish" : "Publish"}
                         </button>
@@ -382,8 +368,7 @@ export default function MyWorldsPage() {
                         onClick={() => handleReparse(world)}
                         disabled={reparsing === world.id}
                         aria-label={`Re-analyse game bible for ${world.name}`}
-                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                        style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                        className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 border-border text-muted"
                       >
                         {reparsing === world.id
                           ? "Re-analysing… (up to 30s)"
@@ -394,7 +379,7 @@ export default function MyWorldsPage() {
                           : "Re-analyse Game Bible"}
                       </button>
                       {reparseResult[world.id]?.ok && reparseResult[world.id]!.classCount === 0 && (
-                        <p className="text-center text-xs" style={{ color: "var(--text-muted)" }}>
+                        <p className="text-center text-xs text-muted">
                           No classes defined in your bible — character creation will stay classless (or use a custom role title) to match your world rules.
                         </p>
                       )}
@@ -407,8 +392,7 @@ export default function MyWorldsPage() {
                           onClick={() => handleGenerateCover(world)}
                           disabled={generatingCover === world.id}
                           aria-label={`Generate AI cover image for ${world.name}`}
-                          className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                          className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 border-border text-muted"
                         >
                           {generatingCover === world.id
                             ? "Generating cover… (up to 30s)"
@@ -442,8 +426,7 @@ export default function MyWorldsPage() {
                           type="button"
                           onClick={() => setConfirmDeleteId(null)}
                           aria-label="Cancel delete"
-                          className="flex-1 rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-80"
-                          style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                          className="flex-1 rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-80 border-border text-muted"
                         >
                           Cancel
                         </button>
@@ -482,8 +465,7 @@ export default function MyWorldsPage() {
           <div className="mt-8 text-center">
             <Link
               href="/worlds/new"
-              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
             >
               + Create Another World
             </Link>

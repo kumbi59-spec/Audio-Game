@@ -35,17 +35,17 @@ const breadcrumbJsonLd = {
 
 export default function Page() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
-        <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-3xl font-bold text-foreground">
           AI text adventure with voice
         </h1>
-        <p className="mt-4 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-4 text-base text-muted">
           EchoQuest turns the &ldquo;text adventure&rdquo; format inside out: instead of
           typing <code>&gt; LOOK NORTH</code> into a parser, you speak (or type) what
           your character does in plain language. The AI Game Master narrates the
@@ -53,20 +53,20 @@ export default function Page() {
           remembers what you did.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           How the voice loop works
         </h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-6 text-base" style={{ color: "var(--text-muted)" }}>
+        <ol className="mt-3 list-decimal space-y-2 pl-6 text-base text-muted">
           <li>The GM narrates the current scene through the browser&rsquo;s speech engine (or ElevenLabs on paid tiers).</li>
           <li>You speak your action when narration ends &mdash; &ldquo;I check the door for traps before I open it.&rdquo;</li>
           <li>EchoQuest transcribes your speech, sends it to the AI GM with the scene context, and reads the response back.</li>
           <li>You can interrupt, repeat the last line, or fall back to the keyboard at any moment.</li>
         </ol>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           Why this is different from a chatbot
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           Chatbots forget. Text adventures track inventory, location, NPC relationships,
           and consequence. EchoQuest&rsquo;s GM engine maintains a structured world state
           so the dragon you killed in act one stays dead, the gold you spent stays spent,
@@ -74,10 +74,10 @@ export default function Page() {
           interface sits on top of that engine &mdash; not on top of a free-form chat.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           Hands-free, eyes-free
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           Because both input and output are audio-native, you can play while cooking,
           driving (use carefully &mdash; the GM <em>will</em> stop and wait for you),
           walking, or recovering from screen fatigue. The accessibility design is the
@@ -85,20 +85,20 @@ export default function Page() {
           hear; anything you can say, the parser can understand.
         </p>
 
-        <h2 className="mt-10 text-2xl font-semibold" style={{ color: "var(--text)" }}>
+        <h2 className="mt-10 text-2xl font-semibold text-foreground">
           Bring your own setting
         </h2>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           On the Storyteller tier, upload a PDF of your own setting and the GM will
           use it as its source of truth. Solo writers use this to play inside their own
           drafts; GMs use it to test homebrew before running it for a table.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/library" className="rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+          <Link href="/library" className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-accent-solid text-on-accent">
             Start free in the library
           </Link>
-          <Link href="/campaigns" className="rounded-lg border px-4 py-2 text-sm font-semibold" style={{ borderColor: "var(--border)", color: "var(--text)" }}>
+          <Link href="/campaigns" className="inline-flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-semibold border-border text-foreground">
             Read a sample transcript
           </Link>
         </div>

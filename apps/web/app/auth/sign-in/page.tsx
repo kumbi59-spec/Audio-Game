@@ -79,14 +79,14 @@ function SignInForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="flex min-h-screen items-center justify-center bg-bg">
       <main id="main-content" className="w-full max-w-sm px-6">
-        <h1 className="mb-6 text-2xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="mb-6 text-2xl font-bold text-foreground">
           {mode === "signin" ? "Sign in" : "Create account"}
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-muted">
               Email
             </label>
             <input
@@ -97,14 +97,13 @@ function SignInForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              className="w-full rounded-lg border px-4 py-3 text-sm"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)", color: "var(--text)" }}
+              className="w-full rounded-lg border px-4 py-3 text-sm border-border bg-surface-2 text-foreground"
             />
           </div>
 
           {mode === "signup" && (
             <div>
-              <label htmlFor="display-name" className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+              <label htmlFor="display-name" className="mb-1 block text-sm font-medium text-muted">
                 Display name
               </label>
               <div className="flex gap-2">
@@ -118,28 +117,26 @@ function SignInForm() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="nickname"
-                  className="w-full rounded-lg border px-4 py-3 text-sm"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)", color: "var(--text)" }}
+                  className="w-full rounded-lg border px-4 py-3 text-sm border-border bg-surface-2 text-foreground"
                 />
                 <button
                   type="button"
                   onClick={() => setName(randomName())}
                   title="Generate a random adventurer name"
                   aria-label="Generate random name"
-                  className="flex-shrink-0 rounded-lg border px-3 py-3 text-lg hover:opacity-80"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}
+                  className="flex-shrink-0 rounded-lg border px-3 py-3 text-lg hover:opacity-80 border-border bg-surface-2"
                 >
                   🎲
                 </button>
               </div>
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-1 text-xs text-muted">
                 This is how you&apos;ll appear to other players.
               </p>
             </div>
           )}
 
           <div>
-            <label htmlFor="password" className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-muted">
               Password
             </label>
             <div className="relative">
@@ -152,26 +149,24 @@ function SignInForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                className="w-full rounded-lg border px-4 py-3 pr-12 text-sm"
-                style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)", color: "var(--text)" }}
+                className="w-full rounded-lg border px-4 py-3 pr-12 text-sm border-border bg-surface-2 text-foreground"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm hover:opacity-80"
-                style={{ color: "var(--text-muted)" }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm hover:opacity-80 text-muted"
               >
                 {showPassword ? "Hide" : "Reveal"}
               </button>
             </div>
             {mode === "signup" ? (
-              <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="mt-1 text-xs text-muted">
                 At least 8 characters.
               </p>
             ) : (
               <div className="mt-1 text-right">
-                <Link href="/auth/forgot-password" className="text-xs hover:underline" style={{ color: "var(--text-muted)" }}>
+                <Link href="/auth/forgot-password" className="text-xs hover:underline text-muted">
                   Forgot password?
                 </Link>
               </div>
@@ -186,13 +181,12 @@ function SignInForm() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-lg py-3 text-sm font-semibold disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+            className="w-full rounded-lg py-3 text-sm font-semibold disabled:opacity-50 bg-accent-solid text-on-accent"
           >
             {busy ? "…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>
         </form>
-        <div className="mt-4 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+        <div className="mt-4 text-center text-sm text-muted">
           {mode === "signin" ? (
             <button onClick={() => setMode("signup")} className="underline">
               New here? Create an account
