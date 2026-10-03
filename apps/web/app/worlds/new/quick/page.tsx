@@ -105,11 +105,10 @@ export default function QuickBuildPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <a
-        href="#quick-main"
-        className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
-        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+        href="#main-content"
+        className="inline-flex items-center justify-center sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold bg-accent-solid text-on-accent"
       >
         Skip to form
       </a>
@@ -118,32 +117,30 @@ export default function QuickBuildPage() {
       <header className="px-6 py-6">
         <Link
           href="/worlds/new"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
+          className="mb-4 inline-block text-sm hover:underline text-muted"
           aria-label="Back to world creation options"
         >
           ← Back
         </Link>
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-2xl font-bold text-foreground">
           Quick Build
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Answer 4 questions — Claude fills in everything else automatically.
         </p>
       </header>
 
-      <main id="quick-main" className="mx-auto max-w-xl px-6 pb-20">
+      <main id="main-content" className="mx-auto max-w-xl px-6 pb-20">
         <form onSubmit={(e) => void handleSubmit(e)} noValidate className="space-y-6">
 
           {/* 1. World name */}
           <div>
             <label
               htmlFor="world-title"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               1. What is the name of your world?
-              <span aria-hidden="true" className="ml-1" style={{ color: "var(--danger)" }}>*</span>
+              <span aria-hidden="true" className="ml-1 text-danger">*</span>
             </label>
             <input
               id="world-title"
@@ -155,12 +152,7 @@ export default function QuickBuildPage() {
               onChange={(e) => setTitle(e.target.value)}
               disabled={busy}
               placeholder="e.g. The Shattered Realm"
-              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
-              style={{
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface2)",
-                color: "var(--text)",
-              }}
+              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
             />
           </div>
 
@@ -168,11 +160,10 @@ export default function QuickBuildPage() {
           <div>
             <label
               htmlFor="world-genre"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               2. What genre is it?
-              <span aria-hidden="true" className="ml-1" style={{ color: "var(--danger)" }}>*</span>
+              <span aria-hidden="true" className="ml-1 text-danger">*</span>
             </label>
             <select
               id="world-genre"
@@ -181,7 +172,7 @@ export default function QuickBuildPage() {
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               disabled={busy}
-              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",
@@ -201,12 +192,7 @@ export default function QuickBuildPage() {
                 onChange={(e) => setCustomGenre(e.target.value)}
                 disabled={busy}
                 placeholder="Describe your genre…"
-                className="mt-2 w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
-                style={{
-                  borderColor: "var(--border)",
-                  backgroundColor: "var(--surface2)",
-                  color: "var(--text)",
-                }}
+                className="mt-2 w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
               />
             )}
           </div>
@@ -215,13 +201,12 @@ export default function QuickBuildPage() {
           <div>
             <label
               htmlFor="world-pitch"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               3. Describe your world in one sentence.
-              <span aria-hidden="true" className="ml-1" style={{ color: "var(--danger)" }}>*</span>
+              <span aria-hidden="true" className="ml-1 text-danger">*</span>
             </label>
-            <p className="mb-2 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-2 text-xs text-muted">
               What is the core hook? Imagine telling a friend in one line.
             </p>
             <textarea
@@ -233,12 +218,7 @@ export default function QuickBuildPage() {
               disabled={busy}
               placeholder="e.g. A dying empire where magic is outlawed and rebels speak in whispers."
               rows={3}
-              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
-              style={{
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface2)",
-                color: "var(--text)",
-              }}
+              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
             />
           </div>
 
@@ -246,13 +226,12 @@ export default function QuickBuildPage() {
           <div>
             <label
               htmlFor="world-opening"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               4. Where does the story begin?
-              <span aria-hidden="true" className="ml-1" style={{ color: "var(--danger)" }}>*</span>
+              <span aria-hidden="true" className="ml-1 text-danger">*</span>
             </label>
-            <p className="mb-2 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-2 text-xs text-muted">
               Set the scene — the very first moment the player steps into your world.
             </p>
             <textarea
@@ -264,12 +243,7 @@ export default function QuickBuildPage() {
               disabled={busy}
               placeholder="e.g. You wake in a burnt-out village, smoke still rising, clutching a letter you don't remember writing."
               rows={3}
-              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
-              style={{
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface2)",
-                color: "var(--text)",
-              }}
+              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
             />
           </div>
 
@@ -277,12 +251,11 @@ export default function QuickBuildPage() {
           <div>
             <label
               htmlFor="cover-url"
-              className="mb-1.5 block text-sm font-semibold"
-              style={{ color: "var(--text)" }}
+              className="mb-1.5 block text-sm font-semibold text-foreground"
             >
               Cover image <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>(optional)</span>
             </label>
-            <p className="mb-2 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-2 text-xs text-muted">
               Paste a public image URL. Leave blank and one is generated automatically.
             </p>
             <input
@@ -292,12 +265,7 @@ export default function QuickBuildPage() {
               onChange={(e) => setImageUrl(e.target.value)}
               disabled={busy}
               placeholder="https://example.com/cover.jpg"
-              className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2"
-              style={{
-                borderColor: "var(--border)",
-                backgroundColor: "var(--surface2)",
-                color: "var(--text)",
-              }}
+              className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
             />
             {imageUrl.trim() && (
               <div className="mt-3 overflow-hidden rounded-lg" style={{ maxHeight: 160 }}>
@@ -317,8 +285,7 @@ export default function QuickBuildPage() {
             <p
               role="alert"
               aria-live="assertive"
-              className="text-sm font-semibold"
-              style={{ color: "var(--danger)" }}
+              className="text-sm font-semibold text-danger"
             >
               {error}
             </p>
@@ -330,8 +297,7 @@ export default function QuickBuildPage() {
               type="submit"
               disabled={busy}
               aria-busy={busy}
-              className="w-full rounded-xl py-3.5 text-base font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="w-full rounded-xl py-3.5 text-base font-semibold transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed bg-accent-solid text-on-accent"
             >
               {busy ? (
                 <span className="flex items-center justify-center gap-2">
@@ -345,7 +311,7 @@ export default function QuickBuildPage() {
                 "Build My World →"
               )}
             </button>
-            <p className="mt-2 text-center text-xs" style={{ color: "var(--text-faint)" }}>
+            <p className="mt-2 text-center text-xs text-subtle">
               Claude fills in setting, tone, rules, and more — takes about 10 seconds.
             </p>
           </div>

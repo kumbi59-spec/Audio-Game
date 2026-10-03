@@ -93,7 +93,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           onClick={stopSpeech}
           aria-label="Stop narration"
           disabled={!speaking && !paused}
-          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           ⏹ Stop
         </button>
@@ -102,7 +102,7 @@ export function AudioControls({ onReplayLast, id = "audio-controls", disableRepl
           onClick={onReplayLast}
           aria-label="Replay last narration (R)"
           disabled={disableReplay || speaking}
-          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="audio-control-btn rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           🔁 Replay
         </button>

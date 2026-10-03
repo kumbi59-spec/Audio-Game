@@ -127,6 +127,8 @@ export interface NarrationEntry {
   text: string;
   type: "narration" | "player_action" | "system" | "recap";
   timestamp: Date;
+  /** A system message about the GM falling back to a safe turn. */
+  degraded?: boolean;
 }
 
 export interface InMemorySession {

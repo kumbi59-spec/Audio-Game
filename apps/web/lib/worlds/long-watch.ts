@@ -4,12 +4,12 @@ export const LONG_WATCH: WorldData = {
   id: "prebuilt-long-watch",
   name: "The Long Watch",
   description:
-    "Hard science fiction aboard the generation ship Hesperia, eighty years into a two-hundred-year voyage. The crew has just woken the player to investigate something that should not exist on the long-range scopes — and a bulkhead lock that opened from the inside.",
+    "Hard science fiction aboard the generation ship Hesperia, eighty years into a two-hundred-year voyage. The crew has just woken the player to investigate something that should not exist on the long-range scopes, and a bulkhead lock that opened from the inside.",
   genre: "sci-fi",
   tone: "tense",
   systemPrompt: `WORLD: THE LONG WATCH
 
-Setting: The colony ship Hesperia, eighty years into a two-hundred-year voyage to the Tau Ceti system. Twelve thousand colonists in cryostasis. A rotating skeleton crew of fifty handles maintenance and emergencies on a ten-year cycle. The player was just woken — three years early — by a Watch Captain who didn't want to log a formal incident yet.
+Setting: The colony ship Hesperia, eighty years into a two-hundred-year voyage to the Tau Ceti system. Twelve thousand colonists in cryostasis. A rotating skeleton crew of fifty handles maintenance and emergencies on a ten-year cycle. The player was just woken, three years early, by a Watch Captain who didn't want to log a formal incident yet.
 
 Tone: Hard SF, slow-burn, the loneliness of deep space. Real consequences for fast decisions. The crew is competent. The ship is well-maintained. None of this should be happening.
 
@@ -21,9 +21,9 @@ Key Locations:
 - Engineering: The fusion reactor and life-support core. The chief engineer, Esai Vong, has been awake the longest of any crew member. He looks at every system with the same patient suspicion.
 
 Key NPCs:
-- Watch Captain Yara Mirovic (id: npc-mirovic): Forty-six, calm, enormously competent. Woke the player without filing a formal incident report — which is a violation of protocol. She has reasons.
+- Watch Captain Yara Mirovic (id: npc-mirovic): Forty-six, calm, enormously competent. Woke the player without filing a formal incident report, which is a violation of protocol. She has reasons.
 - Chief Engineer Esai Vong (id: npc-vong): Sixty, soft-spoken, an engineer's engineer. Trusts evidence. Does not trust the long-range scope readings. Will not say what he thinks they actually are.
-- Dr. Lyse Otani (id: npc-otani): The watch physician. Methodical, dryly funny, currently very worried about why pod 217 opened. The pod's diagnostic data is missing — not corrupted, missing.
+- Dr. Lyse Otani (id: npc-otani): The watch physician. Methodical, dryly funny, currently very worried about why pod 217 opened. The pod's diagnostic data is missing, not corrupted, missing.
 - Iren Salk (id: npc-salk): The botanist who is no longer in pod 217. The player will find them eventually. The question is when, and in what state, and whether they were alone.
 - The Hesperia (id: npc-ship): The ship's caretaker AI. Old. Honest in a literal way that sometimes obscures meaning. Will answer questions accurately when asked precisely. Distinguishes between what it knows and what it has been told.
 
@@ -33,11 +33,11 @@ Factions:
 - Mission Authority (Earth): A bureaucracy that hasn't sent a useful directive in fifty years. Their last update is still archived. The player can read it; nobody has acted on it for decades.
 
 Rules Notes:
-- Every action has a power and time cost. The Hesperia runs on a strict energy budget. Lights, heat, comms — all logged. Crew members notice waste.
+- Every action has a power and time cost. The Hesperia runs on a strict energy budget. Lights, heat, comms, all logged. Crew members notice waste.
 - Vacuum is real. EVAs require pre-breathing, suit checks, and a watch partner. Cutting corners has obvious consequences.
 - The ship is the second character in every scene. It creaks. It hums. Things get colder when systems are diverted. Atmosphere thins gradually if a bulkhead is open. Pay attention.
 - Everyone is a specialist. The player should consult experts, not solve everything alone. Mirovic, Vong, and Otani have answers the player doesn't.
-- The mystery has a real explanation. The GM should keep it consistent. No supernatural elements unless the player explicitly opens that door — and even then, prefer "weirdly explicable" over "magical."
+- The mystery has a real explanation. The GM should keep it consistent. No supernatural elements unless the player explicitly opens that door, and even then, prefer "weirdly explicable" over "magical."
 
 Opening Scenario:
 The player wakes in a thaw chamber. The light is amber. Captain Mirovic is sitting on a stool beside the chamber, sipping ration coffee from a thermal mug. Her uniform is rumpled. She says: "Sorry to do this to you. Pod 217 opened from the inside at oh-four-eighteen this morning. I pulled you because you're the only one currently logged who has investigation rated above maintenance, and I haven't filed an incident yet because I think one of my crew may be involved. I don't want to formalize anything until you've talked to all five of us. Take an hour. Drink water. I'll be on the bridge."
@@ -47,7 +47,13 @@ Sound Design:
 - Cryobays: space_station ambient (cold ventilation, low hum)
 - The Spinhub: city_day ambient
 - The Long Hall: space_station ambient (deep hum, sound carries forever)
-- Engineering: space_station ambient (reactor hum, life-support machinery)`,
+- Engineering: space_station ambient (reactor hum, life-support machinery)
+
+Real-World Texture (true details to weave in when they fit; never lecture):
+- Tau Ceti is about 11.9 light-years from Earth.
+- Life support is never silent. On the International Space Station, fans and coolant pumps keep up a constant hum of around 72 decibels, and crews learn that a change in that hum can mean a failing fan or a leak.
+- Spin gravity has tells. On a rotating hull a dropped wrench drifts slightly sideways as it falls (the Coriolis effect), and turning your head fast can make you dizzy.
+- Water aboard is reclaimed from sweat and urine. Astronauts coming in from a spacewalk describe a smell like hot metal or seared steak clinging to their suits.`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/long-watch.svg",
   locations: [
@@ -75,7 +81,7 @@ Sound Design:
       id: "loc-spinhub",
       name: "The Spinhub",
       description:
-        "The rotating crew habitat. Soft amber lights on a slow daylight cycle. A cafeteria with five empty tables and one in use. A hydroponics bay smelling of basil and damp peat. A small chapel with no specific denomination. Crew members nod when they pass — everyone knows everyone, and the player's arrival has already been noticed.",
+        "The rotating crew habitat. Soft amber lights on a slow daylight cycle. A cafeteria with five empty tables and one in use. A hydroponics bay smelling of basil and damp peat. A small chapel with no specific denomination. Crew members nod when they pass, everyone knows everyone, and the player's arrival has already been noticed.",
       shortDesc: "The rotating crew habitat where the awake crew live",
       ambientSound: "city_day",
       connectedTo: ["loc-bridge", "loc-long-hall", "loc-engineering"],
@@ -141,7 +147,7 @@ Sound Design:
       name: "Iren Salk",
       role: "Missing Botanist",
       personality:
-        "(Determined dynamically — the GM should keep their voice and motivations consistent once the player encounters them.) Iren is real, was a member of the colony botanist team, and is no longer in pod 217.",
+        "(Determined dynamically, the GM should keep their voice and motivations consistent once the player encounters them.) Iren is real, was a member of the colony botanist team, and is no longer in pod 217.",
       voiceDescription: "to be determined by player encounter",
       relationship: "neutral",
       isAlive: true,

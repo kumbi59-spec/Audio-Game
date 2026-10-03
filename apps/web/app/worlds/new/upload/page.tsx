@@ -108,18 +108,17 @@ export default function UploadBiblePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <header className="px-6 py-8">
         <h1
-          className="text-2xl font-bold"
-          style={{ color: "var(--text)" }}
+          className="text-2xl font-bold text-foreground"
           tabIndex={-1}
           data-focus-on-mount
         >
           Upload a Game Bible
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Upload your world document and the AI will turn it into a playable adventure.
         </p>
       </header>
@@ -128,22 +127,20 @@ export default function UploadBiblePage() {
         {/* What is a Game Bible? */}
         <section
           aria-label="About Game Bibles"
-          className="mb-6 rounded-xl border p-5"
-          style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
           <h2
-            className="mb-2 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "var(--text-muted)" }}
+            className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted"
           >
             WHAT TO UPLOAD
           </h2>
-          <ul className="space-y-1 text-sm" style={{ color: "var(--text-muted)" }}>
+          <ul className="space-y-1 text-sm text-muted">
             <li>A homebrew TTRPG campaign document or setting guide</li>
             <li>A world-building document with locations, NPCs, and lore</li>
             <li>An original story outline or novel world guide</li>
             <li>A structured JSON file you built yourself</li>
           </ul>
-          <p className="mt-3 text-xs" style={{ color: "var(--text-subtle)" }}>
+          <p className="mt-3 text-xs text-subtle">
             The AI reads your document, identifies key characters, locations, and story hooks, then generates a playable world. You can review the extracted summary before playing.
           </p>
         </section>
@@ -160,8 +157,7 @@ export default function UploadBiblePage() {
               onClick={handleUpload}
               disabled={!file || isProcessing}
               aria-label={file ? `Upload ${file.name} and create world` : "Select a file first"}
-              className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed bg-accent-solid text-on-accent"
             >
               Create World from File
             </button>
@@ -179,8 +175,7 @@ export default function UploadBiblePage() {
                 <button
                   onClick={() => router.push(`/create?worldId=${worldId}`)}
                   aria-label={`Play your world ${worldName ?? ""}. Start your adventure now.`}
-                  className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                  className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
                   // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
                 >
@@ -188,8 +183,7 @@ export default function UploadBiblePage() {
                 </button>
                 <button
                   onClick={() => router.push("/library")}
-                  className="w-full rounded-lg border py-3 text-sm transition-colors hover:opacity-90"
-                  style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                  className="w-full rounded-lg border py-3 text-sm transition-colors hover:opacity-90 border-border text-muted"
                 >
                   Back to Library
                 </button>
@@ -204,8 +198,7 @@ export default function UploadBiblePage() {
                   setMessage("");
                   setWorldId(null);
                 }}
-                className="w-full rounded-lg border py-3 text-sm transition-colors hover:opacity-90"
-                style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                className="w-full rounded-lg border py-3 text-sm transition-colors hover:opacity-90 border-border text-muted"
               >
                 Try Again
               </button>

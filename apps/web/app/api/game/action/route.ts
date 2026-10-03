@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { streamGMTurn } from "@/lib/ai/gm-engine";
 import { moderatePlayerInput, moderateGMOutput, SAFETY_FALLBACK } from "@/lib/safety/moderator";
-import type { InMemorySession, PlayerAction } from "@/types/game";
+import type { AchievementUnlock, CodexEntry, InMemorySession, NpcRelationship, PlayerAction } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
 import { authorizeAiUsage, aiUsageDenialResponse } from "@/lib/ai/usage-guard";
@@ -10,6 +10,9 @@ import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { getOwnedSession } from "@/lib/db/queries/sessions";
 import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
 import { applyCharacterChanges } from "@/lib/game/character-reducer";
+import { stripEmDashes } from "@/lib/ai/style";
+import { applySessionProgress } from "@/lib/game/session-progress";
+import type { GameStatePatch } from "@/lib/db/queries/sessions";
 import {
   CharacterSchema,
   LegacyGuestIdSchema,
@@ -146,6 +149,8 @@ export async function POST(req: NextRequest) {
       }
 
       let fullNarration = "";
+      // Work that runs once the response has closed (saved-game summaries).
+      let afterResponse: (() => Promise<void>) | null = null;
       let stateChanges: Record<string, unknown> = {};
       // Only a turn that ran to completion is persisted. A degraded (fallback)
       // turn is rolled back on the client, and an abandoned one (the player
@@ -184,117 +189,111 @@ export async function POST(req: NextRequest) {
 
         if (ownedSession && completed && !degraded) {
           try {
-            const {
-              persistTurn,
-              updateGameState,
-              incrementTurnCount,
-              getHistoryEntriesInTurnRange,
-              markSummarized,
-              setUndoSnapshot,
-            } = await import("@/lib/db/queries/sessions");
-            const { saveCharacterSnapshot } = await import("@/lib/db/queries/characters");
-            const { summarizeHistory, SUMMARIZE_AFTER_TURNS, TURNS_PER_SUMMARY } =
-              await import("@/lib/ai/memory/summarizer");
+            const { commitTurn, TurnConflictError, getHistoryEntriesInTurnRange, markSummarized } =
+              await import("@/lib/db/queries/sessions");
             const sessionId = ownedSession.id;
             const ownerId = player.userId;
-
             // Turn numbers come from the stored session, never the client.
-            const newTurn = await incrementTurnCount(sessionId, ownerId);
-            if (newTurn === null) throw new Error("Session is no longer owned by the caller");
-
-            // Everything this turn is about to change, as it stood before,
-            // so the player can undo it.
-            if (storedState) {
-              await setUndoSnapshot(sessionId, ownerId, {
-                turnCount: newTurn - 1,
-                gameState: {
-                  currentLocationId: storedState.currentLocationId,
-                  timeOfDay: storedState.timeOfDay,
-                  weather: storedState.weather,
-                  globalFlags: storedState.globalFlags,
-                  npcStates: storedState.npcStates,
-                  memorySummary: storedState.memorySummary,
-                  summarizedThroughTurn: storedState.summarizedThroughTurn,
-                },
-                character,
-              });
-            }
+            const expectedTurnCount = ownedSession.turnCount;
+            const newTurn = expectedTurnCount + 1;
 
             // Apply this turn's HP/stat/inventory/quest changes to the stored
-            // character with the same rules the client uses, store it, and
-            // send it back so the client converges on the stored copy.
+            // character with the same rules the client uses.
             const nextCharacter = applyCharacterChanges(character, stateChanges);
-            if (await saveCharacterSnapshot(ownedSession.characterId, ownerId, nextCharacter)) {
-              send("character_sync", { character: nextCharacter });
-            }
 
-            await Promise.all([
-              persistTurn(sessionId, ownerId, newTurn, "user", action.content, action.type),
-              fullNarration
-                ? persistTurn(sessionId, ownerId, newTurn, "assistant", fullNarration)
-                : Promise.resolve(),
-            ]);
-
+            let gameState: GameStatePatch | null = null;
             if (Object.keys(stateChanges).length > 0 || session.currentLocationId !== null) {
               const flagPatch = (stateChanges as { flags?: Record<string, unknown> }).flags;
-
               // Merge new achievements/relationships/codex from this turn onto
-              // the stored (server-side) values.
-              const prevAch = session.achievements as unknown[];
-              const newAch = ((stateChanges as { achievementUnlocks?: unknown[] }).achievementUnlocks ?? []) as Array<{ key: string }>;
-              const mergedAch = [...prevAch, ...newAch.filter((a) => !prevAch.some((e) => (e as { key: string }).key === a.key))];
-
-              const prevRels = session.relationships as unknown[];
-              const relChanges = ((stateChanges as { npcRelationshipChanges?: unknown[] }).npcRelationshipChanges ?? []) as Array<{ npcId: string; name: string; standing: number; notes?: string }>;
-              const mergedRels = relChanges.reduce((acc: unknown[], rel) => {
-                const idx = acc.findIndex((r) => (r as { npcId: string }).npcId === rel.npcId);
-                if (idx >= 0) {
-                  const updated = [...acc];
-                  updated[idx] = { ...acc[idx] as object, standing: rel.standing, notes: rel.notes };
-                  return updated;
-                }
-                return [...acc, rel];
-              }, [...prevRels]);
-
-              const prevCodex = session.codex as unknown[];
-              const newCodex = ((stateChanges as { codexEntries?: unknown[] }).codexEntries ?? []) as Array<{ key: string }>;
-              const mergedCodex = [...prevCodex, ...newCodex.filter((c) => !prevCodex.some((e) => (e as { key: string }).key === c.key))];
-
-              await updateGameState(sessionId, ownerId, {
+              // the stored (server-side) values, by the same rules as the client.
+              const progress = applySessionProgress(
+                {
+                  achievements: session.achievements as AchievementUnlock[],
+                  relationships: session.relationships as NpcRelationship[],
+                  codex: session.codex as CodexEntry[],
+                },
+                stateChanges,
+                newTurn,
+              );
+              gameState = {
                 currentLocationId: (stateChanges as { locationId?: string }).locationId ?? session.currentLocationId,
                 timeOfDay: (stateChanges as { timeOfDay?: string }).timeOfDay ?? session.timeOfDay,
                 weather: (stateChanges as { weather?: string }).weather ?? session.weather,
-                globalFlags: flagPatch
-                  ? { ...session.globalFlags, ...flagPatch }
-                  : undefined,
+                globalFlags: flagPatch ? { ...session.globalFlags, ...flagPatch } : undefined,
                 npcStates: storedNpcStateRest,
-                achievements: mergedAch,
-                relationships: mergedRels,
-                codex: mergedCodex,
-              });
+                achievements: progress.achievements,
+                relationships: progress.relationships,
+                codex: progress.codex,
+              };
             }
+
+            try {
+              await commitTurn(sessionId, ownerId, {
+                expectedTurnCount,
+                characterId: ownedSession.characterId,
+                character: nextCharacter,
+                // Everything this turn changes, as it stood before, so the
+                // player can undo it.
+                undoSnapshot: storedState
+                  ? {
+                    turnCount: expectedTurnCount,
+                    gameState: {
+                      currentLocationId: storedState.currentLocationId,
+                      timeOfDay: storedState.timeOfDay,
+                      weather: storedState.weather,
+                      globalFlags: storedState.globalFlags,
+                      npcStates: storedState.npcStates,
+                      memorySummary: storedState.memorySummary,
+                      summarizedThroughTurn: storedState.summarizedThroughTurn,
+                    },
+                    character,
+                  }
+                  : null,
+                playerAction: { content: action.content, actionType: action.type },
+                gmReply: fullNarration ? stripEmDashes(fullNarration) : null,
+                gameState,
+              });
+            } catch (commitErr) {
+              if (commitErr instanceof TurnConflictError) {
+                // Another tab or device saved a turn on this game while this
+                // one was being written; this turn isn't kept, and the client
+                // reloads the save.
+                send("turn_conflict", { message: "This game moved on somewhere else, so this turn wasn't saved." });
+                throw commitErr;
+              }
+              throw commitErr;
+            }
+
+            // The stored copy is the source of truth for a saved game.
+            send("character_sync", { character: nextCharacter });
 
             // Fold the oldest unsummarised window into the memory summary
             // once enough turns have piled up past the marker. The marker
             // advances each time, so every window is summarised exactly once.
+            // It runs after the response closes: the player doesn't wait on
+            // a model call, and a saved game reads its summary from the
+            // server on the next turn anyway.
             const summarizedThrough = storedState?.summarizedThroughTurn ?? 0;
+            const { summarizeHistory, SUMMARIZE_AFTER_TURNS, TURNS_PER_SUMMARY } =
+              await import("@/lib/ai/memory/summarizer");
             if (storedState && newTurn - summarizedThrough >= SUMMARIZE_AFTER_TURNS) {
-              const windowEnd = summarizedThrough + TURNS_PER_SUMMARY;
-              const entries = await getHistoryEntriesInTurnRange(sessionId, summarizedThrough, windowEnd);
-              const summary = await summarizeHistory(
-                entries.map((e) => ({
-                  role: e.role as "user" | "assistant",
-                  content: e.content,
-                  turnNumber: e.turnNumber,
-                })),
-                session.memorySummary,
-                world.name
-              );
-              const applied = await markSummarized(sessionId, ownerId, summarizedThrough, windowEnd, summary);
-              if (applied) send("memory_summary", { summary });
+              afterResponse = async () => {
+                const windowEnd = summarizedThrough + TURNS_PER_SUMMARY;
+                const entries = await getHistoryEntriesInTurnRange(sessionId, summarizedThrough, windowEnd);
+                const summary = await summarizeHistory(
+                  entries.map((e) => ({
+                    role: e.role as "user" | "assistant",
+                    content: e.content,
+                    turnNumber: e.turnNumber,
+                  })),
+                  session.memorySummary,
+                  world.name,
+                );
+                await markSummarized(sessionId, ownerId, summarizedThrough, windowEnd, summary);
+              };
             }
           } catch (dbErr) {
-            // DB persistence is best-effort — don't fail the game turn
+            // DB persistence is best-effort; don't fail the game turn
             console.error("DB persistence error:", dbErr);
           }
         }
@@ -317,20 +316,26 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (err) {
+        // Log the real error; the player gets a message that doesn't leak
+        // internals.
+        console.error("[action] turn failed:", err);
         try {
-          send("error", {
-            message: err instanceof Error ? err.message : "Unknown error",
-          });
+          send("error", { message: "The story hit a snag there. Try that again." });
         } catch {
           // Stream already closed by the client.
         }
       } finally {
-        grant.release();
         try {
           controller.close();
         } catch {
           // Stream already closed by the client.
         }
+        try {
+          await afterResponse?.();
+        } catch (afterErr) {
+          console.error("[action] post-turn summary failed:", afterErr);
+        }
+        grant.release();
       }
     },
   });

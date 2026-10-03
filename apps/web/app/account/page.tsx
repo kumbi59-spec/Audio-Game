@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useGameStore } from "@/store/game-store";
 import Link from "next/link";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -170,13 +171,13 @@ export default function AccountPage() {
   const tierInfo = tierDisplayInfo(tier);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <header className="px-6 py-8">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-2xl font-bold text-foreground">
           Account
         </h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 text-sm text-muted">
           Manage your profile, subscription, and password.
         </p>
       </header>
@@ -184,8 +185,8 @@ export default function AccountPage() {
       <main id="main-content" className="mx-auto max-w-xl space-y-6 px-6 pb-16">
 
         {/* Plan */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>Subscription</h2>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Subscription</h2>
           <div className="mb-3 flex items-center gap-3">
             <span
               className="rounded-full px-3 py-0.5 text-sm font-semibold text-white"
@@ -197,8 +198,7 @@ export default function AccountPage() {
           {tier === "free" ? (
             <Link
               href="/#pricing"
-              className="inline-block rounded-lg px-4 py-2 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "var(--accent-solid)" }}
+              className="inline-flex items-center justify-center inline-block rounded-lg px-4 py-2 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 bg-accent-solid"
             >
               Upgrade plan
             </Link>
@@ -208,8 +208,7 @@ export default function AccountPage() {
                 type="button"
                 onClick={openBillingPortal}
                 disabled={portalLoading}
-                className="rounded-lg border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
-                style={{ borderColor: "var(--border)", color: "var(--text)" }}
+                className="rounded-lg border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 border-border text-foreground"
               >
                 {portalLoading ? "Opening…" : "Manage billing & invoices"}
               </button>
@@ -221,41 +220,40 @@ export default function AccountPage() {
         </section>
 
         {/* AI Minutes */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>AI Minutes</h2>
-          <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-1 text-base font-semibold text-foreground">AI Minutes</h2>
+          <p className="mb-4 text-sm text-muted">
             {tier === "free"
               ? "Free accounts use AI minute credits. We currently bill at 1 turn = 1 minute credit."
               : "Your plan includes a generous AI session allowance. Buy extra packs any time for heavy play."}
           </p>
 
           {packPurchased && (
-            <p className="mb-4 rounded-lg px-4 py-2 text-sm font-semibold" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--accent)", color: "var(--accent)" }} role="status">
+            <p className="mb-4 rounded-lg px-4 py-2 text-sm font-semibold bg-surface border border-accent text-accent" role="status">
               Minutes added to your account!
             </p>
           )}
 
           <div className="mb-3 flex items-center gap-2">
-            <span className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+            <span className="text-2xl font-bold text-foreground">
               {profile?.aiMinutesRemaining ?? "—"}
             </span>
-            <span className="text-sm" style={{ color: "var(--text-muted)" }}>minutes remaining</span>
+            <span className="text-sm text-muted">minutes remaining</span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             {AI_MINUTE_PACKS.map((pack) => (
               <div
                 key={pack.id}
-                className="flex flex-col rounded-lg border p-3"
-                style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
+                className="flex flex-col rounded-lg border p-3 border-border bg-bg"
               >
                 {pack.badge && (
-                  <span className="mb-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+                  <span className="mb-1 self-start rounded-full px-2 py-0.5 text-xs font-semibold bg-accent-solid text-on-accent">
                     {pack.badge}
                   </span>
                 )}
-                <span className="text-base font-bold" style={{ color: "var(--text)" }}>{pack.label}</span>
-                <span className="mb-3 text-sm" style={{ color: "var(--text-muted)" }}>${(pack.priceCents / 100).toFixed(2)}</span>
+                <span className="text-base font-bold text-foreground">{pack.label}</span>
+                <span className="mb-3 text-sm text-muted">${(pack.priceCents / 100).toFixed(2)}</span>
                 <button
                   type="button"
                   onClick={() => buyPack(pack.id)}
@@ -274,16 +272,16 @@ export default function AccountPage() {
         </section>
 
         {/* Profile */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>Profile</h2>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Profile</h2>
           {profile && (
-            <p className="mb-3 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-3 text-sm text-muted">
               {profile.email}
             </p>
           )}
           <form onSubmit={saveName} className="space-y-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text-muted)" }}>Display name</span>
+              <span className="mb-1 block text-xs font-medium text-muted">Display name</span>
               <input
                 type="text"
                 value={name}
@@ -304,18 +302,18 @@ export default function AccountPage() {
                 {nameSaving ? "Saving…" : "Save name"}
               </button>
               {nameMsg && (
-                <span className="text-xs" style={{ color: "var(--text-muted)" }}>{nameMsg}</span>
+                <span className="text-xs text-muted">{nameMsg}</span>
               )}
             </div>
           </form>
         </section>
 
         {/* Password */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>Change password</h2>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Change password</h2>
           <form onSubmit={changePassword} className="space-y-3">
             <label className="block">
-              <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text-muted)" }}>Current password</span>
+              <span className="mb-1 block text-xs font-medium text-muted">Current password</span>
               <input
                 type="password"
                 value={currentPw}
@@ -326,7 +324,7 @@ export default function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text-muted)" }}>New password</span>
+              <span className="mb-1 block text-xs font-medium text-muted">New password</span>
               <input
                 type="password"
                 value={newPw}
@@ -338,7 +336,7 @@ export default function AccountPage() {
               />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs font-medium" style={{ color: "var(--text-muted)" }}>Confirm new password</span>
+              <span className="mb-1 block text-xs font-medium text-muted">Confirm new password</span>
               <input
                 type="password"
                 value={confirmPw}
@@ -356,8 +354,7 @@ export default function AccountPage() {
             <button
               type="submit"
               disabled={pwSaving || !currentPw || !newPw || !confirmPw}
-              className="w-full rounded-lg py-3 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40"
-              style={{ backgroundColor: "var(--accent-solid)" }}
+              className="w-full rounded-lg py-3 text-sm font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40 bg-accent-solid"
             >
               {pwSaving ? "Changing…" : "Change password"}
             </button>
@@ -365,33 +362,32 @@ export default function AccountPage() {
         </section>
 
         {/* Settings links */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-3 text-base font-semibold" style={{ color: "var(--text)" }}>Settings</h2>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Settings</h2>
           <div className="space-y-2">
             <Link
               href="/settings/voice"
-              className="flex items-center justify-between rounded-lg border px-4 py-3 text-sm transition-opacity hover:opacity-80"
-              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              className="flex items-center justify-between rounded-lg border px-4 py-3 text-sm transition-opacity hover:opacity-80 border-border text-foreground"
             >
               <span>Narrator voice &amp; audio</span>
-              <span style={{ color: "var(--text-muted)" }}>→</span>
+              <span className="text-muted">→</span>
             </Link>
           </div>
         </section>
 
         {/* Push notifications */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="mb-1 text-base font-semibold" style={{ color: "var(--text)" }}>Push notifications</h2>
-          <p className="mb-3 text-sm" style={{ color: "var(--text-muted)" }}>
+        <section className="rounded-xl border p-5 border-border bg-surface">
+          <h2 className="mb-1 text-base font-semibold text-foreground">Push notifications</h2>
+          <p className="mb-3 text-sm text-muted">
             Get notified when an invited multiplayer game is ready to start.
           </p>
           {push.state === "unsupported" && (
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="text-sm text-muted">
               Your browser does not support web push notifications.
             </p>
           )}
           {push.state === "denied" && (
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="text-sm text-muted">
               Push notifications are blocked. Enable them from your browser settings to turn this on.
             </p>
           )}
@@ -400,8 +396,7 @@ export default function AccountPage() {
               type="button"
               onClick={() => void togglePush()}
               disabled={pushBusy || push.state === "loading"}
-              className="rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50"
-              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              className="rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50 border-border text-foreground"
               aria-pressed={push.state === "granted"}
             >
               {pushBusy
@@ -418,12 +413,11 @@ export default function AccountPage() {
 
         {/* Admin dashboard link */}
         {(session?.user as { isAdmin?: boolean } | undefined)?.isAdmin && (
-          <section className="rounded-xl border p-5" style={{ borderColor: "var(--accent)", backgroundColor: "var(--surface)" }}>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--accent)" }}>Admin</p>
+          <section className="rounded-xl border p-5 border-accent bg-surface">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">Admin</p>
             <Link
               href="/admin"
-              className="block w-full rounded-lg py-3 text-center text-sm font-semibold"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="block w-full rounded-lg py-3 text-center text-sm font-semibold bg-accent-solid text-on-accent"
             >
               Open Admin Dashboard
             </Link>
@@ -431,10 +425,18 @@ export default function AccountPage() {
         )}
 
         {/* Sign out */}
-        <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+        <section className="rounded-xl border p-5 border-border bg-surface">
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              // Don't leave this player's games on a shared device.
+              useGameStore.getState().forgetAllGames();
+              void useGameStore.persist.clearStorage();
+              if ("caches" in window) {
+                void caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+              }
+              void signOut({ callbackUrl: "/" });
+            }}
             className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ borderColor: "var(--error, #dc2626)", color: "var(--error, #dc2626)" }}
           >

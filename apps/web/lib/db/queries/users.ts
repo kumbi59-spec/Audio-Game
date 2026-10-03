@@ -57,6 +57,15 @@ export async function markStripeEventProcessed(eventId: string): Promise<boolean
   return rows > 0;
 }
 
+/**
+ * Forgets that an event was processed, after its handler failed partway, so
+ * Stripe's retry of the same event is handled instead of skipped as a
+ * duplicate.
+ */
+export async function unmarkStripeEventProcessed(eventId: string): Promise<void> {
+  await prisma.$executeRaw`DELETE FROM "ProcessedStripeEvent" WHERE "id" = ${eventId}`;
+}
+
 const FREE_DAILY_AI_MINUTES = 60;
 
 export async function resetDailyMinutesIfNeeded(userId: string, tier: string): Promise<void> {

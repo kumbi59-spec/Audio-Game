@@ -1,5 +1,6 @@
 import type { TTSOptions, TTSVoice, TTSProvider } from "@/types/audio";
 import { ELEVENLABS_PRESET_VOICES, DEFAULT_ELEVENLABS_VOICE_ID } from "./voices-catalog";
+import { narrationAudioElement } from "./unlock";
 
 const DEFAULT_VOICE_ID = DEFAULT_ELEVENLABS_VOICE_ID;
 const TTS_PROXY = "/api/game/tts";
@@ -61,19 +62,38 @@ function buildRequest(text: string, options: TTSOptions): TtsRequest {
   const requestedRate = options.rate ?? 1.0;
   const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, requestedRate));
   return {
-    body: JSON.stringify({ text, voiceId: options.voiceId ?? DEFAULT_VOICE_ID, speed: apiSpeed }),
+    // "" is the picker's "Default" voice; `||` so it doesn't reach the server.
+    body: JSON.stringify({ text, voiceId: options.voiceId || DEFAULT_VOICE_ID, speed: apiSpeed }),
     // The server clamps to the same range; keeping the math here lets us
     // compute the exact playbackRate compensation the client should apply.
     playbackCompensation: requestedRate / apiSpeed,
   };
 }
 
-function requestAudio(body: string): Promise<Response> {
+function requestAudio(body: string, signal?: AbortSignal): Promise<Response> {
   return fetchWithRetry(TTS_PROXY, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body,
+    signal,
   });
+}
+
+/**
+ * The server's reason for a failed clip, as an error the provider router
+ * (tts-provider.ts) can act on: "tts_cap_reached" and "tts_plan_required"
+ * switch the player to the browser voice for good, anything else for one
+ * segment.
+ */
+export class TtsRequestError extends Error {
+  constructor(
+    readonly code: "tts_cap_reached" | "tts_plan_required" | "tts_failed",
+    message: string,
+  ) {
+    super(code);
+    this.detail = message;
+  }
+  readonly detail: string;
 }
 
 export class ElevenLabsTTS implements TTSProvider {
@@ -84,7 +104,10 @@ export class ElevenLabsTTS implements TTSProvider {
   // stopped must not start playing once the response arrives.
   private generation = 0;
   // Request body → response, for clips fetched ahead of playback.
-  private prefetched = new Map<string, Promise<Response>>();
+  private prefetched = new Map<string, { response: Promise<Response>; abort: AbortController }>();
+  // Ends the clip that's playing (or about to), resolving its speak() call.
+  private settle: (() => void) | null = null;
+  private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
   prefetch(text: string, options: TTSOptions = {}): void {
     if (!this.isSupported() || !text.trim()) return;
@@ -94,10 +117,11 @@ export class ElevenLabsTTS implements TTSProvider {
       const oldest = this.prefetched.keys().next().value as string;
       this.discard(oldest);
     }
-    const pending = requestAudio(body);
+    const abort = new AbortController();
+    const response = requestAudio(body, abort.signal);
     // Nobody may ever await it; don't let a failure surface as unhandled.
-    pending.catch(() => undefined);
-    this.prefetched.set(body, pending);
+    response.catch(() => undefined);
+    this.prefetched.set(body, { response, abort });
   }
 
   clearPrefetched(): void {
@@ -107,8 +131,11 @@ export class ElevenLabsTTS implements TTSProvider {
   private discard(key: string): void {
     const pending = this.prefetched.get(key);
     this.prefetched.delete(key);
-    // Release the unread audio stream.
-    pending?.then((res) => res.body?.cancel()).catch(() => undefined);
+    if (!pending) return;
+    // Abort the request if it's still going (the server stops the upstream
+    // synthesis too), and release the unread stream if it already arrived.
+    pending.abort.abort();
+    pending.response.then((res) => res.body?.cancel()).catch(() => undefined);
   }
 
   isSupported(): boolean {
@@ -121,13 +148,21 @@ export class ElevenLabsTTS implements TTSProvider {
 
   async speak(text: string, options: TTSOptions = {}): Promise<void> {
     if (!this.isSupported()) return;
-    this.stop();
+    // A pause between two sentences holds: the next clip loads but waits
+    // for resume() instead of playing.
+    this.halt();
     const gen = this.generation;
 
     const { body, playbackCompensation } = buildRequest(text, options);
     const prefetched = this.prefetched.get(body);
     this.prefetched.delete(body);
-    const res = await (prefetched ?? requestAudio(body));
+    let res: Response;
+    try {
+      res = await (prefetched?.response ?? requestAudio(body));
+    } catch (err) {
+      if (gen !== this.generation) return;
+      throw new TtsRequestError("tts_failed", err instanceof Error ? err.message : "Network error");
+    }
 
     if (gen !== this.generation) {
       // Stopped (or superseded) while the request was in flight.
@@ -139,11 +174,13 @@ export class ElevenLabsTTS implements TTSProvider {
       this._speaking = false;
       const data = await res.json().catch(() => null) as { error?: string; message?: string } | null;
       const errorCode = data?.error ?? "";
-      // Use a predictable sentinel so the provider router can fallback cleanly
+      const message = data?.message ?? (errorCode || `ElevenLabs error ${res.status}`);
+      // Predictable codes so the provider router can fall back cleanly.
       if (errorCode === "tts_cap_reached" || res.status === 429) {
-        throw new Error("tts_cap_reached");
+        throw new TtsRequestError("tts_cap_reached", message);
       }
-      throw new Error(data?.message ?? (errorCode || `ElevenLabs error ${res.status}`));
+      if (res.status === 403) throw new TtsRequestError("tts_plan_required", message);
+      throw new TtsRequestError("tts_failed", message);
     }
 
     if (!res.body) {
@@ -151,7 +188,9 @@ export class ElevenLabsTTS implements TTSProvider {
       throw new Error("ElevenLabs returned an empty body");
     }
 
-    const audio = new Audio();
+    // One shared element: iOS Safari unlocks elements individually, and this
+    // one was unlocked by the first tap (AudioUnlocker).
+    const audio = narrationAudioElement();
     audio.volume = options.volume ?? 1.0;
     audio.playbackRate = playbackCompensation;
     // When playbackRate ≠ 1, the browser otherwise resamples naively and the
@@ -170,9 +209,15 @@ export class ElevenLabsTTS implements TTSProvider {
     this._speaking = true;
 
     if (supportsMseMpeg()) {
-      return this.streamViaMse(audio, res.body, options);
+      return this.streamViaMse(audio, res.body, options, gen);
     }
-    return this.playViaBlob(audio, res, options);
+    return this.playViaBlob(audio, res, options, gen);
+  }
+
+  /** Starts playback unless the player paused in the meantime (resume() starts it then). */
+  private start(audio: HTMLAudioElement, fail: (err: unknown) => void): void {
+    if (this._paused) return;
+    audio.play().catch(fail);
   }
 
   /**
@@ -184,6 +229,7 @@ export class ElevenLabsTTS implements TTSProvider {
     audio: HTMLAudioElement,
     body: ReadableStream<Uint8Array>,
     options: TTSOptions,
+    gen: number,
   ): Promise<void> {
     const mediaSource = new MediaSource();
     const url = URL.createObjectURL(mediaSource);
@@ -196,10 +242,15 @@ export class ElevenLabsTTS implements TTSProvider {
         revoked = true;
         URL.revokeObjectURL(url);
       };
+      this.settle = () => {
+        revoke();
+        resolve();
+      };
 
       audio.onended = () => {
         this._speaking = false;
         this._paused = false;
+        this.settle = null;
         revoke();
         options.onEnd?.();
         resolve();
@@ -221,7 +272,12 @@ export class ElevenLabsTTS implements TTSProvider {
           return;
         }
 
+        if (gen !== this.generation) {
+          body.cancel().catch(() => undefined);
+          return;
+        }
         const reader = body.getReader();
+        this.reader = reader;
         const appendChunk = (chunk: Uint8Array) =>
           new Promise<void>((res, rej) => {
             const onUpdate = () => {
@@ -252,9 +308,10 @@ export class ElevenLabsTTS implements TTSProvider {
             // Kick off playback after the first chunk lands so the user hears
             // audio as quickly as possible. Subsequent chunks just extend the
             // SourceBuffer the audio element is already reading from.
+            if (gen !== this.generation) return;
             if (!started) {
               started = true;
-              audio.play().catch((err: unknown) => {
+              this.start(audio, (err: unknown) => {
                 this._speaking = false;
                 revoke();
                 reject(err);
@@ -263,6 +320,8 @@ export class ElevenLabsTTS implements TTSProvider {
           }
           if (mediaSource.readyState === "open") mediaSource.endOfStream();
         } catch (err) {
+          // stop() cancels the reader; that isn't a failure.
+          if (gen !== this.generation) return;
           this._speaking = false;
           revoke();
           reject(err instanceof Error ? err : new Error("Streaming failed"));
@@ -280,15 +339,24 @@ export class ElevenLabsTTS implements TTSProvider {
     audio: HTMLAudioElement,
     res: Response,
     options: TTSOptions,
+    gen: number,
   ): Promise<void> {
     const blob = await res.blob();
+    // Stopped while the clip downloaded: playing it now would talk over
+    // whatever came next, with nothing left that could stop it.
+    if (gen !== this.generation) return;
     const url = URL.createObjectURL(blob);
     audio.src = url;
 
     return new Promise((resolve, reject) => {
+      this.settle = () => {
+        URL.revokeObjectURL(url);
+        resolve();
+      };
       audio.onended = () => {
         this._speaking = false;
         this._paused = false;
+        this.settle = null;
         URL.revokeObjectURL(url);
         options.onEnd?.();
         resolve();
@@ -298,7 +366,7 @@ export class ElevenLabsTTS implements TTSProvider {
         URL.revokeObjectURL(url);
         reject(new Error("Audio playback failed"));
       };
-      audio.play().catch((err: unknown) => {
+      this.start(audio, (err: unknown) => {
         this._speaking = false;
         URL.revokeObjectURL(url);
         reject(err);
@@ -306,14 +374,32 @@ export class ElevenLabsTTS implements TTSProvider {
     });
   }
 
-  stop(): void {
+  /**
+   * Ends the current clip and resolves its speak() call, as if it had
+   * finished. Keeps the paused state, so a pause between sentences holds.
+   */
+  private halt(): void {
     this.generation++;
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.src = "";
-      this.audio = null;
+    const audio = this.audio;
+    this.audio = null;
+    if (audio) {
+      // Detach first: clearing the source fires "error", which isn't one.
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     }
+    this.reader?.cancel().catch(() => undefined);
+    this.reader = null;
+    const settle = this.settle;
+    this.settle = null;
+    settle?.();
     this._speaking = false;
+  }
+
+  stop(): void {
+    this.halt();
     this._paused = false;
   }
 
@@ -323,8 +409,8 @@ export class ElevenLabsTTS implements TTSProvider {
   }
 
   resume(): void {
-    void this.audio?.play();
     this._paused = false;
+    this.audio?.play().catch(() => undefined);
   }
 
   isSpeaking(): boolean {

@@ -162,8 +162,21 @@ function skillCheckToolResult(result: SkillCheckResult): string {
   ].join("\n");
 }
 
-function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
-  const text = `${action.type} ${action.content}`.toLowerCase();
+/** The word forms "attack" covers: attacks, attacked, attacking; "dodge": dodging. */
+function wordForms(base: string): string[] {
+  const forms = [base, `${base}s`, `${base}es`, `${base}ed`, `${base}d`, `${base}ing`];
+  if (base.endsWith("e")) forms.push(`${base.slice(0, -1)}ing`);
+  if (base.endsWith("y")) forms.push(`${base.slice(0, -1)}ies`, `${base.slice(0, -1)}ied`);
+  return forms;
+}
+
+/** True when the action uses one of `keywords` as a whole word, so "hit" doesn't match "white". */
+function mentionsAny(words: Set<string>, keywords: readonly string[]): boolean {
+  return keywords.some((k) => wordForms(k).some((form) => words.has(form)));
+}
+
+export function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
+  const words = new Set(action.content.toLowerCase().match(/[a-z]+/g) ?? []);
   const stats = character.stats;
   const customStats = character.customStats ?? {};
   const bonuses: PassiveBonus[] = [];
@@ -173,23 +186,23 @@ function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
     bonuses.push({ sourceStat, value, reason, targetRoll });
   };
 
-  const meleeKeywords = ["attack", "strike", "slash", "melee", "hit"];
+  const meleeKeywords = ["attack", "strike", "struck", "slash", "melee", "hit", "hitting"];
   const evadeKeywords = ["dodge", "evade", "avoid", "parry", "duck", "defend"];
   const socialKeywords = ["persuade", "convince", "charm", "negotiate", "deceive"];
 
-  if (meleeKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, meleeKeywords)) {
     pushBonus("strength", Math.max(0, Math.floor((stats.strength - 10) / 3)), "Physical power improves close-quarters attacks", "melee_attack");
   }
-  if (evadeKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, evadeKeywords)) {
     pushBonus("dexterity", Math.max(0, Math.floor((stats.dexterity - 10) / 4)), "Quick reflexes improve evasive reactions", "evade");
   }
-  if (socialKeywords.some((k) => text.includes(k))) {
+  if (mentionsAny(words, socialKeywords)) {
     pushBonus("charisma", Math.max(0, Math.floor((stats.charisma - 10) / 4)), "Presence and confidence improve social influence", "social_check");
   }
 
   for (const [key, val] of Object.entries(customStats)) {
     if (typeof val !== "number") continue;
-    if (key.toLowerCase().includes("armor") && text.includes("damage")) {
+    if (key.toLowerCase().includes("armor") && mentionsAny(words, ["damage"])) {
       pushBonus(key, Math.max(0, Math.floor(val / 5)), "Defensive training softens incoming hits", "damage_taken");
     }
     if (key.toLowerCase().includes("luck")) {
@@ -208,29 +221,25 @@ function computePassiveBonuses(action: PlayerAction, character: CharacterData) {
 }
 
 function buildFallbackChoices(character: CharacterData): string[] {
-  const classActions: Record<string, string> = {
-    warrior: "Search the area for threats",
-    rogue: "Scout from the shadows",
-    mage: "Study the surroundings for magical traces",
-    ranger: "Track movement nearby",
-    bard: "Gather information about the situation",
-  };
+  const objective = character.quests
+    .find((q) => q.status === "active")
+    ?.objectives.find((o) => !o.completed)?.text;
   return [
-    classActions[character.class] ?? "Explore carefully",
-    "Pause and reassess the situation",
-    "Review your inventory and resources",
-    "Continue toward your current objective",
+    objective ? `Push on: ${objective}` : "Push on toward what you came for",
+    "Stop and listen for a moment",
+    "Check what you're carrying",
+    "Something else: tell me what you do",
   ];
 }
 
 function degradedMessage(errorClass: ProviderErrorClass): string {
   if (errorClass === "safety_refusal") {
-    return "The narrator couldn't continue the story down that path. Try a different approach.";
+    return "I'm not going to run the story down that road. Try coming at it from another angle.";
   }
-  const base = "The narrator connection is unstable, so we switched to a safe fallback turn.";
-  if (errorClass === "rate_limit") return `${base} Too many requests are in flight right now.`;
-  if (errorClass === "timeout") return `${base} The response took too long.`;
-  return base;
+  const base = "Give me a second, I lost my place in the story.";
+  if (errorClass === "rate_limit") return `${base} The table's packed right now, so try again in a moment.`;
+  if (errorClass === "timeout") return `${base} That one took too long to come together, so try again.`;
+  return `${base} Pick up from here and I'll follow.`;
 }
 
 // Convert a player action into the user message content
@@ -534,7 +543,9 @@ export async function generateOpeningNarration(
   const openingAction: PlayerAction = {
     type: "meta",
     content:
-      "Begin the adventure. Set the scene for the player's arrival. Welcome them to this world and give them their first choices.",
+      "Open the adventure cold, the way a good GM starts a session: drop the player into the middle of a moment that's already moving, " +
+      "in a place from this world, with one detail they can hear or feel. Don't welcome them or explain the setting; let it come through " +
+      "what's happening. End on a question to the player, then give their first choices.",
   };
 
   return runGMTurn(openingAction, fakeSession, character, world);

@@ -27,8 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 60;
-
 export default async function BlogPage() {
   let posts: {
     id: string;
@@ -49,32 +47,32 @@ export default async function BlogPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
-      <header className="border-b px-6 py-10" style={{ borderColor: "var(--border)" }}>
+      <header className="border-b px-6 py-10 border-border">
         <div className="mx-auto max-w-3xl">
-          <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>Blog</h1>
-          <p className="mt-2 text-base" style={{ color: "var(--text-muted)" }}>Tips, updates, and stories from the team.</p>
+          <h1 className="text-3xl font-bold text-foreground">Blog</h1>
+          <p className="mt-2 text-base text-muted">Tips, updates, and stories from the team.</p>
         </div>
       </header>
 
-            <main className="mx-auto max-w-3xl px-6 py-12">
-        <nav aria-label="Related exploration" className="mb-8 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <p className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Keep exploring</p>
+            <main id="main-content" className="mx-auto max-w-3xl px-6 py-12">
+        <nav aria-label="Related exploration" className="mb-8 rounded-xl border p-4 border-border bg-surface">
+          <p className="text-xs uppercase tracking-wider text-muted">Keep exploring</p>
           <div className="mt-2 flex flex-wrap gap-4 text-sm">
-            <Link href="/campaigns" className="hover:underline" style={{ color: "var(--accent)" }}>Campaign worlds</Link>
-            <Link href="/seo/play-audio-rpg-with-screen-reader" className="hover:underline" style={{ color: "var(--accent)" }}>Screen reader RPG guide</Link>
-            <Link href="/library" className="hover:underline" style={{ color: "var(--accent)" }}>Adventure library</Link>
+            <Link href="/campaigns" className="hover:underline text-accent">Campaign worlds</Link>
+            <Link href="/seo/play-audio-rpg-with-screen-reader" className="hover:underline text-accent">Screen reader RPG guide</Link>
+            <Link href="/library" className="hover:underline text-accent">Adventure library</Link>
           </div>
         </nav>
         {posts.length === 0 ? (
-          <p className="text-center text-base" style={{ color: "var(--text-muted)" }}>No posts yet — check back soon.</p>
+          <p className="text-center text-base text-muted">No posts yet — check back soon.</p>
         ) : (
           <ul className="space-y-8">
             {posts.map((post) => (
               <li key={post.id}>
-                <article className="overflow-hidden rounded-xl border transition-shadow hover:shadow-lg"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+                <article className="overflow-hidden rounded-xl border transition-shadow hover:shadow-lg border-border bg-surface"
+                 >
                   {post.coverImageUrl && (
                     <Link href={`/blog/${post.slug}`} aria-hidden="true" tabIndex={-1} className="block">
                       {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
@@ -88,16 +86,16 @@ export default async function BlogPage() {
                     </Link>
                   )}
                   <div className="p-6">
-                    <time dateTime={post.publishedAt!.toISOString()} className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    <time dateTime={post.publishedAt!.toISOString()} className="text-xs text-muted">
                       {new Date(post.publishedAt!).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                     </time>
-                    <h2 className="mt-2 text-xl font-bold" style={{ color: "var(--text)" }}>
+                    <h2 className="mt-2 text-xl font-bold text-foreground">
                       <Link href={`/blog/${post.slug}`} className="hover:underline">{post.title}</Link>
                     </h2>
-                    <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{post.excerpt}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">{post.excerpt}</p>
                     <Link href={`/blog/${post.slug}`}
-                      className="mt-4 inline-block text-sm font-semibold hover:underline"
-                      style={{ color: "var(--accent)" }}>
+                      className="mt-4 inline-block text-sm font-semibold hover:underline text-accent"
+                     >
                       Read more →
                     </Link>
                   </div>

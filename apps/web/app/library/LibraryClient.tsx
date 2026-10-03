@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
+import { useShallow } from "zustand/react/shallow";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import { ServerSaves } from "./ServerSaves";
 import {
@@ -22,7 +23,9 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
   const router = useRouter();
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
+  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore(
+    useShallow((s) => ({ session: s.session, world: s.world, dbSessionId: s.dbSessionId, clearSession: s.clearSession, savedCampaigns: s.savedCampaigns, saveCurrentCampaign: s.saveCurrentCampaign, loadSavedCampaign: s.loadSavedCampaign, deleteSavedCampaign: s.deleteSavedCampaign })),
+  );
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [tab, setTab] = useState<Tab>("official");
@@ -42,7 +45,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
 
   return (
     <>
-      <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+      <p className="mt-1 text-sm text-muted">
         {visibleWorlds.length} world{visibleWorlds.length === 1 ? "" : "s"} available
       </p>
 
@@ -50,8 +53,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
         <div className="flex flex-col items-end gap-1">
           <Link
             href="/worlds/new/upload"
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
             aria-label="Share your world with the community"
           >
             Share Your World
@@ -69,32 +71,29 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
         <div className="mx-auto max-w-2xl">
           {hasSavedGame && (
             <div
-              className="mb-6 flex items-center justify-between rounded-xl border p-4"
-              style={{ borderColor: "var(--accent)", backgroundColor: "var(--surface)" }}
+              className="mb-6 flex items-center justify-between rounded-xl border p-4 border-accent bg-surface"
               role="region"
               aria-label="Saved game"
             >
               <div>
-                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+                <p className="text-sm font-semibold text-foreground">
                   Continue: {savedWorld.name}
                 </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs text-muted">
                   Turn {session!.turnCount} · {session!.choices.length} choices waiting
                 </p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => { saveCurrentCampaign(); router.push("/play"); }}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
                 >
                   Resume →
                 </button>
                 <button
                   onClick={() => { clearSession(); }}
                   aria-label="Discard saved game"
-                  className="rounded-lg border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400"
-                  style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                  className="rounded-lg border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400 border-border text-muted"
                 >
                   Discard
                 </button>
@@ -110,14 +109,14 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
           />
 
           {savedCampaigns.length > 0 && (
-            <div className="mb-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-              <h2 className="mb-3 text-sm font-semibold" style={{ color: "var(--text)" }}>Saved campaigns</h2>
+            <div className="mb-6 rounded-xl border p-4 border-border bg-surface">
+              <h2 className="mb-3 text-sm font-semibold text-foreground">Saved campaigns</h2>
               <ul className="space-y-2">
                 {savedCampaigns.map((save) => (
                   <li key={save.id} className="flex items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm" style={{ color: "var(--text)" }}>{save.world.name}</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
+                      <p className="text-sm text-foreground">{save.world.name}</p>
+                      <p className="text-xs text-muted">Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
@@ -134,8 +133,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
           <div
             role="tablist"
             aria-label="World source"
-            className="mb-6 flex border-b"
-            style={{ borderColor: "var(--border)" }}
+            className="mb-6 flex border-b border-border"
           >
             {(["official", "community"] as Tab[]).map((t) => (
               <button
@@ -167,8 +165,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
             <div className="mb-6 flex items-center gap-3">
               <label
                 htmlFor="genre-filter"
-                className="text-xs font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
+                className="text-xs font-semibold uppercase tracking-widest text-muted"
               >
                 Genre
               </label>
@@ -212,13 +209,12 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
             {visibleWorlds.length === 0 ? (
               <div className="flex flex-col items-center gap-4 py-16 text-center">
                 <span className="text-5xl opacity-20" aria-hidden="true">🌍</span>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                <p className="text-sm text-muted">
                   No community worlds yet.
                 </p>
                 <Link
                   href="/worlds/new"
-                  className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                  className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
                 >
                   Create the first one →
                 </Link>
@@ -264,8 +260,7 @@ function WorldCard({
 }) {
   return (
     <article
-      className="overflow-hidden rounded-xl border"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="overflow-hidden rounded-xl border border-border bg-surface"
     >
       {world.imageUrl ? (
         <div className="relative aspect-video w-full overflow-hidden" aria-hidden="true">
@@ -290,7 +285,7 @@ function WorldCard({
 
       <div className="p-5">
         <header className="mb-3">
-          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>
+          <h2 className="text-lg font-semibold text-foreground">
             {world.name}
           </h2>
           <div className="mt-1 flex flex-wrap gap-2" aria-label="Tags">
@@ -314,23 +309,21 @@ function WorldCard({
             </p>
           )}
         </header>
-        <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mb-4 text-sm text-muted">
           {world.description}
         </p>
         <div className="flex gap-2">
           <button
             onClick={() => onPlay(world.id)}
             aria-label={`Play ${world.name}`}
-            className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+            className="w-full rounded-lg py-3 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
           >
             Play Game →
           </button>
           <Link
             href="/campaigns"
             aria-label="View campaign information page"
-            className="rounded-lg border px-3 py-3 text-xs font-semibold hover:opacity-90"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            className="inline-flex items-center justify-center rounded-lg border px-3 py-3 text-xs font-semibold hover:opacity-90 border-border text-muted"
           >
             Campaign Info
           </Link>

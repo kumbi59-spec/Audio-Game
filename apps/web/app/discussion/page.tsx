@@ -100,34 +100,33 @@ export default function DiscussionPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
-        <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>Discussion</h1>
-        <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>{agreementState}</p>
+        <h1 className="text-3xl font-bold text-foreground">Discussion</h1>
+        <p className="mt-3 text-sm text-muted">{agreementState}</p>
 
-        <section className="mt-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>Community Agreement</h2>
-          <ul className="mt-3 list-disc pl-5 text-sm" style={{ color: "var(--text-muted)" }}>
+        <section className="mt-6 rounded-xl border p-4 border-border bg-surface">
+          <h2 className="text-lg font-semibold text-foreground">Community Agreement</h2>
+          <ul className="mt-3 list-disc pl-5 text-sm text-muted">
             <li>Be respectful to other users.</li>
             <li>No spamming or promoting products.</li>
             <li>Do not post sexual content.</li>
           </ul>
           <div className="mt-4 flex gap-2">
-            <button className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }} onClick={() => setAgreed(true)}>Agree</button>
-            <button className="rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)" }} onClick={() => setAgreed(false)}>Disagree</button>
+            <button className="rounded border px-3 py-2 text-sm border-border" onClick={() => setAgreed(true)}>Agree</button>
+            <button className="rounded border px-3 py-2 text-sm border-border" onClick={() => setAgreed(false)}>Disagree</button>
           </div>
         </section>
 
-        <section className="mt-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-          <h2 className="text-lg font-semibold" style={{ color: "var(--text)" }}>Create Thread</h2>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Thread title" maxLength={150} className="mt-3 w-full rounded border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }} disabled={!canPost} />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="What do you want to discuss?" maxLength={5000} className="mt-2 w-full rounded border px-3 py-2 text-sm" rows={4} style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }} disabled={!canPost} />
+        <section className="mt-6 rounded-xl border p-4 border-border bg-surface">
+          <h2 className="text-lg font-semibold text-foreground">Create Thread</h2>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Thread title" maxLength={150} className="mt-3 w-full rounded border px-3 py-2 text-sm border-border bg-bg" disabled={!canPost} />
+          <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="What do you want to discuss?" maxLength={5000} className="mt-2 w-full rounded border px-3 py-2 text-sm border-border bg-bg" rows={4} disabled={!canPost} />
           <button
             disabled={!canPost || !title.trim() || !body.trim()}
             onClick={() => { void handlePostThread(); }}
-            className="mt-2 rounded px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-50"
-            style={{ backgroundColor: "var(--accent-solid)" }}
+            className="mt-2 rounded px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-50 bg-accent-solid"
           >
             Post Thread
           </button>
@@ -138,12 +137,12 @@ export default function DiscussionPage() {
         )}
 
         <section className="mt-6 space-y-4">
-          {loading && <p className="text-sm" style={{ color: "var(--text-muted)" }}>Loading threads…</p>}
+          {loading && <p className="text-sm text-muted">Loading threads…</p>}
           {threads.map((thread) => (
-            <article key={thread.id} className="rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-              <h3 className="text-base font-semibold" style={{ color: "var(--text)" }}>{thread.title}</h3>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>{thread.body}</p>
-              <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>Posted by {thread.author}</p>
+            <article key={thread.id} className="rounded-xl border p-4 border-border bg-surface">
+              <h3 className="text-base font-semibold text-foreground">{thread.title}</h3>
+              <p className="mt-2 text-sm text-muted">{thread.body}</p>
+              <p className="mt-2 text-xs text-muted">Posted by {thread.author}</p>
               <div className="mt-3 space-y-2">
                 {thread.comments.map((comment) => (
                   <p key={comment.id} className="rounded bg-black/10 px-2 py-1 text-sm">{comment.text}</p>
@@ -155,13 +154,11 @@ export default function DiscussionPage() {
                   onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [thread.id]: e.target.value }))}
                   placeholder="Add a comment"
                   maxLength={2000}
-                  className="w-full rounded border px-3 py-2 text-sm"
-                  style={{ borderColor: "var(--border)", backgroundColor: "var(--bg)" }}
+                  className="w-full rounded border px-3 py-2 text-sm border-border bg-bg"
                   disabled={!canPost}
                 />
                 <button
-                  className="rounded border px-3 py-2 text-sm disabled:opacity-50"
-                  style={{ borderColor: "var(--border)" }}
+                  className="rounded border px-3 py-2 text-sm disabled:opacity-50 border-border"
                   disabled={!canPost || !(commentDrafts[thread.id] ?? "").trim()}
                   onClick={() => { void handlePostComment(thread.id); }}
                 >Comment</button>

@@ -35,18 +35,16 @@ function SponsoredCard() {
       href={ADSTERRA.smartlinkUrl}
       target="_blank"
       rel="sponsored noopener noreferrer"
-      className="block rounded-xl border p-4 text-center transition-opacity hover:opacity-90"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="block rounded-xl border p-4 text-center transition-opacity hover:opacity-90 border-border bg-surface"
     >
-      <span className="block text-[10px] uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+      <span className="block text-[10px] uppercase tracking-wider text-muted">
         Sponsored
       </span>
-      <span className="mt-2 block text-sm font-semibold" style={{ color: "var(--text)" }}>
+      <span className="mt-2 block text-sm font-semibold text-foreground">
         Explore offers from our partners
       </span>
       <span
-        className="mt-3 inline-block rounded px-3 py-1.5 text-xs font-semibold"
-        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+        className="mt-3 inline-block rounded px-3 py-1.5 text-xs font-semibold bg-accent-solid text-on-accent"
       >
         Take a look
       </span>

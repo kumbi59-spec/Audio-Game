@@ -42,21 +42,20 @@ export function ServerSaves({ excludeSessionIds }: { excludeSessionIds: string[]
   return (
     <section
       aria-labelledby="server-saves-heading"
-      className="mb-6 rounded-xl border p-4"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="mb-6 rounded-xl border p-4 border-border bg-surface"
     >
-      <h2 id="server-saves-heading" className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+      <h2 id="server-saves-heading" className="text-sm font-semibold text-foreground">
         Saved to your account
       </h2>
-      <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+      <p className="mb-3 text-xs text-muted">
         Pick up where you left off on any device.
       </p>
       <ul className="space-y-2">
         {visible.map((save) => (
           <li key={save.id} className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm" style={{ color: "var(--text)" }}>{save.worldName}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              <p className="text-sm text-foreground">{save.worldName}</p>
+              <p className="text-xs text-muted">
                 Turn {save.turnCount} · last played {new Date(save.lastPlayedAt).toLocaleString()}
               </p>
             </div>
@@ -64,8 +63,7 @@ export function ServerSaves({ excludeSessionIds }: { excludeSessionIds: string[]
               onClick={() => resume(save)}
               disabled={loadingId !== null}
               aria-label={`Resume ${save.worldName}, turn ${save.turnCount}`}
-              className="min-h-[44px] rounded border px-3 py-2 text-xs disabled:opacity-50"
-              style={{ borderColor: "var(--border)" }}
+              className="min-h-[44px] rounded border px-3 py-2 text-xs disabled:opacity-50 border-border"
             >
               {loadingId === save.id ? "Loading…" : "Resume"}
             </button>

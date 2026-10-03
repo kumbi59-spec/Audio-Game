@@ -11,7 +11,7 @@ vi.mock("./client", async (importOriginal) => ({
   getAnthropicClient: () => ({ messages: { stream: mocks.stream } }),
 }));
 
-import { resolveSkillCheck, streamGMTurn, type GMStreamEvent } from "./gm-engine";
+import { computePassiveBonuses, resolveSkillCheck, streamGMTurn, type GMStreamEvent } from "./gm-engine";
 
 interface Script {
   text?: string[];
@@ -351,7 +351,31 @@ describe("streamGMTurn", () => {
 
     expect(mocks.stream).toHaveBeenCalledTimes(1);
     expect(eventData(events, "error")).toMatchObject({ degraded: true, errorClass: "safety_refusal" });
-    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Search the area for threats");
+    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Push on toward what you came for");
+  });
+
+  it("points the fallback turn at the next open objective", async () => {
+    mocks.stream.mockReturnValueOnce(fakeStream({ final: { content: [], stop_reason: "refusal" } }));
+    const questing = {
+      ...character,
+      quests: [
+        {
+          id: "q1",
+          title: "The Bell",
+          description: "",
+          status: "active" as const,
+          objectives: [
+            { id: "o1", text: "Find the bell-ringer", completed: true },
+            { id: "o2", text: "Climb the tower", completed: false },
+          ],
+          reward: null,
+        },
+      ],
+    };
+
+    const events = await collect(streamGMTurn(action, session, questing, world));
+
+    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices[0]).toBe("Push on: Climb the tower");
   });
 
   it("does not retry a request the API rejected as invalid", async () => {
@@ -404,3 +428,19 @@ describe("streamGMTurn", () => {
     expect(eventData(events, "error")).toMatchObject({ degraded: true, errorClass: "timeout" });
   });
 });
+
+describe("computePassiveBonuses", () => {
+  const strong = { ...character, customStats: {}, stats: { ...character.stats, strength: 16, dexterity: 18 } };
+  const act = (content: string): PlayerAction => ({ type: "free_text", content });
+
+  it("matches whole words and their inflections", () => {
+    expect(computePassiveBonuses(act("I attacked the guard"), strong).bonuses.map((b) => b.targetRoll)).toEqual(["melee_attack"]);
+    expect(computePassiveBonuses(act("I keep dodging"), strong).bonuses.map((b) => b.targetRoll)).toEqual(["evade"]);
+  });
+
+  it("doesn't match a keyword hidden inside another word", () => {
+    expect(computePassiveBonuses(act("I paint the white chapel"), strong).bonuses).toEqual([]);
+    expect(computePassiveBonuses(act("I pick up the duckling"), strong).bonuses).toEqual([]);
+  });
+});
+

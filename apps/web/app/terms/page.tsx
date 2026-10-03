@@ -20,17 +20,17 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-10" id="main-content">
-        <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-3xl font-bold text-foreground">
           Terms of Use
         </h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-2 text-sm text-muted">
           Last updated: 2026-05-14
         </p>
 
-        <section className="mt-8 space-y-4 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        <section className="mt-8 space-y-4 text-sm leading-relaxed text-muted">
           <p>
             By using EchoQuest (the &ldquo;Service&rdquo;) you agree to these
             terms. They&rsquo;re written in plain English so you can read
@@ -38,16 +38,16 @@ export default function TermsPage() {
             we&rsquo;ve called that out explicitly.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>1. Who we are</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">1. Who we are</h2>
           <p>
             EchoQuest is operated by the EchoQuest team. The Service is an
             audio-first AI tabletop RPG platform hosted on the web. Our{" "}
-            <Link href="/privacy" className="hover:underline" style={{ color: "var(--accent)" }}>privacy policy</Link>{" "}
+            <Link href="/privacy" className="hover:underline text-accent">privacy policy</Link>{" "}
             covers what data we collect; this document covers how you may
             use the Service.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>2. Accounts</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">2. Accounts</h2>
           <p>
             You can play three official campaigns without an account. Paid
             features and saving sessions require an account. You&rsquo;re
@@ -57,7 +57,7 @@ export default function TermsPage() {
             limit, suspend, or close the account.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>3. Subscriptions and payments</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">3. Subscriptions and payments</h2>
           <p>
             Paid tiers are billed monthly through Stripe. You can cancel any
             time from the account page; access continues until the end of the
@@ -65,11 +65,11 @@ export default function TermsPage() {
             months, but we&rsquo;ll always honour a refund request that
             reflects a clear product fault (a billing error, a feature that
             was promised and didn&rsquo;t work). Email us through{" "}
-            <Link href="/contact-us" className="hover:underline" style={{ color: "var(--accent)" }}>contact us</Link>{" "}
+            <Link href="/contact-us" className="hover:underline text-accent">contact us</Link>{" "}
             and we&rsquo;ll sort it.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>4. Acceptable use</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">4. Acceptable use</h2>
           <p>
             Use EchoQuest like you&rsquo;d use any creative tool that other
             people also use. Don&rsquo;t:
@@ -84,10 +84,10 @@ export default function TermsPage() {
           <p>
             We may remove content or terminate accounts that violate this
             section. If we do, you can appeal through{" "}
-            <Link href="/contact-us" className="hover:underline" style={{ color: "var(--accent)" }}>contact us</Link>.
+            <Link href="/contact-us" className="hover:underline text-accent">contact us</Link>.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>5. Your content</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">5. Your content</h2>
           <p>
             Worlds, characters, and campaigns you create stay yours. You
             grant EchoQuest a limited license to store, render, and (for
@@ -97,7 +97,7 @@ export default function TermsPage() {
             thirty days and backups roll off within ninety.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>6. AI-generated content</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">6. AI-generated content</h2>
           <p>
             The AI Game Master is powered by Anthropic&rsquo;s Claude. AI
             outputs can be wrong, repetitive, or surprising. We work hard to
@@ -108,7 +108,7 @@ export default function TermsPage() {
             any AI model and we do not sell it to third parties.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>7. Availability and changes</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">7. Availability and changes</h2>
           <p>
             We aim for high availability but the Service is provided
             &ldquo;as is&rdquo; without uptime guarantees. We may add,
@@ -118,7 +118,7 @@ export default function TermsPage() {
             thirty days before it takes effect.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>8. Liability</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">8. Liability</h2>
           <p>
             EchoQuest&rsquo;s total liability for any claim related to the
             Service is capped at the amount you paid us in the twelve months
@@ -129,7 +129,7 @@ export default function TermsPage() {
             them.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>9. Governing law</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">9. Governing law</h2>
           <p>
             These terms are governed by the laws of the jurisdiction in
             which the EchoQuest team is principally located. Disputes will
@@ -138,10 +138,10 @@ export default function TermsPage() {
             forum.
           </p>
 
-          <h2 className="mt-8 text-xl font-semibold" style={{ color: "var(--text)" }}>10. Contact</h2>
+          <h2 className="mt-8 text-xl font-semibold text-foreground">10. Contact</h2>
           <p>
             Questions, complaints, or legal notices:{" "}
-            <Link href="/contact-us" className="hover:underline" style={{ color: "var(--accent)" }}>contact us</Link>.
+            <Link href="/contact-us" className="hover:underline text-accent">contact us</Link>.
           </p>
         </section>
       </main>

@@ -106,6 +106,26 @@ describe("StreamingNarrator", () => {
     expect(speaker.spoken).toEqual(['[Voss]: "Halt, stranger."']);
   });
 
+  it("speaks the prose before a held line instead of waiting on it", async () => {
+    const speaker = controlledSpeaker();
+    let known = false;
+    const { n } = narrator({
+      speakSegment: speaker.speakSegment,
+      canSpeak: (text) => known || !text.includes("[Voss]"),
+      speakableLength: (text) => (known ? text.length : text.indexOf("[Voss]")),
+    });
+
+    n.push('The gate groans open. [Voss]: "Halt, stranger." He waits. ');
+    await tick();
+    expect(speaker.spoken).toEqual(["The gate groans open."]);
+
+    known = true;
+    await speaker.finishCurrent();
+    n.nudge();
+    await tick();
+    expect(speaker.spoken[1]).toBe('[Voss]: "Halt, stranger." He waits.');
+  });
+
   it("stops between segments when speech is stopped", async () => {
     const speaker = controlledSpeaker();
     const { n, stopSpeech } = narrator({ speakSegment: speaker.speakSegment });

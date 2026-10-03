@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   constructWebhookEvent: vi.fn(),
   markStripeEventProcessed: vi.fn(),
+  unmarkStripeEventProcessed: vi.fn(),
   addAiMinutes: vi.fn(),
   sendPushToUser: vi.fn(),
   updateUserTier: vi.fn(),
@@ -29,6 +30,7 @@ vi.mock("@/lib/db/queries/users", () => ({
   findUserByStripeCustomerId: vi.fn(),
   addAiMinutes: mocks.addAiMinutes,
   markStripeEventProcessed: mocks.markStripeEventProcessed,
+  unmarkStripeEventProcessed: mocks.unmarkStripeEventProcessed,
 }));
 
 vi.mock("@/lib/email", () => ({ sendUpgradeEmail: vi.fn() }));
@@ -92,6 +94,37 @@ describe("POST /api/payments/webhook", () => {
     const res = await POST(req as never);
 
     expect(res.status).toBe(500);
+  });
+
+  it("applies Stripe's retry of an event whose first delivery failed", async () => {
+    const processed = new Set<string>();
+    mocks.markStripeEventProcessed.mockImplementation(async (id: string) => {
+      if (processed.has(id)) return false;
+      processed.add(id);
+      return true;
+    });
+    mocks.unmarkStripeEventProcessed.mockImplementation(async (id: string) => {
+      processed.delete(id);
+    });
+    mocks.constructWebhookEvent.mockResolvedValue({
+      id: "evt_redeliver",
+      type: "checkout.session.completed",
+      data: { object: { mode: "payment", metadata: { userId: "user_1", packId: "pack_small" }, customer: "cus_1" } },
+    });
+    mocks.addAiMinutes.mockRejectedValueOnce(new Error("transient db outage")).mockResolvedValueOnce(undefined);
+    const deliver = () =>
+      POST(new Request("http://localhost/api/payments/webhook", {
+        method: "POST",
+        headers: { "stripe-signature": "sig" },
+        body: JSON.stringify({ any: "payload" }),
+      }) as never);
+
+    expect((await deliver()).status).toBe(500);
+    const retry = await deliver();
+
+    expect(retry.status).toBe(200);
+    expect(await retry.json()).not.toMatchObject({ duplicate: true });
+    expect(mocks.addAiMinutes).toHaveBeenCalledTimes(2);
   });
 
   it("upgrades on checkout.session.completed even if subscription.created arrived first", async () => {

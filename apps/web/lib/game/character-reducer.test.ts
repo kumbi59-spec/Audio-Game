@@ -6,6 +6,7 @@ import {
   applyInventoryMutation,
   applyQuestMutation,
   applyStatDelta,
+  xpToReachLevel,
 } from "./character-reducer";
 
 const base: CharacterData = {
@@ -81,4 +82,23 @@ describe("character reducer", () => {
     const c = applyInventoryMutation(base, { op: "add", name: "Coin", quantity: Number.NaN }, ids);
     expect(c.inventory.find((i) => i.name === "Coin")!.quantity).toBe(1);
   });
+
+  it("uses one XP curve: level 2 at 100, 3 at 400, 4 at 900", () => {
+    expect([1, 2, 3, 4].map(xpToReachLevel)).toEqual([0, 100, 400, 900]);
+    expect(applyStatDelta(base, "experience", 399).stats.level).toBe(2);
+    expect(applyStatDelta(base, "experience", 400).stats.level).toBe(3);
+  });
+
+  it("ignores a level delta from the GM, so a level-up isn't applied twice", () => {
+    const next = applyCharacterChanges(base, { statDeltas: { experience: 100, level: 1 } }, ids);
+    expect(next.stats.level).toBe(2);
+    expect(next.stats.maxHp).toBe(25);
+  });
+
+  it("ticks off an objective even when the GM changes its case or spacing", () => {
+    const withQuest = applyQuestMutation(base, { op: "start", title: "Bell", objectives: ["Climb the tower."] }, ids);
+    const next = applyQuestMutation(withQuest, { op: "update", title: "bell", objective: "climb  the Tower" }, ids);
+    expect(next.quests[0]!.objectives[0]!.completed).toBe(true);
+  });
 });
+

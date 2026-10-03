@@ -4,9 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
-import { ActionInput } from "./ActionInput";
+import { ActionInput, type VoiceMetaCommand } from "./ActionInput";
 import { StatusBar } from "./StatusBar";
-import { CharacterSheet } from "./CharacterSheet";
+import dynamic from "next/dynamic";
+
+// The sheet is big and only shown on demand, so it loads when first opened.
+const CharacterSheet = dynamic(() => import("./CharacterSheet").then((m) => m.CharacterSheet), { ssr: false });
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
@@ -19,10 +22,28 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
-import { speak, isSpeaking } from "@/lib/audio/tts-provider";
+import { useReducedMotion } from "@/lib/a11y/use-reduced-motion";
+import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
+import { canPlayAudioNow, whenAudioUnlocked } from "@/lib/audio/unlock";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import type { PlayerAction, SceneTransition } from "@/types/game";
+
+/**
+ * Speaks a short readout (location, status) once the narrator is quiet, so it
+ * doesn't cut a sentence off or get cut off by the next one.
+ */
+function speakWhenQuiet(text: string): void {
+  if (!isSpeaking()) {
+    void speak(text);
+    return;
+  }
+  const timer = setInterval(() => {
+    if (isSpeaking()) return;
+    clearInterval(timer);
+    void speak(text);
+  }, 250);
+}
 
 export function GameShell() {
   const {
@@ -32,25 +53,26 @@ export function GameShell() {
     submitAction,
     replayLast,
     recapRecentTurns,
-    speakText,
+    speakNarration,
     sceneTransitionHint,
     clearSceneTransitionHint,
     canUndo,
     undoLastTurn,
   } =
     useGameSession();
-  const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
+  const { ttsSpeed, setTTSSpeed, setCurrentAmbient } = useAudioStore();
   const {
     operationsManualSeen,
     operationsManualOpen,
     openOperationsManual,
     closeOperationsManual,
     markOperationsManualSeen,
-    reducedMotion,
     audioOnlyMode,
   } = useAccessibilityStore();
+  const reducedMotion = useReducedMotion();
   const { announce } = useAnnouncer();
   const saveCurrentCampaign = useGameStore((s) => s.saveCurrentCampaign);
+  const addNarrationEntry = useGameStore((s) => s.addNarrationEntry);
   const [helpHintVisible, setHelpHintVisible] = useState(false);
   const lastAutoSaveTurnRef = useRef<number>(-1);
   const inputRef = useRef<HTMLElement | null>(null);
@@ -88,6 +110,16 @@ export function GameShell() {
     const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
     return () => clearInterval(interval);
   }, []);
+
+  // Tell the player when narration falls back to the browser voice.
+  useEffect(
+    () =>
+      onTtsNotice((message) => {
+        announce(message, "polite");
+        addNarrationEntry({ id: `tts-notice-${Date.now()}`, text: message, type: "system", timestamp: new Date() });
+      }),
+    [announce, addNarrationEntry],
+  );
 
   // Pick the most recent NARRATION entry to feed into ambient inference. We
   // narrow what the next effect depends on so it only re-runs when the
@@ -141,9 +173,12 @@ export function GameShell() {
       .find((entry) => entry.type === "narration");
     if (latestNarration) {
       openingSpokenRef.current = true;
-      speakText(latestNarration.text);
+      // After a reload the browser won't play sound until the player
+      // interacts with the page, so the scene waits for that first tap.
+      if (!canPlayAudioNow()) announce("Press any key or tap anywhere to hear the story.", "polite");
+      void whenAudioUnlocked().then(() => speakNarration(latestNarration.text));
     }
-  }, [session, speakText]);
+  }, [session, speakNarration, announce]);
 
   // First-time players: a non-blocking hint announces help availability and
   // shows a dismissable toast. Previously this auto-opened the modal, which
@@ -223,9 +258,9 @@ export function GameShell() {
   }, [operationsManualOpen, handleCloseOperationsManual, openOperationsManual]);
 
   const handleAction = useCallback(
-    (action: PlayerAction) => {
-      if (session?.isGenerating) return;
-      submitAction(action);
+    (action: PlayerAction): Promise<boolean> => {
+      if (session?.isGenerating) return Promise.resolve(false);
+      return submitAction(action);
     },
     [session, submitAction]
   );
@@ -249,15 +284,55 @@ export function GameShell() {
     const text = loc
       ? `You are at ${loc.name}. ${loc.description}`
       : "Your current location is unknown.";
-    speak(text, { rate: ttsSpeed, volume });
-  }, [session, world, ttsSpeed, volume]);
+    speakWhenQuiet(text);
+  }, [session, world]);
 
   const handleReadStatus = useCallback(() => {
     if (!character || !session || !world) return;
     const loc = world.locations.find((l) => l.id === session.currentLocationId);
-    const text = `${character.name}, ${character.class}. Health: ${character.stats.hp} of ${character.stats.maxHp}. At ${loc?.name ?? "unknown location"}. Turn ${session.turnCount}.`;
-    speak(text, { rate: ttsSpeed, volume });
-  }, [character, session, world, ttsSpeed, volume]);
+    const text = `${character.name}, ${character.roleTitle ?? character.class}. Health: ${character.stats.hp} of ${character.stats.maxHp}. At ${loc?.name ?? "unknown location"}. Turn ${session.turnCount}.`;
+    speakWhenQuiet(text);
+  }, [character, session, world]);
+
+  // Voice commands that aren't actions ("pause", "where am I", "save game").
+  const handleVoiceMeta = useCallback((command: VoiceMetaCommand) => {
+    switch (command) {
+      case "pause": pauseSpeech(); break;
+      case "resume": resumeSpeech(); break;
+      case "replay": if (!session?.isGenerating) replayLast(); break;
+      case "location": handleReadLocation(); break;
+      case "status": handleReadStatus(); break;
+      case "inventory": handleOpenSheetTab("inventory"); break;
+      case "quests": handleOpenSheetTab("quests"); break;
+      case "save": handleManualSave(); break;
+    }
+  // handleOpenSheetTab is declared below and stable (useCallback).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.isGenerating, replayLast, handleReadLocation, handleReadStatus, handleManualSave]);
+
+  // Headset and lock-screen buttons: play/pause the narrator, "previous"
+  // replays the last scene, "next" skips the rest of it.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    const handlers: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
+      ["play", () => resumeSpeech()],
+      ["pause", () => pauseSpeech()],
+      ["previoustrack", () => replayLast()],
+      ["nexttrack", () => stopSpeech()],
+    ];
+    for (const [action, handler] of handlers) {
+      try { ms.setActionHandler(action, handler); } catch { /* unsupported action */ }
+    }
+    if (world && typeof MediaMetadata !== "undefined") {
+      ms.metadata = new MediaMetadata({ title: world.name, artist: "EchoQuest" });
+    }
+    return () => {
+      for (const [action] of handlers) {
+        try { ms.setActionHandler(action, null); } catch { /* unsupported action */ }
+      }
+    };
+  }, [replayLast, world]);
 
   const focusPanelHeading = useCallback(() => {
     requestAnimationFrame(() => panelHeadingRef.current?.focus());
@@ -300,7 +375,7 @@ export function GameShell() {
   const lastDegradedIdx = (() => {
     for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
       const e = session.narrationLog[i];
-      if (e?.type === "system" && degradedRegex.test(e.text)) return i;
+      if (e?.type === "system" && (e.degraded || degradedRegex.test(e.text))) return i;
     }
     return -1;
   })();
@@ -330,7 +405,7 @@ export function GameShell() {
       <AudioUnlocker />
       <KeyboardShortcuts
         onChoiceSelect={handleChoiceSelect}
-        onReplayLast={replayLast}
+        onReplayLast={session.isGenerating ? undefined : replayLast}
         onFocusInput={handleFocusInput}
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
@@ -376,7 +451,7 @@ export function GameShell() {
         {/* Narration — fills available space */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
           {degradedMessage && (
-            <div className="mb-2 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            <div className="mb-2 rounded border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-foreground">
               {degradedMessage}
             </div>
           )}
@@ -397,7 +472,7 @@ export function GameShell() {
                 type="button"
                 onClick={() => setHudOpen(false)}
                 aria-label="Close HUD"
-                className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
+                className="flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
               >
                 ✕
               </button>
@@ -446,6 +521,7 @@ export function GameShell() {
         >
           <ActionInput
             onAction={handleAction}
+            onMeta={handleVoiceMeta}
             choices={session.choices}
             disabled={session.isGenerating}
           />
@@ -476,16 +552,19 @@ export function GameShell() {
         {/* In-game the Adsterra native banner below is the ad; AdBanner adds AdSense only if enabled. */}
         <AdBanner visible={shouldShowAdBanner} fallback="none" />
         {nativeAdMounted && (
-          <div hidden={!shouldShowAdBanner}>
+          // Capped so an ad can never squeeze the narration off the screen.
+          <div hidden={!shouldShowAdBanner} className="max-h-[260px] shrink-0 overflow-hidden">
             <AdsterraNativeBanner />
           </div>
         )}
 
         {/* Bottom toolbar */}
         <div
+          id="game-toolbar"
+          tabIndex={-1}
           role="toolbar"
           aria-label="Game controls"
-          className="flex shrink-0 items-center justify-between border-t border-border bg-muted/10 px-4 py-2"
+          className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/10 px-4 py-2"
         >
           {/* A11y motion checklist: labels/icons communicate state without animation; all controls are keyboard/focus operable; reduced-motion uses static visuals. */}
           {/* Speed control — compact slider replaces ± buttons */}
@@ -516,7 +595,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 operationsManualOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               Help
@@ -528,7 +607,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 sheetOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               Sheet
@@ -540,7 +619,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 hudOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               HUD
@@ -549,7 +628,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("inventory")}
               aria-label={`Open inventory (I). ${character.inventory.length} items.`}
-              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Briefcase
               {character.inventory.length > 0 && (
@@ -561,7 +640,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("quests")}
               aria-label={`Open quest log (Q). ${activeQuestCount} active quests.`}
-              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Quest Book
               {activeQuestCount > 0 && (
@@ -573,7 +652,7 @@ export function GameShell() {
             <button
               onClick={() => recapRecentTurns(3)}
               aria-label="Catch up — recap the last 3 scenes"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Recap
             </button>
@@ -581,46 +660,46 @@ export function GameShell() {
               onClick={undoLastTurn}
               disabled={!canUndo}
               aria-label="Undo last turn (U)"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
             >
               Undo
             </button>
             <button
               onClick={handleManualSave}
               aria-label="Save current campaign"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Save
             </button>
             <button
               onClick={shareRecap}
               aria-label="Share your session recap"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Share Recap
             </button>
             {/* Mobile overflow menu — hidden on md+ */}
             <details className="relative md:hidden">
-              <summary className="toolbar-btn list-none cursor-pointer rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring">
+              <summary className="toolbar-btn inline-flex min-h-[44px] list-none cursor-pointer items-center rounded border border-border px-3 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring">
                 ⋯ More
               </summary>
               <div className="absolute bottom-full right-0 z-50 mb-1 flex flex-col gap-1 rounded-lg border border-border bg-background p-2 shadow-lg">
-                <button onClick={() => handleOpenSheetTab("inventory")} aria-label={`Open inventory. ${character.inventory.length} items.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => handleOpenSheetTab("inventory")} aria-label={`Open inventory. ${character.inventory.length} items.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Briefcase {character.inventory.length > 0 && `(${character.inventory.length})`}
                 </button>
-                <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Quest Book {activeQuestCount > 0 && `(${activeQuestCount})`}
                 </button>
-                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Recap
                 </button>
-                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
+                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground disabled:opacity-40">
                   Undo
                 </button>
-                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Save
                 </button>
-                <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Share Recap
                 </button>
               </div>
@@ -628,7 +707,7 @@ export function GameShell() {
             <Link
               href="/library"
               aria-label="Exit game and return to library"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
+              className="inline-flex items-center justify-center toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
             >
               ← Exit
             </Link>

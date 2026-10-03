@@ -123,7 +123,13 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
       }
     };
 
-    if (!isSpeaking()) {
+    // Ready once the narrator is quiet and the buttons are enabled (the
+    // turn can still be closing after the narration ends); focusing a
+    // disabled button would drop focus on the floor.
+    const ready = () =>
+      !isSpeaking() && !listRef.current?.querySelector<HTMLButtonElement>("button")?.disabled;
+
+    if (ready()) {
       announceAndFocus();
       return;
     }
@@ -133,7 +139,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
         clearInterval(interval);
         return;
       }
-      if (!isSpeaking()) {
+      if (ready()) {
         clearInterval(interval);
         announceAndFocus();
       }
@@ -168,7 +174,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
                   : `Option ${i + 1}: ${choice}`
               }
               aria-busy={submittedIdx === i}
-              className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+              className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-50"
             >
               <span
                 aria-hidden="true"

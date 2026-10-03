@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { prisma } from "@/lib/db";
 import { parseGameBible, buildSystemPromptFromBible } from "@/lib/ai/bible-parser";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function POST(_req: Request, { params }: RouteContext) {
+export async function POST(req: Request, { params }: RouteContext) {
   const { id } = await params;
 
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const limited = await limitAuthoringRequest(req, {
+    id: session.user.id,
+    isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
+  });
+  if (limited) return limited;
 
   const world = await prisma.world.findUnique({
     where: { id },
@@ -32,7 +38,13 @@ export async function POST(_req: Request, { params }: RouteContext) {
     return NextResponse.json({ error: "Game bible text not found." }, { status: 404 });
   }
 
-  const bible = await parseGameBible(gameBible.rawText);
+  let bible: Awaited<ReturnType<typeof parseGameBible>>;
+  try {
+    bible = await parseGameBible(gameBible.rawText);
+  } catch (err) {
+    console.error("[reparse] parse failed:", err);
+    return NextResponse.json({ error: "Couldn't re-read the game bible. Try again in a moment." }, { status: 502 });
+  }
 
   await prisma.$transaction([
     prisma.gameBible.update({

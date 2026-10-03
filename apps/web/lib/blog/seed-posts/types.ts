@@ -16,3 +16,11 @@ export type ScheduledSeedPost = {
 export function scheduledPublishDate(publishAt: string): Date {
   return new Date(`${publishAt}T09:00:00Z`);
 }
+
+/**
+ * A seeded post's URL slug, derived from its title. Changing a title changes
+ * the slug (and breaks existing links), so titles of published posts are fixed.
+ */
+export function seedPostSlug(title: string): string {
+  return title.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
+}

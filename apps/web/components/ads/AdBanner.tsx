@@ -6,6 +6,7 @@ import { useCanWeb } from "@/store/entitlements-store";
 import { ADSENSE_ENABLED } from "./adsense-config";
 import { AdsterraBanner } from "./AdsterraBanner";
 import { useIsWideScreen } from "./useIsWideScreen";
+import { useUnfilledCollapse } from "./useUnfilledCollapse";
 
 /**
  * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
@@ -34,17 +35,15 @@ declare global {
 function HouseAd() {
   return (
     <div
-      className="flex items-center justify-between gap-4 px-4 py-2 text-xs"
-      style={{ backgroundColor: "var(--surface)", borderTop: "1px solid var(--border)" }}
+      className="flex items-center justify-between gap-4 px-4 py-2 text-xs bg-surface border-t border-border"
       aria-label="Advertisement — upgrade to remove ads"
     >
-      <span style={{ color: "var(--text-muted)" }}>
+      <span className="text-muted">
         Playing free — ads keep EchoQuest running.
       </span>
       <Link
         href="/account"
-        className="rounded px-2 py-1 text-xs font-semibold hover:opacity-90"
-        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+        className="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-semibold hover:opacity-90 bg-accent-solid text-on-accent"
       >
         Upgrade to remove ads
       </Link>
@@ -108,11 +107,15 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
  */
 function AdsterraDisplaySlot() {
   const wide = useIsWideScreen();
-  if (wide !== false) return null;
+  const narrow = wide === false;
+  const [ref, unfilled] = useUnfilledCollapse(narrow);
+  // Space is held from the first render (and hidden by CSS on rail-width
+  // screens) so the page doesn't jump when the 600px-tall unit arrives.
+  if (wide === true || unfilled) return null;
   return (
-    <div className="flex justify-center py-2" aria-label="Advertisement">
-      <AdsterraBanner />
-    </div>
+    <aside ref={ref} aria-label="Advertisement" className="flex min-h-[600px] justify-center py-2 xl:hidden">
+      {narrow && <AdsterraBanner />}
+    </aside>
   );
 }
 

@@ -1,4 +1,12 @@
 import type { GMResponse } from "@/types/game";
+import { stripEmDashes } from "./style";
+
+/** Choices offered when the GM's reply couldn't be read. */
+export const UNREADABLE_REPLY_CHOICES = [
+  "Keep going",
+  "Take a slow look around",
+  "Something else: tell me what you do",
+];
 
 // Parse the GM's JSON response, tolerating markdown code fences
 export function parseGMResponse(raw: string): GMResponse {
@@ -10,8 +18,10 @@ export function parseGMResponse(raw: string): GMResponse {
   try {
     const parsed = JSON.parse(cleaned) as GMResponse;
     return {
-      narration: parsed.narration ?? "",
-      choices: Array.isArray(parsed.choices) ? parsed.choices : [],
+      narration: stripEmDashes(parsed.narration ?? ""),
+      choices: Array.isArray(parsed.choices)
+        ? parsed.choices.filter((c): c is string => typeof c === "string").map(stripEmDashes)
+        : [],
       soundCue: parsed.soundCue ?? null,
       stateChanges: parsed.stateChanges ?? undefined,
       npcAction: parsed.npcAction ?? null,
@@ -26,8 +36,8 @@ export function parseGMResponse(raw: string): GMResponse {
     // and only fall through to raw if even that fails.
     const extracted = extractNarrationField(cleaned);
     return {
-      narration: extracted ?? raw,
-      choices: ["Continue", "Look around", "Do something else"],
+      narration: stripEmDashes(extracted ?? raw),
+      choices: [...UNREADABLE_REPLY_CHOICES],
       soundCue: null,
     };
   }
@@ -51,32 +61,38 @@ export function extractNarrationField(text: string): string | null {
     } else if (ch === "\\") {
       escaped = true;
     } else if (ch === '"') {
-      // Unescape standard JSON sequences inside the field — \" \\ \n \r \t.
-      // Anything more exotic (\uXXXX) is left literal; rare in narration prose.
-      return text
-        .slice(start, i)
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, "\\")
-        .replace(/\\n/g, "\n")
-        .replace(/\\r/g, "\r")
-        .replace(/\\t/g, "\t");
+      return decodeJsonString(text.slice(start, i));
     }
     i += 1;
   }
   // Truncated mid-value: return what we have up to the cut so the player still
-  // sees the prose Claude managed to emit, minus the trailing JSON tail.
-  return text
-    .slice(start)
-    .replace(/\\"/g, '"')
-    .replace(/\\\\/g, "\\")
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "\r")
-    .replace(/\\t/g, "\t");
+  // sees the prose Claude managed to emit, minus the trailing JSON tail. An
+  // escape cut in half (an odd run of backslashes, maybe with part of \uXXXX)
+  // is dropped first.
+  const tail = text.slice(start);
+  const cutEscape = /(\\+)(u[0-9a-fA-F]{0,3})?$/.exec(tail);
+  const complete =
+    cutEscape && cutEscape[1]!.length % 2 === 1 ? tail.slice(0, cutEscape.index + cutEscape[1]!.length - 1) : tail;
+  return decodeJsonString(complete);
+}
+
+/** Decodes the body of a JSON string literal, escapes and all. */
+function decodeJsonString(body: string): string {
+  try {
+    return JSON.parse(`"${body}"`) as string;
+  } catch {
+    // A raw control character or a broken escape: decode the common ones by
+    // hand, in one pass so "\\\"" can't be misread.
+    return body.replace(/\\(["\\/bfnrt]|u[0-9a-fA-F]{4})/g, (_, esc: string) => {
+      if (esc.startsWith("u")) return String.fromCharCode(Number.parseInt(esc.slice(1), 16));
+      return ({ b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" } as Record<string, string>)[esc] ?? esc;
+    });
+  }
 }
 
 /**
  * Stored assistant turns are the GM's raw JSON. For summarising, only the
- * prose matters — the choices and state-change blocks are noise that costs
+ * prose matters; the choices and state-change blocks are noise that costs
  * tokens. Falls back to the raw text when it isn't GM JSON.
  */
 export function narrationFromStoredTurn(content: string): string {

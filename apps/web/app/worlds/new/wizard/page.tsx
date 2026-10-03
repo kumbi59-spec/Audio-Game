@@ -230,7 +230,7 @@ export default function WorldWizardPage() {
   const pct = Math.round(((stepIndex) / STEPS.length) * 100);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <style>{`
         @keyframes pulse-ring {
           0%, 100% { box-shadow: 0 0 0 2px var(--accentBg, rgba(124,106,247,0.22)); }
@@ -239,9 +239,8 @@ export default function WorldWizardPage() {
       `}</style>
       {/* Skip link */}
       <a
-        href="#wizard-main"
-        className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
-        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+        href="#main-content"
+        className="inline-flex items-center justify-center sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold bg-accent-solid text-on-accent"
       >
         Skip to wizard
       </a>
@@ -250,27 +249,26 @@ export default function WorldWizardPage() {
       <header className="px-6 py-6">
         <Link
           href="/worlds/new"
-          className="mb-4 inline-block text-sm hover:underline"
-          style={{ color: "var(--text-muted)" }}
+          className="mb-4 inline-block text-sm hover:underline text-muted"
           aria-label="Back to world creation options"
         >
           ← Back
         </Link>
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+        <h1 className="text-2xl font-bold text-foreground">
           World Builder Wizard
         </h1>
         {forkName ? (
-          <p className="mt-1 text-sm font-medium" style={{ color: "var(--accent)" }}>
+          <p className="mt-1 text-sm font-medium text-accent">
             Forking from &ldquo;{forkName}&rdquo; — adjust any fields you want to change.
           </p>
         ) : (
-          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
+          <p className="mt-1 text-sm text-muted">
             Answer {STEPS.length} questions and your world is ready to play.
           </p>
         )}
       </header>
 
-      <main id="wizard-main" className="mx-auto max-w-xl px-6 pb-20">
+      <main id="main-content" className="mx-auto max-w-xl px-6 pb-20">
         {/* Progress bar */}
         <div
           role="progressbar"
@@ -280,13 +278,12 @@ export default function WorldWizardPage() {
           aria-label={`Step ${stepIndex + 1} of ${STEPS.length}`}
           className="mb-6"
         >
-          <div className="mb-1 flex justify-between text-xs" style={{ color: "var(--text-faint)" }}>
+          <div className="mb-1 flex justify-between text-xs text-subtle">
             <span>Step {stepIndex + 1} of {STEPS.length}</span>
             <span>{pct}% complete</span>
           </div>
           <div
-            className="h-1.5 w-full overflow-hidden rounded-full"
-            style={{ backgroundColor: "var(--surface3)" }}
+            className="h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
           >
             <div
               className="h-full rounded-full transition-all duration-300"
@@ -320,13 +317,12 @@ export default function WorldWizardPage() {
           <h2
             ref={promptRef}
             tabIndex={-1}
-            className="mb-1 text-xl font-bold leading-snug outline-none"
-            style={{ color: "var(--text)" }}
+            className="mb-1 text-xl font-bold leading-snug outline-none text-foreground"
           >
             {step.prompt}
           </h2>
           {step.kind === "freeform" && step.helper && (
-            <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-4 text-sm text-muted">
               {step.helper}
             </p>
           )}
@@ -340,7 +336,7 @@ export default function WorldWizardPage() {
                   aria-label={step.prompt}
                   aria-describedby={step.helper ? "step-helper" : undefined}
                   aria-required={step.required}
-                  className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+                  className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
                   style={{
                     borderColor: "var(--border)",
                     backgroundColor: "var(--surface2)",
@@ -365,12 +361,7 @@ export default function WorldWizardPage() {
                   type="text"
                   aria-label={step.prompt}
                   aria-required={step.required}
-                  className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
-                  style={{
-                    borderColor: "var(--border)",
-                    backgroundColor: "var(--surface2)",
-                    color: "var(--text)",
-                  }}
+                  className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring border-border bg-surface-2 text-foreground"
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
                   disabled={busy}
@@ -390,15 +381,13 @@ export default function WorldWizardPage() {
               {(loadingSuggestions || suggestions.length > 0) && (
                 <div>
                   <p
-                    className="mb-2 text-xs font-semibold uppercase tracking-widest"
-                    style={{ color: "var(--text-faint)" }}
+                    className="mb-2 text-xs font-semibold uppercase tracking-widest text-subtle"
                   >
                     {loadingSuggestions ? "Getting ideas…" : "Suggestions"}
                   </p>
                   {loadingSuggestions ? (
                     <div
-                      className="h-4 w-24 animate-pulse rounded"
-                      style={{ backgroundColor: "var(--surface3)" }}
+                      className="h-4 w-24 animate-pulse rounded bg-surface-3"
                       aria-label="Loading suggestions"
                     />
                   ) : (
@@ -490,8 +479,7 @@ export default function WorldWizardPage() {
           <p
             role="alert"
             aria-live="assertive"
-            className="mt-3 text-sm font-semibold"
-            style={{ color: "var(--danger)" }}
+            className="mt-3 text-sm font-semibold text-danger"
           >
             {error}
           </p>
@@ -503,8 +491,7 @@ export default function WorldWizardPage() {
             onClick={goBack}
             disabled={busy || stepIndex === 0}
             aria-label="Go to previous step"
-            className="rounded-lg border px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ borderColor: "var(--border)", color: "var(--text)" }}
+            className="rounded-lg border px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed border-border text-foreground"
           >
             ← Back
           </button>
@@ -531,8 +518,7 @@ export default function WorldWizardPage() {
             disabled={busy}
             aria-label="Read the question aloud again (R)"
             title="Re-read (R)"
-            className="rounded-lg border px-3 py-2.5 text-sm transition-opacity hover:opacity-80 disabled:opacity-40"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            className="rounded-lg border px-3 py-2.5 text-sm transition-opacity hover:opacity-80 disabled:opacity-40 border-border text-muted"
           >
             ↻ Re-read
           </button>
@@ -543,8 +529,7 @@ export default function WorldWizardPage() {
               disabled={busy}
               aria-label={isLast ? "Finish and create your world" : "Advance to next step"}
               aria-busy={busy}
-              className="ml-auto rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="ml-auto rounded-lg px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed bg-accent-solid text-on-accent"
             >
               {busy ? "Creating…" : isLast ? "Create World →" : "Next →"}
             </button>
@@ -552,17 +537,17 @@ export default function WorldWizardPage() {
         </div>
 
         {/* Keyboard hint bar */}
-        <p className="mt-3 text-xs" style={{ color: "var(--text-faint)" }} aria-hidden="true">
+        <p className="mt-3 text-xs text-subtle" aria-hidden="true">
           Keyboard: <kbd>V</kbd> speak · <kbd>R</kbd> re-read · <kbd>←</kbd> back · <kbd>→ / Enter</kbd> next
         </p>
 
         {/* Cover image (shown on last step only) */}
         {isLast && (
-          <div className="mt-6 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface2)" }}>
-            <label htmlFor="cover-image-url" className="mb-1 block text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <div className="mt-6 rounded-xl border p-4 border-border bg-surface-2">
+            <label htmlFor="cover-image-url" className="mb-1 block text-sm font-semibold text-foreground">
               Cover image <span style={{ color: "var(--text-faint)", fontWeight: 400 }}>(optional)</span>
             </label>
-            <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="mb-3 text-xs text-muted">
               Paste a public image URL to use as your world&apos;s cover art. Leave blank and one will be generated automatically.
             </p>
             <input
@@ -572,8 +557,7 @@ export default function WorldWizardPage() {
               onChange={(e) => setCoverImageUrl(e.target.value)}
               placeholder="https://example.com/my-cover.jpg"
               disabled={busy}
-              className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2"
-              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
+              className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring border-border bg-surface text-foreground"
             />
             {coverImageUrl.trim() && (
               <div className="mt-3 overflow-hidden rounded-lg" style={{ maxHeight: 160 }}>
@@ -590,7 +574,7 @@ export default function WorldWizardPage() {
         )}
 
         {/* Keyboard hint */}
-        <p className="mt-6 text-xs" style={{ color: "var(--text-faint)" }}>
+        <p className="mt-6 text-xs text-subtle">
           Keyboard: <kbd>→ / Enter</kbd> next · <kbd>←</kbd> back · <kbd>V</kbd> voice ·{" "}
           <kbd>R</kbd> repeat question
         </p>

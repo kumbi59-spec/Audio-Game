@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_PENDING_SUMMARY_MESSAGES } from "@/lib/ai/memory/context-window";
+import { MAX_HISTORY_CHARS, MAX_PENDING_SUMMARY_MESSAGES } from "@/lib/ai/memory/context-window";
 
 // Request schemas shared by the game API routes. Every string and array is
 // bounded: these payloads end up in model prompts, so unbounded input is an
@@ -9,6 +9,11 @@ const shortText = z.string().max(200);
 const mediumText = z.string().max(2_000);
 const longText = z.string().max(8_000);
 
+// Stats are stored on the character as sent for a game without a server
+// save yet, so they're kept to sane, finite ranges.
+const statValue = (min: number, max: number) => z.number().finite().min(min).max(max);
+const coreStat = statValue(0, 1_000);
+
 export const CharacterSchema = z.object({
   id: shortText.min(1),
   name: shortText.min(1),
@@ -16,23 +21,23 @@ export const CharacterSchema = z.object({
   roleTitle: shortText.nullish(),
   backstory: longText,
   stats: z.object({
-    hp: z.number(),
-    maxHp: z.number(),
-    strength: z.number(),
-    dexterity: z.number(),
-    intelligence: z.number(),
-    charisma: z.number(),
-    level: z.number(),
-    experience: z.number(),
+    hp: statValue(0, 100_000),
+    maxHp: statValue(0, 100_000),
+    strength: coreStat,
+    dexterity: coreStat,
+    intelligence: coreStat,
+    charisma: coreStat,
+    level: statValue(0, 1_000),
+    experience: statValue(0, 1_000_000_000),
   }),
-  customStats: z.record(z.number()).optional(),
+  customStats: z.record(statValue(-1_000_000, 1_000_000_000)).refine((r) => Object.keys(r).length <= 50).optional(),
   inventory: z.array(
     z.object({
       id: shortText.min(1),
       name: shortText.min(1),
       description: mediumText.default(""),
       category: z.enum(["weapon", "armor", "consumable", "key", "misc"]).default("misc"),
-      quantity: z.number(),
+      quantity: statValue(0, 1_000_000),
       properties: z.record(z.unknown()).default({}),
     })
   ).max(200),
@@ -53,7 +58,7 @@ export const CharacterSchema = z.object({
     })
   ).max(100),
   pronouns: shortText.nullish(),
-  age: z.number().nullish(),
+  age: statValue(0, 100_000).nullish(),
   shortDescription: mediumText.nullish(),
 });
 
@@ -81,9 +86,14 @@ export const SessionSnapshotSchema = z.object({
   memorySummary: z.string().max(20_000).default(""),
   /** Leading history messages already folded into memorySummary (unsaved games). */
   summarizedMessages: z.number().int().min(0).optional(),
+  // Clients trim history to the GM's context window before sending (see
+  // trimHistoryForContext), which always keeps the last two messages.
   history: z.array(
     z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(20_000) })
-  ).max(1_000).default([]),
+  ).max(1_000).default([])
+    .refine((h) => h.reduce((n, m) => n + m.content.length, 0) <= MAX_HISTORY_CHARS + 40_000, {
+      message: "history is longer than the GM's context window",
+    }),
   // Not used server-side; current clients send []. Bounded for older clients.
   narrationLog: z.array(z.unknown()).max(5_000).default([]),
   choices: z.array(mediumText).max(20).default([]),

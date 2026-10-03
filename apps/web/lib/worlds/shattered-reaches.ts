@@ -9,9 +9,9 @@ export const SHATTERED_REACHES: WorldData = {
   tone: "serious",
   systemPrompt: `WORLD: THE SHATTERED REACHES
 
-Setting: A continent shattered by the Sundering — an ancient magical catastrophe — leaving floating islands connected by rope bridges, crumbling sky-ports, and daring airship routes. Below is the Rift: an endless, fog-filled abyss haunted by creatures born of wild magic.
+Setting: A continent shattered by the Sundering, an ancient magical catastrophe, leaving floating islands connected by rope bridges, crumbling sky-ports, and daring airship routes. Below is the Rift: an endless, fog-filled abyss haunted by creatures born of wild magic.
 
-Tone: Dark, atmospheric, morally complex. Hope exists but is hard-won. Not grimdark nihilism — acts of courage and kindness matter.
+Tone: Dark, atmospheric, morally complex. Hope exists but is hard-won. Not grimdark nihilism, acts of courage and kindness matter.
 
 Key Locations:
 - Thornhaven: A corrupt port city built into a massive sea cliff. The city guard is in the pocket of the Syndicate crime guild. The docks smell of salt, fish, and desperation.
@@ -23,7 +23,7 @@ Key NPCs:
 - Aldric Vane (id: npc-aldric): Corrupt captain of the Thornhaven City Watch. Gruff, calculating, takes bribes openly. Hostile to adventurers threatening his operation.
 - Petra Coldwater (id: npc-petra): A dockworker and secret member of the Resistance. Warm, practical, fiercely loyal. Will help the player if they prove trustworthy.
 - The Archivist (id: npc-archivist): A centuries-old scholar of unknown species. Cryptic, formal, speaks in careful riddles. Knows everything, shares little without trade.
-- Mira Thane (id: npc-mira): A Rift-diver — someone who descends into the abyss for salvage. Reckless, cheerful, hiding deep grief. Could be ally or rival.
+- Mira Thane (id: npc-mira): A Rift-diver, someone who descends into the abyss for salvage. Reckless, cheerful, hiding deep grief. Could be ally or rival.
 
 Factions:
 - The Syndicate: Crime guild controlling Thornhaven trade. Brutal, organized, ambitious.
@@ -33,18 +33,23 @@ Factions:
 
 Rules Notes:
 - Magic is unstable in the Reaches. Spells may have unexpected side effects in the Rift.
-- Violence always has social consequences — witnesses remember, guards respond, reputations spread.
+- Violence always has social consequences, witnesses remember, guards respond, reputations spread.
 - The player can negotiate, intimidate, deceive, or charm almost any NPC instead of fighting.
 - Death is possible but should feel earned, not cheap. Warn the player when stakes are lethal.
 
 Opening Scenario:
-The player has just arrived in Thornhaven on a leaky merchant vessel, penniless but free. They witnessed something they shouldn't have on the docks — a Syndicate execution disguised as an accident. Now they have a choice: stay quiet and survive, or get involved.
+The player has just arrived in Thornhaven on a leaky merchant vessel, penniless but free. They witnessed something they shouldn't have on the docks, a Syndicate execution disguised as an accident. Now they have a choice: stay quiet and survive, or get involved.
 
 Sound Design:
 - Thornhaven Docks: ocean ambient
 - The Ironwood: forest_day or forest_night ambient
 - Underground locations: cave or dungeon ambient
-- Syndicate lair: city_night ambient`,
+- Syndicate lair: city_night ambient
+
+Real-World Texture (true details to weave in when they fit; never lecture):
+- The last Inca grass bridge, Q'eswachaka, spans 28 metres over the Apurimac River. Every June the local community cuts it down and reweaves it from ichu grass, because the fibre rots fast.
+- Rigid airships held their lifting gas in separate gas cells. Early zeppelins made them from goldbeater's skin, the outer membrane of cattle intestine, and carried water ballast to dump for lift.
+- Height bites: the air is thin and cold, breath comes short, and the wind finds every gap in a coat.`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/shattered-reaches.svg",
   locations: [
@@ -52,7 +57,7 @@ Sound Design:
       id: "loc-thornhaven-docks",
       name: "Thornhaven Docks",
       description:
-        "The docks are a maze of rotting timber piers and salt-crusted rope. Fog rolls in off the Rift below, carrying the tang of ozone and something older — magic gone sour. Sailors curse in a dozen languages. Somewhere in the distance, a bell tolls the watch change. The city rises up the cliffside above you in tiers, each one crumbling a little more than the last.",
+        "The docks are a maze of rotting timber piers and salt-crusted rope. Fog rolls in off the Rift below, carrying the tang of ozone and something older, magic gone sour. Sailors curse in a dozen languages. Somewhere in the distance, a bell tolls the watch change. The city rises up the cliffside above you in tiers, each one crumbling a little more than the last.",
       shortDesc: "The fog-shrouded docks at the base of Thornhaven's sea cliff",
       ambientSound: "ocean",
       connectedTo: ["loc-thornhaven-market", "loc-thornhaven-guard-post"],
@@ -82,7 +87,7 @@ Sound Design:
       id: "loc-thornhaven-guard-post",
       name: "City Watch Post",
       description:
-        "A squat stone building at the base of the cliffside road. The door is always open. Inside, guards play cards or sleep at the duty desk. Their armour is polished but their eyes are dull — the kind of dull that comes from looking the other way for too long. Captain Aldric Vane's name is on every signed order pinned to the wall.",
+        "A squat stone building at the base of the cliffside road. The door is always open. Inside, guards play cards or sleep at the duty desk. Their armour is polished but their eyes are dull, the kind of dull that comes from looking the other way for too long. Captain Aldric Vane's name is on every signed order pinned to the wall.",
       shortDesc: "The Watch Post, officially maintaining order for the Syndicate",
       ambientSound: "city_night",
       connectedTo: ["loc-thornhaven-docks"],
@@ -95,8 +100,8 @@ Sound Design:
       name: "Captain Aldric Vane",
       role: "Corrupt Watch Captain",
       personality:
-        "Calculating, pragmatic, and openly corrupt. He's not cruel for sport — cruelty is just good business. Will negotiate if the player has something he wants. Responds to threats with disproportionate force.",
-      voiceDescription: "deep, slow, deliberate — like a man who has never been in a hurry",
+        "Calculating, pragmatic, and openly corrupt. He's not cruel for sport; cruelty is just good business. Will negotiate if the player has something he wants. Responds to threats with disproportionate force.",
+      voiceDescription: "deep, slow, deliberate, like a man who has never been in a hurry",
       relationship: "hostile",
       isAlive: true,
       locationId: "loc-thornhaven-guard-post",
@@ -106,7 +111,7 @@ Sound Design:
       name: "Petra Coldwater",
       role: "Resistance Member (secret)",
       personality:
-        "Warm but guarded. Has seen too many allies get caught. Tests the player's trustworthiness before revealing anything. Practical to a fault — won't risk lives for glory.",
+        "Warm but guarded. Has seen too many allies get caught. Tests the player's trustworthiness before revealing anything. Practical to a fault, won't risk lives for glory.",
       voiceDescription:
         "quick, working-class accent, drops the ends of words when stressed",
       relationship: "neutral",

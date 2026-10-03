@@ -28,16 +28,28 @@ export function applyHpDelta(character: CharacterData, delta: number): Character
 }
 
 /**
- * Applies a stat delta. Experience gains auto-level, mirroring
- * packages/gm-engine/src/reducer.ts:
- *   threshold = level² × 100
+ * Total experience a character needs to reach `level`: (level - 1)² × 100,
+ * so level 2 at 100 XP, level 3 at 400, level 4 at 900. The one XP curve
+ * the reducer, the GM's character state and the character sheet all use,
+ * mirroring packages/gm-engine/src/reducer.ts.
+ */
+export function xpToReachLevel(level: number): number {
+  const steps = Math.max(0, Math.floor(level) - 1);
+  return steps * steps * 100;
+}
+
+/**
+ * Applies a stat delta. Experience gains auto-level on the xpToReachLevel
+ * curve:
  *   per level: +5 maxHp, +5 hp (capped at new maxHp)
  *   odd levels: +1 STR, +1 DEX; even levels: +1 INT, +1 CHA
- * The loop lets a large XP grant cross several levels in one turn. Unknown
- * stat names go to customStats (mp, stamina, sanity…).
+ * The loop lets a large XP grant cross several levels in one turn. Level
+ * itself only changes that way: a "level" delta from the GM is ignored, or a
+ * level-up it also asked for would be applied twice. Unknown stat names go to
+ * customStats (mp, stamina, sanity…).
  */
 export function applyStatDelta(character: CharacterData, statName: string, delta: number): CharacterData {
-  if (!finite(delta)) return character;
+  if (!finite(delta) || statName === "level") return character;
   if ((KNOWN_STATS as readonly string[]).includes(statName)) {
     const key = statName as KnownStat;
     const current = character.stats[key] ?? 0;
@@ -46,8 +58,7 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
     if (key === "experience") {
       while (true) {
         const lvl = stats.level ?? 1;
-        const threshold = lvl * lvl * 100;
-        if ((stats.experience ?? 0) < threshold) break;
+        if ((stats.experience ?? 0) < xpToReachLevel(lvl + 1)) break;
         const next = lvl + 1;
         stats.level = next;
         stats.maxHp = (stats.maxHp ?? 10) + 5;
@@ -111,6 +122,13 @@ export function applyInventoryMutation(
   };
 }
 
+/** Objective texts match ignoring case, spacing and a trailing full stop. */
+function sameText(a: string, b: unknown): boolean {
+  if (typeof b !== "string") return false;
+  const norm = (t: string) => t.toLowerCase().replace(/\s+/g, " ").trim().replace(/\.$/, "");
+  return norm(a) === norm(b);
+}
+
 export function applyQuestMutation(
   character: CharacterData,
   mutation: QuestMutation,
@@ -147,7 +165,7 @@ export function applyQuestMutation(
           : {
               ...q,
               objectives: q.objectives.map((o) =>
-                o.text === mutation.objective ? { ...o, completed: mutation.done ?? true } : o,
+                sameText(o.text, mutation.objective) ? { ...o, completed: mutation.done ?? true } : o,
               ),
             },
       ),

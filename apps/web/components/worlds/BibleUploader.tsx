@@ -70,7 +70,7 @@ export function BibleUploader({ onFileSelected, disabled = false }: Props) {
           opacity: disabled ? 0.6 : 1,
         }}
       >
-        <svg
+        <svg className="text-muted"
           aria-hidden="true"
           width="32"
           height="32"
@@ -80,7 +80,6 @@ export function BibleUploader({ onFileSelected, disabled = false }: Props) {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ color: "var(--text-muted)" }}
         >
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14 2 14 8 20 8" />
@@ -89,15 +88,15 @@ export function BibleUploader({ onFileSelected, disabled = false }: Props) {
         </svg>
 
         {selectedName ? (
-          <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+          <p className="text-sm font-medium text-foreground">
             {selectedName}
           </p>
         ) : (
           <>
-            <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+            <p className="text-sm font-medium text-foreground">
               Drag a file here, or click to browse
             </p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs text-muted">
               PDF, DOCX, TXT, MD, JSON — up to 10 MB
             </p>
           </>
@@ -118,7 +117,7 @@ export function BibleUploader({ onFileSelected, disabled = false }: Props) {
 
       {/* Validation error */}
       {error && (
-        <p role="alert" className="mt-2 text-sm" style={{ color: "var(--danger)" }}>
+        <p role="alert" className="mt-2 text-sm text-danger">
           {error}
         </p>
       )}

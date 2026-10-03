@@ -82,26 +82,48 @@ class DbRateLimitStore implements RateLimitStore {
   }
 }
 
-class UpstashRateLimitStore implements RateLimitStore {
+/**
+ * Redis (Upstash REST) limiter, with the same rules as the DB store:
+ * `incrementOnFailureOnly` only counts failures, and going over the limit
+ * with `cooldownSeconds` set locks the key for that long (a separate
+ * `:cooldown` key), whatever the window says.
+ */
+export class UpstashRateLimitStore implements RateLimitStore {
   constructor(private readonly url: string, private readonly token: string) {}
+
+  private async pipeline(commands: Array<Array<string | number>>): Promise<Array<{ result: unknown }>> {
+    const res = await fetch(`${this.url}/pipeline`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${this.token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(commands),
+    });
+    if (!res.ok) throw new Error(`redis ${res.status}`);
+    return (await res.json()) as Array<{ result: unknown }>;
+  }
+
   async consume(rule: RateLimitRule): Promise<RateLimitDecision> {
     // Keep behavior consistent with DB fallback by delegating to DB when Redis call fails.
     try {
-      const endpoint = `${this.url}/pipeline`;
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify([["INCR", rule.key], ["TTL", rule.key], ["EXPIRE", rule.key, rule.windowSeconds, "NX"]]),
-      });
-      if (!res.ok) throw new Error(`redis ${res.status}`);
-      const json = await res.json() as Array<{ result: number }>;
-      const count = Number(json[0]?.result ?? 0);
-      const ttl = Number(json[1]?.result ?? rule.windowSeconds);
+      const cooldownKey = `${rule.key}:cooldown`;
+      const increment = !rule.incrementOnFailureOnly || Boolean(rule.wasFailure);
+      const results = await this.pipeline([
+        ["PTTL", cooldownKey],
+        increment ? ["INCR", rule.key] : ["GET", rule.key],
+        ...(increment ? [["EXPIRE", rule.key, rule.windowSeconds, "NX"]] : []),
+        ["TTL", rule.key],
+      ]);
+      const cooldownMs = Number(results[0]?.result ?? -2);
+      if (cooldownMs > 0) {
+        return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(cooldownMs / 1000)) };
+      }
+      const count = Number(results[1]?.result ?? 0);
+      const ttl = Number(results[results.length - 1]?.result ?? rule.windowSeconds);
       if (count > rule.limit) {
-        return { allowed: false, retryAfterSeconds: Math.max(1, ttl) };
+        if (rule.cooldownSeconds && rule.cooldownSeconds > 0) {
+          await this.pipeline([["SET", cooldownKey, "1", "EX", rule.cooldownSeconds, "NX"]]);
+          return { allowed: false, retryAfterSeconds: rule.cooldownSeconds };
+        }
+        return { allowed: false, retryAfterSeconds: Math.max(1, ttl > 0 ? ttl : rule.windowSeconds) };
       }
       return { allowed: true, retryAfterSeconds: 0 };
     } catch {

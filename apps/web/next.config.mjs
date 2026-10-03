@@ -26,6 +26,12 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  env: {
+    // Names the service worker's cache (public/sw.js), so each deploy starts
+    // a fresh cache and the old one is deleted.
+    NEXT_PUBLIC_BUILD_ID:
+      process.env.RENDER_GIT_COMMIT ?? process.env.VERCEL_GIT_COMMIT_SHA ?? String(Date.now()),
+  },
   transpilePackages: ["@audio-rpg/shared", "@audio-rpg/gm-engine"],
   serverExternalPackages: ["pdf-parse", "mammoth"],
   webpack(config) {
@@ -51,11 +57,6 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
-      },
-      // Long-lived cache for static blog pages
-      {
-        source: "/blog/:path*",
-        headers: [{ key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" }],
       },
     ];
   },

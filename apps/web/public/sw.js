@@ -2,22 +2,28 @@
  * EchoQuest service worker.
  *
  * Strategy:
- *   - Static assets (JS, CSS, fonts, images): cache-first with background refresh
- *   - HTML navigation: network-first, fall back to cached shell
- *   - /api/* routes: network-only (require live Anthropic connection)
- *   - /tts/*, /stt/*: network-only (streaming audio — not cacheable)
+ *   - Build assets (/_next/static, content-hashed) and public images/fonts:
+ *     cache-first with background refresh.
+ *   - Page navigations: network-first. Only public pages are cached (see
+ *     CACHEABLE_PAGES), so a signed-in page never outlives its session on a
+ *     shared device. Offline, a navigation falls back to the cached page or
+ *     the offline shell.
+ *   - Everything else (API routes, streaming audio, React Server Component
+ *     payloads): network-only, never cached.
+ *
+ * The cache is named after the build (?v= on registration), so each deploy
+ * starts clean and activate() deletes the previous one.
  */
 
-const CACHE = "echoquest-v1";
+const BUILD = new URL(self.location.href).searchParams.get("v") || "dev";
+const CACHE = `echoquest-${BUILD}`;
 
-const PRECACHE = [
-  "/",
-  "/library",
-  "/create",
-  "/offline.html",
-];
+const PRECACHE = ["/", "/offline.html"];
 
-const STATIC_EXTENSIONS = /\.(js|css|woff2?|ttf|otf|png|jpg|jpeg|svg|ico|webp)$/i;
+// Public, same-for-everyone pages that are safe to keep for offline use.
+const CACHEABLE_PAGES = [/^\/$/, /^\/about\/?$/, /^\/blog(\/[^/]+)?\/?$/, /^\/campaigns(\/[^/]+)?\/?$/, /^\/privacy\/?$/, /^\/terms\/?$/, /^\/contact-us\/?$/];
+
+const STATIC_EXTENSIONS = /\.(woff2?|ttf|otf|png|jpg|jpeg|svg|ico|webp|avif|gif)$/i;
 
 // ── Install: precache the shell ───────────────────────────────────────────────
 
@@ -55,25 +61,23 @@ self.addEventListener("fetch", (event) => {
   // Skip cross-origin requests.
   if (url.origin !== self.location.origin) return;
 
-  // API and streaming routes: always network-only.
-  if (
-    url.pathname.startsWith("/api/") ||
-    url.pathname.startsWith("/tts/") ||
-    url.pathname.startsWith("/stt/") ||
-    url.pathname.startsWith("/session")
-  ) {
-    event.respondWith(networkOnly(request));
-    return;
-  }
-
-  // Static assets: cache-first, update in background.
-  if (STATIC_EXTENSIONS.test(url.pathname) || url.pathname.startsWith("/_next/static/")) {
+  // Content-hashed build assets and public media: cache-first.
+  if (url.pathname.startsWith("/_next/static/") || STATIC_EXTENSIONS.test(url.pathname)) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  // HTML pages: network-first, fall back to shell.
-  event.respondWith(networkFirst(request));
+  // Page navigations: network-first, cached only when the page is public.
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request, CACHEABLE_PAGES.some((re) => re.test(url.pathname))));
+    return;
+  }
+
+  // API routes, streaming audio, RSC payloads (client-side navigation data)
+  // and anything else: always from the network, never stored.
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(networkOnly(request));
+  }
 });
 
 // ── Push notifications ────────────────────────────────────────────────────────
@@ -152,16 +156,16 @@ async function cacheFirst(request) {
   }
 }
 
-async function networkFirst(request) {
+async function networkFirst(request, cacheable) {
   try {
     const res = await fetch(request);
-    if (res.ok) {
+    if (cacheable && res.ok) {
       const cache = await caches.open(CACHE);
       cache.put(request, res.clone());
     }
     return res;
   } catch {
-    const cached = await caches.match(request);
+    const cached = cacheable ? await caches.match(request) : undefined;
     if (cached) return cached;
     // Last resort: serve the offline shell.
     const shell = await caches.match("/offline.html");

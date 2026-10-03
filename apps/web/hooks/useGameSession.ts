@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGameStore } from "@/store/game-store";
+import { useShallow } from "zustand/react/shallow";
 import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak, stopSpeech } from "@/lib/audio/tts-provider";
+import { speak, speechStopCount, stopSpeech, untilSpeechStops } from "@/lib/audio/tts-provider";
 import {
   speakNarrationMultiVoice,
   prefetchNarrationMultiVoice,
   npcKeyFromName,
+  npcResolvablePrefix,
   npcVoicesResolvable,
   type NewAssignmentHandler,
   type NpcVoiceAssignment,
@@ -24,6 +26,8 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
+import { loadServerSave } from "@/lib/game/server-saves";
+import { SseParser } from "@/lib/game/sse";
 import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
 // Same trim the server applies (lib/ai/memory/context-window.ts): the most
@@ -55,9 +59,11 @@ export function useGameSession() {
     updateLocation,
     setMemorySummary,
     capturePreTurn,
-  } = useGameStore();
+  } = useGameStore(
+    useShallow((s) => ({ session: s.session, character: s.character, world: s.world, dbSessionId: s.dbSessionId, addNarrationEntry: s.addNarrationEntry, setChoices: s.setChoices, setIsGenerating: s.setIsGenerating, incrementTurnCount: s.incrementTurnCount, updateFlags: s.updateFlags, updateHP: s.updateHP, updateStat: s.updateStat, applyInventoryMutation: s.applyInventoryMutation, applyQuestMutation: s.applyQuestMutation, unlockAchievement: s.unlockAchievement, updateNpcRelationship: s.updateNpcRelationship, addCodexEntry: s.addCodexEntry, updateLocation: s.updateLocation, setMemorySummary: s.setMemorySummary, capturePreTurn: s.capturePreTurn })),
+  );
 
-  const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
+  const { soundCuesEnabled } = useAudioStore();
   const { entitlements, setEntitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
   // npcKey → assigned voice. Hydrated from the server per (userId, worldId)
@@ -72,6 +78,63 @@ export function useGameSession() {
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
+  const worldIdRef = useRef(session?.worldId);
+  worldIdRef.current = session?.worldId;
+
+  // Leaving the play screen ends the turn in flight and the narration with it,
+  // so neither keeps changing the game (or talking) from another page.
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    stopSpeech();
+  }, []);
+
+  const genderLookup = useCallback(
+    (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
+    [],
+  );
+  const persistAssignment: NewAssignmentHandler = useCallback((entry) => {
+    // Fire-and-forget upsert. If the request fails the assignment is
+    // still good for the current session via the in-memory map; next
+    // session will just re-pick (and likely land on the same voice
+    // because the gender hint and usage counts are stable).
+    void fetch("/api/me/npc-voices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        worldId: worldIdRef.current,
+        npcKey: entry.key,
+        voiceId: entry.voiceId,
+        gender: entry.gender,
+        displayName: entry.displayName,
+      }),
+    }).catch(() => undefined);
+  }, []);
+  /** Per-NPC voices: a premium plan, with premium narration selected. */
+  const premiumVoicesActive = useCallback(
+    () => entitlements.premiumTts && useAudioStore.getState().ttsProvider === "elevenlabs",
+    [entitlements.premiumTts],
+  );
+
+  /**
+   * Speaks a stretch of narration from the top (the opening, a replay, a
+   * recap), with each NPC in their own voice for premium players.
+   */
+  const speakNarration = useCallback(
+    (text: string): Promise<void> => {
+      stopSpeech();
+      const name = useGameStore.getState().character?.name;
+      if (!premiumVoicesActive() || !name) return speak(text);
+      return speakNarrationMultiVoice(
+        text,
+        name,
+        npcVoiceAssignmentsRef.current,
+        genderLookup,
+        persistAssignment,
+        untilSpeechStops(),
+      );
+    },
+    [premiumVoicesActive, genderLookup, persistAssignment],
+  );
 
   // Reset session-scoped refs whenever a new session starts, then prime the
   // NPC voice map from the server so previously-met NPCs keep their voices.
@@ -108,9 +171,8 @@ export function useGameSession() {
 
   const replayLast = useCallback(() => {
     if (!lastNarration) return;
-    stopSpeech();
-    speak(lastNarration, { rate: ttsSpeed, pitch: ttsPitch, volume });
-  }, [lastNarration, ttsSpeed, ttsPitch, volume]);
+    void speakNarration(lastNarration);
+  }, [lastNarration, speakNarration]);
 
   /**
    * Concatenate the last RECAP_TURNS narration entries and speak them as one
@@ -123,34 +185,30 @@ export function useGameSession() {
       const log = session?.narrationLog ?? [];
       const narrations = log.filter((e) => e.type === "narration").slice(-turns);
       if (narrations.length === 0) return;
-      stopSpeech();
       const intro = narrations.length > 1 ? `Recap of the last ${narrations.length} scenes. ` : "";
-      const text = intro + narrations.map((n) => n.text).join(" ");
-      speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
+      void speakNarration(intro + narrations.map((n) => n.text).join(" "));
     },
-    [session, ttsSpeed, ttsPitch, volume],
+    [session, speakNarration],
   );
 
-  const speakText = useCallback(
-    (text: string) => {
-      return speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
-    },
-    [ttsSpeed, ttsPitch, volume]
-  );
+  // Speed, pitch and volume are read live by the provider (volume on its
+  // perceptual curve), so a change applies from the next sentence.
+  const speakText = useCallback((text: string) => speak(text), []);
 
+  /** Plays one turn. Resolves true once the turn has landed, false if it didn't. */
   const submitAction = useCallback(
-    async (action: PlayerAction) => {
+    async (action: PlayerAction): Promise<boolean> => {
       const normalizedAction = sanitizeAction(action);
-      if (!normalizedAction) return;
+      if (!normalizedAction) return false;
 
       const eligibility = validateActionEligibility({ session, character, world, action: normalizedAction });
-      if (!eligibility.allowed) return;
+      if (!eligibility.allowed) return false;
 
-      if (!session || !character || !world) return;
+      if (!session || !character || !world) return false;
 
       // Synchronous guard: prevents a second submit firing in the same render
       // cycle before setIsGenerating(true) has re-rendered.
-      if (inFlightRef.current) return;
+      if (inFlightRef.current) return false;
       inFlightRef.current = true;
 
       // Stop any current TTS
@@ -184,29 +242,12 @@ export function useGameSession() {
       let accumulatedNarration = "";
       let receivedStreamError = false;
       let streamErrorMessage: string | null = null;
+      let streamErrorDegraded = false;
+      let turnConflict = false;
 
       // Narration is spoken sentence by sentence while it streams, rather
       // than after the whole reply (choices, state changes) has arrived.
-      const premiumVoices = entitlements.premiumTts;
-      const worldId = session.worldId;
-      const genderLookup = (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral";
-      const persistAssignment: NewAssignmentHandler = (entry) => {
-        // Fire-and-forget upsert. If the request fails the assignment is
-        // still good for the current session via the in-memory map; next
-        // session will just re-pick (and likely land on the same voice
-        // because the gender hint and usage counts are stable).
-        void fetch("/api/me/npc-voices", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            worldId,
-            npcKey: entry.key,
-            voiceId: entry.voiceId,
-            gender: entry.gender,
-            displayName: entry.displayName,
-          }),
-        }).catch(() => undefined);
-      };
+      const premiumVoices = premiumVoicesActive();
       const speakSegment = (text: string, signal: AbortSignal): Promise<void> => {
         if (!premiumVoices) return signal.aborted ? Promise.resolve() : speakText(text);
         return speakNarrationMultiVoice(
@@ -231,12 +272,16 @@ export function useGameSession() {
         canSpeak: premiumVoices
           ? (text) => npcVoicesResolvable(text, character.name, npcVoiceAssignmentsRef.current, npcGenderHintsRef.current)
           : undefined,
+        // ...but the prose before that line can go now.
+        speakableLength: premiumVoices
+          ? (text) => npcResolvablePrefix(text, character.name, npcVoiceAssignmentsRef.current, npcGenderHintsRef.current)
+          : undefined,
       });
       let narrator = createNarrator();
       abort.signal.addEventListener("abort", () => narrator.cancel());
-      // Level-up and achievement callouts wait for the narration to finish
-      // instead of cutting into it.
-      const speakAfterNarration: string[] = [];
+      // Level-up and achievement callouts (and their sounds) wait for the
+      // narration to finish instead of cutting into it.
+      const speakAfterNarration: Array<{ text: string; cue: SoundCue }> = [];
 
       try {
         const postAction = (
@@ -316,256 +361,277 @@ export function useGameSession() {
         }
 
         const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        let eventType = "";
-        let dataLine = "";
+        const sse = new SseParser();
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          buffer += decoder.decode(value, { stream: true });
 
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+          for (const { event: eventType, data: eventData } of sse.push(value)) {
+            // A different game was loaded mid-turn: this stream is stale.
+            if (useGameStore.getState().session?.id !== session.id) {
+              abort.abort();
+              break;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const data = eventData as any;
 
-          for (const line of lines) {
-            if (line.startsWith("event: ")) {
-              eventType = line.slice(7).trim();
-            } else if (line.startsWith("data: ")) {
-              dataLine = line.slice(6).trim();
-            } else if (line === "" && eventType && dataLine) {
-              const data = JSON.parse(dataLine);
-
-              if (eventType === "narration_chunk") {
-                accumulatedNarration += data.text;
-              } else if (eventType === "narration_delta") {
-                narrator.push(data.text as string);
-              } else if (eventType === "speakers") {
-                for (const sp of (data.speakers ?? []) as Array<{ name: string; gender: VoiceGender }>) {
-                  npcGenderHintsRef.current.set(npcKeyFromName(sp.name), sp.gender);
+            if (eventType === "narration_chunk") {
+              accumulatedNarration += data.text;
+            } else if (eventType === "narration_delta") {
+              narrator.push(data.text as string);
+            } else if (eventType === "speakers") {
+              for (const sp of (data.speakers ?? []) as Array<{ name: string; gender: VoiceGender }>) {
+                npcGenderHintsRef.current.set(npcKeyFromName(sp.name), sp.gender);
+              }
+              narrator.nudge();
+            } else if (eventType === "narration_reset") {
+              // The server discarded what it streamed so far (a retry, or
+              // text written before a skill-check roll). Drop it here too so
+              // it never lands in history, and stop speaking it.
+              accumulatedNarration = "";
+              narrator.cancel();
+              if (narrator.committedText) stopSpeech();
+              narrator = createNarrator();
+            } else if (eventType === "skill_check_result") {
+              // The roll is resolved before the narration is written, so the
+              // dice line goes in the log ahead of the narration that
+              // describes its outcome.
+              const sc = data as SkillCheckResult;
+              const line = formatSkillCheckLine(sc);
+              addNarrationEntry({ id: `sc-${Date.now()}`, text: line, type: "system", timestamp: new Date() });
+              announce(line, "polite");
+              if (soundCuesEnabled) playSoundCue(sc.success ? "success" : "failure");
+            } else if (eventType === "sound_cue") {
+              const cue = (data.cue as SoundCue | null) ?? null;
+              if (shouldPlaySoundCue(soundCuesEnabled, eventType, cue)) {
+                playSoundCue(cue);
+              }
+            } else if (eventType === "state_change") {
+              const change = data as Record<string, unknown>;
+              if (change.hp !== undefined && change.hp !== null) {
+                const delta = change.hp as number;
+                const hpBefore = useGameStore.getState().character?.stats.hp ?? 0;
+                updateHP(delta);
+                const hpAfter = useGameStore.getState().character?.stats.hp ?? 0;
+                // Audible cue for screen-reader users; the status bar
+                // updates silently otherwise. Polite priority so it queues
+                // behind narration rather than interrupting it.
+                if (hpAfter === 0 && hpBefore > 0) {
+                  announce("You're down. Zero health.", "assertive");
+                  if (soundCuesEnabled) playSoundCue("death_nearby");
+                } else if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
+                else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
+              }
+              if (change.statDeltas && typeof change.statDeltas === "object") {
+                const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
+                for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, unknown>)) {
+                  if (typeof delta === "number" && Number.isFinite(delta)) updateStat(stat, delta);
                 }
-                narrator.nudge();
-              } else if (eventType === "narration_reset") {
-                // The server discarded what it streamed so far (a retry, or
-                // text written before a skill-check roll). Drop it here too so
-                // it never lands in history, and stop speaking it.
-                accumulatedNarration = "";
-                narrator.cancel();
-                if (narrator.committedText) stopSpeech();
-                narrator = createNarrator();
-              } else if (eventType === "skill_check_result") {
-                // The roll is resolved before the narration is written, so the
-                // dice line goes in the log ahead of the narration that
-                // describes its outcome.
-                const sc = data as SkillCheckResult;
-                const line = formatSkillCheckLine(sc);
-                addNarrationEntry({ id: `sc-${Date.now()}`, text: line, type: "system", timestamp: new Date() });
-                announce(line, "polite");
-                if (soundCuesEnabled) playSoundCue(sc.success ? "success" : "failure");
-              } else if (eventType === "sound_cue") {
-                const cue = (data.cue as SoundCue | null) ?? null;
-                if (shouldPlaySoundCue(soundCuesEnabled, eventType, cue)) {
-                  playSoundCue(cue);
-                }
-              } else if (eventType === "state_change") {
-                const change = data as Record<string, unknown>;
-                if (change.hp !== undefined && change.hp !== null) {
-                  const delta = change.hp as number;
-                  updateHP(delta);
-                  // Audible cue for screen-reader users — the status bar
-                  // updates silently otherwise. Polite priority so it queues
-                  // behind narration rather than interrupting it.
-                  if (delta < 0) announce(`Took ${Math.abs(delta)} damage.`, "polite");
-                  else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
-                }
-                if (change.statDeltas && typeof change.statDeltas === "object") {
-                  const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
-                  for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, unknown>)) {
-                    if (typeof delta === "number" && Number.isFinite(delta)) updateStat(stat, delta);
-                  }
-                  const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
-                  if (levelAfter > levelBefore) {
-                    const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
-                    announce(levelUpMsg, "assertive");
-                    speakAfterNarration.push(levelUpMsg);
-                    if (soundCuesEnabled) playSoundCue("level_up");
-                    addNarrationEntry({
-                      id: `levelup-${Date.now()}`,
-                      text: `⬆ ${levelUpMsg}`,
-                      type: "system",
-                      timestamp: new Date(),
-                    });
-                  }
-                }
-                if (change.flags) {
-                  updateFlags(change.flags as Record<string, unknown>);
-                }
-                if (Array.isArray(change.achievementUnlocks)) {
-                  for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
-                    const alreadyUnlocked = useGameStore.getState().session?.achievements?.some((a) => a.key === ach.key);
-                    if (alreadyUnlocked) continue;
-                    unlockAchievement({ ...ach, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
-                    const achMsg = `🏆 Achievement unlocked: ${ach.title} — ${ach.description}`;
-                    announce(achMsg, "assertive");
-                    speakAfterNarration.push(achMsg);
-                    if (soundCuesEnabled) playSoundCue("discovery");
-                    addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
-                  }
-                }
-                if (Array.isArray(change.npcRelationshipChanges)) {
-                  for (const rel of change.npcRelationshipChanges as Array<{
-                    npcId: string; name: string; standing: number; notes?: string; gender?: VoiceGender;
-                  }>) {
-                    updateNpcRelationship(rel);
-                    // Record the GM-emitted gender keyed by the same npcKey
-                    // the voice auto-assigner uses, so a voice picked later
-                    // in this turn (or next) can match.
-                    if (rel.gender && rel.name) {
-                      npcGenderHintsRef.current.set(npcKeyFromName(rel.name), rel.gender);
-                    }
-                  }
-                  narrator.nudge();
-                }
-                if (Array.isArray(change.codexEntries)) {
-                  for (const entry of change.codexEntries as CodexEntry[]) {
-                    if (useGameStore.getState().session?.codex?.some((c) => c.key === entry.key)) continue;
-                    addCodexEntry({ ...entry, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
-                    const loreMsg = `📖 Lore discovered: ${entry.title}`;
-                    announce(loreMsg, "polite");
-                    if (soundCuesEnabled) playSoundCue("discovery");
-                    addNarrationEntry({ id: `codex-${entry.key}-${Date.now()}`, text: loreMsg, type: "system", timestamp: new Date() });
-                  }
-                }
-                if (change.locationId) {
-                  updateLocation(change.locationId as string);
-                }
-                if (Array.isArray(change.inventoryChanges)) {
-                  for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
-                    applyInventoryMutation(mut);
-                    // Audible cue. Useful enough on its own, and especially
-                    // on free-tier where the GM may not always weave the
-                    // pickup into narration.
-                    const verb = mut.op === "add" ? "Picked up" : "Lost";
-                    const qty = mut.quantity > 1 ? ` ×${mut.quantity}` : "";
-                    announce(`${verb} ${mut.name}${qty}.`, "polite");
-                  }
-                }
-                if (change.sceneTransition && typeof change.sceneTransition === "object") {
-                  const transition = change.sceneTransition as Partial<SceneTransition>;
-                  if (transition.type && transition.title) {
-                    setSceneTransitionHint({
-                      type: transition.type,
-                      title: transition.title,
-                      subtitle: transition.subtitle,
-                      durationMs: transition.durationMs,
-                    });
-                  }
-                }
-                if (Array.isArray(change.questChanges)) {
-                  for (const mut of change.questChanges as import("@/types/game").QuestMutation[]) {
-                    applyQuestMutation(mut);
-                  }
-                }
-                if (Array.isArray(change.passiveBonuses)) {
-                  updateFlags({ passiveBonuses: change.passiveBonuses as PassiveBonus[] });
-                }
-                if (Array.isArray(change.passiveBonusNarration) && change.passiveBonusNarration.length > 0) {
+                const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
+                if (levelAfter > levelBefore) {
+                  const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
+                  announce(levelUpMsg, "assertive");
+                  speakAfterNarration.push({ text: levelUpMsg, cue: "level_up" });
                   addNarrationEntry({
-                    id: (Date.now() + 3).toString(),
-                    text: `Combat modifiers: ${(change.passiveBonusNarration as string[]).join(" ")}`,
+                    id: `levelup-${Date.now()}`,
+                    text: `⬆ ${levelUpMsg}`,
                     type: "system",
                     timestamp: new Date(),
                   });
                 }
-              } else if (eventType === "choices_ready") {
-                const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;
-                const { narration: rawNarration, choices } = extractNarrationFromChoiceEvent(gmResp);
-                setChoices(choices);
-
-                // npcAction often carries gender for the speaker too — fold it
-                // into the gender-hints map before the multi-voice playback so
-                // the picker sees it on first encounter. Use the npcId-derived
-                // key so it lines up with the same npcKey we'll feed to the
-                // assigner once the dialogue is tagged below.
-                if (gmResp.npcAction?.gender && gmResp.npcAction?.npcId) {
-                  const npcRel = useGameStore.getState().session?.relationships
-                    .find((r) => r.npcId === gmResp.npcAction!.npcId);
-                  const nameForKey = npcRel?.name ?? gmResp.npcAction.npcId;
-                  npcGenderHintsRef.current.set(
-                    npcKeyFromName(nameForKey),
-                    gmResp.npcAction.gender,
-                  );
+              }
+              if (change.flags) {
+                updateFlags(change.flags as Record<string, unknown>);
+              }
+              if (Array.isArray(change.achievementUnlocks)) {
+                for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
+                  const alreadyUnlocked = useGameStore.getState().session?.achievements?.some((a) => a.key === ach.key);
+                  if (alreadyUnlocked) continue;
+                  unlockAchievement({ ...ach, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
+                  const achMsg = `🏆 Achievement unlocked: ${ach.title}. ${ach.description}`;
+                  announce(achMsg, "assertive");
+                  speakAfterNarration.push({ text: achMsg, cue: "discovery" });
+                  addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
                 }
-
-                // Weave npcAction.dialogue into the narration with a [Name]:
-                // tag. When the GM puts NPC speech only in the structured
-                // field (no inline tag in the prose), the multi-voice player
-                // would otherwise find no NPC segments and read everything
-                // in the narrator's voice — the "voices not switching" bug.
-                const relationships = useGameStore.getState().session?.relationships ?? [];
-                const narration = withNpcActionDialogue(rawNarration, gmResp.npcAction, relationships);
-                setLastNarration(narration);
-
-                const narEntry: NarrationEntry = {
-                  id: (Date.now() + 1).toString(),
-                  text: narration,
-                  type: "narration",
-                  timestamp: new Date(),
-                };
-                addNarrationEntry(narEntry);
-
-                // Speak whatever the stream hasn't already covered, with
-                // npcAction dialogue woven in, then the deferred callouts.
-                const rest = wovenTail(rawNarration, narrator.committedText, gmResp.npcAction, relationships);
-                await narrator.finish(rest);
-                for (const msg of speakAfterNarration.splice(0)) {
-                  // The player stopped the narration — don't start talking again.
-                  if (narrator.cancelled) break;
-                  await speakText(msg);
+              }
+              if (Array.isArray(change.npcRelationshipChanges)) {
+                for (const rel of change.npcRelationshipChanges as Array<{
+                  npcId: string; name: string; standing: number; notes?: string; gender?: VoiceGender;
+                }>) {
+                  updateNpcRelationship(rel);
+                  // Record the GM-emitted gender keyed by the same npcKey
+                  // the voice auto-assigner uses, so a voice picked later
+                  // in this turn (or next) can match.
+                  if (rel.gender && rel.name) {
+                    npcGenderHintsRef.current.set(npcKeyFromName(rel.name), rel.gender);
+                  }
                 }
-              } else if (eventType === "character_sync") {
-                // The server's stored copy after this turn — the source of
-                // truth for a saved game.
-                const synced = (data as { character?: CharacterData }).character;
-                if (synced) useGameStore.setState({ character: synced });
-              } else if (eventType === "memory_summary") {
-                // Server compacted older history into a memory summary; persist
-                // it so subsequent turns send the compacted form rather than
-                // re-sending the long uncompacted history.
-                const summaryData = data as { summary?: unknown; throughMessage?: unknown };
-                if (typeof summaryData.summary === "string") {
-                  setMemorySummary(summaryData.summary);
+                narrator.nudge();
+              }
+              if (Array.isArray(change.codexEntries)) {
+                for (const entry of change.codexEntries as CodexEntry[]) {
+                  if (useGameStore.getState().session?.codex?.some((c) => c.key === entry.key)) continue;
+                  addCodexEntry({ ...entry, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
+                  const loreMsg = `📖 Lore discovered: ${entry.title}`;
+                  announce(loreMsg, "polite");
+                  if (soundCuesEnabled) playSoundCue("discovery");
+                  addNarrationEntry({ id: `codex-${entry.key}-${Date.now()}`, text: loreMsg, type: "system", timestamp: new Date() });
                 }
-                // Unsaved games: how much of the history the summary now covers.
-                const through = summaryData.throughMessage;
-                if (typeof through === "number") {
-                  useGameStore.setState((s) => ({
-                    session: s.session
-                      ? { ...s.session, summarizedMessages: Math.max(s.session.summarizedMessages ?? 0, through) }
-                      : null,
-                  }));
+              }
+              if (change.locationId) {
+                updateLocation(change.locationId as string);
+              }
+              if (Array.isArray(change.inventoryChanges)) {
+                for (const mut of change.inventoryChanges as import("@/types/game").ItemMutation[]) {
+                  applyInventoryMutation(mut);
+                  // Audible cue. Useful enough on its own, and especially
+                  // on free-tier where the GM may not always weave the
+                  // pickup into narration.
+                  const verb = mut.op === "add" ? "Picked up" : "Lost";
+                  const qty = mut.quantity > 1 ? ` ×${mut.quantity}` : "";
+                  announce(`${verb} ${mut.name}${qty}.`, "polite");
                 }
-              } else if (eventType === "error") {
-                receivedStreamError = true;
-                const errorMessage = data?.message ?? "Narrator degraded mode is active.";
-                streamErrorMessage = errorMessage;
-                console.error("GM error:", data.message);
+              }
+              if (change.sceneTransition && typeof change.sceneTransition === "object") {
+                const transition = change.sceneTransition as Partial<SceneTransition>;
+                if (transition.type && transition.title) {
+                  setSceneTransitionHint({
+                    type: transition.type,
+                    title: transition.title,
+                    subtitle: transition.subtitle,
+                    durationMs: transition.durationMs,
+                  });
+                }
+              }
+              if (Array.isArray(change.questChanges)) {
+                for (const mut of change.questChanges as import("@/types/game").QuestMutation[]) {
+                  applyQuestMutation(mut);
+                }
+              }
+              if (Array.isArray(change.passiveBonuses)) {
+                updateFlags({ passiveBonuses: change.passiveBonuses as PassiveBonus[] });
+              }
+              if (Array.isArray(change.passiveBonusNarration) && change.passiveBonusNarration.length > 0) {
                 addNarrationEntry({
-                  id: (Date.now() + 2).toString(),
-                  text: errorMessage,
+                  id: (Date.now() + 3).toString(),
+                  text: `Combat modifiers: ${(change.passiveBonusNarration as string[]).join(" ")}`,
                   type: "system",
                   timestamp: new Date(),
                 });
-                break;
+              }
+            } else if (eventType === "choices_ready") {
+              const gmResp = data as Pick<GMResponse, "choices" | "narration" | "npcAction">;
+              const { narration: rawNarration, choices } = extractNarrationFromChoiceEvent(gmResp);
+              setChoices(choices);
+
+              // npcAction often carries gender for the speaker too — fold it
+              // into the gender-hints map before the multi-voice playback so
+              // the picker sees it on first encounter. Use the npcId-derived
+              // key so it lines up with the same npcKey we'll feed to the
+              // assigner once the dialogue is tagged below.
+              if (gmResp.npcAction?.gender && gmResp.npcAction?.npcId) {
+                const npcRel = useGameStore.getState().session?.relationships
+                  .find((r) => r.npcId === gmResp.npcAction!.npcId);
+                const nameForKey = npcRel?.name ?? gmResp.npcAction.npcId;
+                npcGenderHintsRef.current.set(
+                  npcKeyFromName(nameForKey),
+                  gmResp.npcAction.gender,
+                );
               }
 
-              eventType = "";
-              dataLine = "";
+              // Weave npcAction.dialogue into the narration with a [Name]:
+              // tag. When the GM puts NPC speech only in the structured
+              // field (no inline tag in the prose), the multi-voice player
+              // would otherwise find no NPC segments and read everything
+              // in the narrator's voice — the "voices not switching" bug.
+              const relationships = useGameStore.getState().session?.relationships ?? [];
+              const narration = withNpcActionDialogue(rawNarration, gmResp.npcAction, relationships);
+              setLastNarration(narration);
+
+              const narEntry: NarrationEntry = {
+                id: (Date.now() + 1).toString(),
+                text: narration,
+                type: "narration",
+                timestamp: new Date(),
+              };
+              addNarrationEntry(narEntry);
+
+              // Speak whatever the stream hasn't already covered, with
+              // npcAction dialogue woven in, then the deferred callouts.
+              const rest = wovenTail(rawNarration, narrator.committedText, gmResp.npcAction, relationships);
+              const callouts = speakAfterNarration.splice(0);
+              const turnNarrator = narrator;
+              // The narration keeps playing while the rest of the reply
+              // arrives, and the turn ends without waiting for it: the
+              // player can act right away (their next action stops it), and
+              // ChoiceList waits for the narrator before announcing choices.
+              void turnNarrator.finish(rest).then(async () => {
+                const stopsBefore = speechStopCount();
+                for (const { text, cue } of callouts) {
+                  // Stopped, or a new turn began: don't start talking again.
+                  if (turnNarrator.cancelled || speechStopCount() !== stopsBefore) break;
+                  if (soundCuesEnabled) playSoundCue(cue);
+                  await speakText(text);
+                }
+              });
+            } else if (eventType === "turn_conflict") {
+              // Another tab or device saved a turn on this game first, so
+              // the server didn't keep this one.
+              turnConflict = true;
+            } else if (eventType === "character_sync") {
+              // The server's stored copy after this turn — the source of
+              // truth for a saved game.
+              const synced = (data as { character?: CharacterData }).character;
+              if (synced) useGameStore.setState({ character: synced });
+            } else if (eventType === "memory_summary") {
+              // Server compacted older history into a memory summary; persist
+              // it so subsequent turns send the compacted form rather than
+              // re-sending the long uncompacted history.
+              const summaryData = data as { summary?: unknown; throughMessage?: unknown };
+              if (typeof summaryData.summary === "string") {
+                setMemorySummary(summaryData.summary);
+              }
+              // Unsaved games: how much of the history the summary now covers.
+              const through = summaryData.throughMessage;
+              if (typeof through === "number") {
+                useGameStore.setState((s) => ({
+                  session: s.session
+                    ? { ...s.session, summarizedMessages: Math.max(s.session.summarizedMessages ?? 0, through) }
+                    : null,
+                }));
+              }
+            } else if (eventType === "error") {
+              receivedStreamError = true;
+              const errorMessage = data?.message ?? "Narrator degraded mode is active.";
+              streamErrorMessage = errorMessage;
+              streamErrorDegraded = data?.degraded === true;
+              console.error("GM error:", data.message);
+              addNarrationEntry({
+                id: (Date.now() + 2).toString(),
+                text: errorMessage,
+                type: "system",
+                timestamp: new Date(),
+                ...(streamErrorDegraded ? { degraded: true } : {}),
+              });
+              break;
             }
           }
 
           if (receivedStreamError) break;
+        }
+
+        if (turnConflict && dbSessionId) {
+          narrator.cancel();
+          stopSpeech();
+          const reloaded = await loadServerSave(dbSessionId);
+          announce(
+            reloaded.ok
+              ? "This game moved on in another tab or device, so I loaded the latest save. Your last action wasn't kept."
+              : reloaded.message,
+            "assertive",
+          );
+          return false;
         }
 
         if (receivedStreamError) {
@@ -589,6 +655,7 @@ export function useGameSession() {
                       text: streamErrorMessage,
                       type: "system",
                       timestamp: new Date(),
+                      ...(streamErrorDegraded ? { degraded: true } : {}),
                     },
                   ]
                   : [...preTurnSession.narrationLog, optimistic.playerEntry],
@@ -598,7 +665,7 @@ export function useGameSession() {
               }
               : null,
           });
-          return;
+          return false;
         }
 
         // Update session history for context continuity
@@ -628,6 +695,7 @@ export function useGameSession() {
         }
 
         incrementTurnCount();
+        return true;
       } catch (err) {
         narrator.cancel();
         if (narrator.committedText) stopSpeech();
@@ -643,6 +711,7 @@ export function useGameSession() {
               : null,
           });
         }
+        return false;
       } finally {
         inFlightRef.current = false;
         setIsGenerating(false);
@@ -653,7 +722,7 @@ export function useGameSession() {
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
       setMemorySummary, capturePreTurn, speakText, soundCuesEnabled, announce,
-      entitlements, setEntitlements,
+      entitlements, setEntitlements, premiumVoicesActive, genderLookup, persistAssignment,
     ]
   );
 
@@ -667,8 +736,9 @@ export function useGameSession() {
       announce("Nothing to undo.", "polite");
       return false;
     }
-    // A saved game keeps its progress on the server, so roll that back too —
-    // otherwise the next turn would bring the undone changes back.
+    // A saved game keeps its progress on the server, so roll that back first.
+    // If the server can't, don't undo here either: the next turn would load
+    // the server's copy and bring the undone changes straight back.
     let serverCharacter: CharacterData | null = null;
     if (savedId) {
       try {
@@ -677,8 +747,15 @@ export function useGameSession() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dbSessionId: savedId }),
         });
-        if (res.ok) serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
-      } catch { /* local undo still applies */ }
+        if (!res.ok) {
+          announce("That turn couldn't be undone on the server, so nothing changed.", "assertive");
+          return false;
+        }
+        serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
+      } catch {
+        announce("Couldn't reach the server to undo, so nothing changed.", "assertive");
+        return false;
+      }
     }
     const ok = useGameStore.getState().undoLastTurn();
     if (ok && serverCharacter) useGameStore.setState({ character: serverCharacter });
@@ -694,6 +771,7 @@ export function useGameSession() {
     replayLast,
     recapRecentTurns,
     speakText,
+    speakNarration,
     lastNarration,
     sceneTransitionHint,
     clearSceneTransitionHint: () => setSceneTransitionHint(null),

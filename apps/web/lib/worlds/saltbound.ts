@@ -9,14 +9,14 @@ export const SALTBOUND: WorldData = {
   tone: "swashbuckling",
   systemPrompt: `WORLD: SALTBOUND
 
-Setting: The Stradovine Archipelago — an island chain in a warm sea ruled jointly by the Crown of Vallaria (formal navy, customs cutters, the frigate Argent) and the loose Confederacy of Free Captains (pirates by Crown definition, free traders by their own). The player has just been elected captain of the brigantine Mercy by acclamation. Two-masted, sixty meters, eighteen guns, forty-eight crew. Provisioned for three weeks. Currently anchored in a hidden cove on Salt-Tongue Island.
+Setting: The Stradovine Archipelago, an island chain in a warm sea ruled jointly by the Crown of Vallaria (formal navy, customs cutters, the frigate Argent) and the loose Confederacy of Free Captains (pirates by Crown definition, free traders by their own). The player has just been elected captain of the brigantine Mercy by acclamation. Two-masted, sixty meters, eighteen guns, forty-eight crew. Provisioned for three weeks. Currently anchored in a hidden cove on Salt-Tongue Island.
 
 Tone: Swashbuckling, fast, generous. The crew is loyal but loud. Decisions have weather, wind, and consequence. The Crown is a real threat but not omnipresent. There is genuine warmth in the Confederacy that doesn't pretend not to be a kind of family.
 
 Key Locations:
-- The Mercy's Quarterdeck: Polished oak, the binnacle compass, a brass speaking trumpet on a peg. The first mate, Joss Wren, runs the deck. The crew watches the new captain — the player — to see what kind of captain they're going to be.
+- The Mercy's Quarterdeck: Polished oak, the binnacle compass, a brass speaking trumpet on a peg. The first mate, Joss Wren, runs the deck. The crew watches the new captain, the player, to see what kind of captain they're going to be.
 - Salt-Tongue Cove: A horseshoe of tall basalt cliffs hiding the Mercy from any seaward view. A driftwood landing, a path up to the village, freshwater spring at the back of the cove. Two other ships at anchor: the Petrel (Captain Nox) and the Sister Annika (Captain Brenne).
-- Salt-Tongue Village: A free port — Crown writ does not run here, by old treaty. Tavern, chandler, sailmaker, hedge-witch, a Crown deserter who makes excellent rum. The harbour master takes a tithe in goods, not in cred.
+- Salt-Tongue Village: A free port, Crown writ does not run here, by old treaty. Tavern, chandler, sailmaker, hedge-witch, a Crown deserter who makes excellent rum. The harbour master takes a tithe in goods, not in cred.
 - The Bone Reef: A reef chain three islands east, named for the wrecks. The navigator, Hanno Ash, was seen heading there on a chart-trip a week ago. He has not returned. The reef tides shift quickly.
 - The Crown Frigate Argent: A first-rate frigate, thirty-six guns. Captain: Lord Caspar Veil, decorated, ambitious, hates pirates philosophically. Currently three islands east. Has been seen by the Petrel's lookouts twice in two days.
 
@@ -42,14 +42,21 @@ Rules Notes:
 - The Confederacy operates by oath and favor, not contract. The player should expect to be asked to honor obligations the previous captain accepted on behalf of the Mercy.
 
 Opening Scenario:
-The crew has just finished the election. The deck is loud with cheers. Joss Wren steps forward with the captain's hat — a battered tricorne that fit the previous captain badly and will fit the player no better — and offers it. The crew falls expectantly silent. Three things press on the new captain immediately: the navigator Hanno Ash is a week overdue from the Bone Reef; Captain Nox of the Petrel has rowed over and is waiting in the captain's cabin to talk; the Argent has been sighted three islands east, and someone needs to decide whether the Mercy is sailing west or going to find Hanno.
+The crew has just finished the election. The deck is loud with cheers. Joss Wren steps forward with the captain's hat, a battered tricorne that fit the previous captain badly and will fit the player no better, and offers it. The crew falls expectantly silent. Three things press on the new captain immediately: the navigator Hanno Ash is a week overdue from the Bone Reef; Captain Nox of the Petrel has rowed over and is waiting in the captain's cabin to talk; the Argent has been sighted three islands east, and someone needs to decide whether the Mercy is sailing west or going to find Hanno.
 
 Sound Design:
 - The Mercy's Deck: ocean ambient
 - Salt-Tongue Cove: ocean (with wind in cliffs) ambient
 - The Village: tavern ambient
 - The Bone Reef: ocean (with surf-break) ambient
-- Below decks: cave (very damp) ambient`,
+- Below decks: cave (very damp) ambient
+
+Real-World Texture (true details to weave in when they fit; never lecture):
+- A brigantine carries square sails on her foremast and a fore-and-aft mainsail on the main, so she can sail closer to the wind than a full-rigged ship.
+- Time aboard runs on the ship's bell: one stroke for each half hour of a four-hour watch, struck in pairs, so eight bells means the watch is over.
+- Decks are scrubbed with holystone and sand. Seams are caulked with oakum and hot pitch, and the whole ship smells of tar and wet hemp.
+- Real pirate crews signed written articles, elected their captain and a quartermaster, and split a prize by shares.
+- Hulls foul with weed and shipworm, so crews careen them: haul the ship over on a beach and scrape her clean.`,
   isPrebuilt: true,
   imageUrl: "/images/worlds/saltbound.svg",
   locations: [

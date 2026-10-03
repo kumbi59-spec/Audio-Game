@@ -62,7 +62,8 @@ function CreateCharacterPage() {
   const [worldLoadError, setWorldLoadError] = useState<string | null>(null);
 
   const { narrate } = useAnnouncer();
-  const { setSession, setCharacter, setWorld: setStoreWorld, setDbSessionId } = useGameStore();
+  const startNewGame = useGameStore((s) => s.startNewGame);
+  const setDbSessionId = useGameStore((s) => s.setDbSessionId);
 
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
@@ -275,9 +276,8 @@ function CreateCharacterPage() {
       codex: [],
     };
 
-    setStoreWorld(world);
-    setCharacter(character);
-    setSession(session);
+    // A new game: the previous one's server save and undo don't carry over.
+    startNewGame({ world, character, session });
 
     // Persist to DB (best-effort — game works without it). Awaited before the
     // opening request so a first-time guest gets one server-issued identity
@@ -401,9 +401,8 @@ function CreateCharacterPage() {
       codex: [],
     };
 
-    setStoreWorld(world);
-    setCharacter(character);
-    setSession(session);
+    // A new game: the previous one's server save and undo don't carry over.
+    startNewGame({ world, character, session });
 
     const guestId = readLegacyGuestId();
 
@@ -424,7 +423,7 @@ function CreateCharacterPage() {
   return (
     <div className="min-h-screen surface-gradient">
       <SiteHeader />
-      <div className="mx-auto max-w-lg px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-lg px-4 py-8">
         {!world && (
           <section className="surface-gradient inner-highlight rounded-lg border border-border p-4 text-sm text-muted-foreground">
             {worldLoadError ?? "Loading world…"}
@@ -798,7 +797,7 @@ function CreateCharacterPage() {
         </section>
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }

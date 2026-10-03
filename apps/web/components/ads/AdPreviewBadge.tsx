@@ -14,8 +14,7 @@ export function AdPreviewBadge() {
   return (
     <div
       role="status"
-      className="fixed bottom-20 left-4 z-50 flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs shadow-lg"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
+      className="fixed bottom-20 left-4 z-50 flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs shadow-lg border-border bg-surface text-foreground"
     >
       <span>Ad preview is on — you&apos;re seeing ads on purpose.</span>
       <button

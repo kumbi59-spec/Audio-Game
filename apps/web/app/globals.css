@@ -59,6 +59,18 @@
   --muted-foreground: var(--text-muted);
   --ring:         var(--focus-ring);
   --radius:       0.5rem;
+
+  /* Older names still used by some components; they follow the theme. */
+  --surface2:     var(--surface-2);
+  --surface3:     var(--surface-3);
+  --text-faint:   var(--text-subtle);
+  --error:        var(--danger);
+  --accentBg:     var(--accent-dim);
+  --accent-bg:    var(--accent-dim);
+  --accent2:      var(--accent-hover);
+
+  /* Native checkboxes, radios and sliders use the brand colour. */
+  accent-color:   var(--accent-solid);
 }
 
 /* Light theme */
@@ -161,6 +173,15 @@
     color-scheme: dark;
   }
 
+  html.theme-light {
+    color-scheme: light;
+  }
+
+  /* Large-text mode scales every rem-based size. */
+  html.large-text {
+    font-size: 125%;
+  }
+
   body {
     background-color: var(--bg);
     color: var(--text);
@@ -197,6 +218,15 @@
 
   input[type="range"] {
     min-height: auto;
+  }
+
+  /* iOS zooms into any field under 16px when it's focused. */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
   }
 
   /* Borders default to design-token colour */
@@ -301,9 +331,8 @@
     border-width: 0;
   }
 
-  /* Large-text mode */
+  /* Large-text mode (font size is scaled on <html>, above) */
   .large-text {
-    font-size: 1.125rem;
     line-height: 1.75;
   }
 
@@ -505,6 +534,7 @@
 .blog-content th { background-color: var(--surface); font-weight: 700; }
 
 /* ─── Reduced-motion collapse ─────────────────────────────────────────────── */
+/* From the device setting, or the in-app setting (.reduce-motion on <html>). */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -515,6 +545,15 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+html.reduce-motion *,
+html.reduce-motion ::before,
+html.reduce-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* Hide AdSense slots Google couldn't fill (covers auto-placed ads too). */

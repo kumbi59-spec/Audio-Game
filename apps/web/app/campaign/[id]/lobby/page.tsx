@@ -226,8 +226,7 @@ function ParticipantRow({
 }) {
   return (
     <li
-      className="flex items-center justify-between rounded-xl border px-4 py-3"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="flex items-center justify-between rounded-xl border px-4 py-3 border-border bg-surface"
       aria-label={`${participant.displayName}${isYou ? " (you)" : ""}${isHost ? ", host" : ""} — ${participant.ready ? "ready" : "not ready"}`}
     >
       <div className="flex items-center gap-3">
@@ -239,16 +238,16 @@ function ParticipantRow({
           {participant.displayName.charAt(0).toUpperCase()}
         </span>
         <div>
-          <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>
+          <p className="text-sm font-semibold text-foreground">
             {participant.displayName}
             {isYou && (
-              <span className="ml-2 text-xs font-normal" style={{ color: "var(--text-muted)" }}>
+              <span className="ml-2 text-xs font-normal text-muted">
                 (you)
               </span>
             )}
           </p>
           {isHost && (
-            <p className="text-xs" style={{ color: "var(--accent)" }}>
+            <p className="text-xs text-accent">
               Host
             </p>
           )}
@@ -258,9 +257,9 @@ function ParticipantRow({
         className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
         style={{
           backgroundColor: participant.ready
-            ? "rgba(34, 197, 94, 0.12)"
-            : "var(--surface3)",
-          color: participant.ready ? "#22c55e" : "var(--text-muted)",
+            ? "color-mix(in srgb, var(--success) 12%, transparent)"
+            : "var(--surface-3)",
+          color: participant.ready ? "var(--success)" : "var(--text-muted)",
         }}
         aria-hidden="true"
       >
@@ -290,33 +289,31 @@ export default function LobbyPage() {
   const allReady = totalCount > 0 && readyCount === totalCount;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
 
       <main id="main-content" className="mx-auto max-w-lg px-6 py-10">
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }} tabIndex={-1}>
+        <h1 className="text-2xl font-bold text-foreground" tabIndex={-1}>
           Multiplayer Lobby
         </h1>
 
         {/* Status */}
         {status === "connecting" && (
-          <p className="mt-6 text-sm" style={{ color: "var(--text-muted)" }} role="status">
+          <p className="mt-6 text-sm text-muted" role="status">
             Connecting to lobby…
           </p>
         )}
 
         {status === "error" && (
           <div
-            className="mt-6 rounded-xl border px-4 py-3 text-sm"
-            style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
+            className="mt-6 rounded-xl border px-4 py-3 text-sm border-border bg-surface text-foreground"
             role="alert"
           >
             <p className="font-semibold">Unable to connect</p>
-            <p className="mt-1" style={{ color: "var(--text-muted)" }}>{error}</p>
+            <p className="mt-1 text-muted">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold"
-              style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+              className="mt-3 rounded-lg px-3 py-1.5 text-xs font-semibold bg-accent-solid text-on-accent"
             >
               Retry
             </button>
@@ -327,7 +324,7 @@ export default function LobbyPage() {
           <>
             {/* Participants */}
             <section className="mt-6" aria-label="Lobby participants">
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted">
                 Players — {readyCount} / {totalCount} ready
               </h2>
               <ul className="space-y-2" aria-live="polite" aria-atomic="false">
@@ -344,18 +341,16 @@ export default function LobbyPage() {
                   (_, i) => (
                     <li
                       key={`empty-${i}`}
-                      className="flex items-center gap-3 rounded-xl border border-dashed px-4 py-3"
-                      style={{ borderColor: "var(--border)" }}
+                      className="flex items-center gap-3 rounded-xl border border-dashed px-4 py-3 border-border"
                       aria-label="Open slot"
                     >
                       <span
-                        className="flex h-9 w-9 items-center justify-center rounded-full text-sm"
-                        style={{ backgroundColor: "var(--surface3)", color: "var(--text-faint)" }}
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-sm bg-surface-3 text-subtle"
                         aria-hidden="true"
                       >
                         ?
                       </span>
-                      <p className="text-sm" style={{ color: "var(--text-faint)" }}>
+                      <p className="text-sm text-subtle">
                         Waiting for player…
                       </p>
                     </li>
@@ -368,7 +363,7 @@ export default function LobbyPage() {
             {allReady && (
               <div
                 className="mt-6 rounded-xl border px-4 py-3 text-center text-sm font-semibold"
-                style={{ borderColor: "#22c55e", backgroundColor: "rgba(34,197,94,0.08)", color: "#22c55e" }}
+                style={{ borderColor: "var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 8%, transparent)", color: "var(--success)" }}
                 role="status"
                 aria-live="assertive"
               >
@@ -381,7 +376,7 @@ export default function LobbyPage() {
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => markReady(!me?.ready)}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring"
                   style={{
                     backgroundColor: me?.ready ? "var(--surface3)" : "var(--accent-solid)",
                     color: me?.ready ? "var(--text-muted)" : "var(--on-accent)",
@@ -392,8 +387,7 @@ export default function LobbyPage() {
                 </button>
                 <button
                   onClick={leave}
-                  className="rounded-xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
-                  style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+                  className="rounded-xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring border-border text-muted"
                 >
                   Leave
                 </button>
@@ -402,14 +396,13 @@ export default function LobbyPage() {
 
             {/* Invite link */}
             <section className="mt-8" aria-label="Invite friends">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">
                 Invite link
               </h2>
               <div
-                className="flex items-center gap-2 rounded-xl border px-4 py-3"
-                style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+                className="flex items-center gap-2 rounded-xl border px-4 py-3 border-border bg-surface"
               >
-                <code className="flex-1 truncate text-xs" style={{ color: "var(--text-muted)" }}>
+                <code className="flex-1 truncate text-xs text-muted">
                   {inviteUrl || "Loading invite link…"}
                 </code>
                 <button

@@ -26,13 +26,12 @@ export function UploadProgress({ stage, message }: Props) {
       <div
         role="alert"
         aria-live="assertive"
-        className="rounded-xl border p-6 text-center"
-        style={{ borderColor: "var(--danger)", backgroundColor: "var(--surface)" }}
+        className="rounded-xl border p-6 text-center border-danger bg-surface"
       >
-        <p className="text-sm font-semibold mb-1" style={{ color: "var(--danger)" }}>
+        <p className="text-sm font-semibold mb-1 text-danger">
           Upload failed
         </p>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm text-muted">
           {message}
         </p>
       </div>
@@ -45,8 +44,7 @@ export function UploadProgress({ stage, message }: Props) {
     <div
       aria-live="polite"
       aria-label={`Upload progress: ${message}`}
-      className="rounded-xl border p-6"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="rounded-xl border p-6 border-border bg-surface"
     >
       {/* Step indicators */}
       <ol aria-label="Upload stages" className="mb-6 flex items-center gap-2">
@@ -91,8 +89,7 @@ export function UploadProgress({ stage, message }: Props) {
         {stage !== "done" && (
           <div
             aria-hidden="true"
-            className="mx-auto mb-3 h-1 w-32 overflow-hidden rounded-full"
-            style={{ backgroundColor: "var(--surface-2)" }}
+            className="mx-auto mb-3 h-1 w-32 overflow-hidden rounded-full bg-surface-2"
           >
             <div
               className="h-full rounded-full animate-shimmer"

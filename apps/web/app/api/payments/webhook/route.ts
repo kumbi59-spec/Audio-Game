@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Tier } from "@audio-rpg/shared";
 import { constructWebhookEvent, getStripe, isPackPriceKey, minutesForPackKey } from "@/lib/payments/stripe";
 import { resolveUserForCustomer, tierForSubscription } from "@/lib/payments/sync";
-import { updateUserTier, setStripeCustomerId, findUserByStripeCustomerId, addAiMinutes, markStripeEventProcessed } from "@/lib/db/queries/users";
+import {
+  updateUserTier,
+  setStripeCustomerId,
+  findUserByStripeCustomerId,
+  addAiMinutes,
+  markStripeEventProcessed,
+  unmarkStripeEventProcessed,
+} from "@/lib/db/queries/users";
 import { sendUpgradeEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push/sender";
 
@@ -119,6 +126,14 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error("Webhook handler error:", err);
+    // The event was marked processed before its handlers ran. Unmark it so
+    // the retry Stripe sends after this 500 is applied, not skipped as a
+    // duplicate (which would lose the purchase or tier change for good).
+    try {
+      await unmarkStripeEventProcessed(event.id);
+    } catch (unmarkErr) {
+      console.error("Webhook unmark error:", unmarkErr);
+    }
     return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 

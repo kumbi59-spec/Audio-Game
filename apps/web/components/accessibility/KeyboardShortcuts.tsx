@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useAccessibilityStore } from "@/store/accessibility-store";
-import { pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
+import { isPaused, isSpeaking as narratorSpeaking, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
+import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useAudioStore } from "@/store/audio-store";
 
 export const SHORTCUT_HELP = [
@@ -55,7 +56,7 @@ export function KeyboardShortcuts({
 }: KeyboardShortcutsProps) {
   const { keyboardHelpOpen, setKeyboardHelpOpen } = useAccessibilityStore();
   const { ttsSpeed, setTTSSpeed, ambientEnabled, setAmbientEnabled } = useAudioStore();
-  const [_paused, setPaused] = useState(false);
+  const { announce } = useAnnouncer();
 
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
@@ -75,29 +76,32 @@ export function KeyboardShortcuts({
       switch (e.key) {
         case " ":
         case "p":
-        case "P":
-          e.preventDefault();
-          if (isSpeaking) {
-            pauseSpeech();
-            setPaused(true);
-          } else {
-            resumeSpeech();
-            setPaused(false);
+        case "P": {
+          // Space on a focused button or link (the choices, after a turn)
+          // presses it; leave that to the browser.
+          const target = e.target as HTMLElement;
+          if (e.key === " " && (tag === "button" || tag === "a" || tag === "summary" || target.getAttribute("role") === "button")) {
+            return;
           }
+          e.preventDefault();
+          // Paused narration still counts as speaking, so check paused first.
+          if (isPaused()) resumeSpeech();
+          else if (isSpeaking || narratorSpeaking()) pauseSpeech();
           break;
+        }
         case "r":
         case "R":
           e.preventDefault();
           onReplayLast?.();
           break;
         case "[":
+        case "]": {
           e.preventDefault();
-          setTTSSpeed(ttsSpeed - 0.1);
+          const next = Math.round(Math.max(0.5, Math.min(2, ttsSpeed + (e.key === "[" ? -0.1 : 0.1))) * 10) / 10;
+          setTTSSpeed(next);
+          announce(`Speech speed ${next.toFixed(1)}`, "polite");
           break;
-        case "]":
-          e.preventDefault();
-          setTTSSpeed(ttsSpeed + 0.1);
-          break;
+        }
         case "m":
         case "M":
           e.preventDefault();
@@ -158,7 +162,7 @@ export function KeyboardShortcuts({
       isSpeaking, ttsSpeed, ambientEnabled,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
-      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen, onUndo,
+      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen, onUndo, announce,
     ]
   );
 

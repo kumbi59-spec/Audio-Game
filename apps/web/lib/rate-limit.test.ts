@@ -44,7 +44,7 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-import { consumeRateLimit, getClientIp } from "./rate-limit";
+import { UpstashRateLimitStore, consumeRateLimit, getClientIp } from "./rate-limit";
 
 describe("consumeRateLimit (DbRateLimitStore)", () => {
   beforeEach(() => {
@@ -191,3 +191,74 @@ describe("getClientIp", () => {
     expect(getClientIp(req({ "cf-connecting-ip": "198.51.100.4", "x-forwarded-for": "6.6.6.6" }))).toBe("198.51.100.4");
   });
 });
+
+describe("UpstashRateLimitStore", () => {
+  /** A tiny in-memory Redis that answers the REST pipeline commands the store sends. */
+  function fakeRedis() {
+    const values = new Map<string, number>();
+    const expiresAt = new Map<string, number>();
+    let now = 0;
+    const alive = (key: string) => {
+      const exp = expiresAt.get(key);
+      if (exp !== undefined && exp <= now) {
+        values.delete(key);
+        expiresAt.delete(key);
+      }
+      return values.has(key);
+    };
+    const run = (cmd: Array<string | number>) => {
+      const [op, key, ...args] = cmd as [string, string, ...Array<string | number>];
+      switch (op) {
+        case "INCR": alive(key); values.set(key, (values.get(key) ?? 0) + 1); return values.get(key);
+        case "GET": return alive(key) ? values.get(key) : null;
+        case "EXPIRE": if (!expiresAt.has(key)) expiresAt.set(key, now + Number(args[0]) * 1000); return 1;
+        case "TTL": return alive(key) ? (expiresAt.has(key) ? Math.ceil((expiresAt.get(key)! - now) / 1000) : -1) : -2;
+        case "PTTL": return alive(key) ? (expiresAt.has(key) ? expiresAt.get(key)! - now : -1) : -2;
+        case "SET": if (alive(key)) return null; values.set(key, 1); expiresAt.set(key, now + Number(args[2]) * 1000); return "OK";
+        default: throw new Error(`unexpected ${op}`);
+      }
+    };
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+      const commands = JSON.parse(init.body as string) as Array<Array<string | number>>;
+      return Response.json(commands.map((c) => ({ result: run(c) })));
+    });
+    return { fetchMock, advance: (ms: number) => { now += ms; } };
+  }
+
+  let redis: ReturnType<typeof fakeRedis>;
+  beforeEach(() => {
+    redis = fakeRedis();
+    vi.stubGlobal("fetch", redis.fetchMock);
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  const store = () => new UpstashRateLimitStore("https://redis.test", "token");
+
+  it("counts only failures when incrementOnFailureOnly is set", async () => {
+    const rule = { key: "reset:u1", limit: 2, windowSeconds: 60, incrementOnFailureOnly: true };
+    for (let i = 0; i < 5; i++) expect((await store().consume({ ...rule, wasFailure: false })).allowed).toBe(true);
+    await store().consume({ ...rule, wasFailure: true });
+    await store().consume({ ...rule, wasFailure: true });
+    expect((await store().consume({ ...rule, wasFailure: true })).allowed).toBe(false);
+  });
+
+  it("locks the key for the cooldown once over the limit, past the window", async () => {
+    const rule = { key: "login:u1", limit: 1, windowSeconds: 10, cooldownSeconds: 900 };
+    await store().consume(rule);
+    const over = await store().consume(rule);
+    expect(over).toEqual({ allowed: false, retryAfterSeconds: 900 });
+    redis.advance(60_000); // the 10s window is long gone
+    const still = await store().consume(rule);
+    expect(still.allowed).toBe(false);
+    expect(still.retryAfterSeconds).toBe(840);
+  });
+
+  it("starts a fresh window after it expires", async () => {
+    const rule = { key: "turn:u1", limit: 1, windowSeconds: 10 };
+    await store().consume(rule);
+    expect((await store().consume(rule)).allowed).toBe(false);
+    redis.advance(11_000);
+    expect((await store().consume(rule)).allowed).toBe(true);
+  });
+});
+

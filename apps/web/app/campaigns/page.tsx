@@ -13,20 +13,20 @@ export const metadata: Metadata = {
 
 export default function CampaignsPage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
       <main className="mx-auto max-w-4xl px-6 py-10" id="main-content">
-        <h1 className="text-3xl font-bold" style={{ color: "var(--text)" }}>Campaign Worlds</h1>
-        <p className="mt-3 text-base" style={{ color: "var(--text-muted)" }}>
+        <h1 className="text-3xl font-bold text-foreground">Campaign Worlds</h1>
+        <p className="mt-3 text-base text-muted">
           Explore audio-first campaign worlds. Every page includes a sample narration transcript and a campaign hook.
         </p>
         <ul className="mt-8 grid gap-4 md:grid-cols-2">
           {SEO_CAMPAIGNS.map((campaign) => (
-            <li key={campaign.slug} className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-              <p className="text-xs uppercase" style={{ color: "var(--accent)" }}>{campaign.intentKeyword}</p>
-              <h2 className="mt-2 text-xl font-semibold" style={{ color: "var(--text)" }}>{campaign.name}</h2>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>{campaign.hook}</p>
-              <Link href={`/campaigns/${campaign.slug}`} className="mt-4 inline-block text-sm font-semibold hover:underline" style={{ color: "var(--accent)" }}>
+            <li key={campaign.slug} className="rounded-xl border p-5 border-border bg-surface">
+              <p className="text-xs uppercase text-accent">{campaign.intentKeyword}</p>
+              <h2 className="mt-2 text-xl font-semibold text-foreground">{campaign.name}</h2>
+              <p className="mt-2 text-sm text-muted">{campaign.hook}</p>
+              <Link href={`/campaigns/${campaign.slug}`} className="mt-4 inline-block text-sm font-semibold hover:underline text-accent">
                 View campaign page →
               </Link>
             </li>

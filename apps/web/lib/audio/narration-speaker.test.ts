@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   speakNarrationMultiVoice,
   npcKeyFromName,
+  npcResolvablePrefix,
   npcVoicesResolvable,
+  parseNarrationSegments,
+  splitForTts,
   pickVoiceForNpc,
   resolveNpcVoiceAssignment,
   type NpcVoiceAssignment,
@@ -11,6 +14,38 @@ import { ELEVENLABS_PRESET_VOICES } from "./voices-catalog";
 
 const FEMALE_VOICES = ELEVENLABS_PRESET_VOICES.filter((v) => v.gender === "female").map((v) => v.id);
 const MALE_VOICES = ELEVENLABS_PRESET_VOICES.filter((v) => v.gender === "male").map((v) => v.id);
+
+describe("parseNarrationSegments", () => {
+  it("keeps contractions inside a double-quoted line", () => {
+    const segs = parseNarrationSegments(
+      'The guard steps forward. [Captain Voss]: "Don\'t move. I won\'t ask twice." You freeze.',
+      "Ash",
+    );
+    expect(segs).toEqual([
+      { text: "The guard steps forward.", speaker: "narrator" },
+      { text: "Don't move. I won't ask twice.", speaker: "npc", npcName: "Captain Voss" },
+      { text: "You freeze.", speaker: "narrator" },
+    ]);
+  });
+
+  it("accepts curly double quotes", () => {
+    const segs = parseNarrationSegments("[Mara]: \u201CThat\u2019s my boat.\u201D", "Ash");
+    expect(segs).toEqual([{ text: "That\u2019s my boat.", speaker: "npc", npcName: "Mara" }]);
+  });
+
+  it("only closes a single-quoted line on a quote that isn't part of a word", () => {
+    const segs = parseNarrationSegments("[Mara]: 'You can't stay here.' She turns away.", "Ash");
+    expect(segs).toEqual([
+      { text: "You can't stay here.", speaker: "npc", npcName: "Mara" },
+      { text: "She turns away.", speaker: "narrator" },
+    ]);
+  });
+
+  it("marks the player character's own lines", () => {
+    const segs = parseNarrationSegments('[Ash]: "I\'m not going back."', "ash");
+    expect(segs).toEqual([{ text: "I'm not going back.", speaker: "character", npcName: undefined }]);
+  });
+});
 
 describe("npcKeyFromName", () => {
   it("lowercases and trims", () => {
@@ -152,3 +187,32 @@ describe("speakNarrationMultiVoice", () => {
     ]);
   });
 });
+
+describe("npcResolvablePrefix", () => {
+  it("stops at the first line by an NPC with no voice or gender yet", () => {
+    const text = 'Rain. [Mara]: "Over here." [Voss]: "Halt." End.';
+    const hints = new Map([["mara", "female" as const]]);
+    expect(npcResolvablePrefix(text, "Ash", new Map(), hints)).toBe(text.indexOf("[Voss]"));
+    expect(npcResolvablePrefix(text, "Ash", new Map(), new Map([...hints, ["voss", "male" as const]]))).toBe(text.length);
+  });
+
+  it("never waits on the player character's own lines", () => {
+    const text = '[Ash]: "Go."';
+    expect(npcResolvablePrefix(text, "Ash", new Map(), new Map())).toBe(text.length);
+  });
+});
+
+describe("splitForTts", () => {
+  it("leaves short text alone", () => {
+    expect(splitForTts("One line.")).toEqual(["One line."]);
+  });
+
+  it("splits long text at sentence ends under the limit", () => {
+    const sentence = "The tide turns slowly. ";
+    const chunks = splitForTts(sentence.repeat(20), 100);
+    expect(chunks.every((c) => c.length <= 100)).toBe(true);
+    expect(chunks.every((c) => c.endsWith("."))).toBe(true);
+    expect(chunks.join(" ")).toBe(sentence.repeat(20).trim());
+  });
+});
+

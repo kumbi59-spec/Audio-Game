@@ -30,9 +30,9 @@ export async function getSessionWithHistory(sessionId: string, recentTurns = 40)
   const [session, history] = await Promise.all([
     prisma.gameSession.findUnique({
       where: { id: sessionId },
+      // The world is loaded through resolvePlayableWorld by the caller.
       include: {
         gameState: true,
-        world: { include: { locations: true, npcs: true } },
         character: { include: { inventory: true, quests: true } },
       },
     }),
@@ -98,41 +98,118 @@ export async function persistTurn(
   });
 }
 
-export async function updateGameState(
-  sessionId: string,
-  ownerId: string,
-  patch: {
-    currentLocationId?: string | null;
-    timeOfDay?: string;
-    weather?: string;
-    globalFlags?: Record<string, unknown>;
-    npcStates?: Record<string, unknown>;
-    memorySummary?: string;
-    achievements?: unknown[];
-    relationships?: unknown[];
-    codex?: unknown[];
-  }
-) {
+export interface GameStatePatch {
+  currentLocationId?: string | null;
+  timeOfDay?: string;
+  weather?: string;
+  globalFlags?: Record<string, unknown>;
+  npcStates?: Record<string, unknown>;
+  memorySummary?: string;
+  achievements?: unknown[];
+  relationships?: unknown[];
+  codex?: unknown[];
+}
+
+/** The GameState columns a patch writes (achievements etc. live in npcStates). */
+function gameStateData(patch: GameStatePatch) {
   let npcStatesPatch: string | undefined;
   if (patch.npcStates !== undefined || patch.achievements !== undefined || patch.relationships !== undefined || patch.codex !== undefined) {
-    const base: Record<string, unknown> = patch.npcStates ?? {};
+    const base: Record<string, unknown> = { ...(patch.npcStates ?? {}) };
     if (patch.achievements !== undefined) base._achievements = patch.achievements;
     if (patch.relationships !== undefined) base._relationships = patch.relationships;
     if (patch.codex !== undefined) base._codex = patch.codex;
     npcStatesPatch = JSON.stringify(base);
   }
+  return {
+    currentLocationId: patch.currentLocationId,
+    timeOfDay: patch.timeOfDay,
+    weather: patch.weather,
+    globalFlags: patch.globalFlags !== undefined ? JSON.stringify(patch.globalFlags) : undefined,
+    npcStates: npcStatesPatch,
+    memorySummary: patch.memorySummary,
+    lastUpdatedAt: new Date(),
+  };
+}
 
+export async function updateGameState(sessionId: string, ownerId: string, patch: GameStatePatch) {
   return prisma.gameState.updateMany({
     where: { sessionId, session: { userId: ownerId } },
-    data: {
-      currentLocationId: patch.currentLocationId,
-      timeOfDay: patch.timeOfDay,
-      weather: patch.weather,
-      globalFlags: patch.globalFlags !== undefined ? JSON.stringify(patch.globalFlags) : undefined,
-      npcStates: npcStatesPatch,
-      memorySummary: patch.memorySummary,
-      lastUpdatedAt: new Date(),
-    },
+    data: gameStateData(patch),
+  });
+}
+
+/** Another request already saved a turn on this session since this one read it. */
+export class TurnConflictError extends Error {
+  constructor() {
+    super("turn_conflict");
+    this.name = "TurnConflictError";
+  }
+}
+
+export interface TurnCommit {
+  /** The session's turn count when this turn read it; the turn is saved as the next one. */
+  expectedTurnCount: number;
+  characterId: string;
+  /** The character after this turn. */
+  character: CharacterData;
+  /** What this turn changes, as it stood before, so the turn can be undone. */
+  undoSnapshot: UndoSnapshot | null;
+  playerAction: { content: string; actionType: string };
+  /** The GM's reply as stored history; null when there was none. */
+  gmReply: string | null;
+  gameState: GameStatePatch | null;
+}
+
+/**
+ * Saves one turn as a whole, or not at all: the turn count, undo snapshot,
+ * character progress, both history entries and the game state are written in
+ * one transaction. The turn is only saved when the session still has the turn
+ * count this request read (compare-and-set), so two turns played on one save
+ * at once can't both apply to the same starting state; the second gets a
+ * TurnConflictError. Returns the new turn number.
+ */
+export async function commitTurn(sessionId: string, ownerId: string, commit: TurnCommit): Promise<number> {
+  return prisma.$transaction(async (tx) => {
+    const claimed = await tx.gameSession.updateMany({
+      where: { id: sessionId, userId: ownerId, turnCount: commit.expectedTurnCount },
+      data: { turnCount: commit.expectedTurnCount + 1, lastPlayedAt: new Date() },
+    });
+    if (claimed.count === 0) {
+      const owned = await tx.gameSession.count({ where: { id: sessionId, userId: ownerId } });
+      if (owned === 0) throw new Error("Session not found for owner");
+      throw new TurnConflictError();
+    }
+    const turnNumber = commit.expectedTurnCount + 1;
+
+    await tx.character.updateMany({
+      where: { id: commit.characterId, userId: ownerId },
+      data: characterProgressData(commit.character),
+    });
+    await tx.gameHistoryEntry.create({
+      data: {
+        sessionId,
+        turnNumber,
+        role: "user",
+        content: commit.playerAction.content,
+        actionType: commit.playerAction.actionType,
+        metadata: "{}",
+      },
+    });
+    if (commit.gmReply) {
+      await tx.gameHistoryEntry.create({
+        data: { sessionId, turnNumber, role: "assistant", content: commit.gmReply, actionType: null, metadata: "{}" },
+      });
+    }
+    if (commit.gameState || commit.undoSnapshot) {
+      await tx.gameState.updateMany({
+        where: { sessionId },
+        data: {
+          ...(commit.gameState ? gameStateData(commit.gameState) : {}),
+          ...(commit.undoSnapshot ? { undoSnapshot: JSON.stringify(commit.undoSnapshot) } : {}),
+        },
+      });
+    }
+    return turnNumber;
   });
 }
 

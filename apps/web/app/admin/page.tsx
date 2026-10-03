@@ -474,9 +474,9 @@ export default function AdminPage() {
 
   if (forbidden) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-        <p className="text-lg font-semibold" style={{ color: "var(--text)" }}>Access denied.</p>
-        <Link href="/" className="mt-4 text-sm hover:underline" style={{ color: "var(--text-muted)" }}>← Home</Link>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-bg">
+        <p className="text-lg font-semibold text-foreground">Access denied.</p>
+        <Link href="/" className="mt-4 text-sm hover:underline text-muted">← Home</Link>
       </div>
     );
   }
@@ -489,14 +489,14 @@ export default function AdminPage() {
   const publishedCount = posts.filter((p) => p.publishedAt).length;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
+    <div className="min-h-screen bg-bg">
       <SiteHeader />
-      <header className="border-b px-6 py-6" style={{ borderColor: "var(--border)" }}>
-        <h1 className="text-2xl font-bold" style={{ color: "var(--text)" }}>Admin Dashboard</h1>
-        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Signed in as {session?.user?.email}</p>
+      <header className="border-b px-6 py-6 border-border">
+        <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-xs text-muted">Signed in as {session?.user?.email}</p>
       </header>
 
-      <main className="px-6 py-8">
+      <main id="main-content" className="px-6 py-8">
         {/* Summary stats */}
         <section aria-label="Summary statistics" className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {[
@@ -505,15 +505,15 @@ export default function AdminPage() {
             { label: "Paid", value: (TIER_COUNTS["storyteller"] ?? 0) + (TIER_COUNTS["creator"] ?? 0) },
             { label: "Blog posts", value: `${publishedCount} / ${posts.length}` },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border p-4 text-center" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
-              <p className="text-2xl font-bold" style={{ color: "var(--text)" }}>{s.value}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{s.label}</p>
+            <div key={s.label} className="rounded-xl border p-4 text-center border-border bg-surface">
+              <p className="text-2xl font-bold text-foreground">{s.value}</p>
+              <p className="text-xs text-muted">{s.label}</p>
             </div>
           ))}
         </section>
 
         {/* Tab bar */}
-        <div role="tablist" aria-label="Admin sections" className="mb-6 flex border-b" style={{ borderColor: "var(--border)" }}>
+        <div role="tablist" aria-label="Admin sections" className="mb-6 flex border-b border-border">
           {(["users", "worlds", "blog"] as Tab[]).map((t) => {
             const label = t === "users" ? `Users (${users.length})` : t === "worlds" ? `Worlds (${worlds.length})` : `Blog (${posts.length})`;
             return (
@@ -541,40 +541,40 @@ export default function AdminPage() {
           })}
         </div>
 
-        {loading && <p className="text-sm" style={{ color: "var(--text-muted)" }}>Loading…</p>}
+        {loading && <p className="text-sm text-muted">Loading…</p>}
 
         {/* Users table */}
         {!loading && tab === "users" && (
           <div role="tabpanel" aria-label="Users list">
             {syncResult && (
-              <p className="mb-3 text-xs" role="status" style={{ color: "var(--text-muted)" }}>{syncResult}</p>
+              <p className="mb-3 text-xs text-muted" role="status">{syncResult}</p>
             )}
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="User accounts">
                 <thead>
-                  <tr className="border-b text-left" style={{ borderColor: "var(--border)" }}>
+                  <tr className="border-b text-left border-border">
                     {["Email", "Name", "Tier", "Worlds", "Sessions", "Joined", "Stripe"].map((h) => (
-                      <th key={h} scope="col" className="pb-3 pr-4 font-semibold" style={{ color: "var(--text-muted)" }}>{h}</th>
+                      <th key={h} scope="col" className="pb-3 pr-4 font-semibold text-muted">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => (
-                    <tr key={u.id} className="border-b" style={{ borderColor: "var(--border)" }}>
-                      <td className="py-3 pr-4" style={{ color: "var(--text)" }}>{u.email}</td>
-                      <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{u.name ?? "—"}</td>
+                    <tr key={u.id} className="border-b border-border">
+                      <td className="py-3 pr-4 text-foreground">{u.email}</td>
+                      <td className="py-3 pr-4 text-muted">{u.name ?? "—"}</td>
                       <td className="py-3 pr-4">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold capitalize"
                           style={{
-                            backgroundColor: u.tier === "free" ? "var(--surface-2, var(--surface))" : "var(--accent)",
-                            color: u.tier === "free" ? "var(--text-muted)" : "#ffffff",
+                            backgroundColor: u.tier === "free" ? "var(--surface-2)" : "var(--accent-solid)",
+                            color: u.tier === "free" ? "var(--text-muted)" : "var(--on-accent)",
                           }}>
                           {u.tier}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-center" style={{ color: "var(--text-muted)" }}>{u.worldCount}</td>
-                      <td className="py-3 pr-4 text-center" style={{ color: "var(--text-muted)" }}>{u.sessionCount}</td>
-                      <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 pr-4 text-center text-muted">{u.worldCount}</td>
+                      <td className="py-3 pr-4 text-center text-muted">{u.sessionCount}</td>
+                      <td className="py-3 pr-4 text-muted">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="py-3 pr-4">
                         <button
                           onClick={() => syncStripe(u)}
@@ -590,7 +590,7 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
-              {users.length === 0 && <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>No users yet.</p>}
+              {users.length === 0 && <p className="py-8 text-center text-sm text-muted">No users yet.</p>}
             </div>
           </div>
         )}
@@ -602,36 +602,36 @@ export default function AdminPage() {
               <button
                 onClick={generateCovers}
                 disabled={generatingCovers}
-                className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 transition-opacity hover:opacity-80"
-                style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 transition-opacity hover:opacity-80 bg-accent-solid text-on-accent"
               >
                 {generatingCovers ? "Generating…" : "Generate Official Covers"}
               </button>
               {coverResult && (
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{coverResult}</p>
+                <p className="text-xs text-muted">{coverResult}</p>
               )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="Community worlds">
                 <thead>
-                  <tr className="border-b text-left" style={{ borderColor: "var(--border)" }}>
+                  <tr className="border-b text-left border-border">
                     {["Name", "Genre", "Owner", "Sessions", "Status", "Actions"].map((h) => (
-                      <th key={h} scope="col" className="pb-3 pr-4 font-semibold" style={{ color: "var(--text-muted)" }}>{h}</th>
+                      <th key={h} scope="col" className="pb-3 pr-4 font-semibold text-muted">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {worlds.map((w) => (
-                    <tr key={w.id} className="border-b" style={{ borderColor: "var(--border)" }}>
-                      <td className="py-3 pr-4 font-medium" style={{ color: "var(--text)" }}>{w.name}</td>
-                      <td className="py-3 pr-4 capitalize" style={{ color: "var(--text-muted)" }}>{w.genre}</td>
-                      <td className="py-3 pr-4" style={{ color: "var(--text-muted)" }}>{w.ownerEmail ?? "—"}</td>
-                      <td className="py-3 pr-4 text-center" style={{ color: "var(--text-muted)" }}>{w.sessionCount}</td>
+                    <tr key={w.id} className="border-b border-border">
+                      <td className="py-3 pr-4 font-medium text-foreground">{w.name}</td>
+                      <td className="py-3 pr-4 capitalize text-muted">{w.genre}</td>
+                      <td className="py-3 pr-4 text-muted">{w.ownerEmail ?? "—"}</td>
+                      <td className="py-3 pr-4 text-center text-muted">{w.sessionCount}</td>
                       <td className="py-3 pr-4">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{
-                            backgroundColor: w.isPublic ? "var(--success, #16a34a)" : "var(--surface-2, var(--surface))",
-                            color: w.isPublic ? "#ffffff" : "var(--text-muted)",
+                            // White on the success green is under 2:1; tint it instead.
+                            backgroundColor: w.isPublic ? "color-mix(in srgb, var(--success) 15%, transparent)" : "var(--surface-2)",
+                            color: w.isPublic ? "var(--success)" : "var(--text-muted)",
                           }}>
                           {w.isPublic ? "Public" : "Private"}
                         </span>
@@ -652,7 +652,7 @@ export default function AdminPage() {
                   ))}
                 </tbody>
               </table>
-              {worlds.length === 0 && <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>No community worlds yet.</p>}
+              {worlds.length === 0 && <p className="py-8 text-center text-sm text-muted">No community worlds yet.</p>}
             </div>
           </div>
         )}
@@ -663,94 +663,88 @@ export default function AdminPage() {
             {/* Post list */}
             <section>
               <div className="mb-4 flex items-center justify-between gap-2 flex-wrap">
-                <h2 className="text-base font-semibold" style={{ color: "var(--text)" }}>Posts</h2>
+                <h2 className="text-base font-semibold text-foreground">Posts</h2>
                 <div className="flex gap-2 flex-wrap">
                   <button onClick={() => seedPosts(false)} disabled={seeding}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
+                   >
                     {seeding ? "Seeding…" : "Seed posts"}
                   </button>
                   <button onClick={() => seedPosts(true)} disabled={seeding}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
                     title="Replaces title, excerpt, and content of existing posts with the latest seed data — preserves publish date and author">
                     {seeding ? "Updating…" : "Re-seed (update content)"}
                   </button>
                   <button onClick={openNewPost}
-                    className="rounded px-3 py-1.5 text-sm font-semibold"
-                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+                    className="rounded px-3 py-1.5 text-sm font-semibold bg-accent-solid text-on-accent"
+                   >
                     + New post
                   </button>
                   <button onClick={applySeoFixes} disabled={seoFixing}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
                     title="Auto-updates existing blog content with baseline SEO improvements.">
                     {seoFixing ? "Applying SEO…" : "Auto-fix existing SEO"}
                   </button>
                   <button onClick={stripPlaceholderImages} disabled={strippingImages}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
                     title="Deletes the generic world-cover SVG images baked into post text by older seed runs. BFL covers and section images are kept.">
                     {strippingImages ? "Removing…" : "Remove placeholder images"}
                   </button>
                   <button
                     onClick={() => generateBlogCovers(false)}
                     disabled={generatingBlogCovers}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-accent-solid text-on-accent"
                     title="Calls BFL (or Replicate) for every post that doesn't yet have a coverImageUrl. Skips posts that already have a cover.">
                     {generatingBlogCovers ? "Generating covers…" : "Generate Blog Covers"}
                   </button>
                   <button
                     onClick={() => generateBlogCovers(true)}
                     disabled={generatingBlogCovers}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
                     title="Regenerates ALL blog covers, overwriting existing ones. Use after a prompt change.">
                     {generatingBlogCovers ? "…" : "Force-regen all covers"}
                   </button>
                   <button
                     onClick={() => generateSectionImages(false)}
                     disabled={generatingSectionImages}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-accent-solid text-on-accent"
                     title="Generates up to 3 in-body illustrations per post, interleaved between H2 sections. Skips slots already generated.">
                     {generatingSectionImages ? "Generating images…" : "Generate Section Images"}
                   </button>
                   <button
                     onClick={() => generateSectionImages(true)}
                     disabled={generatingSectionImages}
-                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                    className="rounded px-3 py-1.5 text-sm font-medium disabled:opacity-50 bg-transparent text-muted border border-border"
                     title="Regenerates ALL section images, overwriting existing ones.">
                     {generatingSectionImages ? "…" : "Force-regen section images"}
                   </button>
                 </div>
               </div>
-              {blogCoverResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{blogCoverResult}</p>}
-              {sectionImageResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{sectionImageResult}</p>}
-              {seedResult && <p className="mb-3 text-xs" style={{ color: "var(--text-muted)" }}>{seedResult}</p>}
+              {blogCoverResult && <p className="mb-3 text-xs text-muted">{blogCoverResult}</p>}
+              {sectionImageResult && <p className="mb-3 text-xs text-muted">{sectionImageResult}</p>}
+              {seedResult && <p className="mb-3 text-xs text-muted">{seedResult}</p>}
               <div className="space-y-3">
                 {posts.map((p) => (
-                  <div key={p.id} className="flex items-start justify-between rounded-lg border p-3"
-                    style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+                  <div key={p.id} className="flex items-start justify-between rounded-lg border p-3 border-border bg-surface"
+                   >
                     <div className="min-w-0 flex-1 pr-3">
-                      <p className="truncate font-medium" style={{ color: "var(--text)" }}>{p.title}</p>
+                      <p className="truncate font-medium text-foreground">{p.title}</p>
                       <div className="mt-1 flex items-center gap-2">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{
-                            backgroundColor: p.publishedAt ? "var(--success, #16a34a)" : "var(--surface-2, var(--surface))",
-                            color: p.publishedAt ? "#ffffff" : "var(--text-muted)",
+                            // White on the success green is under 2:1; tint it instead.
+                            backgroundColor: p.publishedAt ? "color-mix(in srgb, var(--success) 15%, transparent)" : "var(--surface-2)",
+                            color: p.publishedAt ? "var(--success)" : "var(--text-muted)",
                           }}>
                           {p.publishedAt ? "Published" : "Draft"}
                         </span>
                         {p.publishedAt && (
-                          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                          <span className="text-xs text-muted">
                             {new Date(p.publishedAt).toLocaleDateString()}
                           </span>
                         )}
                         <Link href={`/blog/${p.slug}`} target="_blank"
-                          className="text-xs hover:underline" style={{ color: "var(--accent)" }}>
+                          className="text-xs hover:underline text-accent">
                           View ↗
                         </Link>
                       </div>
@@ -758,7 +752,7 @@ export default function AdminPage() {
                         {getSeoChecks(p).map((check) => (
                           <span key={check.label}
                             className="rounded-full border px-2 py-0.5 text-[10px] font-medium"
-                            style={{ borderColor: check.pass ? "#16a34a" : "#f59e0b", color: check.pass ? "#16a34a" : "#f59e0b" }}>
+                            style={{ borderColor: check.pass ? "var(--success)" : "var(--warning)", color: check.pass ? "var(--success)" : "var(--warning)" }}>
                             {check.pass ? "✓" : "!"} {check.label}
                           </span>
                         ))}
@@ -766,58 +760,58 @@ export default function AdminPage() {
                     </div>
                     <div className="flex shrink-0 gap-2">
                       <button onClick={() => togglePublish(p)}
-                        className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                        style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                        className="rounded px-2 py-1 text-xs font-medium hover:opacity-80 bg-transparent text-muted border border-border"
+                       >
                         {p.publishedAt ? "Unpublish" : "Publish"}
                       </button>
                       <button onClick={() => openEditPost(p)}
-                        className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                        style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+                        className="rounded px-2 py-1 text-xs font-medium hover:opacity-80 bg-accent-solid text-on-accent"
+                       >
                         Edit
                       </button>
                       <button onClick={() => deletePost(p.id)}
                         className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                        style={{ backgroundColor: "transparent", color: "#ef4444", border: "1px solid #ef4444" }}>
+                        style={{ backgroundColor: "transparent", color: "var(--danger)", border: "1px solid var(--danger)" }}>
                         Del
                       </button>
                     </div>
                   </div>
                 ))}
-                {posts.length === 0 && <p className="py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>No posts yet. Create your first one.</p>}
+                {posts.length === 0 && <p className="py-8 text-center text-sm text-muted">No posts yet. Create your first one.</p>}
               </div>
             </section>
 
             {/* Editor */}
             <section>
-              <h2 className="mb-4 text-base font-semibold" style={{ color: "var(--text)" }}>
+              <h2 className="mb-4 text-base font-semibold text-foreground">
                 {editingPost ? `Editing: ${editingPost.title}` : "New post"}
               </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Title</label>
+                  <label className="mb-1 block text-sm font-medium text-muted">Title</label>
                   <input type="text" value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
                     placeholder="Post title (include your primary keyword naturally)"
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
+                    className="w-full rounded-lg border px-3 py-2 text-sm bg-surface border-border text-foreground"
+                    />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Excerpt <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(shown in list + used as meta description)</span></label>
+                  <label className="mb-1 block text-sm font-medium text-muted">Excerpt <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(shown in list + used as meta description)</span></label>
                   <input type="text" value={draft.excerpt} onChange={(e) => setDraft((d) => ({ ...d, excerpt: e.target.value }))}
                     placeholder="1–2 sentence summary with the target keyword and user intent."
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
+                    className="w-full rounded-lg border px-3 py-2 text-sm bg-surface border-border text-foreground"
+                    />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Content <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(Markdown)</span></label>
+                  <label className="mb-1 block text-sm font-medium text-muted">Content <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(Markdown)</span></label>
                   <textarea ref={contentRef} value={draft.content}
                     onChange={(e) => setDraft((d) => ({ ...d, content: e.target.value }))}
                     rows={16} placeholder="Write your post in Markdown. Use the target keyword in the first paragraph, add at least one H2/H3 with the key phrase, include internal/external links, and add image alt text."
                     className="w-full rounded-lg border px-3 py-2 font-mono text-sm"
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)", resize: "vertical" }} />
                 </div>
-                <div className="rounded-lg border p-4 text-sm" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}>
+                <div className="rounded-lg border p-4 text-sm border-border bg-surface text-foreground">
                   <p className="font-semibold">SEO publishing checklist</p>
-                  <ul className="mt-2 list-disc space-y-1 pl-5" style={{ color: "var(--text-muted)" }}>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
                     <li>Confirm keyword + intent from Ahrefs/SEMrush/Google Keyword Planner before writing.</li>
                     <li>Keep URL short and descriptive when choosing the slug.</li>
                     <li>Use the target phrase in title, excerpt (meta description), and at least one H2/H3.</li>
@@ -828,23 +822,23 @@ export default function AdminPage() {
                   </ul>
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium" style={{ color: "var(--text-muted)" }}>Publish date <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(leave blank to save as draft)</span></label>
+                  <label className="mb-1 block text-sm font-medium text-muted">Publish date <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>(leave blank to save as draft)</span></label>
                   <input type="datetime-local" value={draft.publishedAt}
                     onChange={(e) => setDraft((d) => ({ ...d, publishedAt: e.target.value }))}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
+                    className="w-full rounded-lg border px-3 py-2 text-sm bg-surface border-border text-foreground"
+                    />
                 </div>
-                {blogError && <p className="text-sm" style={{ color: "#ef4444" }}>{blogError}</p>}
+                {blogError && <p className="text-sm text-danger">{blogError}</p>}
                 <div className="flex gap-3">
                   <button onClick={saveBlogPost} disabled={blogSaving}
-                    className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
-                    style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}>
+                    className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 bg-accent-solid text-on-accent"
+                   >
                     {blogSaving ? "Saving…" : editingPost ? "Save changes" : "Create post"}
                   </button>
                   {editingPost && (
                     <button onClick={openNewPost}
-                      className="rounded-lg border px-4 py-2 text-sm font-medium"
-                      style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
+                      className="rounded-lg border px-4 py-2 text-sm font-medium border-border text-muted"
+                     >
                       Cancel
                     </button>
                   )}

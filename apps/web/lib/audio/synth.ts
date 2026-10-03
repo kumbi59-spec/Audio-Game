@@ -19,8 +19,37 @@ let _ctx: AudioContext | null = null;
 let _pendingAmbient: { track: AmbientTrack; volume: number } | null = null;
 
 function ctx(): AudioContext {
-  if (!_ctx) _ctx = new AudioContext();
+  if (!_ctx) {
+    _ctx = new AudioContext();
+    // iOS puts the context in "interrupted" during a call or when another
+    // app takes the audio; pick back up when that ends.
+    _ctx.addEventListener("statechange", () => {
+      if ((_ctx?.state as string) === "interrupted") return;
+      if (_ctx?.state === "running") flushPendingAmbient();
+    });
+  }
   return _ctx;
+}
+
+/** Not running yet: suspended until a gesture, or interrupted on iOS. */
+function isHeld(ac: AudioContext): boolean {
+  return ac.state === "suspended" || (ac.state as string) === "interrupted";
+}
+
+function flushPendingAmbient(): void {
+  if (!_pendingAmbient) return;
+  const { track, volume } = _pendingAmbient;
+  _pendingAmbient = null;
+  synthPlayAmbient(track, volume);
+}
+
+/**
+ * Wakes a context the browser held (background tab, phone call). Safe to call
+ * any time; a context that was never started stays untouched.
+ */
+export function resumeAudioContext(): void {
+  if (!_ctx || !isHeld(_ctx)) return;
+  _ctx.resume().then(flushPendingAmbient).catch(() => {});
 }
 
 /**
@@ -33,24 +62,16 @@ export function unlockAudioContext(): void {
   if (typeof window === "undefined") return;
   // Eagerly create the context inside the gesture so it lands in "running"
   // rather than "suspended" state on browsers that enforce autoplay policy.
-  if (!_ctx) {
-    try {
-      _ctx = new AudioContext();
-    } catch {
-      return;
-    }
+  let ac: AudioContext;
+  try {
+    ac = ctx();
+  } catch {
+    return;
   }
-  const ac = _ctx;
-  const flushPending = () => {
-    if (!_pendingAmbient) return;
-    const { track, volume } = _pendingAmbient;
-    _pendingAmbient = null;
-    synthPlayAmbient(track, volume);
-  };
-  if (ac.state === "suspended") {
-    ac.resume().then(flushPending).catch(() => {});
+  if (isHeld(ac)) {
+    ac.resume().then(flushPendingAmbient).catch(() => {});
   } else {
-    flushPending();
+    flushPendingAmbient();
   }
 }
 
@@ -149,12 +170,23 @@ function lfoTremolo(
   return l;
 }
 
-/** Schedule a gain ramp to silence over `dur` seconds, then disconnect all nodes. */
+/**
+ * Schedule a gain ramp to silence over `dur` seconds, then stop every source
+ * and disconnect all nodes. Disconnecting alone leaves looping noise buffers
+ * and oscillators running (and using CPU) forever.
+ */
 function fadeAndStop(g: GainNode, dur: number, nodes: AudioNode[]): void {
   const ac = g.context as AudioContext;
   const t = ac.currentTime;
   g.gain.setTargetAtTime(0, t, dur / 5);
-  setTimeout(() => nodes.forEach((n) => { try { n.disconnect(); } catch { /* already gone */ } }), (dur + 0.2) * 1000);
+  setTimeout(() => {
+    for (const n of nodes) {
+      if (n instanceof AudioScheduledSourceNode) {
+        try { n.stop(); } catch { /* never started or already stopped */ }
+      }
+      try { n.disconnect(); } catch { /* already gone */ }
+    }
+  }, (dur + 0.2) * 1000);
 }
 
 /** Synthetic impulse response reverb — no audio files required. */
@@ -610,7 +642,7 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
 
   // Mobile browsers suspend AudioContext until a user gesture. Queue the track
   // and let unlockAudioContext() start it on the first interaction.
-  if (ac.state === "suspended") {
+  if (isHeld(ac)) {
     _pendingAmbient = { track, volume };
     return;
   }
@@ -654,6 +686,8 @@ export function synthPlayAmbient(track: AmbientTrack, volume: number): void {
 }
 
 export function synthStopAmbient(): void {
+  // Ambient turned off before the first tap: don't start it on that tap.
+  _pendingAmbient = null;
   if (!_ambient) return;
   const { masterGain, nodes, cleanup } = _ambient;
   cleanup?.();

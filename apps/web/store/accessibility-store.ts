@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { A11Y_STORAGE_KEY, type ThemePreference } from "@/lib/a11y/display-prefs";
+
+export type { ThemePreference };
 
 interface AccessibilityStore {
+  theme: ThemePreference;
   highContrast: boolean;
   reducedMotion: boolean;
   largeText: boolean;
@@ -19,6 +23,7 @@ interface AccessibilityStore {
    */
   focusAfterTurn: "choices" | "input";
 
+  setTheme: (value: ThemePreference) => void;
   setHighContrast: (value: boolean) => void;
   setReducedMotion: (value: boolean) => void;
   setLargeText: (value: boolean) => void;
@@ -34,6 +39,7 @@ interface AccessibilityStore {
 export const useAccessibilityStore = create<AccessibilityStore>()(
   persist(
     (set) => ({
+      theme: "system",
       highContrast: false,
       reducedMotion: false,
       largeText: false,
@@ -44,6 +50,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       lastAnnouncement: "",
       focusAfterTurn: "choices",
 
+      setTheme: (value) => set({ theme: value }),
       setHighContrast: (value) => set({ highContrast: value }),
       setReducedMotion: (value) => set({ reducedMotion: value }),
       setLargeText: (value) => set({ largeText: value }),
@@ -55,6 +62,6 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       setFocusAfterTurn: (value) => set({ focusAfterTurn: value }),
       announce: (message) => set({ lastAnnouncement: message }),
     }),
-    { name: "audio-game-a11y" }
+    { name: A11Y_STORAGE_KEY }
   )
 );

@@ -1,6 +1,7 @@
 import type { HistoryMessage, InMemorySession } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import { xpToReachLevel } from "@/lib/game/character-reducer";
 
 const APPROX_CHARS_PER_TOKEN = 4;
 const MAX_HISTORY_TOKENS = 40_000;
@@ -93,7 +94,8 @@ export function buildCharacterStateBlock(character: CharacterData): string {
     typeof character.age === "number" ? `Age: ${character.age}` : "",
     character.shortDescription ? `Appearance: ${character.shortDescription}` : "",
     `Class: ${character.roleTitle ?? character.class}`,
-    `HP: ${s.hp}/${s.maxHp} | Level: ${s.level} | XP: ${s.experience} (XP to next level: ${s.level * 100})`,
+    `HP: ${s.hp}/${s.maxHp} | Level: ${s.level} | XP: ${s.experience} (level ${s.level + 1} at ${xpToReachLevel(s.level + 1)} XP, ${Math.max(0, xpToReachLevel(s.level + 1) - s.experience)} to go)`,
+    s.hp <= 0 ? "Condition: DOWN (0 HP)" : "",
     `STR:${s.strength} DEX:${s.dexterity} INT:${s.intelligence} CHA:${s.charisma}`,
     customStatLines || "",
     `Inventory: ${items}`,

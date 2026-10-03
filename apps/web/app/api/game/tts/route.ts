@@ -3,10 +3,17 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { recordTtsChars } from "@/lib/db/queries/users";
+import { DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 
 const Schema = z.object({
   text: z.string().min(1).max(4000),
-  voiceId: z.string().default("21m00Tcm4TlvDq8ikWAM"),
+  // An ElevenLabs voice id goes into the upstream URL path, so only plain ids
+  // are accepted. An empty id (the "Default" voice) means the default.
+  voiceId: z
+    .string()
+    .regex(/^[A-Za-z0-9]{0,64}$/)
+    .default(DEFAULT_ELEVENLABS_VOICE_ID)
+    .transform((id) => id || DEFAULT_ELEVENLABS_VOICE_ID),
   speed: z.number().min(0.5).max(2.0).default(1.0),
 });
 
@@ -116,6 +123,9 @@ export async function POST(req: NextRequest) {
     `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}/stream`,
     {
       method: "POST",
+      // A prefetched clip the player skipped is aborted by the browser; stop
+      // the upstream synthesis with it.
+      signal: req.signal,
       headers: {
         "xi-api-key": apiKey,
         "Content-Type": "application/json",
