@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
+import { useShallow } from "zustand/react/shallow";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -39,7 +40,9 @@ export default function MyWorldsPage() {
   const { data: session, status } = useSession();
   const { announce, narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session: activeSession, world: activeWorld } = useGameStore();
+  const { session: activeSession, world: activeWorld } = useGameStore(
+    useShallow((s) => ({ session: s.session, world: s.world })),
+  );
   const activeWorldId =
     activeSession && activeWorld && activeSession.narrationLog.length > 0
       ? activeWorld.id

@@ -30,9 +30,9 @@ export async function getSessionWithHistory(sessionId: string, recentTurns = 40)
   const [session, history] = await Promise.all([
     prisma.gameSession.findUnique({
       where: { id: sessionId },
+      // The world is loaded through resolvePlayableWorld by the caller.
       include: {
         gameState: true,
-        world: { include: { locations: true, npcs: true } },
         character: { include: { inventory: true, quests: true } },
       },
     }),

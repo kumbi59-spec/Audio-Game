@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/store/game-store";
+import { useShallow } from "zustand/react/shallow";
 import { GameShell } from "@/components/game/GameShell";
 
 export default function PlayPage() {
   const router = useRouter();
-  const { session, character, world } = useGameStore();
+  const { session, character, world } = useGameStore(
+    useShallow((s) => ({ session: s.session, character: s.character, world: s.world })),
+  );
   // The first client render hydrates against the server's (empty) store, so
   // the saved game in browser storage isn't visible yet. Only decide there is
   // no game once mounted and the store has loaded — otherwise reloading /play

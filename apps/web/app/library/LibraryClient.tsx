@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
+import { useShallow } from "zustand/react/shallow";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import { ServerSaves } from "./ServerSaves";
 import {
@@ -22,7 +23,9 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
   const router = useRouter();
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
-  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore();
+  const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore(
+    useShallow((s) => ({ session: s.session, world: s.world, dbSessionId: s.dbSessionId, clearSession: s.clearSession, savedCampaigns: s.savedCampaigns, saveCurrentCampaign: s.saveCurrentCampaign, loadSavedCampaign: s.loadSavedCampaign, deleteSavedCampaign: s.deleteSavedCampaign })),
+  );
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [tab, setTab] = useState<Tab>("official");

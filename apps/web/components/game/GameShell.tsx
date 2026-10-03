@@ -6,7 +6,10 @@ import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
 import { ActionInput, type VoiceMetaCommand } from "./ActionInput";
 import { StatusBar } from "./StatusBar";
-import { CharacterSheet } from "./CharacterSheet";
+import dynamic from "next/dynamic";
+
+// The sheet is big and only shown on demand, so it loads when first opened.
+const CharacterSheet = dynamic(() => import("./CharacterSheet").then((m) => m.CharacterSheet), { ssr: false });
 import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
