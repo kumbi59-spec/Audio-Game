@@ -7,15 +7,19 @@ import type { PlayerAction } from "@/types/game";
 /** Longest action the server accepts (app/api/game/action ActionSchema). */
 export const MAX_ACTION_LENGTH = 2000;
 
+/** Voice meta commands ("pause", "where am I", "save game"); see VoiceCommandListener. */
+export type VoiceMetaCommand = "inventory" | "quests" | "status" | "location" | "replay" | "pause" | "resume" | "save";
+
 interface ActionInputProps {
   /** Resolves false when the turn didn't go through, so the text can be restored. */
   onAction: (action: PlayerAction) => void | Promise<boolean | void>;
   choices?: string[];
+  onMeta?: (command: VoiceMetaCommand) => void;
   disabled?: boolean;
   id?: string;
 }
 
-export function ActionInput({ onAction, choices = [], disabled = false, id = "action-input" }: ActionInputProps) {
+export function ActionInput({ onAction, choices = [], onMeta, disabled = false, id = "action-input" }: ActionInputProps) {
   const [text, setText] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,9 +74,11 @@ export function ActionInput({ onAction, choices = [], disabled = false, id = "ac
         <VoiceCommandListener
           onAction={handleVoiceAction}
           onChoiceSelect={(i) => {
-            const label = choices[i] ?? `Option ${i + 1}`;
-            onAction({ type: "choice", content: label, choiceIndex: i });
+            const label = choices[i];
+            if (label) onAction({ type: "choice", content: label, choiceIndex: i });
           }}
+          onMeta={onMeta ? (command) => onMeta(command as VoiceMetaCommand) : undefined}
+          choiceCount={choices.length}
           isActive={!disabled}
         />
       </div>

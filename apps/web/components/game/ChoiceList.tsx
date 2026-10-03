@@ -123,7 +123,13 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
       }
     };
 
-    if (!isSpeaking()) {
+    // Ready once the narrator is quiet and the buttons are enabled (the
+    // turn can still be closing after the narration ends); focusing a
+    // disabled button would drop focus on the floor.
+    const ready = () =>
+      !isSpeaking() && !listRef.current?.querySelector<HTMLButtonElement>("button")?.disabled;
+
+    if (ready()) {
       announceAndFocus();
       return;
     }
@@ -133,7 +139,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
         clearInterval(interval);
         return;
       }
-      if (!isSpeaking()) {
+      if (ready()) {
         clearInterval(interval);
         announceAndFocus();
       }

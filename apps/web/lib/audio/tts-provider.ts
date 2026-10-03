@@ -143,8 +143,19 @@ export function speechStopCount(): number {
   return _stopCount;
 }
 
+const _stopControllers = new Set<AbortController>();
+
+/** A signal that aborts at the next stopSpeech(), for narrations of several clips. */
+export function untilSpeechStops(): AbortSignal {
+  const controller = new AbortController();
+  _stopControllers.add(controller);
+  return controller.signal;
+}
+
 export function stopSpeech(): void {
   _stopCount++;
+  for (const controller of _stopControllers) controller.abort();
+  _stopControllers.clear();
   // Stop all providers — switching mid-narration shouldn't leak audio.
   for (const inst of Object.values(instances)) {
     inst?.stop();

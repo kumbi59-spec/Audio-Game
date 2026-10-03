@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { NarrationPanel } from "./NarrationPanel";
 import { ChoiceList } from "./ChoiceList";
-import { ActionInput } from "./ActionInput";
+import { ActionInput, type VoiceMetaCommand } from "./ActionInput";
 import { StatusBar } from "./StatusBar";
 import { CharacterSheet } from "./CharacterSheet";
 import { AudioControls } from "@/components/audio/AudioControls";
@@ -19,10 +19,27 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
-import { speak, isSpeaking } from "@/lib/audio/tts-provider";
+import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
+import { canPlayAudioNow, whenAudioUnlocked } from "@/lib/audio/unlock";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import type { PlayerAction, SceneTransition } from "@/types/game";
+
+/**
+ * Speaks a short readout (location, status) once the narrator is quiet, so it
+ * doesn't cut a sentence off or get cut off by the next one.
+ */
+function speakWhenQuiet(text: string): void {
+  if (!isSpeaking()) {
+    void speak(text);
+    return;
+  }
+  const timer = setInterval(() => {
+    if (isSpeaking()) return;
+    clearInterval(timer);
+    void speak(text);
+  }, 250);
+}
 
 export function GameShell() {
   const {
@@ -32,14 +49,14 @@ export function GameShell() {
     submitAction,
     replayLast,
     recapRecentTurns,
-    speakText,
+    speakNarration,
     sceneTransitionHint,
     clearSceneTransitionHint,
     canUndo,
     undoLastTurn,
   } =
     useGameSession();
-  const { ttsSpeed, volume, setTTSSpeed, setCurrentAmbient } = useAudioStore();
+  const { ttsSpeed, setTTSSpeed, setCurrentAmbient } = useAudioStore();
   const {
     operationsManualSeen,
     operationsManualOpen,
@@ -51,6 +68,7 @@ export function GameShell() {
   } = useAccessibilityStore();
   const { announce } = useAnnouncer();
   const saveCurrentCampaign = useGameStore((s) => s.saveCurrentCampaign);
+  const addNarrationEntry = useGameStore((s) => s.addNarrationEntry);
   const [helpHintVisible, setHelpHintVisible] = useState(false);
   const lastAutoSaveTurnRef = useRef<number>(-1);
   const inputRef = useRef<HTMLElement | null>(null);
@@ -88,6 +106,16 @@ export function GameShell() {
     const interval = setInterval(() => setSpeaking(isSpeaking()), 200);
     return () => clearInterval(interval);
   }, []);
+
+  // Tell the player when narration falls back to the browser voice.
+  useEffect(
+    () =>
+      onTtsNotice((message) => {
+        announce(message, "polite");
+        addNarrationEntry({ id: `tts-notice-${Date.now()}`, text: message, type: "system", timestamp: new Date() });
+      }),
+    [announce, addNarrationEntry],
+  );
 
   // Pick the most recent NARRATION entry to feed into ambient inference. We
   // narrow what the next effect depends on so it only re-runs when the
@@ -141,9 +169,12 @@ export function GameShell() {
       .find((entry) => entry.type === "narration");
     if (latestNarration) {
       openingSpokenRef.current = true;
-      speakText(latestNarration.text);
+      // After a reload the browser won't play sound until the player
+      // interacts with the page, so the scene waits for that first tap.
+      if (!canPlayAudioNow()) announce("Press any key or tap anywhere to hear the story.", "polite");
+      void whenAudioUnlocked().then(() => speakNarration(latestNarration.text));
     }
-  }, [session, speakText]);
+  }, [session, speakNarration, announce]);
 
   // First-time players: a non-blocking hint announces help availability and
   // shows a dismissable toast. Previously this auto-opened the modal, which
@@ -249,15 +280,55 @@ export function GameShell() {
     const text = loc
       ? `You are at ${loc.name}. ${loc.description}`
       : "Your current location is unknown.";
-    speak(text, { rate: ttsSpeed, volume });
-  }, [session, world, ttsSpeed, volume]);
+    speakWhenQuiet(text);
+  }, [session, world]);
 
   const handleReadStatus = useCallback(() => {
     if (!character || !session || !world) return;
     const loc = world.locations.find((l) => l.id === session.currentLocationId);
-    const text = `${character.name}, ${character.class}. Health: ${character.stats.hp} of ${character.stats.maxHp}. At ${loc?.name ?? "unknown location"}. Turn ${session.turnCount}.`;
-    speak(text, { rate: ttsSpeed, volume });
-  }, [character, session, world, ttsSpeed, volume]);
+    const text = `${character.name}, ${character.roleTitle ?? character.class}. Health: ${character.stats.hp} of ${character.stats.maxHp}. At ${loc?.name ?? "unknown location"}. Turn ${session.turnCount}.`;
+    speakWhenQuiet(text);
+  }, [character, session, world]);
+
+  // Voice commands that aren't actions ("pause", "where am I", "save game").
+  const handleVoiceMeta = useCallback((command: VoiceMetaCommand) => {
+    switch (command) {
+      case "pause": pauseSpeech(); break;
+      case "resume": resumeSpeech(); break;
+      case "replay": if (!session?.isGenerating) replayLast(); break;
+      case "location": handleReadLocation(); break;
+      case "status": handleReadStatus(); break;
+      case "inventory": handleOpenSheetTab("inventory"); break;
+      case "quests": handleOpenSheetTab("quests"); break;
+      case "save": handleManualSave(); break;
+    }
+  // handleOpenSheetTab is declared below and stable (useCallback).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.isGenerating, replayLast, handleReadLocation, handleReadStatus, handleManualSave]);
+
+  // Headset and lock-screen buttons: play/pause the narrator, "previous"
+  // replays the last scene, "next" skips the rest of it.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    const ms = navigator.mediaSession;
+    const handlers: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
+      ["play", () => resumeSpeech()],
+      ["pause", () => pauseSpeech()],
+      ["previoustrack", () => replayLast()],
+      ["nexttrack", () => stopSpeech()],
+    ];
+    for (const [action, handler] of handlers) {
+      try { ms.setActionHandler(action, handler); } catch { /* unsupported action */ }
+    }
+    if (world && typeof MediaMetadata !== "undefined") {
+      ms.metadata = new MediaMetadata({ title: world.name, artist: "EchoQuest" });
+    }
+    return () => {
+      for (const [action] of handlers) {
+        try { ms.setActionHandler(action, null); } catch { /* unsupported action */ }
+      }
+    };
+  }, [replayLast, world]);
 
   const focusPanelHeading = useCallback(() => {
     requestAnimationFrame(() => panelHeadingRef.current?.focus());
@@ -300,7 +371,7 @@ export function GameShell() {
   const lastDegradedIdx = (() => {
     for (let i = session.narrationLog.length - 1; i >= 0; i -= 1) {
       const e = session.narrationLog[i];
-      if (e?.type === "system" && degradedRegex.test(e.text)) return i;
+      if (e?.type === "system" && (e.degraded || degradedRegex.test(e.text))) return i;
     }
     return -1;
   })();
@@ -330,7 +401,7 @@ export function GameShell() {
       <AudioUnlocker />
       <KeyboardShortcuts
         onChoiceSelect={handleChoiceSelect}
-        onReplayLast={replayLast}
+        onReplayLast={session.isGenerating ? undefined : replayLast}
         onFocusInput={handleFocusInput}
         onReadLocation={handleReadLocation}
         onReadStatus={handleReadStatus}
@@ -446,6 +517,7 @@ export function GameShell() {
         >
           <ActionInput
             onAction={handleAction}
+            onMeta={handleVoiceMeta}
             choices={session.choices}
             disabled={session.isGenerating}
           />

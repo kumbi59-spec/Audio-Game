@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { NarrationEntry } from "@/types/game";
+import { useAudioStore } from "@/store/audio-store";
 
 interface NarrationPanelProps {
   entries: NarrationEntry[];
@@ -11,6 +12,17 @@ interface NarrationPanelProps {
 export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const regionRef = useRef<HTMLDivElement>(null);
+  const volume = useAudioStore((s) => s.volume);
+  const ttsProvider = useAudioStore((s) => s.ttsProvider);
+  // Whether this browser can speak narration at all (no speechSynthesis and
+  // no premium voice means it's silent). Assumed until checked on the client.
+  const [canSpeak, setCanSpeak] = useState(true);
+  useEffect(() => {
+    setCanSpeak(ttsProvider === "elevenlabs" || "speechSynthesis" in window);
+  }, [ttsProvider]);
+  // Narration is only hidden from screen readers while it's actually being
+  // spoken aloud; muted or unsupported, the screen reader reads it instead.
+  const voiced = canSpeak && volume > 0;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -36,7 +48,7 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
             // screen readers so VoiceOver / TalkBack don't read it on top
             // of the spoken narration. Player actions and system messages
             // are NOT voiced via TTS — keep them screen-reader visible.
-            aria-hidden={isNarration ? true : undefined}
+            aria-hidden={isNarration && voiced ? true : undefined}
             className={`mb-4 leading-relaxed ${
               entry.type === "player_action"
                 ? "font-mono text-sm before:content-['>_']"

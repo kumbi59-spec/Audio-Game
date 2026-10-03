@@ -309,6 +309,29 @@ export function prefetchNarrationMultiVoice(
 }
 
 /**
+ * How much of `text` can be spoken now: everything up to the first line by
+ * an NPC who has neither a voice nor a gender hint yet (whose voice would be
+ * picked blind), or all of it.
+ */
+export function npcResolvablePrefix(
+  text: string,
+  characterName: string,
+  assignments: Map<string, NpcVoiceAssignment>,
+  genderHints: Map<string, VoiceGender>,
+): number {
+  const re = new RegExp(DIALOGUE_RE.source, DIALOGUE_RE.flags);
+  const player = characterName.toLowerCase();
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(text)) !== null) {
+    const name = (match[1] ?? "").toLowerCase();
+    if (name === player || name === "you" || name === "player") continue;
+    const key = npcKeyFromName(match[1] ?? "");
+    if (!assignments.has(key) && !genderHints.has(key)) return match.index;
+  }
+  return text.length;
+}
+
+/**
  * True when every NPC who speaks in `text` already has a voice or a gender
  * hint, so speaking it now won't lock a new NPC to a voice picked before the
  * GM said whether they are male, female, or neutral.

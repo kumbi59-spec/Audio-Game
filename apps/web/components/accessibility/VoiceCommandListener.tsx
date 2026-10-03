@@ -2,11 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAnnouncer } from "./AudioAnnouncer";
+import { isPaused, isSpeaking, pauseSpeech, resumeSpeech } from "@/lib/audio/tts-provider";
 
 interface VoiceCommandListenerProps {
   onAction: (text: string) => void;
   onChoiceSelect?: (index: number) => void;
   onMeta?: (command: string) => void;
+  /** How many choices are on offer, so "option 7" with four choices is caught. */
+  choiceCount?: number;
   isActive: boolean;
 }
 
@@ -60,25 +63,34 @@ const META_COMMANDS: Record<string, string> = {
   "save game": "save",
 };
 
-function parseVoiceInput(transcript: string): { type: "choice" | "meta" | "action"; value: string | number } {
-  const lower = transcript.toLowerCase().trim();
+const NUMBER_WORDS: Record<string, number> = {
+  one: 1, first: 1, two: 2, to: 2, too: 2, second: 2, three: 3, third: 3, four: 4, for: 4, fourth: 4,
+  five: 5, fifth: 5, six: 6, sixth: 6, seven: 7, seventh: 7, eight: 8, eighth: 8, nine: 9, ninth: 9,
+};
 
-  // Check for choice selection: "choose option 3", "select 2", "option 1", "number 3"
-  const choiceMatch = lower.match(/(?:choose|select|option|number|pick)\s+(\w+)/);
-  if (choiceMatch) {
-    const word = choiceMatch[1];
-    const num = parseInt(word);
-    if (!isNaN(num) && num >= 1 && num <= 9) return { type: "choice", value: num - 1 };
-  }
-  const directNum = lower.match(/^(\d)$/);
-  if (directNum) {
-    return { type: "choice", value: parseInt(directNum[1]) - 1 };
-  }
+function choiceNumber(word: string): number | null {
+  const n = /^\d$/.test(word) ? parseInt(word, 10) : NUMBER_WORDS[word] ?? null;
+  return n !== null && n >= 1 && n <= 9 ? n : null;
+}
 
-  // Check for meta commands
-  for (const [phrase, command] of Object.entries(META_COMMANDS)) {
-    if (lower.includes(phrase)) return { type: "meta", value: command };
-  }
+/**
+ * Sorts a final transcript into a choice ("choose option 3", "pick two",
+ * "number 1", "3"), a meta command (the whole phrase is a command, so
+ * "stop" pauses but "stop the guard" is an action), or a free-text action.
+ */
+export function parseVoiceInput(transcript: string): { type: "choice" | "meta" | "action"; value: string | number } {
+  const lower = transcript.toLowerCase().replace(/[.,!?]/g, " ").replace(/\s+/g, " ").trim();
+
+  const choiceMatch =
+    lower.match(/^(?:i\s+)?(?:choose|select|pick|take)(?:\s+(?:option|number|choice))?\s+(\w+)$/) ??
+    lower.match(/^(?:option|number|choice)\s+(\w+)$/) ??
+    lower.match(/^(\w+)$/);
+  const n = choiceMatch ? choiceNumber(choiceMatch[1]!) : null;
+  if (n !== null) return { type: "choice", value: n - 1 };
+
+  const phrase = lower.replace(/^please\s+/, "").replace(/\s+please$/, "");
+  const command = META_COMMANDS[phrase];
+  if (command) return { type: "meta", value: command };
 
   return { type: "action", value: transcript.trim() };
 }
@@ -92,6 +104,7 @@ export function VoiceCommandListener({
   onAction,
   onChoiceSelect,
   onMeta,
+  choiceCount,
   isActive,
 }: VoiceCommandListenerProps) {
   const { announce, announceError } = useAnnouncer();
@@ -103,6 +116,8 @@ export function VoiceCommandListener({
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  // Narration the mic paused, so it can pick up again if nothing was said.
+  const pausedForMicRef = useRef(false);
   const SpeechRecognitionClass = getSpeechRecognition();
 
   const stopListening = useCallback(() => {
@@ -142,6 +157,11 @@ export function VoiceCommandListener({
 
     recognition.onstart = () => {
       setListening(true);
+      // The narrator would otherwise talk over the player (and into the mic).
+      if (isSpeaking() && !isPaused()) {
+        pauseSpeech();
+        pausedForMicRef.current = true;
+      }
       announce("Listening… speak your action.");
     };
 
@@ -157,8 +177,13 @@ export function VoiceCommandListener({
         stopListening();
 
         if (parsed.type === "choice" && onChoiceSelect) {
-          announce(`Selecting option ${(parsed.value as number) + 1}`);
-          onChoiceSelect(parsed.value as number);
+          const index = parsed.value as number;
+          if (choiceCount !== undefined && index >= choiceCount) {
+            announce(choiceCount > 0 ? `There are only ${choiceCount} choices.` : "There are no choices right now.");
+          } else {
+            announce(`Selecting option ${index + 1}`);
+            onChoiceSelect(index);
+          }
         } else if (parsed.type === "meta" && onMeta) {
           onMeta(parsed.value as string);
         } else {
@@ -166,7 +191,7 @@ export function VoiceCommandListener({
           // immediately, so a misrecognised transcript doesn't waste an
           // AI turn. Auto-sends after FREE_TEXT_CONFIRM_MS unless cancelled.
           const value = parsed.value as string;
-          announce(`Heard: ${value}. Sending in ${Math.round(FREE_TEXT_CONFIRM_MS / 1000)} seconds. Say cancel or press cancel to stop.`);
+          announce(`Heard: ${value}. Sending in ${Math.round(FREE_TEXT_CONFIRM_MS / 1000)} seconds. Press Cancel to stop.`);
           setPendingAction(value);
           if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
           pendingTimerRef.current = setTimeout(() => {
@@ -187,11 +212,16 @@ export function VoiceCommandListener({
 
     recognition.onend = () => {
       setListening(false);
+      // Nothing started a new turn: let the narrator carry on.
+      if (pausedForMicRef.current) {
+        pausedForMicRef.current = false;
+        if (isPaused()) resumeSpeech();
+      }
     };
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [SpeechRecognitionClass, listening, announce, announceError, onAction, onChoiceSelect, onMeta, stopListening]);
+  }, [SpeechRecognitionClass, listening, announce, announceError, onAction, onChoiceSelect, onMeta, choiceCount, stopListening]);
 
   useEffect(() => {
     if (!isActive && listening) stopListening();
@@ -203,10 +233,16 @@ export function VoiceCommandListener({
     if (!isActive && pendingAction) clearPending();
   }, [isActive, pendingAction, clearPending]);
 
-  // Cleanup any pending timer on unmount
+  // Clean up on unmount: the pending timer, and the mic if it's still open.
   useEffect(() => {
     return () => {
       if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+      const recognition = recognitionRef.current;
+      if (recognition) {
+        recognition.onresult = null;
+        recognition.onend = null;
+        recognition.stop();
+      }
     };
   }, []);
 

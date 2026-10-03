@@ -32,6 +32,12 @@ export interface StreamingNarratorOptions {
    * voice). A held segment waits for more text, nudge(), or finish().
    */
   canSpeak?: (text: string) => boolean;
+  /**
+   * When canSpeak holds a segment back, how much of it can go now (e.g. the
+   * prose before an NPC whose voice isn't settled), so the narrator doesn't
+   * fall silent waiting for one line.
+   */
+  speakableLength?: (text: string) => number;
   /** The first segment waits for at least this much text, ending a sentence. */
   minFirstSegmentChars?: number;
   /**
@@ -155,7 +161,11 @@ export class StreamingNarrator {
         ? findSegmentCut(this.buffer, "last")
         : findSegmentCut(this.buffer, "first", this.opts.minFirstSegmentChars ?? 40);
       if (cut <= 0) return null;
-      if (this.opts.canSpeak && !this.opts.canSpeak(this.buffer.slice(0, cut))) return null;
+      if (this.opts.canSpeak && !this.opts.canSpeak(this.buffer.slice(0, cut))) {
+        const ready = this.opts.speakableLength?.(this.buffer.slice(0, cut)) ?? 0;
+        if (ready <= 0) return null;
+        cut = ready;
+      }
     }
     const segment = this.buffer.slice(0, cut);
     this.buffer = this.buffer.slice(cut);

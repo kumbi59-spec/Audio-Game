@@ -5,11 +5,12 @@ import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useEntitlementsStore } from "@/store/entitlements-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak, stopSpeech } from "@/lib/audio/tts-provider";
+import { speak, speechStopCount, stopSpeech, untilSpeechStops } from "@/lib/audio/tts-provider";
 import {
   speakNarrationMultiVoice,
   prefetchNarrationMultiVoice,
   npcKeyFromName,
+  npcResolvablePrefix,
   npcVoicesResolvable,
   type NewAssignmentHandler,
   type NpcVoiceAssignment,
@@ -57,7 +58,7 @@ export function useGameSession() {
     capturePreTurn,
   } = useGameStore();
 
-  const { ttsSpeed, ttsPitch, volume, soundCuesEnabled } = useAudioStore();
+  const { soundCuesEnabled } = useAudioStore();
   const { entitlements, setEntitlements } = useEntitlementsStore();
   const { announce } = useAnnouncer();
   // npcKey → assigned voice. Hydrated from the server per (userId, worldId)
@@ -72,6 +73,63 @@ export function useGameSession() {
   const [sceneTransitionHint, setSceneTransitionHint] = useState<SceneTransition | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inFlightRef = useRef(false);
+  const worldIdRef = useRef(session?.worldId);
+  worldIdRef.current = session?.worldId;
+
+  // Leaving the play screen ends the turn in flight and the narration with it,
+  // so neither keeps changing the game (or talking) from another page.
+  useEffect(() => () => {
+    abortRef.current?.abort();
+    stopSpeech();
+  }, []);
+
+  const genderLookup = useCallback(
+    (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral",
+    [],
+  );
+  const persistAssignment: NewAssignmentHandler = useCallback((entry) => {
+    // Fire-and-forget upsert. If the request fails the assignment is
+    // still good for the current session via the in-memory map; next
+    // session will just re-pick (and likely land on the same voice
+    // because the gender hint and usage counts are stable).
+    void fetch("/api/me/npc-voices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        worldId: worldIdRef.current,
+        npcKey: entry.key,
+        voiceId: entry.voiceId,
+        gender: entry.gender,
+        displayName: entry.displayName,
+      }),
+    }).catch(() => undefined);
+  }, []);
+  /** Per-NPC voices: a premium plan, with premium narration selected. */
+  const premiumVoicesActive = useCallback(
+    () => entitlements.premiumTts && useAudioStore.getState().ttsProvider === "elevenlabs",
+    [entitlements.premiumTts],
+  );
+
+  /**
+   * Speaks a stretch of narration from the top (the opening, a replay, a
+   * recap), with each NPC in their own voice for premium players.
+   */
+  const speakNarration = useCallback(
+    (text: string): Promise<void> => {
+      stopSpeech();
+      const name = useGameStore.getState().character?.name;
+      if (!premiumVoicesActive() || !name) return speak(text);
+      return speakNarrationMultiVoice(
+        text,
+        name,
+        npcVoiceAssignmentsRef.current,
+        genderLookup,
+        persistAssignment,
+        untilSpeechStops(),
+      );
+    },
+    [premiumVoicesActive, genderLookup, persistAssignment],
+  );
 
   // Reset session-scoped refs whenever a new session starts, then prime the
   // NPC voice map from the server so previously-met NPCs keep their voices.
@@ -108,9 +166,8 @@ export function useGameSession() {
 
   const replayLast = useCallback(() => {
     if (!lastNarration) return;
-    stopSpeech();
-    speak(lastNarration, { rate: ttsSpeed, pitch: ttsPitch, volume });
-  }, [lastNarration, ttsSpeed, ttsPitch, volume]);
+    void speakNarration(lastNarration);
+  }, [lastNarration, speakNarration]);
 
   /**
    * Concatenate the last RECAP_TURNS narration entries and speak them as one
@@ -123,20 +180,15 @@ export function useGameSession() {
       const log = session?.narrationLog ?? [];
       const narrations = log.filter((e) => e.type === "narration").slice(-turns);
       if (narrations.length === 0) return;
-      stopSpeech();
       const intro = narrations.length > 1 ? `Recap of the last ${narrations.length} scenes. ` : "";
-      const text = intro + narrations.map((n) => n.text).join(" ");
-      speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
+      void speakNarration(intro + narrations.map((n) => n.text).join(" "));
     },
-    [session, ttsSpeed, ttsPitch, volume],
+    [session, speakNarration],
   );
 
-  const speakText = useCallback(
-    (text: string) => {
-      return speak(text, { rate: ttsSpeed, pitch: ttsPitch, volume });
-    },
-    [ttsSpeed, ttsPitch, volume]
-  );
+  // Speed, pitch and volume are read live by the provider (volume on its
+  // perceptual curve), so a change applies from the next sentence.
+  const speakText = useCallback((text: string) => speak(text), []);
 
   /** Plays one turn. Resolves true once the turn has landed, false if it didn't. */
   const submitAction = useCallback(
@@ -185,29 +237,11 @@ export function useGameSession() {
       let accumulatedNarration = "";
       let receivedStreamError = false;
       let streamErrorMessage: string | null = null;
+      let streamErrorDegraded = false;
 
       // Narration is spoken sentence by sentence while it streams, rather
       // than after the whole reply (choices, state changes) has arrived.
-      const premiumVoices = entitlements.premiumTts;
-      const worldId = session.worldId;
-      const genderLookup = (npcName: string) => npcGenderHintsRef.current.get(npcKeyFromName(npcName)) ?? "neutral";
-      const persistAssignment: NewAssignmentHandler = (entry) => {
-        // Fire-and-forget upsert. If the request fails the assignment is
-        // still good for the current session via the in-memory map; next
-        // session will just re-pick (and likely land on the same voice
-        // because the gender hint and usage counts are stable).
-        void fetch("/api/me/npc-voices", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            worldId,
-            npcKey: entry.key,
-            voiceId: entry.voiceId,
-            gender: entry.gender,
-            displayName: entry.displayName,
-          }),
-        }).catch(() => undefined);
-      };
+      const premiumVoices = premiumVoicesActive();
       const speakSegment = (text: string, signal: AbortSignal): Promise<void> => {
         if (!premiumVoices) return signal.aborted ? Promise.resolve() : speakText(text);
         return speakNarrationMultiVoice(
@@ -232,12 +266,16 @@ export function useGameSession() {
         canSpeak: premiumVoices
           ? (text) => npcVoicesResolvable(text, character.name, npcVoiceAssignmentsRef.current, npcGenderHintsRef.current)
           : undefined,
+        // ...but the prose before that line can go now.
+        speakableLength: premiumVoices
+          ? (text) => npcResolvablePrefix(text, character.name, npcVoiceAssignmentsRef.current, npcGenderHintsRef.current)
+          : undefined,
       });
       let narrator = createNarrator();
       abort.signal.addEventListener("abort", () => narrator.cancel());
-      // Level-up and achievement callouts wait for the narration to finish
-      // instead of cutting into it.
-      const speakAfterNarration: string[] = [];
+      // Level-up and achievement callouts (and their sounds) wait for the
+      // narration to finish instead of cutting into it.
+      const speakAfterNarration: Array<{ text: string; cue: SoundCue }> = [];
 
       try {
         const postAction = (
@@ -336,6 +374,11 @@ export function useGameSession() {
             } else if (line.startsWith("data: ")) {
               dataLine = line.slice(6).trim();
             } else if (line === "" && eventType && dataLine) {
+              // A different game was loaded mid-turn: this stream is stale.
+              if (useGameStore.getState().session?.id !== session.id) {
+                abort.abort();
+                break;
+              }
               const data = JSON.parse(dataLine);
 
               if (eventType === "narration_chunk") {
@@ -394,8 +437,7 @@ export function useGameSession() {
                   if (levelAfter > levelBefore) {
                     const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
                     announce(levelUpMsg, "assertive");
-                    speakAfterNarration.push(levelUpMsg);
-                    if (soundCuesEnabled) playSoundCue("level_up");
+                    speakAfterNarration.push({ text: levelUpMsg, cue: "level_up" });
                     addNarrationEntry({
                       id: `levelup-${Date.now()}`,
                       text: `⬆ ${levelUpMsg}`,
@@ -412,10 +454,9 @@ export function useGameSession() {
                     const alreadyUnlocked = useGameStore.getState().session?.achievements?.some((a) => a.key === ach.key);
                     if (alreadyUnlocked) continue;
                     unlockAchievement({ ...ach, unlockedAt: useGameStore.getState().session?.turnCount ?? 0 });
-                    const achMsg = `🏆 Achievement unlocked: ${ach.title} — ${ach.description}`;
+                    const achMsg = `🏆 Achievement unlocked: ${ach.title}. ${ach.description}`;
                     announce(achMsg, "assertive");
-                    speakAfterNarration.push(achMsg);
-                    if (soundCuesEnabled) playSoundCue("discovery");
+                    speakAfterNarration.push({ text: achMsg, cue: "discovery" });
                     addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
                   }
                 }
@@ -524,12 +565,21 @@ export function useGameSession() {
                 // Speak whatever the stream hasn't already covered, with
                 // npcAction dialogue woven in, then the deferred callouts.
                 const rest = wovenTail(rawNarration, narrator.committedText, gmResp.npcAction, relationships);
-                await narrator.finish(rest);
-                for (const msg of speakAfterNarration.splice(0)) {
-                  // The player stopped the narration — don't start talking again.
-                  if (narrator.cancelled) break;
-                  await speakText(msg);
-                }
+                const callouts = speakAfterNarration.splice(0);
+                const turnNarrator = narrator;
+                // The narration keeps playing while the rest of the reply
+                // arrives, and the turn ends without waiting for it: the
+                // player can act right away (their next action stops it), and
+                // ChoiceList waits for the narrator before announcing choices.
+                void turnNarrator.finish(rest).then(async () => {
+                  const stopsBefore = speechStopCount();
+                  for (const { text, cue } of callouts) {
+                    // Stopped, or a new turn began: don't start talking again.
+                    if (turnNarrator.cancelled || speechStopCount() !== stopsBefore) break;
+                    if (soundCuesEnabled) playSoundCue(cue);
+                    await speakText(text);
+                  }
+                });
               } else if (eventType === "character_sync") {
                 // The server's stored copy after this turn — the source of
                 // truth for a saved game.
@@ -556,12 +606,14 @@ export function useGameSession() {
                 receivedStreamError = true;
                 const errorMessage = data?.message ?? "Narrator degraded mode is active.";
                 streamErrorMessage = errorMessage;
+                streamErrorDegraded = data?.degraded === true;
                 console.error("GM error:", data.message);
                 addNarrationEntry({
                   id: (Date.now() + 2).toString(),
                   text: errorMessage,
                   type: "system",
                   timestamp: new Date(),
+                  ...(streamErrorDegraded ? { degraded: true } : {}),
                 });
                 break;
               }
@@ -595,6 +647,7 @@ export function useGameSession() {
                       text: streamErrorMessage,
                       type: "system",
                       timestamp: new Date(),
+                      ...(streamErrorDegraded ? { degraded: true } : {}),
                     },
                   ]
                   : [...preTurnSession.narrationLog, optimistic.playerEntry],
@@ -661,7 +714,7 @@ export function useGameSession() {
       setIsGenerating, incrementTurnCount, updateFlags, updateHP, updateStat,
       applyInventoryMutation, applyQuestMutation, unlockAchievement, updateNpcRelationship, addCodexEntry, updateLocation,
       setMemorySummary, capturePreTurn, speakText, soundCuesEnabled, announce,
-      entitlements, setEntitlements,
+      entitlements, setEntitlements, premiumVoicesActive, genderLookup, persistAssignment,
     ]
   );
 
@@ -675,8 +728,9 @@ export function useGameSession() {
       announce("Nothing to undo.", "polite");
       return false;
     }
-    // A saved game keeps its progress on the server, so roll that back too —
-    // otherwise the next turn would bring the undone changes back.
+    // A saved game keeps its progress on the server, so roll that back first.
+    // If the server can't, don't undo here either: the next turn would load
+    // the server's copy and bring the undone changes straight back.
     let serverCharacter: CharacterData | null = null;
     if (savedId) {
       try {
@@ -685,8 +739,15 @@ export function useGameSession() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dbSessionId: savedId }),
         });
-        if (res.ok) serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
-      } catch { /* local undo still applies */ }
+        if (!res.ok) {
+          announce("That turn couldn't be undone on the server, so nothing changed.", "assertive");
+          return false;
+        }
+        serverCharacter = ((await res.json()) as { character?: CharacterData | null }).character ?? null;
+      } catch {
+        announce("Couldn't reach the server to undo, so nothing changed.", "assertive");
+        return false;
+      }
     }
     const ok = useGameStore.getState().undoLastTurn();
     if (ok && serverCharacter) useGameStore.setState({ character: serverCharacter });
@@ -702,6 +763,7 @@ export function useGameSession() {
     replayLast,
     recapRecentTurns,
     speakText,
+    speakNarration,
     lastNarration,
     sceneTransitionHint,
     clearSceneTransitionHint: () => setSceneTransitionHint(null),

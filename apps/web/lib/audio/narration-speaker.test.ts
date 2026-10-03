@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   speakNarrationMultiVoice,
   npcKeyFromName,
+  npcResolvablePrefix,
   npcVoicesResolvable,
   parseNarrationSegments,
+  splitForTts,
   pickVoiceForNpc,
   resolveNpcVoiceAssignment,
   type NpcVoiceAssignment,
@@ -185,3 +187,32 @@ describe("speakNarrationMultiVoice", () => {
     ]);
   });
 });
+
+describe("npcResolvablePrefix", () => {
+  it("stops at the first line by an NPC with no voice or gender yet", () => {
+    const text = 'Rain. [Mara]: "Over here." [Voss]: "Halt." End.';
+    const hints = new Map([["mara", "female" as const]]);
+    expect(npcResolvablePrefix(text, "Ash", new Map(), hints)).toBe(text.indexOf("[Voss]"));
+    expect(npcResolvablePrefix(text, "Ash", new Map(), new Map([...hints, ["voss", "male" as const]]))).toBe(text.length);
+  });
+
+  it("never waits on the player character's own lines", () => {
+    const text = '[Ash]: "Go."';
+    expect(npcResolvablePrefix(text, "Ash", new Map(), new Map())).toBe(text.length);
+  });
+});
+
+describe("splitForTts", () => {
+  it("leaves short text alone", () => {
+    expect(splitForTts("One line.")).toEqual(["One line."]);
+  });
+
+  it("splits long text at sentence ends under the limit", () => {
+    const sentence = "The tide turns slowly. ";
+    const chunks = splitForTts(sentence.repeat(20), 100);
+    expect(chunks.every((c) => c.length <= 100)).toBe(true);
+    expect(chunks.every((c) => c.endsWith("."))).toBe(true);
+    expect(chunks.join(" ")).toBe(sentence.repeat(20).trim());
+  });
+});
+
