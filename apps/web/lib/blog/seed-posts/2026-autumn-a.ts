@@ -438,36 +438,48 @@ The best way to understand an AI GM is to play one. EchoQuest's free tier includ
   {
     publishAt: "2026-09-29",
     title: "Accessible Video Games: A Checklist for Blind and Low-Vision Gamers",
-    excerpt: "Use this accessibility checklist to judge whether a video game will work for blind and low-vision players, covering screen readers, audio cues, text, and controls.",
+    excerpt: "A practical checklist for blind and low-vision gamers: what to check for screen readers, audio cues, text size and controls before you buy a game.",
     content: `# Accessible Video Games: A Checklist for Blind and Low-Vision Gamers
 
-Game store pages love the word "accessible", but a colour-blind filter and a subtitle toggle don't make a game playable for someone who is blind. Before you spend money or hours, it helps to know what to look for.
+Store pages throw the word "accessible" around very freely. Yet a colour-blind filter plus a subtitle toggle won't make a game playable if you can't see the screen at all. So before you hand over money (or, worse, a whole weekend), it pays to know exactly what to look for.
 
-This checklist sets out the features that matter most for **blind and low-vision gamers**, with the questions to ask before buying.
+And you're hardly a niche audience. The World Health Organization's [fact sheet on vision impairment](https://www.who.int/news-room/fact-sheets/detail/blindness-and-visual-impairment) puts the number of people living with a near or distance vision impairment at no fewer than 2.2 billion worldwide. Plenty of them play games, or would if games let them.
+
+What follows is the checklist I wish every store page answered for **blind and low-vision gamers**, along with the questions worth asking before you buy. I leaned on it hard while building EchoQuest, and I'll be honest about the spots where I tripped over my own list.
 
 ## Part 1: Screen Reader and Speech Support
 
-These are essential for blind players.
+For blind players, this section is non-negotiable. Everything else sits on top of it.
 
-- [ ] **Menus are read aloud**, either by a built-in narrator or through your screen reader
+- [ ] **Menus are read aloud**, either by a built-in narrator or through your own screen reader
 - [ ] **All game text is readable**: dialogue, item descriptions, quest logs, tutorials
-- [ ] **Status information is available on demand** (health, location, objectives) with a key press
-- [ ] **New events are announced** automatically, not just shown on screen
-- [ ] **Speech rate is adjustable** so you can listen at your preferred speed
+- [ ] **Status information is available on demand** (health, location, objectives) with a single key press
+- [ ] **New events are announced** automatically, not merely flashed on screen
+- [ ] **Speech rate is adjustable**, so you can listen at whatever speed suits your ears
 - [ ] **A "repeat last message" command** exists
 
-**Why it matters:** if you can't navigate the main menu, nothing else counts.
+Microsoft's own [Xbox Accessibility Guideline on screen narration](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/106) says much the same thing in developer language. It asks studios to narrate HUD details such as health and inventory, and to let players repeat narration and change the speaking rate. When a platform holder writes that down for studios, a game that skips it has run out of excuses.
+
+**Why it matters:** if you can't get through the main menu, nothing else counts. Honestly, I learned a subtler version of this lesson myself. In May I found that EchoQuest was announcing and focusing the choices while the narrator was still mid-sentence, so screen reader users heard two voices talking over each other. Technically, everything was "read aloud". In practice it was a mess. Now the choices wait until the narration finishes. So when you test a game, listen for timing as well as coverage.
 
 ## Part 2: Audio Design
 
+Once speech is sorted, sound design does the heavy lifting.
+
 - [ ] **Spatial audio** (stereo or 3D) tells you where things are
-- [ ] **Distinct sounds** for different objects, enemies, and interactions
-- [ ] **Audio cues for navigation**, such as footstep surfaces, wall bumps, and pathfinding pings
-- [ ] **Separate volume sliders** for speech, music, effects, and ambience
+- [ ] **Distinct sounds** for different objects, enemies and interactions
+- [ ] **Audio cues for navigation**, such as footstep surfaces, wall bumps and pathfinding pings
+- [ ] **Separate volume sliders** for speech, music, effects and ambience
 - [ ] **Mono audio option** for players with hearing differences in one ear
-- [ ] **Audio description of cutscenes**, or cutscenes that can be skipped without losing the story
+- [ ] **Audio description of cutscenes**, or cutscenes you can skip without losing the plot
+
+Those volume sliders deserve a closer look. The [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/provide-separate-volume-controls-or-mutes-for-effects-speech-and-background-music/) rate separate volume controls as a basic requirement for hearing and an intermediate one for vision, since anyone relying on audio cues has to be able to pick them out of the mix. Mono gets its own [guideline](https://gameaccessibilityguidelines.com/provide-a-stereo-mono-toggle/) too, and the logic is blunt: if you're deaf in one ear, a sound that only plays on the left might as well not exist.
+
+I had a few humbling moments here. My ambient soundtrack originally sat right on top of the sound cues, so I made it duck underneath them. Then I noticed the same cue sometimes fired twice in a row, which just sounds like a glitch, so duplicates arriving within 80 milliseconds now get dropped. Even the volume slider needed rework. A straight linear slider feels oddly lopsided to human ears, so I gave it a squared curve that tracks how we actually perceive loudness. Small stuff, sure. Still, small stuff decides whether audio cues help you or wear you out.
 
 ## Part 3: Visual Options for Low Vision
+
+Low vision covers an enormous range, so these options matter for lots of players who do look at the screen, just differently.
 
 - [ ] **Scalable text and UI** (not just subtitles)
 - [ ] **High-contrast mode** for key elements
@@ -476,20 +488,28 @@ These are essential for blind players.
 - [ ] **Adjustable camera and motion**, including reduced camera shake and motion blur
 - [ ] **Readable fonts**, not thin decorative typefaces
 
+Want to see how far a big studio can push this? Look at The Last of Us Part II. Naughty Dog shipped it in 2020 with [more than 60 accessibility settings](https://www.naughtydog.com/blog/the_last_of_us_part_ii_accessibility_features_detailed), including a high contrast mode that mutes the environment's colours and paints allies, enemies and interactive objects in distinct ones. That's the bar. A lone "large subtitles" toggle isn't.
+
 ## Part 4: Controls and Timing
 
 - [ ] **Fully remappable controls**
-- [ ] **No mandatory timed visual prompts** (quick-time events you must see)
-- [ ] **Adjustable game speed** or the ability to pause anywhere
+- [ ] **No mandatory timed visual prompts** (quick-time events you have to see)
+- [ ] **Adjustable game speed**, or the ability to pause anywhere
 - [ ] **Hold-to-press alternatives** (toggle instead of hold)
 - [ ] **Keyboard-only play** on PC, with no mouse required
 
+Timed prompts are the sneaky one. A game can narrate every menu flawlessly and then ambush you with a button prompt that flashes for half a second. If a review mentions quick-time events, find out if you can switch them off before you buy. A pause button you can hit anywhere is worth more than it sounds, too; life interrupts, and a game that punishes you for answering the door has its priorities backwards.
+
 ## Part 5: Information Design
+
+This is the part that separates games that are accessible on paper from games that are accessible in your hands.
 
 - [ ] **No information conveyed by visuals alone**. Every visual cue has an audio or text equivalent.
 - [ ] **Objectives are clearly stated** and can be re-read
 - [ ] **Maps are describable**: you can ask where things are relative to you
 - [ ] **Puzzles are solvable without sight**, or skippable
+
+The Last of Us Part II is a handy reference again. Its Vision Accessibility Preset bundles text-to-speech with extra audio cues for traversal and combat, and you can ask the game for a spoken description of your current status. That's the "status on demand" idea from Part 1 meeting the "no visuals alone" rule here, and it's exactly the pairing I'd look for in any game.
 
 ## Part 6: Support and Community
 
@@ -498,28 +518,35 @@ These are essential for blind players.
 - [ ] **Patches that fix accessibility issues**
 - [ ] **An active blind gaming community** talking about the title
 
+Don't underrate the last two. Every game ships with accessibility bugs (mine certainly has), so what you're really judging is whether the developer listens and repairs them. In September, for example, I discovered that EchoQuest's browser narrator was cutting off a few seconds into a scene. A blind player would notice that in the first minute, and it needed a patch, not a shrug.
+
 ## How EchoQuest Scores
 
-We built EchoQuest to pass this checklist from the start:
+I built EchoQuest against this checklist from the start, so here's how it measures up:
 
-- Every scene is **narrated aloud**, and every control is labelled for NVDA, JAWS, VoiceOver, TalkBack, and Orca
-- New narration is announced through **ARIA live regions**
+- Every scene is **narrated aloud**, and every control is labelled so NVDA, JAWS, VoiceOver and TalkBack can read it (it's standard web markup, so Orca on Linux picks up the same labels)
+- New narration is announced through **ARIA live regions**, and so are changes to your HP and inventory
 - **Full keyboard navigation** with visible focus (see [Keyboard Navigation in EchoQuest](/blog/keyboard-navigation-in-echoquest-play-without-a-mouse))
+- Single-key shortcuts for the Part 1 essentials: **R** replays the narration, **S** reads your status, **L** tells you where you are, and **[** and **]** change speech speed
 - **Voice commands** for hands-free play (see [Voice Commands in EchoQuest](/blog/voice-commands-in-echoquest-play-completely-hands-free))
-- Adjustable **speech rate**, text size, contrast, and **reduced motion**
-- **No timed prompts**: take as long as you need on every turn
-- The game world is conveyed entirely through narration, so nothing depends on sight
+- Adjustable **speech rate**, large text, high contrast and **reduced motion** in Settings
+- **No timed prompts**: take as long as you like on every turn
+- The game world comes across entirely through narration, so nothing depends on sight
+
+Is it perfect? No, and the narrator cut-off I just mentioned proves it. But the foundation is right, and I'd much rather fix bugs on a solid base than bolt accessibility onto a visual game after the fact.
 
 ## How to Use This Checklist
 
-1. **Before buying:** search the game name plus "blind accessible" and look for reviews from blind players.
-2. **Check the accessibility page:** reputable developers publish one.
-3. **Try a demo or free tier** when one is available.
-4. **Share what you learn:** your review helps the next player.
+1. **Before buying:** search the game's name plus "blind accessible" and look for reviews written by blind players.
+2. **Check the accessibility page:** reputable developers publish one, and the good ones are specific about what they tested.
+3. **Try a demo or free tier** when there is one.
+4. **Share what you learn:** your review spares the next player an afternoon of frustration.
 
 ## The Bigger Picture
 
-Accessibility in games has improved a lot, with several major releases now shipping with extensive options. But it's still inconsistent. Checklists like this help players make informed decisions, and they tell developers what "accessible" actually means. For more context, read [Accessibility in Gaming: The State of Play in 2026](/blog/accessibility-in-gaming-the-state-of-play-in-2026).
+Game accessibility has come a long way, and several big releases now ship with deep option menus. Even so, it's patchy. One studio does brilliant work and the next adds a colour-blind filter and calls it a day. That's why I think checklists like this one earn their keep: they help players decide with their eyes open (or closed), and they show developers what "accessible" actually means once a real person sits down to play. For more background, read [Accessibility in Gaming: The State of Play in 2026](/blog/accessibility-in-gaming-the-state-of-play-in-2026).
+
+So which item on this list do you find missing most often? My bet is Part 5, nearly every time.
 
 **[Try an audio-first, fully accessible RPG for free →](/library)**
 `,
