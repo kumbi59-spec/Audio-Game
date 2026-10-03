@@ -5,64 +5,82 @@ export const AUTUMN_2026_B: ScheduledSeedPost[] = [
   {
     publishAt: "2026-10-04",
     title: "13 Halloween Horror RPG One-Shot Ideas for Spooky Season",
-    excerpt: "Need a Halloween one-shot? Here are 13 horror RPG adventure hooks, from haunted lighthouses to cursed radio shows, that you can run solo or with friends.",
+    excerpt: "Thirteen Halloween horror RPG one-shot hooks, from a haunted radio station to a drowned church, plus tips for running them with friends or solo by ear.",
     content: `# 13 Halloween Horror RPG One-Shot Ideas for Spooky Season
 
-October is the best month of the year for horror roleplaying. The nights draw in, the wind picks up, and everyone is in the mood for a scare. A **Halloween one-shot**, a complete adventure played in a single session, is the perfect way to celebrate.
+Some people count down to October for the pumpkin spice. I count down for the early dark. It's the best month of the year for horror roleplaying. The light is gone before dinner and the wind has started worrying at the windows, so suddenly everyone you know wants to be frightened on purpose.
 
-Here are thirteen horror RPG hooks you can run with a group, or play solo with an AI Game Master. Each includes a premise, a twist, and a sound to build the atmosphere around.
+That urge is older than any of us, by the way. Halloween grew out of Samhain, the Celtic festival that welcomed the harvest at the end of summer and marked the turn toward winter. According to the [Library of Congress](https://blogs.loc.gov/headlinesandheroes/2021/10/the-origins-of-halloween-traditions/), people believed spirits walked the earth during the festival, so they put on disguises to confuse them. Dressing up and scaring each other on long autumn nights is a very old habit indeed. A **Halloween one-shot**, meaning a complete adventure that opens and closes in a single session, is my favourite way to keep it going.
+
+Below are thirteen horror RPG hooks you can run with a group, or play solo with an AI Game Master. Each one comes with a premise and a twist. I've also paired every hook with one sound to build the atmosphere around. Why only one? Because in audio play, a single noise that keeps coming back does more work than a whole page of description.
 
 ## Why Horror Works So Well as a One-Shot
 
-- **Short stories are scarier.** Dread needs momentum, and long campaigns dilute it.
-- **Characters are disposable.** Players take bigger risks when they don't have to live with the character for months.
-- **Clear ending.** Horror needs a final reveal, and a one-shot guarantees you reach it.
+Edgar Allan Poe made this case long before anyone rolled a d20. In "[The Philosophy of Composition](https://www.eapoe.org/works/essays/philcomp.htm)" (1846), he warned that when a work needs two sittings, "the affairs of the world interfere, and every thing like totality is at once destroyed." Horror suffers from that interference more than any other genre, in my opinion. Here's why the one-shot format suits it so well:
 
-If you're playing on EchoQuest, horror benefits most from audio-first play. See [How to Run a Horror RPG Campaign Without Any Visuals](/blog/how-to-run-a-horror-rpg-campaign-without-any-visuals).
+- **Short stories are scarier.** Dread runs on momentum, and a long campaign thins it out. Take a fortnight off mid-mystery and your players come back calm, chatting about loot.
+- **Characters are disposable.** Players gamble far more freely when they won't have to live with the character for months. Somebody *will* open the cellar door. (Nobody dies for good in EchoQuest, mind you. Since October 2, dropping to 0 HP brings a real setback instead: you might get captured, or wake hours later with a price to pay. In a one-shot, that price only has to last the night.)
+- **Clear ending.** Horror needs its final reveal, and a one-shot guarantees you'll actually reach it instead of drifting off somewhere around session nine.
+
+If you're playing on EchoQuest, I'd argue horror gains more from audio-first play than any other genre. I wrote a whole craft guide about it: [How to Run a Horror RPG Campaign Without Any Visuals](/blog/how-to-run-a-horror-rpg-campaign-without-any-visuals).
 
 ## The 13 Hooks
 
 ### 1. The Last Broadcast
 
-**Premise:** You're the late-night crew at a small-town radio station. At 3:00 a.m. a caller describes, in detail, what's happening inside your studio right now.
+**Premise:** You're the late-night crew at a small-town radio station. At 3:00 a.m., a caller describes, in careful detail, what's happening inside your studio right now.
 **Twist:** The calls are coming from next week.
-**Sound:** static between stations.
+**Sound:** static hissing between stations.
+
+If you want homework, watch *Pontypool* (2008), the Canadian film in which a small-town Ontario radio station hears about a catastrophe mostly through phone calls. Radio horror costs almost nothing to stage. You need a voice, and something that voice can't explain.
 
 ### 2. The Lighthouse Keeper's Log
 
-**Premise:** Relief keepers arrive at a remote lighthouse. The previous keeper is gone, but his log keeps getting new entries.
+**Premise:** Relief keepers arrive at a remote lighthouse. The previous keeper has disappeared, yet new entries keep turning up in his log.
 **Twist:** The entries are in your handwriting.
 **Sound:** the foghorn, one beat late.
 
+Real history did half the work on this one. In December 1900, the three keepers of the Flannan Isles lighthouse, out in the Outer Hebrides, simply vanished. The light seems to have run normally until the 15th, and when the crew of the lighthouse vessel Hesperus called eleven days later, nobody was there. [National Records of Scotland](https://nrscotland.gov.uk/learning-and-events/research-guides/lighthouses/the-mystery-of-the-flannan-islands-lighthouse) still calls it a mystery, and it notes that it doesn't even hold the lighthouse's log book. A missing logbook! I couldn't have invented a better prop.
+
 ### 3. Harvest Supper
 
-**Premise:** A farming village invites travellers to its autumn feast. Everyone is very welcoming. Everyone insists you stay the night.
-**Twist:** The village has been feeding something beneath the fields for generations, and this year's harvest failed.
-**Sound:** wind through dry corn.
+**Premise:** A farming village invites travellers to its autumn feast. Everyone is lovely. Everyone insists you stay the night.
+**Twist:** For generations the village has been feeding something beneath the fields, and this year's harvest failed.
+**Sound:** wind rasping through dry corn.
+
+Folk horror adores this shape. In Shirley Jackson's "The Lottery" (1948), an old villager recalls the saying "Lottery in June, corn be heavy soon." *The Wicker Man* (1973) hangs on a failed harvest on Summerisle and an outsider who doesn't grasp why he was lured there. So keep your hosts gracious for as long as you can bear it. Kindness is creepier than menace here.
 
 ### 4. The Understudy
 
-**Premise:** You're cast in a century-old play. Each rehearsal, a cast member vanishes and an understudy you don't recognise takes their place.
-**Twist:** The play is a ritual, and the audience has been waiting a hundred years.
-**Sound:** a single audience member clapping in an empty theatre.
+**Premise:** You're cast in a century-old play. After each rehearsal, one cast member vanishes and an understudy nobody recognises steps into the part.
+**Twist:** The play is a ritual, and the audience has been waiting a hundred years for opening night.
+**Sound:** a single pair of hands clapping in an empty theatre.
+
+Robert W. Chambers got there first with *The King in Yellow* (1895), a collection of stories haunted by a fictional play that drives its readers mad. The book is long out of copyright, so borrow shamelessly.
 
 ### 5. Room 9
 
-**Premise:** A roadside motel has rooms 1 to 8 and 10 to 12. You're booked into Room 9.
-**Twist:** Every guest who has ever stayed in Room 9 is still there.
+**Premise:** A roadside motel has rooms 1 to 8 and 10 to 12. You've been booked into Room 9.
+**Twist:** Every guest who ever stayed in Room 9 is still in there.
 **Sound:** a TV playing in the next room, always the same show.
+
+Stephen King's "1408" plays a similar trick with a hotel room whose digits add up to thirteen. Still, I think a missing number beats an unlucky one. A room that shouldn't exist gives your players nothing to argue with.
 
 ### 6. The Drowned Bell
 
-**Premise:** Villagers say you can hear the bells of the church that sank under the reservoir. Tonight they're ringing.
+**Premise:** Locals swear you can hear the bells of the church that sank beneath the reservoir. Tonight they're ringing.
 **Twist:** The bells are counting down.
-**Sound:** muffled bells beneath water.
+**Sound:** muffled bells beneath the water.
+
+Wales has a centuries-old version of this. The legend of Cantre'r Gwaelod tells of a kingdom swallowed by the sea in what's now Cardigan Bay, and Eryri National Park retells the local belief that [on a quiet day in Aberdyfi you can hear its bells ringing underwater](https://eryri.gov.wales/discover/history-and-heritage/mythology-and-folklore/seithenyn/). Drowned bells have been tolling in folklore for a long time. Yours just happen to keep count.
 
 ### 7. Night Shift at the Archive
 
-**Premise:** You catalogue items at a museum storage facility. Tonight's delivery is a sealed crate with no manifest.
+**Premise:** You catalogue objects at a museum's storage facility. Tonight's delivery is a sealed crate with no manifest.
 **Twist:** The crate is empty. Whatever was in it arrived hours ago.
-**Sound:** buzzing fluorescent lights, one flickering.
+**Sound:** buzzing fluorescent tubes, one of them flickering.
+
+This hook has a cousin in the EchoQuest library. In The Black Vellum, you're a freelance archivist hired to catalogue a dead antiquarian's collection, and one book in it should not be there. I set its opening on a wet Sunday afternoon in late October, which feels about right for this time of year.
 
 ### 8. The Mirror Game
 
@@ -70,29 +88,39 @@ If you're playing on EchoQuest, horror benefits most from audio-first play. See 
 **Twist:** One of the reflections didn't stop playing.
 **Sound:** glass tapped from the wrong side.
 
+If you ever chanted "Bloody Mary" into a dark bathroom mirror at a sleepover, you already know how this one opens. The ritual is famous enough that the folklorist Alan Dundes wrote a scholarly paper about it in 1998. Your players' own childhood memories will happily fill in the rest.
+
 ### 9. Snowbound Sleeper Car
 
-**Premise:** A night train stalls in a blizzard. The conductor counts the passengers. There is one too many.
+**Premise:** A night train stalls in a blizzard. The conductor counts heads, and there's one passenger too many.
 **Twist:** The extra passenger is the only one who's actually alive.
 **Sound:** wheels creaking on frozen rails.
 
+Agatha Christie stranded the Orient Express in a snowdrift for her 1934 murder mystery, and the trap still works because nobody can leave and nobody new can arrive. Turn the mystery into horror and that locked-in feeling only squeezes tighter.
+
 ### 10. The Scarecrow Census
 
-**Premise:** A government surveyor is sent to count the scarecrows across a county. The number rises every day.
+**Premise:** A government surveyor is sent to count every scarecrow in a county. The tally rises each day.
 **Twist:** Missing persons reports in the county fell to zero the year the scarecrows went up.
-**Sound:** straw rustling when there's no wind.
+**Sound:** straw rustling on a night with no wind.
+
+I'm fond of bureaucratic horror. A dull, official job is a perfect baseline, because the clipboard keeps the character plodding forward long after any sensible person would have driven home.
 
 ### 11. Signal From the Deep Station
 
-**Premise:** A sci-fi horror one-shot. You're the rescue team sent to a silent research station on the ocean floor.
-**Twist:** The crew is fine. They're very eager to come aboard your sub.
-**Sound:** sonar pings echoing back from something enormous.
+**Premise:** A sci-fi horror one-shot. You're the rescue team sent down to a silent research station on the ocean floor.
+**Twist:** The crew is fine. They're just very, very eager to come aboard your sub.
+**Sound:** sonar pings returning from something enormous.
+
+Fans of John Carpenter's *The Thing* (1982) will spot the lineage: an isolated research station, and colleagues you can no longer trust to be who they claim. Moving it a few kilometres under the sea simply takes away the option of walking out into the snow.
 
 ### 12. Grandmother's Recipe Book
 
-**Premise:** You inherit a cottage and a handwritten recipe book. The ingredients get stranger as you turn the pages.
+**Premise:** You inherit a cottage and a handwritten recipe book. The ingredients grow stranger with every page you turn.
 **Twist:** The last recipe calls for you.
 **Sound:** a kettle beginning to whistle in an empty kitchen.
+
+Hansel and Gretel has warned children about suspiciously generous cottages for generations. This hook just moves the oven indoors and hands you the deeds.
 
 ### 13. The Costume Party
 
@@ -100,17 +128,23 @@ If you're playing on EchoQuest, horror benefits most from audio-first play. See 
 **Twist:** Not all the guests are wearing masks.
 **Sound:** a string quartet playing slightly out of tune.
 
+Poe wrote the definitive version in "[The Masque of the Red Death](https://www.eapoe.org/works/tales/masquea.htm)" (1842). After the ebony clock strikes midnight, the revellers seize a masked stranger and find the costume "untenanted by any tangible form." Remember those Samhain disguises meant to fool the spirits? This hook asks what happens when the spirits come in costume too.
+
 ## Tips for Running (or Playing) a Horror One-Shot
 
-1. **Start normal.** Horror needs a baseline of safety to break.
-2. **Reveal slowly.** Show the monster's effects before the monster.
-3. **Give players agency.** Fear comes from choices, like whether to open the door.
-4. **Use sound and silence.** A sudden quiet is scarier than a scream.
-5. **Agree on limits.** Check content boundaries before you start. Good horror is consensual.
+1. **Start normal.** Horror needs a baseline of safety to break. Give your players ten calm minutes of ordinary life first, because it's what makes the first wrong note audible.
+2. **Reveal slowly.** Show the monster's effects long before the monster itself. When I rewrote the EchoQuest GM's instructions on October 2, this went in almost word for word: hold things back, plant small details early and pay them off turns later.
+3. **Give players agency.** Fear grows out of decisions. Do you open the door? Nobody else can make that call, and that's exactly why it's frightening.
+4. **Use sound and silence.** A sudden quiet is scarier than a scream. Silence has to be deliberate, though. Back in May I discovered that two identical sound cues landing within 80 milliseconds of each other just sound like a glitch, so EchoQuest now drops the duplicate. Around the same time I made the choices wait until the narrator finishes speaking. Otherwise screen reader users heard two voices at once, and the ominous last line of a scene got trampled.
+5. **Agree on limits.** Check content boundaries before you start, because good horror is consensual. Tabletop players have built proper tools for this. Lines and veils let you mark topics that are off the table entirely and topics that happen offscreen, and John Stavropoulos's X-card lets anyone skip a moment without explaining. The Strong National Museum of Play has a [handy overview](https://www.museumofplay.org/blog/keeping-the-adventure-fun-for-everyone-safety-tools-for-tabletop-roleplay-games/), including the TTRPG Safety Toolkit that Kienna Shaw and Lauren Bryant-Monk curate. If you're playing solo, simply tell the GM your lines before the first scene.
 
 ## Playing Solo With an AI Game Master
 
-Every hook above works as a solo EchoQuest session. Start a horror world, paste in the premise as your character's situation, and tell the Game Master your preferred intensity, whether "slow-burn dread" or "full terror". With narration in your ears and the lights off, it's one of the most atmospheric ways to spend an October night.
+Every hook above works as a solo EchoQuest session. Start a horror world, such as The Black Vellum or The Mirewood (a dark fairy-tale forest where the stories are alive and hungry). Paste the premise into your character's backstory when you create them, then tell the Game Master how hard to push. "Slow-burn dread" is a perfectly good answer, and so is "full terror".
+
+Pick honestly, though. Researchers at Aarhus University's Recreational Fear Lab fitted 110 visitors to a Danish haunted house with heart-rate monitors, and [enjoyment peaked at moderate fear](https://www.sciencedaily.com/releases/2020/10/201026184003.htm). People who weren't very scared enjoyed it less, and so did people who were too scared. So which setting is your sweet spot? Start a notch below where you think it is, because you can always ask the GM to turn the screw.
+
+With narration in your ears and the lights off, I honestly can't think of a more atmospheric way to spend an October night. And if one of these hooks deserves a whole world of its own, Storyteller members get a private world they can build with the World Builder Wizard.
 
 **[Start a horror one-shot tonight →](/library)**
 `,
@@ -118,103 +152,127 @@ Every hook above works as a solo EchoQuest session. Start a horror world, paste 
   {
     publishAt: "2026-10-05",
     title: "How to Start a Cyberpunk RPG Campaign: Setting, Tone and Plot Hooks",
-    excerpt: "Plan a cyberpunk RPG campaign that feels alive: core themes, city design, factions, tech rules, and 8 plot hooks for neon-soaked noir adventures.",
+    excerpt: "Plan a cyberpunk RPG campaign that feels alive: themes first, a layered city, factions, tech rules, noir tone and 8 plot hooks you can steal tonight.",
     content: `# How to Start a Cyberpunk RPG Campaign: Setting, Tone and Plot Hooks
 
-Neon reflected in puddles. Corporations more powerful than nations. Chrome limbs, stolen data, and the question of what's still human. Cyberpunk is one of the most atmospheric genres in roleplaying, and one of the easiest to get wrong. Get the lights and the rain right but miss the themes, and it becomes an action movie with extra gadgets.
+Neon smeared across puddles, and corporations with more muscle than governments. Somewhere under the chrome limbs and the stolen data sits a nagging question about how much of you is still human. Cyberpunk has more atmosphere per square metre than almost any genre in roleplaying, and it's also one of the easiest to fumble. Nail the lights and the rain but miss the themes, and you've built an action movie with extra gadgets.
 
-This guide walks you through building a **cyberpunk RPG campaign** that feels alive, whether you're running it for friends or playing it with an AI Game Master.
+The word itself is younger than you might think. Bruce Bethke coined it for a short story called "Cyberpunk", which [appeared in Amazing in November 1983](https://sf-encyclopedia.com/entry/bethke_bruce) after circulating in manuscript, and the editor Gardner Dozois picked the term up to describe a whole new wave of writers. So the genre has been arguing with its own future for a little over forty years now. I find that oddly comforting.
+
+This guide walks you through building a **cyberpunk RPG campaign** that feels alive. It works for a table of friends, and it works just as well if your Game Master happens to be an AI.
 
 ## Start With the Themes, Not the Tech
 
-Cyberpunk is about **power and identity under pressure**. The core themes:
+At its core, cyberpunk is about **power and identity under pressure**. Gadgets come second. Here are the themes I keep coming back to:
 
-- **High tech, low life:** amazing technology, and most people can't afford it
-- **Corporate power:** companies own the cities, the police, and sometimes the people
-- **Body and self:** if you replace your arm, your eyes, and your memories, who are you?
-- **Survival over heroism:** characters hustle to get by rather than saving the world
-- **Information as currency:** secrets are worth more than bullets
+- **High tech, low life:** dazzling technology exists, and most people can't afford any of it
+- **Corporate power:** companies own the cities, the police and sometimes the people. That part isn't pure fiction, either. By 1803, as William Dalrymple writes in [The Guardian](https://www.theguardian.com/world/2015/mar/04/east-india-company-original-corporate-raiders), the East India Company had trained a private security force of around 260,000, twice the size of the British army
+- **Body and self:** if you swap out your arm, then your eyes, then your memories, who's left?
+- **Survival over heroism:** characters hustle to make rent; saving the world is somebody else's job
+- **Information as currency:** a good secret is worth more than a magazine of bullets
 
-Pick one or two as the heart of your campaign. A story about identity plays very differently from a story about corporate warfare.
+Pick one or two as the heart of your campaign, not all five. A story about identity plays very differently from a story about corporate warfare, and trying to juggle every theme at once tends to flatten them all.
+
+When I built Neon Precinct, EchoQuest's cyberpunk world, I picked identity and leaned on it hard. You play a synthetic detective, a fully realised artificial person who has just been decommissioned, and the world's notes say that status is legally precarious. Some NPCs will treat you as a tool. How hard you push back is your call. (Yes, there's an obvious irony in an AI Game Master narrating that story. I decided to enjoy it rather than dodge it.)
 
 ## Build the City in Layers
 
-Your city is the main character. Build it vertically:
+Your city is the main character, so build it vertically:
 
-1. **The Spires:** corporate arcologies, clean air, private security
-2. **The Midlevels:** salarymen, shopping districts, surveillance everywhere
-3. **The Undercity:** night markets, clinics, gangs, and the people the system forgot
-4. **The Net:** a parallel city of data with its own dangers
+1. **The Spires:** corporate arcologies, filtered air, private security
+2. **The Midlevels:** salarymen, shopping districts, cameras on every corner
+3. **The Undercity:** night markets, clinics, gangs and the people the system forgot
+4. **The Net:** a parallel city made of data, with dangers of its own
 
-Give each layer a **sound**: the hum of mag-lev trains, the chatter of street vendors, the drip of acid rain on corrugated roofs. In audio-first play, sound is how players feel the city. EchoQuest's official **Neon Precinct** campaign is built around this layered approach.
+Real history offers a startling reference here. Hong Kong's Kowloon Walled City packed somewhere between [33,000 and 50,000 people into roughly 6.5 acres](https://aeon.co/videos/the-rise-and-fall-of-kowloon-walled-city-hong-kongs-infamous-urban-monolith) before it was torn down by 1994, with buildings around 14 storeys tall and barely any space between them. Decades later it still haunts films and video games, and it's worth reading about just to feel how much life can be stacked into one block.
+
+Next, give each layer a **sound**. Think of the hum of mag-lev trains overhead, or acid rain ticking on corrugated roofs down below. In audio-first play, sound is how players feel the city around them. Neon Precinct is built around exactly this layered approach. Its city, Karthos-12, is the largest arcology on the continent: twelve stacked districts under a rain cycle that the Atmosphere Council "forgot" to switch off in 2061. Corporate canopies sit on top, reachable only with a transit pass. Below them runs the Promenade, a neon boulevard under a transparent canopy that sheds rain in sheets. Underneath it all lies the Mire, the bottom slab, and below that the Sub, old utility levels settled by people the corps stopped tracking.
+
+Every location in Neon Precinct is tagged with an ambient bed in EchoQuest. The Mire and the Promenade share the rain track. Vega's Place gets a quiet tavern murmur instead, and Helio-Vance's mirrored research tower, the Glass, sits under the hush of a city at night. I learned how much that bed matters when it went missing. In late May, ambient audio was completely silent on mobile, so anyone playing on a phone would have walked through a rain-soaked megacity in total quiet. It felt like a stage set with the lights off. That's fixed now, and the rain is back where it belongs.
 
 ## Create Three to Five Factions
 
-Cyberpunk stories are about competing interests. Try:
+Cyberpunk stories run on competing interests. Try a mix like this:
 
-- **A megacorporation** with a public face and a hidden project
+- **A megacorporation** with a polished public face and a hidden project
 - **A street gang** with a code of honour and a territory to defend
-- **A fixer network** that brokers jobs and sells out anyone for the right price
+- **A fixer network** that brokers jobs and will sell out anyone for the right price
 - **A police force** that's underfunded, corrupt, or both
-- **An idealistic movement** of hackers, unionists, or AI rights activists
+- **An idealistic movement** of hackers, unionists or AI rights activists
 
-Give each faction a **want**, a **resource**, and a **line they won't cross**, and then make someone cross it.
+Give each faction a **want**, a **resource**, and a **line they won't cross**. Then make someone cross it.
+
+For a worked example, Karthos-12 has three megacorps (Helio-Vance, Kuroda-Vex and Astra Mutual) dividing up everything that matters. Helio-Vance Security is the de facto police above the Mire and simply won't negotiate with you, although it might negotiate with corp lawyers. The Couriers are black-market data runners who trade favours for favours; you have friends among them, and debts. The Precinct 4 Holdouts are the handful of officers still doing real police work, underfunded and prone to martyrdom. And the Subdwellers aren't a faction so much as a web of survival pacts, loyal to anyone who treats them like people. Notice how each one already has a want and a limit baked in? That's what gives the GM something to push against.
 
 ## Decide Your Tech Rules
 
-- **Cybernetics:** what can they do, what do they cost, and what's the downside?
-- **Hacking:** is it abstract or a playable scene?
+- **Cybernetics:** what can they do, what do they cost, and what's the catch?
+- **Hacking:** is it abstract, or a playable scene?
 - **AI:** are artificial minds tools, people, or threats?
 - **Weapons:** how lethal is combat? Cyberpunk should be dangerous.
 
-Write these down in a short setting document. If you're building on EchoQuest, this goes into your [Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template) so the AI Game Master applies them consistently.
+My own answers for Neon Precinct might help you calibrate. Hacking is narrative rather than mechanical: you describe what you want your deck to do, the GM sets the difficulty from context, and specialised hardware lowers the bar. Combat is brief and ugly. Synthetic bodies repair, but slowly, and a serious wound costs days of downtime. Jurisdiction is real as well. Pull a weapon in the Glass and Helio-Vance responds in roughly forty seconds. Do the same in the Mire and nothing happens at all, except that witnesses will remember your face.
+
+Mechanically, I tightened two things on October 2. Skill checks now resolve in the same turn, so a risky hack lands or fails right away instead of leaving you hanging for an extra exchange. And dropping to 0 HP brings a real setback (capture, say, or waking hours later with a cost to pay), which suits a genre where violence should hurt.
+
+Write all of this down in a short setting document. If you're building on EchoQuest, it goes straight into your [Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template), so the AI Game Master applies your rules consistently from one session to the next. A Game Bible becomes the private world that comes with the Storyteller plan, and the uploader takes PDF, DOCX, TXT, MD or JSON, so whatever you already scribbled your notes in will probably do.
 
 ## Nail the Tone
 
 - **Noir narration:** cynical, weary, poetic in a hard-bitten way
 - **Moral grey:** no clean jobs, no pure heroes
-- **Style matters:** how you do something counts as much as whether you succeed
+- **Style matters:** how you do something counts as much as whether you pull it off. Mike Pondsmith's tabletop game Cyberpunk, first published by R. Talsorian in 1988, put it bluntly: ["Style Over Substance." The first rule of being cyberpunk.](https://rtalsoriangames.com/2018/08/30/a-celebration-of-cyberpunk-day-4-part-2/)
 - **Hope in small places:** a shared noodle stall, a loyal crew, a kid who looks up to you
+
+That last point is the one people skip, and I think it's the most important. Unrelieved bleakness gets numbing surprisingly fast. In Neon Precinct, the small place is Vega's Place, a narrow jazz bar in the lower Promenade where the apostrophe in the neon sign has been broken for years and Vega always keeps the stool at the end of the counter free for you. The hopeful kid is Soren, a twelve-year-old intel runner in the Mire who doesn't trust adults but trusts you.
+
+Tone lives in the narrator's voice too. On October 2, I rewrote the GM's instructions so it sounds like a seasoned human Game Master who opens on one concrete detail and stops on a hook. I also gave Neon Precinct a short list of true details to weave in. For instance, real neon glows red-orange, while the blues come from argon and a trace of mercury lighting a phosphor coating inside the tube. On the Storyteller plan the cast gets distinct voices as well. Getting there took some doing, though. In late May, NPC voices refused to switch because the NPCs' dialogue wasn't being woven into the narration properly, so I fixed that and matched voices by gender across the whole voice catalogue. Captain Marrow is written as low and gravelly, a woman who rations her words. Director Kuroda is soft and precise, polite in a way that should worry you. Those two should never sound like the same person.
 
 ## 8 Cyberpunk Plot Hooks
 
-1. **The Memory Job:** a client wants a memory stolen from an executive's implant, and it's *your* memory.
-2. **Ghost in the Clinic:** a back-alley ripperdoc's patients all wake up speaking the same unknown language.
-3. **The Last Honest Cop:** a detective asks for help exposing her department. Everyone who has tried is dead.
+1. **The Memory Job:** a client wants a memory stolen from an executive's implant, and it turns out to be *your* memory. William Gibson nailed the spirit of this one in his 1982 story "Burning Chrome", describing a memory drug that clinics use for senile amnesia: "but the street finds its own uses for things."
+2. **Ghost in the Clinic:** every patient of a back-alley ripperdoc wakes up speaking the same unknown language.
+3. **The Last Honest Cop:** a detective asks for help exposing her own department. Everyone who has tried before is dead.
 4. **Blackout:** the power grid fails across the Undercity for exactly 13 minutes every night. Someone is using the dark.
 5. **Rogue Delivery Drone:** a drone crashes at your feet carrying a prototype and a message addressed to you by name.
-6. **The Union Vote:** factory workers are voting to unionise. Three factions have hired you, for three different outcomes.
+6. **The Union Vote:** factory workers are voting on whether to unionise. Three factions have hired you, each for a different outcome.
 7. **Digital Afterlife:** a corporation sells "eternal life" uploads. Your dead partner just called you.
-8. **The Clean Water Heist:** steal a shipment of water purifiers from a corporate convoy to save your block through the drought.
+8. **The Clean Water Heist:** steal a shipment of water purifiers from a corporate convoy to get your block through the drought.
+
+Neon Precinct's own opening has the same DNA, if you want a ninth. You wake at 3:14 AM in your apartment above Vega's Place to find an envelope under the door. Inside is the security badge of a Helio-Vance director who was reported missing six hours ago, along with a handwritten note that says only "You owe me." Your diagnostics report that last night you signed a contract you don't remember signing. Who would you call first?
 
 ## Running Cyberpunk With an AI Game Master
 
-AI Game Masters suit cyberpunk well. They're good at noir narration, morally complex NPCs, and the improvisation that heists and investigations need. To get the best out of one:
+AI Game Masters suit cyberpunk nicely. They're good at noir narration and at morally tangled NPCs, and they can improvise on the fly, which heists and investigations demand constantly. To get the best out of one:
 
 - Establish **tone** early ("gritty noir, lethal combat")
 - Name a **faction you're tied to** in your backstory
-- **Ask about the city.** The AI will fill in markets, bars, and back alleys on demand
+- **Ask about the city.** The AI will fill in markets, bars and back alleys on demand
+
+That middle tip pays off more than you'd expect. If your backstory says you still owe the Couriers for a botched run, the GM has a lever it can pull for the rest of the campaign, and debts are the beating heart of noir. As for the last tip, I'd go further. Ask the city questions a detective would ask. Who runs this block? Who saw the drone go down? A good GM treats every question as an invitation to plant something.
 
 ## Jack In
 
-Ready to walk the neon streets? Start with Neon Precinct, EchoQuest's official cyberpunk noir mystery, and investigate corporate corruption in a rain-soaked megacity, fully narrated.
+Ready to walk the neon streets? Start with Neon Precinct, EchoQuest's official cyberpunk noir mystery, and dig into corporate corruption in a rain-soaked megacity, narrated aloud from the first drip to the last.
 
-**[Play Neon Precinct free →](/library)**
+**[Play Neon Precinct →](/library)**
 `,
   },
   {
     publishAt: "2026-10-06",
     title: "Interactive Audio Stories: How They Differ From Audiobooks and Podcasts",
-    excerpt: "Interactive audio stories let you shape the plot as you listen. See how they compare to audiobooks, audio dramas, and podcasts, and why listeners are switching.",
+    excerpt: "Interactive audio stories let you steer the plot as you listen. Here's how they compare with audiobooks, audio dramas and podcasts, and what makes a good one.",
     content: `# Interactive Audio Stories: How They Differ From Audiobooks and Podcasts
 
-Audiobooks are booming. Fiction podcasts and audio dramas have huge audiences. But all of them share one limit: you're listening to a story someone else has already decided. **Interactive audio stories** remove that limit. You listen, you respond, and the story changes.
+Audio storytelling is having a very good decade. According to the Audio Publishers Association, US audiobook sales reached [$2.43 billion in 2025, up 9% on the year before](https://www.audiopub.org/surveys), and 58% of American adults say they've listened to an audiobook. Podcasts are thriving as well. Edison Research's Infinite Dial 2026 found that [58% of Americans now listen to podcasts monthly](https://www.nationalpublicmedia.com/insights/articles/audio-continues-to-break-listening-records-2026-infinite-dial-report/), a record. Fiction has a healthy slice of that, too. *Welcome to Night Vale*, which Joseph Fink and Jeffrey Cranor launched in 2012 as [a podcast about a town where all conspiracy theories are true](https://www.wbur.org/hereandnow/2017/01/05/welcome-night-vale), went on to spawn a live show and a novel.
+
+Still, every one of those formats shares one limit: you're listening to a story someone else has already decided. **Interactive audio stories** take that limit away. You listen, you answer back, and the story bends.
 
 ## What Is an Interactive Audio Story?
 
-An interactive audio story is a narrative you *hear* and *influence*. At key moments, or at any moment in AI-driven versions, you decide what happens next by speaking, tapping, or typing. The narration continues from your choice.
+An interactive audio story is a narrative you *hear* and *steer*. At key moments (or at any moment at all, in the AI versions), you decide what happens next by speaking, tapping or typing. Then the narration picks up from your choice and carries on.
 
-Think of it as an audiobook in which you're the protagonist.
+Think of it as an audiobook in which you're the protagonist. Or, if you grew up with those paperback gamebooks that said "turn to page 47 to open the door", it's that idea read aloud to you, minus the thumb wedged in the previous page so you could cheat.
 
 ## How It Compares
 
@@ -227,60 +285,68 @@ Think of it as an audiobook in which you're the protagonist.
 | Voice cast | One narrator (usually) | Full cast | Narrator plus character voices |
 | Attention | Can drift | Can drift | Active |
 
+That last row deserves a footnote, because it isn't just my hunch. In a 2013 study in *Frontiers in Psychology*, Varao Sousa, Carriere and Smilek had students take in the same passages by reading aloud, reading silently or listening. [Listening led to the most mind wandering and the poorest memory](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2013.00892/full), while reading aloud led to the least. Interestingly, the format that kept minds from wandering was the one where people had to produce something themselves. Interactive audio asks you for exactly that, every few minutes, and that finding shapes how I think about EchoQuest. A story that keeps handing you the microphone gives your attention far fewer chances to slip away.
+
 ## The Types of Interactive Audio Stories
 
 ### Branching Audio Adventures
 
-Pre-recorded audio with choice points, like a choose-your-own-adventure book read aloud. Production quality can be superb, but choices are limited to what was recorded.
+These use pre-recorded audio with choice points, much like a choose-your-own-adventure book read aloud. The production quality can be superb, with real actors, a proper score and careful sound design. The catch is that your choices stop where the recording budget stopped. If nobody recorded a scene where you befriend the guard, you can't befriend the guard.
 
 ### Voice Assistant Games
 
-Short interactive stories on smart speakers. Convenient, but usually brief and simple.
+These are short interactive stories on smart speakers. They're convenient, but usually brief and fairly simple. A good example is *The Inspection Chamber*, a sci-fi comedy the BBC made with Rosina Sound for Amazon's Echo. As [Engadget described it](https://www.engadget.com/2017-11-06-the-inspection-chamber-bbc.html), it ran to nearly 20 minutes and asked listeners a question every 90 seconds or so, but the story only really split at one obvious point near the end. The team said they were aiming for something between a game and an audiobook. It was a clever experiment, and it shows the ceiling of the pre-scripted approach rather neatly.
 
 ### AI-Narrated Adventures
 
-The newest form. An AI Game Master generates the narration live in response to whatever you say, and a text-to-speech voice reads it aloud. The world is authored, but the story isn't pre-recorded, so you can do anything.
+This is the newest form. An AI Game Master writes the narration live in response to whatever you say, and a text-to-speech voice reads it aloud. Someone still authors the world, but the story isn't pre-recorded, so you can try anything you can put into words.
 
-EchoQuest is built around this model. Free players hear narration through the browser's built-in voice. Storyteller subscribers hear expressive ElevenLabs voices, with different voices for different characters, and ambient soundscapes under the story.
+EchoQuest is built around this model. Free players hear narration through the browser's built-in voice. Storyteller subscribers get expressive ElevenLabs voices instead, with different voices for different characters, and an ambient soundscape plays under the story for everyone.
+
+I'll be honest: generating the story live brings problems a recorded drama never has. In late May I caught raw JSON, the structured data the GM sends back alongside its prose, leaking into the spoken narration. Hearing a narrator solemnly read out curly brackets is a special kind of embarrassing. Speed is the other headache. A recorded drama starts the instant you press play, whereas a live GM has to think first. So on October 2 I made narration start speaking while the GM's reply is still being written, and the next premium-voice clip now gets fetched while the current one is playing. Dead air is the enemy of immersion, and I'm still chasing every second of it.
 
 ## Why Listeners Are Moving to Interactive Audio
 
-- **Active listening holds attention.** When the story waits for your decision, you don't drift off and lose three chapters.
-- **It's personal.** The protagonist has your character's name, history, and personality.
+I don't have survey numbers on this, but I'm convinced the reasons are these:
+
+- **Active listening holds attention.** When the story waits for your decision, you don't drift off and lose three chapters. You can't, really, because nothing happens until you speak.
+- **It's personal.** The protagonist carries your character's name, history and personality, and the NPCs react to all three.
 - **Endless content.** You never "run out", because every session creates new story.
-- **It fits the same moments.** Commutes, chores, walks, and bedtime.
-- **Accessibility.** Audio-first design works for blind and low-vision people from the start.
+- **It fits the same moments.** Commutes, chores, walks and bedtime all still work.
+- **Accessibility.** Audio-first design works for blind and low-vision people from the start, rather than as a retrofit.
 
 ## What Makes a Great Interactive Audio Story?
 
-1. **A clear narrator voice** that's easy to follow at any speed
-2. **Distinct character voices** so you know who's talking
+1. **A clear narrator voice** that's easy to follow at any speed. This one taught me a lesson. Back in May, premium voices pitched up like chipmunks whenever the playback speed changed, so I had to make sure the pitch holds steady while the pace moves. Now the [ and ] keys nudge the speed mid-scene without turning your narrator into a cartoon
+2. **Distinct character voices** so you always know who's talking. In late May I found NPC voices weren't switching at all, because the NPCs' lines weren't being woven into the narration properly. After fixing that, I matched voices by gender across the whole voice catalogue
 3. **Ambient sound** that places you in the scene. See [How Ambient Sound Design Elevates RPG Storytelling](/blog/how-ambient-sound-design-elevates-rpg-storytelling)
 4. **Meaningful choices** with visible consequences
-5. **Easy recap**, so you can ask "what's happening?" after a distraction
-6. **No time pressure** on decisions
+5. **Easy recap**, so you can ask "what's happening?" after a distraction. In EchoQuest, R replays the last narration, L tells you where you are, and a Catch up button recaps the last three scenes
+6. **No time pressure** on decisions. On May 16 I noticed EchoQuest was reading out the choices while the narrator was still mid-sentence, so screen reader users heard two voices at once. Now the choices wait their turn, and the story simply waits for you
 
 ## A Taste of the Experience
 
 > *Rain drums on the carriage roof. Across from you, the courier clutches her satchel and won't meet your eyes.* "We'll reach the border in an hour," she says. "If anyone asks, I'm your sister."
 
-In an audiobook, you'd find out what happens. In an interactive audio story, you decide: agree, ask what's in the satchel, or quietly take it while she sleeps.
+In an audiobook, you'd find out what happens. In an interactive audio story, the next move is yours. You could agree, or ask what's in the satchel. Maybe you'd quietly take it while she sleeps. Or you could do something nobody scripted, like asking the driver to stop the carriage. What would you do?
 
 ## Who Enjoys Interactive Audio Stories?
 
-- **Audiobook fans** who want more involvement
+- **Audiobook fans** who want to be more involved
 - **Tabletop RPG players** without a regular group
 - **Blind and visually impaired players** looking for rich, accessible games
 - **Busy people** who want stories that fit into spare moments
 - **Language learners** practising listening and speaking
 
+A note on that last group: speaking your actions aloud is real practice. When you use voice input, EchoQuest reads back what it heard and gives you a few seconds to cancel before anything reaches the GM. Speech recognition stumbles over accents and half-finished sentences, so I'd rather you catch a mangled line than watch the story run off with it.
+
 ## The Science Behind the Immersion
 
-Audio uniquely drives imagination. With no visuals, your brain builds the scene itself, and people often remember those scenes more vividly. Read more in [The Science of Immersion: Why Audio Storytelling Is So Powerful](/blog/the-science-of-immersion-why-audio-storytelling-is-so-powerful).
+Audio has a peculiar grip on the imagination. With no pictures supplied, your brain builds the scene itself, casting the characters and dressing the set out of your own memories. That's why a well-told audio scene can feel so personal. The study above adds a useful twist, though. Passive listening is also the easiest mode to drift away from, which is exactly why I think the response loop matters so much. Read more in [The Science of Immersion: Why Audio Storytelling Is So Powerful](/blog/the-science-of-immersion-why-audio-storytelling-is-so-powerful).
 
 ## Try an Interactive Audio Story Free
 
-Put in your headphones, choose a world, and step into the story.
+Put in your headphones, choose a world and step into the story. The free tier gives you 60 AI turns a day, which is plenty for a proper evening's adventure.
 
 **[Start listening and playing →](/library)**
 `,
@@ -288,41 +354,49 @@ Put in your headphones, choose a world, and step into the story.
   {
     publishAt: "2026-10-07",
     title: "20 D&D One-Shot Ideas You Can Run Tonight",
-    excerpt: "Twenty ready-to-run D&D one-shot ideas across fantasy, mystery, heist, and comedy, each with a hook, a complication, and a satisfying finale for one session.",
+    excerpt: "Twenty ready-to-run D&D one-shot ideas across fantasy, mystery, heists, horror and comedy, each with a hook and a twist that fits into a single session.",
     content: `# 20 D&D One-Shot Ideas You Can Run Tonight
 
-A one-shot is a complete adventure in a single session. It's perfect for introducing new players, filling a gap between campaigns, trying a new genre, or playing solo with an AI Dungeon Master. The trick is a tight premise: a clear goal, one good complication, and a finale you can reach in three or four hours.
+A one-shot is a complete adventure squeezed into a single session. It's my favourite format for bringing new players in, because nobody has to commit to six months of Thursdays. It also fills the awkward gap between two campaigns nicely, and it's a cheap way to test a genre before you sink a whole campaign into it. And of course you can play one solo with an AI Dungeon Master.
 
-Here are twenty **D&D one-shot ideas**, grouped by style.
+The trick is a tight premise. You want a clear goal and one good complication. Beyond that, the finale has to be reachable in three or four hours, which sounds generous until the party spends forty minutes shopping for rope. Have you ever had a "quick one-shot" sprawl into three sessions? Then you know exactly why the premise matters more than the dungeon map.
+
+Below are twenty **D&D one-shot ideas**, grouped by style. Steal them, or mash two together and change the names. That's what they're for.
 
 ## How to Structure a One-Shot
 
-1. **Hook (5 minutes):** throw the characters straight into the problem.
-2. **Investigation or journey (60–90 minutes):** two or three scenes that build toward the goal.
+1. **Hook (5 minutes):** drop the characters straight into the problem. No tavern meet-cute.
+2. **Investigation or journey (60 to 90 minutes):** two or three scenes that build toward the goal.
 3. **Complication (30 minutes):** something changes the plan.
-4. **Finale (45 minutes):** the confrontation, heist, or escape.
+4. **Finale (45 minutes):** the confrontation, the heist or the escape.
 5. **Epilogue (5 minutes):** show the consequences.
+
+If that shape looks familiar, it's a close cousin of Johnn Four's well-loved [5 Room Dungeon](https://www.roleplayingtips.com/rptn/5-room-dungeons-contest/) from his Roleplaying Tips newsletter, which runs an entrance and guardian, a puzzle or roleplaying challenge, a trick or setback, a climax, and then a reward or revelation. Both frameworks agree on the important bit. The setback belongs in the middle, never at the start, because players need to understand the plan before they can enjoy watching it break.
+
+One mechanical note from my side. On October 2, I made skill checks in EchoQuest resolve in the same turn you attempt them. Before that, you'd wait an extra exchange to learn whether you'd cleared the chasm, and in a one-shot every one of those little pauses eats into your finale.
 
 ## Classic Fantasy
 
-1. **The Toll Bridge Troll Is Unionising.** Trolls across the kingdom want fair pay. The duke hires you to break the strike. The trolls hire you to win it.
-2. **The Wizard's Apprentice Exam.** Help a nervous apprentice pass their final test inside their master's shifting tower. Complication: the master is trapped in the exam too.
-3. **Dragon Tax Day.** A dragon collects its annual tribute from a village, but the village spent the gold. You have until sundown.
-4. **The Bridge Between Seasons.** A bridge where it's summer on one side and winter on the other. Something is crossing from the wrong side.
-5. **Escort the Oracle.** A prophet who can only speak the truth must reach the capital. Several powerful people would prefer she didn't.
+1. **The Toll Bridge Troll Is Unionising.** Trolls across the kingdom want fair pay. The duke hires you to break the strike. The trolls hire you to win it. Labour disputes are older than you'd think, by the way. The Museo Egizio in Turin holds a papyrus recording how tomb workers under Ramesses III [walked off the job shouting "we are hungry!"](https://collezioni.museoegizio.it/en-GB/material/Cat_1880) when their rations failed to arrive. Your trolls are in excellent historical company.
+2. **The Wizard's Apprentice Exam.** Help a nervous apprentice pass their final test inside their master's shifting tower. Complication: the master is trapped inside the exam too.
+3. **Dragon Tax Day.** A dragon collects its annual tribute from a village, but the village has spent the gold. You have until sundown. (The medieval legend of Saint George had a town feeding its dragon sheep, then young people chosen by lot, so a village that blew the budget is getting off lightly.)
+4. **The Bridge Between Seasons.** A bridge where it's summer at one end and winter at the other. Something is crossing from the wrong side.
+5. **Escort the Oracle.** A prophet who can only speak the truth must reach the capital. Several powerful people would prefer she didn't. Cassandra's curse in the Greek myths was that nobody believed her. This oracle has the opposite problem: everyone does.
 
 ## Mystery and Intrigue
 
-6. **Murder at the Mages' Guild.** A guild master has been killed by a spell that's been banned for a century. Every suspect has an alibi.
-7. **The Masquerade Poisoning.** Someone at a noble ball plans to poison the queen before midnight. You don't know who or how.
-8. **The Missing Heir.** The heir vanished from a locked tower. The heir doesn't want to be found.
-9. **The Forger's Last Work.** A famous painting is a forgery, and the forger is dead. The real painting hides a map.
+6. **Murder at the Mages' Guild.** A guild master has been killed by a spell that was banned a century ago. Every suspect has an alibi.
+7. **The Masquerade Poisoning.** Someone at a noble ball plans to poison the queen before midnight. You don't know who, and you don't know how.
+8. **The Missing Heir.** The heir vanished from a locked tower, and the heir doesn't want to be found. History never solved its own version: the young Edward V and his brother were last seen in the Tower of London in 1483. Yours at least has a pulse and an opinion.
+9. **The Forger's Last Work.** A famous painting is a forgery, and the forger is dead. The real painting hides a map. Real forgers can be wonderfully theatrical. After selling a fake Vermeer to Hermann Göring, Han van Meegeren was accused of treason after the war and had to prove his innocence by [painting another "Vermeer" under the eyes of six witnesses](https://theconversation.com/guy-pearce-shines-but-the-last-vermeer-paints-over-the-remarkable-true-story-of-the-worlds-most-successful-art-forger-157401). He was eventually convicted of forgery rather than treason.
 
 ## Heists
 
-10. **Rob the Bank of the Gods.** A temple vault holds offerings from a hundred years. The guardians are quite literally divine.
-11. **Steal Back the Stolen Thing.** A crime lord took a village's sacred relic. Get it back from his gala without starting a war.
+10. **Rob the Bank of the Gods.** A temple vault holds a hundred years of offerings. The guardians are quite literally divine.
+11. **Steal Back the Stolen Thing.** A crime lord has taken a village's sacred relic. Get it back from his gala without starting a war.
 12. **The Auction Switch.** Swap a cursed artefact for a fake during a live auction in front of two hundred bidders.
+
+Heists run beautifully as one-shots because the plan *is* the structure. Let the players plan for twenty minutes, tops, and then break exactly one assumption they made.
 
 ## Horror
 
@@ -330,23 +404,27 @@ Here are twenty **D&D one-shot ideas**, grouped by style.
 14. **The Lighthouse at World's End.** The light must stay lit until dawn. Something in the sea wants it dark.
 15. **The Wedding Guests.** A wedding feast where the guests slowly realise the groom died a year ago.
 
+If horror is your thing, I've put together [thirteen more horror hooks for spooky season](/blog/13-halloween-horror-rpg-one-shot-ideas-for-spooky-season), each paired with a sound to build the atmosphere around.
+
 ## Comedy and Light-Hearted
 
-16. **The Great Cheese Race.** A town's annual race to chase a giant wheel of cheese downhill has been sabotaged, and the prize is a genie's wish.
-17. **The Accidental Chosen One.** A prophecy points to one of the party because of a spelling mistake. Now they have to act the part.
-18. **Monster Daycare.** Look after the children of the local dungeon's monsters for one afternoon. What could go wrong?
+16. **The Great Cheese Race.** A town's annual race chasing a giant wheel of cheese downhill has been sabotaged, and the prize is a genie's wish. This one is barely fiction. At Cooper's Hill in Gloucestershire, people really do hurl themselves down a near-vertical slope after a [7-pound wheel of Double Gloucester](https://www.pbs.org/newshour/world/contestants-chase-cheese-wheel-down-a-hill-in-chaotic-u-k-race), and PBS NewsHour reports the race has been held there since at least 1826.
+17. **The Accidental Chosen One.** A prophecy points to one of the party because of a spelling mistake. Now they have to play the part.
+18. **Monster Daycare.** Look after the children of the local dungeon's monsters for one afternoon. What could possibly go wrong?
 
 ## Exploration and Survival
 
-19. **Adrift.** Wake up on a lifeboat with no memory of the shipwreck, three days' water, and an island on the horizon.
-20. **The Last Caravan.** Lead refugees across a desert. Water, bandits, and a sandstorm all threaten the route.
+19. **Adrift.** You wake on a lifeboat with no memory of the shipwreck, three days' water and an island on the horizon. For inspiration, read about Ernest Shackleton's 1916 voyage in the lifeboat James Caird, roughly 800 miles across the Southern Ocean to South Georgia. It makes most fantasy survival look comfortable.
+20. **The Last Caravan.** Lead refugees across a desert. Water, bandits and a sandstorm all threaten the route.
 
 ## Making Any One-Shot Better
 
-- **Pre-generate characters** with built-in connections to the premise.
-- **Give a clock:** "until sundown", "before midnight", "three days' water".
-- **End with a choice:** the best finales ask players to decide something, not just win a fight.
-- **Cut ruthlessly:** if a scene doesn't serve the goal, skip it.
+- **Pre-generate characters** with built-in ties to the premise. A cleric who owes the troll union money is worth ten paragraphs of backstory.
+- **Give a clock:** "until sundown", "before midnight", "three days' water". A deadline does more for pacing than any rule in the book.
+- **End with a choice:** the best finales ask players to decide something, not just win a fight. Do you hand the oracle over to save the caravan? That's a finale.
+- **Cut ruthlessly:** if a scene doesn't serve the goal, skip it. I'm convinced the scene you cut is the one nobody misses.
+
+And plan for overruns anyway, because they happen to everyone. EchoQuest auto-saves every five turns and has a manual Save button. Since early October your character's progress lives on the server as well, so a one-shot that spills past bedtime can pick up tomorrow on a different device. Saving properly took some work, too. Back in May I found that a turn which errored halfway could leave half-applied changes behind, so now a turn either lands completely or rolls back completely. Single-step undo arrived around the same time, so U takes back your last move if you'd like a second go at that door.
 
 ## Running One-Shots Solo With an AI DM
 
@@ -356,7 +434,9 @@ Any of these works as a solo game. On EchoQuest:
 2. Write a character whose backstory ties into the premise
 3. Tell the Game Master, "Tonight's adventure: [premise]. I want to finish it in one session."
 
-A good AI Game Master will pace toward a finale. If you haven't played solo before, read [How to Play D&D Solo With an AI Dungeon Master](/blog/how-to-play-dd-solo-with-an-ai-dungeon-master).
+A good AI Game Master should then pace toward a finale. When I rewrote EchoQuest's GM instructions on October 2, I told it to talk like a seasoned human GM, which means it opens each scene on one concrete detail and ends on a direct question to you. That rhythm keeps a one-shot moving, because every turn hands the spotlight straight back. Also, the free tier gives you 60 AI turns a day, which in my opinion is a comfortable budget for a tight one-shot if you skip the rope shopping.
+
+If you haven't played solo before, read [How to Play D&D Solo With an AI Dungeon Master](/blog/how-to-play-dd-solo-with-an-ai-dungeon-master) first. So, which of the twenty are you running tonight?
 
 **[Pick a world and start a one-shot →](/library)**
 `,

@@ -291,77 +291,83 @@ You don't need a group, a rulebook, or a Friday night free. Pick a world, make a
   {
     publishAt: "2026-09-27",
     title: "Text Adventure Games Online: A Modern Player's Guide",
-    excerpt: "Text adventure games are back, now with AI. Learn how to play text adventures online, how modern AI versions differ from classic parser games, and where to start.",
+    excerpt: "How text adventure games work online today, how AI versions differ from classic parser games, where to find free ones, and tips for your first session.",
     content: `# Text Adventure Games Online: A Modern Player's Guide
 
-Before 3D graphics, before sprites, there were words on a screen: "You are standing in an open field west of a white house." Text adventure games were among the first computer games, and they never really went away. Today they're having a revival, driven by accessibility, nostalgia, and AI that can finally understand what players mean.
+Before 3D graphics, before sprites, there were words on a screen: "You are standing in an open field west of a white house." That's how Zork I greets you, and plenty of people can still tell you what comes next (a small mailbox, and yes, you should open it). Text adventures were among the very first computer games. Will Crowther wrote Adventure around a stretch of Kentucky's Mammoth Cave that he and his wife had mapped as cavers, and by May 1977 it had become [the first computer game blockbuster](https://if50.substack.com/p/1976-adventure). The genre never really left, either. It just went quiet for a few decades. Now it's having a comeback. Nostalgia helps, and text happens to work beautifully with a screen reader. The biggest push, though, comes from AI that can finally work out what a player actually means.
 
-This guide covers how **text adventure games online** work today, how AI versions differ from classic ones, and how to get the most from them.
+I've got a personal stake in this one, because EchoQuest is, at heart, a text adventure that talks. So this guide covers how **text adventure games online** work today, how AI versions differ from the classics, and how to get the most out of either. Have you ever typed GET LAMP at one in the morning? Then you're among friends.
 
 ## What Is a Text Adventure?
 
-A text adventure (also called interactive fiction) is a game where the world is described in words and you act by typing commands. There are no graphics to learn and nothing to aim. Your imagination does the rendering.
+A text adventure (people also call it interactive fiction, or IF) is a game where the world arrives as words and you act by typing commands. There are no graphics to learn and nothing to aim. Your imagination does the rendering, and honestly, its budget beats any studio's.
 
-Classic text adventures used a **parser**, a program that understood a small vocabulary like GO, TAKE, OPEN, and EXAMINE. Modern AI text adventures use large language models that understand natural sentences.
+Classic text adventures leaned on a **parser**, a small program that understood a short vocabulary like GO, TAKE, OPEN and EXAMINE. Crowther's game could only cope with [two words at a time, a verb and a noun](https://if50.substack.com/p/1977-zork). Zork, started at MIT in 1977, felt like sorcery by comparison, because it could follow "attack troll with sword" or "put jewels in sack". Modern AI text adventures swap the parser for a large language model, so they understand ordinary sentences, rambling asides and the odd typo included.
 
 ## Classic Parser Games vs. AI Text Adventures
 
 | | Classic parser games | AI text adventures |
 | --- | --- | --- |
 | Input | Short commands ("get key") | Natural language ("I pocket the key while the guard looks away") |
-| World | Hand-written, finite | Authored setting that expands as you play |
-| Replay | Same puzzles each time | Different story each playthrough |
-| Frustration | "I don't understand that." | Rarely stuck on wording |
-| Strength | Tight, clever puzzles | Freedom, conversation, emergent story |
+| World | Hand-written and finite | An authored setting that grows as you play |
+| Replay | The same puzzles every time | A different story on each run |
+| Frustration | "I don't understand that." | You rarely get stuck on wording |
+| Strength | Tight, clever puzzles | Open-ended freedom and real conversation, with a story that emerges from play |
 
-Both are worth playing. Classic interactive fiction is a rich art form with decades of free games. AI text adventures offer something new: a world that responds to *anything*.
+Both deserve your evenings. Classic interactive fiction is a rich art form with decades of free games behind it, and I'd never tell anyone to skip it. AI text adventures offer something new, though: a world that answers *anything*.
+
+The frustration row is the one I think about most. "I don't understand that" was the parser's polite way of saying no, and it ended a lot of evenings early. So when I wrote the instructions for EchoQuest's Game Master, I told it to handle impossible actions inside the story instead of refusing them ("The stone door doesn't give, however hard you shove"). I also told it that you can ignore the suggested choices and type or say anything at all, and it has to follow you rather than herd you back onto a path.
 
 ## Why Text Adventures Are Perfect for Accessibility
 
-Text is the most portable format there is. It works with screen readers, braille displays, text-to-speech, and magnifiers. That's why text adventures have long been popular with blind gamers.
+Text travels better than any other format. It works with screen readers and braille displays, and it plays just as nicely with text-to-speech and magnifiers. That's why text adventures have been popular with blind gamers for so long. AccessWorld, the American Foundation for the Blind's magazine, [reviewed Thaumistry](https://afb.org/aw/20/9/16766), a modern parser game whose designer, Bob Bates, added a text-only mode to the Windows version so screen readers like JAWS read it properly.
 
-EchoQuest takes this a step further with **audio-first** design: every scene is narrated aloud, and you can respond by voice. It's a text adventure you can play with your eyes closed.
+Still, "it's text" doesn't automatically mean "it's accessible". In early 2019 the Interactive Fiction Technology Foundation ran an [accessibility study with real players](https://accessibility.iftechfoundation.org/). NVDA was the most common screen reader among its testers. Blind testers almost universally couldn't make sense of a map drawn out of text characters, and box quotes and full-screen menus tripped up screen reader users too. The Twine game in the study fared far better than the parser one. I learned a version of that lesson myself. Back in May, EchoQuest announced the choices and moved focus to them while the narrator was still mid-sentence, so screen reader users heard two voices at once. On paper, everything was readable. In practice it was a din. Now the choices wait until the narrator has finished.
+
+EchoQuest takes the idea a step further with **audio-first** design: every scene is narrated aloud, and you can respond by voice. It's a text adventure you can play with your eyes closed. It hasn't always been graceful, mind you. In late May, raw JSON from the GM's reply leaked into the spoken narration, so the narrator would happily read out chunks of code in the middle of a scene. Not my proudest week.
 
 ## How to Play a Text Adventure Well
 
 ### Read (or Listen) Carefully
 
-Descriptions are your map. Details are rarely there by accident. If the narrator mentions a loose floorboard, it matters.
+Descriptions are your map. Details are rarely there by accident, so if the narrator mentions a loose floorboard, it matters. Good authors plant things on purpose, and I asked EchoQuest's GM to do the same: drop a small detail now and pay it off a few turns later. If a line slips past you, press R to hear it again.
 
 ### Examine Everything
 
-In classic games, EXAMINE is the most useful verb. In AI games, ask questions: "What does the inscription say?" "Does the merchant seem nervous?"
+In classic games, EXAMINE is the hardest-working verb you've got. In AI games, ask questions instead: "What does the inscription say?" "Does the merchant seem nervous?" You'll be surprised how often the answer hands you the next step.
 
 ### Talk to Characters
 
-AI text adventures shine in conversation. You can bluff, bargain, flatter, or interrogate, and NPCs react in character.
+AI text adventures really come alive in conversation. You can bluff, bargain, flatter or interrogate, and NPCs react in character. In EchoQuest they also remember how you've treated them, since your standing with each named character is tracked on a scale from -100 to +100. On the Storyteller plan they even get their own voices.
 
 ### Keep Notes
 
-A few lines about names, clues, and unanswered questions help a lot on longer adventures.
+A few lines about names, clues and unanswered questions help a lot on longer adventures. You don't need a notebook for everything, mind. In EchoQuest, Q opens your quest log and I lists your inventory. The character sheet also has a Lore tab that quietly collects whatever you've discovered about the world.
 
 ### Be Specific About Intent
 
-"I attack" is fine. "I feint left, then drive my shield into his knee to knock him off the bridge" is better. The AI can reward creativity in a way parsers never could.
+"I attack" is fine. "I feint left, then drive my shield into his knee to knock him off the bridge" is better. An AI can reward creativity in a way a parser never could. When something's genuinely risky, EchoQuest rolls a d20, adds your stat modifier and compares it with a difficulty. Since October 2 the result lands in the same turn, so you're no longer left dangling on the bridge for a whole exchange.
 
 ## Where to Play Text Adventure Games Online
 
-- **Classic interactive fiction archives** host thousands of free parser games you can play in a browser.
-- **Annual IF competitions** showcase new short games every year.
-- **AI-powered platforms** like EchoQuest let you play narrated, open-ended adventures in fantasy, sci-fi, noir, horror, and more, right in your browser with no download.
+- **Classic interactive fiction archives** host thousands of free parser games you can play in a browser. The [Interactive Fiction Database](https://ifdb.org/) lists more than 15,000 games, and you can click Play Online on most of them. The [IF Archive](https://ifarchive.org/indexes/if-archive/games/) keeps the files themselves, including HTML, Twine and Ink games that run straight in a browser.
+- **Annual IF competitions** showcase new short games every year. [IFComp](https://ifcomp.org/about/comp) has run annually since 1995, every entry is released free to the public, and anyone can sign up as a judge by rating at least five games.
+- **AI platforms** like EchoQuest let you play narrated, open-ended adventures in fantasy, sci-fi, noir, horror and more, right in your browser with no download.
 
 ## Tips for Your First AI Text Adventure
 
-1. **Start with a structured campaign.** An official campaign gives you clear stakes while you learn the style.
-2. **Don't be afraid to experiment.** Try something odd and see how the world reacts.
-3. **Ask the narrator for help.** "Remind me what I know about the missing ship" works.
+1. **Start with a structured campaign.** An official campaign gives you clear stakes while you learn the style. Three of the nine worlds in the library are free.
+2. **Don't be afraid to experiment.** Try something odd and see how the world reacts. If it goes horribly wrong, U undoes your last turn (one step back, so use it wisely).
+3. **Ask the narrator for help.** "Remind me what I know about the missing ship" works. There's also a Recap button that replays your last three scenes.
 4. **Replay.** The same campaign can go very differently a second time.
 
 If you've never tried one, our [beginner's guide to your first EchoQuest adventure](/blog/how-to-play-your-first-echoquest-adventure-beginners-guide) walks through a session step by step.
 
 ## The Future of Text Adventures
 
-Text adventures were written off as a relic once graphics arrived. It turns out words were never the limitation. Early computers just couldn't understand them well. Now they can. The genre that started gaming may turn out to be one of its most flexible futures.
+Text adventures were written off as a relic once graphics arrived. It turns out words were never the limitation. Early computers just couldn't understand them very well. Now they can, and I'm convinced the genre that started gaming will be one of its most flexible futures.
+
+I've watched that gap close from the inside. On October 2 I rewrote the GM's instructions so it talks like a seasoned person behind the screen rather than a manual. On the same day I got narration speaking while the GM's reply is still being written, so the pause between your sentence and the story's answer keeps shrinking. Crowther's cave needed two words from you. These days you can just talk. So, what's the first thing you'll type?
 
 **[Play a text adventure online for free →](/library)**
 `,
@@ -369,28 +375,30 @@ Text adventures were written off as a relic once graphics arrived. It turns out 
   {
     publishAt: "2026-09-28",
     title: "What Is an AI Game Master? Everything You Need to Know",
-    excerpt: "What is an AI Game Master, how does it work, and can it really run a tabletop-style RPG? A plain-English explainer covering memory, rules, dice, and narration.",
+    excerpt: "What an AI Game Master is, how it works under the hood, and whether it can really run a tabletop-style RPG: memory, rules, dice and narration in plain English.",
     content: `# What Is an AI Game Master? Everything You Need to Know
 
-"AI Game Master" is one of the fastest-growing terms in gaming, and one of the most misunderstood. Some people picture a chatbot that makes up stories. Others picture a robot running D&D. The reality is somewhere in between, and more interesting than either.
+"AI Game Master" gets thrown around a lot these days, and it's badly misunderstood. Some people picture a chatbot spinning yarns. Others picture a robot sitting behind a D&D screen. The truth lands somewhere between those two, and it's more interesting than either.
 
-This explainer covers what an **AI Game Master** is, how it works under the hood, what it does well, and where it's still improving.
+I've spent a good chunk of this year building one, so I've got opinions. This explainer covers what an **AI Game Master** is, how it works under the hood, what it does well, and where it still trips over its own cloak.
 
 ## The Short Answer
 
-An AI Game Master (AI GM) is software that runs a roleplaying game for you. It describes the world, plays every non-player character, decides the outcome of your actions, and keeps the story moving, the same job a human GM or Dungeon Master does at a tabletop.
+An AI Game Master (AI GM) is software that runs a roleplaying game for you. It describes the world, plays every non-player character, decides how your actions turn out, and keeps the story moving. That's the same job a human GM or Dungeon Master does at a tabletop. The D&D basic rules call the DM [the game's lead storyteller and referee](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/introduction), and they describe play as a loop: the DM sets the scene, the players say what they do, and the DM narrates what happens. An AI GM runs that exact loop, just without needing snacks.
 
-The difference from a chatbot is **structure**. A good AI GM combines a language model with game rules, persistent state, and a clear sense of pacing.
+What separates it from a chatbot is **structure**. A good AI GM pairs a language model with real rules and persistent state. It also needs a feel for pacing. Take those away and you're left with improv that forgets what happened ten minutes ago.
 
 ## How an AI Game Master Works
 
 ### 1. The Language Model
 
-At the core is a large language model. In EchoQuest's case that's Claude, from Anthropic. The model handles what's hard to program by hand: understanding your intent, writing vivid descriptions, and giving NPCs believable voices.
+At the core sits a large language model. In EchoQuest's case that's Claude, made by Anthropic. The model handles the stuff that's miserable to program by hand, like working out what you actually meant, or giving a sulky ferryman a voice you'd believe.
+
+Here's a lesson I learned the hard way, though. The model copies the style of its instructions. My first GM prompt read like a technical spec, and sure enough, the narration came back sounding like one, full of tidy lists and wrap-up sentences. On October 2 I rewrote the whole thing so it talks like a seasoned person behind the screen. Now it opens on one concrete detail and ends on a direct question to you.
 
 ### 2. The World Definition
 
-The AI needs to know what world it's running. That comes from a campaign definition, sometimes called a Game Bible, containing setting lore, factions, locations, key NPCs, tone guidelines, and rules. This keeps the GM from inventing things that break the world.
+The AI needs to know which world it's running. That comes from a campaign definition, sometimes called a Game Bible, holding setting lore, factions, locations, key NPCs, tone guidelines and rules. It keeps the GM from inventing things that break the world. In EchoQuest the Game Bible is the source of truth: if your world defines its own classes or its own way of rolling stats, the GM uses those instead of falling back on generic warriors and mages. On the Storyteller plan you can write one yourself, with the World Builder Wizard or by uploading a document.
 
 ### 3. Game State
 
@@ -402,45 +410,53 @@ Behind the narration, the system tracks structured data:
 - Quest progress and story flags
 - Location and time
 
-The AI reads this state before each response and proposes updates after. That's how a potion you drank stays drunk.
+The AI reads this state before each response and proposes updates afterwards. That's how a potion you drank stays drunk.
+
+In EchoQuest, the game engine writes your character's state and the world's state at the top of every turn, and the GM is told to treat those blocks as fact. Nothing you type can rewrite them, so "I suddenly have a thousand gold" won't get you far. EchoQuest's own list looks a little different from the generic one above: HP, XP and your four core stats, inventory, quests with their objectives, story flags, location and time of day, plus your standing with every named NPC. Its one condition that really bites is DOWN, which means 0 HP. Real state brings real responsibility, mind you. Back in May, a turn that errored halfway could leave changes half-applied, so I added a full rollback. A turn now lands completely or not at all.
 
 ### 4. Rules and Randomness
 
-When the outcome of an action is uncertain (picking a lock, persuading a guard, dodging a blade), a good AI GM resolves it with **dice rolls**, not just narrative convenience. Randomness creates tension and makes success feel earned.
+When the outcome of an action is uncertain (picking a lock, say, or dodging a blade), a good AI GM settles it with **dice rolls**, never mere narrative convenience. Randomness creates tension, and it makes success feel earned.
+
+Tabletop D&D does it by having you [roll a d20, add a modifier and compare the total to a Difficulty Class](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/using-ability-scores), on a ladder that runs from 5 for very easy up to 30 for nearly impossible. EchoQuest borrows the idea with a shorter ladder (5 trivial up to 24 near impossible). The part that matters most is who rolls. The GM isn't allowed to decide whether you succeed. It asks the game for a check, the server rolls d20 plus your stat modifier, and the GM has to narrate whatever came up. I'll confess this was broken on the web for longer than I'd like: the roll result got filtered out before the GM ever saw it. Since October 2 the check resolves in the same turn, and the dice line shows up before the narration.
 
 ### 5. Memory and Summaries
 
-Long campaigns go beyond what any model can hold at once. AI GMs use rolling summaries and key facts so earlier events can come back. The informant you betrayed can still hold a grudge ten sessions later.
+Long campaigns outgrow what any model can hold at once. Anthropic describes a model's context window as its [working memory](https://platform.claude.com/docs/en/about-claude/glossary), and even big windows have soft spots. One Stanford-led study found that models [use information in the middle of a long context noticeably worse](https://aclanthology.org/2024.tacl-1.9/) than information at the start or end. So AI GMs lean on rolling summaries and key facts, which lets earlier events resurface. The informant you betrayed can still hold a grudge ten sessions later.
+
+In EchoQuest, the most recent turns go to the GM word for word. Once a game runs long, a smaller and quicker Claude model folds older turns, ten at a time, into a compact factual summary of decisions, NPCs, places, items and quests. That system bit me too. On October 2 I found that past a certain length, every turn re-summarised the first ten turns and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns. Both are fixed now.
 
 ### 6. Narration and Voice
 
-Finally, the output has to reach you. In EchoQuest, every response is **narrated aloud**, with browser speech on the free tier and expressive ElevenLabs voices on premium plans, with different voices for different characters.
+Finally, the output has to reach your ears. In EchoQuest, every response is **narrated aloud**. The free tier uses your browser's speech, and the paid plans use expressive ElevenLabs voices, with a different voice for each character, chosen to match that character's gender. Getting that right took some doing. In late May, NPC voices refused to switch because the dialogue wasn't woven into the narration. Then the October rewrite made the GM talk more casually, and all those contractions exposed an old parser bug: a line like "Don't move." switched voices mid-word at the apostrophe. I fixed it in the same change. Narration now starts speaking while the GM's reply is still being written, so you're not sat in silence waiting for a whole paragraph.
 
 ## What an AI Game Master Does Well
 
-- **Improvisation:** it can respond sensibly to almost anything you try.
+- **Improvisation:** it can respond sensibly to almost anything you try, including the plan nobody saw coming.
 - **Availability:** it's there at 2am, on a lunch break, or for ten minutes on a train.
 - **Patience:** it never sighs when you spend an hour haggling with a fishmonger.
-- **Consistency of effort:** every NPC gets a voice, every scene gets description.
+- **Consistency of effort:** every NPC gets a voice, every scene gets description, even at the end of a long night.
 - **Accessibility:** it can be fully audio-driven and screen-reader friendly, which physical tabletop play often isn't.
+
+That last one is why EchoQuest exists. A battle map and a rulebook full of tables aren't much use if you can't see them. A GM who talks, and waits for you to talk back, is.
 
 ## Where AI GMs Are Still Improving
 
-To be fair, AI Game Masters aren't perfect:
+I'd rather be straight with you: AI Game Masters aren't perfect.
 
-- **Very long-term continuity** can drift without good summarisation.
-- **Tactical grid combat** is harder to convey in pure narration than on a battle map.
-- **Reading the room** at a real table, noticing a friend is bored or upset, is a human skill.
+- **Very long-term continuity** can drift without good summarisation. (See my summary bug above. I'm not immune.)
+- **Tactical grid combat** is harder to get across in pure narration than on a battle map. EchoQuest doesn't have a grid at all. Fights play out through narration and sound cues, and S reads your status whenever you want the numbers.
+- **Reading the room** at a real table, noticing that a friend is bored or upset, is a human skill. An AI can't see your face, so it needs you to say so.
 
-The best platforms reduce these with state tracking, structured campaigns, and letting you steer ("Let's skip ahead to the city").
+The best platforms soften these with state tracking and structured campaigns, and by letting you steer ("Let's skip ahead to the city"). If the dice go badly and you just want a do-over, EchoQuest has a single-step undo on the U key. And if you hit 0 HP, nobody dies for good, though you'll get a proper setback. You might be captured, or wake hours later with a price to pay.
 
 ## AI GM vs. Human GM: Which Is Better?
 
-Neither. They're different experiences. A human GM brings friendship, shared history, and table chemistry. An AI GM brings on-demand play, endless patience, and total personalisation. Many players use both: a human-run group every other week, and AI sessions in between. See [From Tabletop to AI: How EchoQuest Reimagines D&D](/blog/from-tabletop-to-ai-how-echoquest-reimagines-dd).
+They're different experiences, and I'll take a side anyway: an AI GM can't replace your group, and it shouldn't pretend to. A human GM brings friendship and years of shared history, the kind of chemistry where the whole table groans at the same terrible pun. What an AI GM must do is cover the gaps. It's on call whenever you are, and its whole story bends around you. My advice is to do both: a human-run game every other week, with AI sessions in between. See [From Tabletop to AI: How EchoQuest Reimagines D&D](/blog/from-tabletop-to-ai-how-echoquest-reimagines-dd) for more on that.
 
 ## How to Get the Best From an AI Game Master
 
-1. **Set expectations early:** tone, difficulty, content limits.
+1. **Set expectations early:** tone, difficulty and content limits. Human tables do this in a "session zero", often with free tools like Monte Cook Games' [Consent in Gaming](https://www.montecookgames.com/store/product/consent-in-gaming/) checklist or the [lines and veils approach](https://slyflourish.com/safety_tools.html) Sly Flourish describes. With an AI, a sentence in your first action does the job. EchoQuest's library also tags every world with its genre, tone and difficulty, so you know roughly what you're walking into.
 2. **Be descriptive:** detailed actions get detailed responses.
 3. **Ask questions:** "What do I know about this faction?"
 4. **Steer when needed:** you're allowed to say "Let's move on."
@@ -448,7 +464,7 @@ Neither. They're different experiences. A human GM brings friendship, shared his
 
 ## Try an AI Game Master Today
 
-The best way to understand an AI GM is to play one. EchoQuest's free tier includes three official campaigns with full narration. Make a character, speak or type your first action, and see how it responds.
+Honestly, the best way to understand an AI GM is to play with one. EchoQuest's free tier includes three official campaigns with full narration and 60 free AI turns a day. Make a character, speak or type your first action, and see how it responds. What's the first thing you'd ask a Game Master who never gets tired?
 
 **[Meet your AI Game Master →](/library)**
 `,
@@ -666,26 +682,30 @@ You don't need a thumb jammed in page 42 anymore. Pick a world and make a charac
   {
     publishAt: "2026-10-01",
     title: "How to Write a D&D Backstory (With 10 Prompts and Examples)",
-    excerpt: "Learn how to write a D&D character backstory that gives your DM hooks to use: a simple structure, common mistakes, and 10 backstory prompts with examples.",
+    excerpt: "How to write a D&D backstory your Game Master can actually use: a five-part formula, common mistakes to avoid, and 10 backstory prompts with examples.",
     content: `# How to Write a D&D Backstory (With 10 Prompts and Examples)
 
-A great backstory does more than explain where your character came from. It gives your Game Master hooks: people, debts, secrets, and goals they can bring into the story. Whether you're playing with a human Dungeon Master or an AI Game Master, a strong backstory makes the campaign about *you*.
+A great backstory does more than explain where your character came from. It hands your Game Master hooks: people, debts, secrets and goals they can drag into the story. Human Dungeon Master or AI Game Master, the effect's the same. A strong backstory makes the campaign about *you*.
 
-This guide gives you a simple structure for writing a **D&D backstory**, the mistakes to avoid, and ten prompts to get you started.
+The rules have quietly nudged players this way for years. The D&D basic rules define bonds as [a character's connections to people, places, and events in the world](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/personality-and-background), and a flaw as anything someone else could exploit "to bring you to ruin". Read those two lines again and you'll notice something sly. They're a GM's toolkit, and you're the one handing it over.
+
+I think about backstories more than is probably healthy, because EchoQuest's Game Master rereads yours on every single turn. So this guide gives you a simple structure for writing a **D&D backstory**, the mistakes worth dodging, and ten prompts to get you moving. Have you ever written three pages of lore and watched your DM's eyes glaze over by page two? Then this one's for you.
 
 ## The 5-Part Backstory Formula
 
-You don't need five pages. You need five ideas.
+You don't need five pages. You need five ideas. Sly Flourish, one of the most practical DM advice sites around, says to [describe your backstory in one to five sentences instead of one to five pages](https://slyflourish.com/building_great_dnd_characters.html). The same article admits its author doesn't even start filling in his own backstory until he's played an adventure and reached 2nd level, which I find oddly comforting.
 
 1. **Origin:** where and how they grew up, in one or two sentences.
-2. **Turning point:** the event that set them on the adventurer's path.
-3. **Goal:** what they want right now, concrete and actionable.
-4. **Flaw or fear:** what gets them into trouble.
-5. **Loose thread:** an unresolved person, debt, or mystery the story can pick up.
+2. **Turning point:** the event that pushed them onto the adventurer's road.
+3. **Goal:** what they want right now, concrete enough to act on.
+4. **Flaw or fear:** what keeps getting them into trouble.
+5. **Loose thread:** an unresolved person, debt or mystery the story can pick up.
 
-The loose thread matters most, because it's the hook the GM will use.
+The loose thread matters most, because it's the hook the GM will actually grab. As Riley Silverman wrote for D&D Beyond, bonds [help you establish roots that connect your character to the world](https://www.dndbeyond.com/posts/1462-creating-a-backstory-for-your-first-d-d-character) they live in. A loose thread is a root with a bit of frayed rope still attached. If you only have the energy for one of the five, write that one.
 
 ## Example Backstory Using the Formula
+
+Here's one I made up to show the formula at work. Mira isn't anybody's real character, just an illustration:
 
 > **Origin:** Mira grew up on a salt barge, the youngest of six, learning knots before letters.
 > **Turning point:** When a customs cutter sank the barge, Mira was the only one who swam ashore.
@@ -693,41 +713,55 @@ The loose thread matters most, because it's the hook the GM will use.
 > **Flaw:** She trusts no one in uniform, even when she should.
 > **Loose thread:** Her eldest brother's body was never found.
 
-That's five sentences, and it gives a GM a villain (the informant), a faction (customs), a personal mystery (the brother), and a flaw to test.
+That's five sentences, and look how much it gives a GM. There's a villain (the informant) and a faction (customs). On top of that you've got a personal mystery in the missing brother, plus a flaw that's begging to be tested the first time a well-meaning guard offers to help.
+
+Honestly, the brother is the bit I'd bet on. A body that was never found is practically a promise that somebody turns up in the third act, probably at the worst possible moment.
 
 ## Common Backstory Mistakes
 
-- **The finished hero.** If your character already defeated their nemesis and mastered their craft, the story has nowhere to go.
-- **The orphan with no one.** Tragedy is fine, but a character with *no* living connections gives the GM nothing to use. Leave someone alive.
-- **The novel.** Ten pages of lore is hard to use. Keep it short and let the rest emerge in play.
-- **The lone wolf who refuses everything.** Moody is fine. Unwilling to engage is not.
-- **Overpowered secrets.** "Secretly the heir to the empire and a dragon" tends to take over the whole campaign.
+- **The finished hero.** If your character has already beaten their nemesis and mastered their craft, the story has nowhere left to go. Leave the big win for the table.
+- **The orphan with no one.** Tragedy is fine, but a character with *no* living connections gives the GM nothing to use. Leave someone alive. Sly Flourish's advice to GMs is to [build relationships between characters and key NPCs](https://slyflourish.com/integrating_characters.html) ("Maybe they're old war buddies"), and you can save your GM the trouble by writing one in yourself.
+- **The novel.** Ten pages of lore is hard to use. Keep it short and let the rest surface in play. I'd much rather EchoQuest's GM chew on five sharp sentences every turn than skim a family tree.
+- **The lone wolf who refuses everything.** Moody is fine. Unwilling to engage is not, because a character who turns down every hook leaves the GM talking to a wall.
+- **Overpowered secrets.** "Secretly the heir to the empire *and* a dragon" tends to swallow the whole campaign.
 
 ## 10 D&D Backstory Prompts
 
-Use these as starting points. Each includes a built-in hook.
+Use these as starting points. Each one has a hook built in, so pick whichever grabs you and run it through the five-part formula.
 
 1. **The Borrowed Name.** You're travelling under the name of someone who died. Their family doesn't know yet.
-2. **The Unpaid Debt.** A temple healed your dying parent. The priests now want payment, and not in gold.
-3. **The Failed Apprentice.** Your master expelled you the night before the final test, with no explanation. You want to know why.
-4. **The Wrong Prophecy.** A seer named you as the one who will "open the last door". You have no idea what that means, but some people are very interested in you.
-5. **The Deserter.** You walked away from a battle you knew was a massacre. Your old regiment still has your name on a list.
-6. **The Letter Carrier.** You've carried a sealed letter for three years, promising a dying stranger to deliver it. You still haven't found the recipient.
+2. **The Unpaid Debt.** A temple healed your dying parent. Now the priests want payment, and not in gold.
+3. **The Failed Apprentice.** Your master expelled you the night before your final test, without a word of explanation. You want to know why.
+4. **The Wrong Prophecy.** A seer named you as the one who will "open the last door". You've no idea what that means, but some people are very interested in you.
+5. **The Deserter.** You walked away from a battle you knew would be a massacre. Your old regiment still has your name on a list.
+6. **The Letter Carrier.** You've carried a sealed letter for three years, after promising a dying stranger you'd deliver it. You still haven't found the recipient.
 7. **The Stolen Voice.** A curse took your singing voice, which used to be your living. The bard who has it now is famous.
-8. **The Collector's Mark.** You were tattooed as a child by a secretive guild. Occasionally someone recognises the mark.
-9. **The Second Chance.** You were hanged for a crime you did commit, and you woke up alive. Someone saved you for a reason.
-10. **The Map Fragment.** Your grandmother left you a third of a map. Two other people have the other pieces.
+8. **The Collector's Mark.** A secretive guild tattooed you as a child. Every so often, someone recognises the mark.
+9. **The Second Chance.** You were hanged for a crime you really did commit, and you woke up alive. Someone saved you for a reason.
+10. **The Map Fragment.** Your grandmother left you a third of a map. Two other people hold the other pieces.
+
+To show how a prompt turns into something playable, here's a second example of my own, built from The Letter Carrier. Once again, it's an illustration I wrote, not a real player's character:
+
+> **Origin:** Tobin is a ferryman's son from a slow brown river, more at ease with rope and tide tables than with people.
+> **Turning point:** A stranger died on his ferry, pressed a sealed letter into his hands and made him swear to deliver it.
+> **Goal:** Find the woman named on the envelope before the wax seal crumbles.
+> **Flaw:** He keeps promises long past the point of sense.
+> **Loose thread:** Two different people have offered to buy the letter, and one of them knew the stranger's name.
 
 ## How Backstory Works With an AI Game Master
 
-When you create a character in EchoQuest, the backstory you write goes straight to the AI Game Master, powered by Claude. It uses those details to:
+When you create a character in EchoQuest, the backstory you write goes straight to the AI Game Master, which runs on Claude. It's the third step of character creation, next to a few optional fields for things like pronouns and appearance. You can skip it entirely if you'd rather find out who you are as you play. And if a world comes with its own backgrounds, they're listed right there so you can mention one.
+
+Here's the design choice I care about most: your backstory isn't read once and then forgotten. It sits in the character block the GM reads at the top of every turn, right beside your HP and your inventory. On top of that, when I rewrote the GM's instructions on October 2, I told it to plant small details and pay them off turns later, and to bring old threads back when they hurt or help the most. In practice, the GM uses your details to:
 
 - Introduce NPCs connected to your past
 - Add complications that test your flaw
 - Build toward your stated goal
 - Pay off loose threads at dramatic moments
 
-Short, concrete backstories work best. A few specific names and one clear goal beat a vague paragraph about "a troubled past".
+Short, concrete backstories work best. A few specific names and one clear goal beat a vague paragraph about "a troubled past" every time. So name the informant, even if it's just "a man called Pell". Anything with a name, the GM can put in a room with you. Once one of those people shows up, EchoQuest also tracks how they feel about you on a scale from -100 to +100, so a reunion can go very sweetly or very sour.
+
+There's a darker bonus, too. Since October 2, dropping to 0 HP brings a real setback instead of a shrug, and one option the GM has is having you dragged clear by someone with an agenda. Nobody dies permanently, but a loose thread from your past makes a wonderful rescuer with strings attached.
 
 ## Quick Backstory Checklist
 
@@ -737,11 +771,11 @@ Short, concrete backstories work best. A few specific names and one clear goal b
 - [ ] Is there an unresolved mystery or debt?
 - [ ] Does my flaw create interesting problems rather than just blocking the story?
 
-If you're stuck on the character concept itself, browse [10 Classic RPG Character Archetypes](/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well) for inspiration.
+If you're stuck on the character concept itself, browse [10 Classic RPG Character Archetypes](/blog/10-classic-rpg-character-archetypes-and-how-to-play-them-well) for inspiration. Still blank? The same Sly Flourish article points to the "This Is Your Life" tables in Xanathar's Guide to Everything, which roll up siblings and old regrets for you. A random die roll has unstuck more characters than any amount of staring at a blank page.
 
 ## Put Your Backstory to Work
 
-The best way to test a backstory is to play it. Create a character on EchoQuest, paste in your five sentences, and see how quickly the AI Game Master picks up your loose thread.
+The best way to test a backstory is to play it. Create a character on EchoQuest, paste in your five sentences, and see how quickly the AI Game Master tugs on your loose thread. Three campaigns are free, so it costs you nothing but an evening. Which thread do you think it'll pull first?
 
 **[Create your character →](/library)**
 `,
@@ -749,79 +783,91 @@ The best way to test a backstory is to play it. Create a character on EchoQuest,
   {
     publishAt: "2026-10-02",
     title: "Games You Can Play With a Screen Reader: NVDA, JAWS and VoiceOver Tips",
-    excerpt: "Which games work with a screen reader, and how do you set up NVDA, JAWS, or VoiceOver for gaming? Practical tips for playing browser, PC, and mobile games.",
+    excerpt: "Which games work with a screen reader, plus tested settings and keystrokes for NVDA, JAWS, VoiceOver and TalkBack when you play browser, PC and mobile games.",
     content: `# Games You Can Play With a Screen Reader: NVDA, JAWS and VoiceOver Tips
 
-Screen readers were built for documents and websites, not games. Even so, a growing number of games work well with them, especially browser-based and text-driven ones. This guide covers which **games work with a screen reader**, and how to configure NVDA, JAWS, VoiceOver, and TalkBack for the smoothest experience.
+Screen readers were built for documents and websites, not games. Even so, a growing pile of games works well with them, especially browser-based and text-driven ones. This guide covers which **games work with a screen reader**, and how to set up NVDA, JAWS, VoiceOver and TalkBack so playing feels smooth instead of like a fight with your own software.
+
+A quick word on who uses what, because it shapes the advice. In WebAIM's [most recent screen reader user survey](https://webaim.org/projects/screenreadersurvey10/) (1,539 responses, gathered in December 2023 and January 2024), JAWS and NVDA ran almost neck and neck as primary desktop screen readers at 40.5% and 37.7%, with VoiceOver at 9.7%. So I've given the two Windows readers the most room. Which one is yours?
 
 ## Which Kinds of Games Work Best With Screen Readers?
 
-Screen readers work best with games whose interface is built from **real, semantic elements** (buttons, headings, lists, live regions) rather than pixels drawn on a canvas. That gives us a simple rule of thumb:
+Screen readers work best with games whose interface is built from **real, semantic elements** (buttons, headings, lists, live regions) instead of pixels painted onto a canvas. That gives us a handy rule of thumb:
 
-- **Great:** browser games built with accessible HTML, text adventures, AI RPGs, card and board games, trivia, MUDs
-- **Mixed:** mobile games (depends entirely on the developer), turn-based strategy with keyboard queries
-- **Hard:** canvas-rendered or engine-rendered games without a built-in narrator. These need self-voicing or dedicated audio design.
+- **Great:** browser games built with accessible HTML, text adventures, AI RPGs, card and board games, trivia, MUDs. Lichess is a lovely example: its [Blind Mode](https://lichess.org/page/blind-mode-tutorial) names NVDA, JAWS, VoiceOver and Orca, and it can lay the board out as a real HTML table. You simply type moves like "Nf3" into a command field. On the MUD side, [Alter Aeon](https://www.alteraeon.com/) offers a blind-friendly client that it says works with most screen readers.
+- **Mixed:** mobile games (it depends entirely on the developer), and turn-based strategy games that let you query the board from the keyboard.
+- **Hard:** canvas-rendered or engine-rendered games without a built-in narrator. These need self-voicing or dedicated audio design. It can be done, mind you. Naughty Dog shipped The Last of Us Part II with [text-to-speech narration of on-screen text plus combat and traversal audio cues](https://www.naughtydog.com/blog/the_last_of_us_part_ii_accessibility_features_detailed). That's a studio-sized effort, though, and most games don't make it.
 
-Browser-based **AI RPGs** like EchoQuest are among the most screen-reader-friendly games because the whole game is text and speech.
+Browser-based **AI RPGs** like EchoQuest sit near the top of the friendly list, because the whole game is text and speech. There's no map to describe and no reticle to aim.
 
 ## NVDA Tips for Gaming (Windows, Free)
 
-NVDA is free, open-source, and one of the most popular screen readers in the world.
+NVDA is free and open source, and it's one of the most popular screen readers in the world. Every keystroke below comes from the [NVDA User Guide](https://download.nvaccess.org/documentation/userGuide.html), using the desktop layout.
 
-- **Browse vs. focus mode:** NVDA switches to focus mode automatically in text inputs. In game interfaces, press **NVDA+Space** to toggle if keystrokes aren't reaching the game.
-- **Live regions:** make sure "Report dynamic content changes" is enabled so new narration is spoken automatically.
-- **Speech rate:** many gamers go faster than default. Use **NVDA+Ctrl+Up/Down** with the rate setting selected in the synth settings ring.
-- **Speech viewer:** handy for sighted helpers or when debugging what's being announced.
+- **Browse vs. focus mode:** NVDA switches to focus mode on its own when you land in a text box. In a game interface, press **NVDA+Space** to toggle between the two if your keystrokes aren't reaching the game. This one matters a lot for games with single-letter shortcuts. In browse mode, NVDA claims letters like H (next heading), L (next list) and I (list item) for itself, so EchoQuest's own H, L and I never arrive.
+- **Keep browse mode, lose the letter keys:** if you'd rather keep reading with the arrows, **NVDA+Shift+Space** switches single-letter navigation off for the current page only. The guide suggests exactly this for web apps with their own one-key shortcuts.
+- **One key at a time:** **NVDA+F2** passes just the next key press straight through to the page.
+- **Live regions:** make sure "Report dynamic content changes" (in the Object Presentation settings, toggled with **NVDA+5**) is on, so new content gets announced as it appears.
+- **Speech rate:** plenty of gamers run faster than the default. Press **NVDA+Ctrl+Left or Right Arrow** until you reach Rate in the synth settings ring, then **NVDA+Ctrl+Up or Down Arrow** to change it (add Shift on the laptop layout). If that's still too slow for you, the Speech settings also have a Rate boost option for synthesizers that support it.
+- **Speech viewer:** you'll find it under Tools in the NVDA menu. It shows the text being spoken, which is handy for sighted helpers, or for working out exactly what a game announced.
 
 ## JAWS Tips for Gaming (Windows)
 
-- **Virtual PC cursor:** toggle with **Insert+Z** if a game's keyboard shortcuts are being intercepted.
-- **Forms mode:** JAWS enters forms mode in edit fields. Make sure auto forms mode is on.
-- **Verbosity:** lower verbosity during play to reduce chatter like "clickable" or "link".
-- **Pass-through key:** **Insert+3** passes the next keystroke straight to the application.
+Freedom Scientific's own documents cover all of these, and the [JAWS keystrokes reference](https://support.freedomscientific.com/Content/Documents/Manuals/JAWS/Keystrokes.pdf) is worth keeping in a tab.
+
+- **Virtual PC cursor:** if a game's keyboard shortcuts are being intercepted, toggle the Virtual PC cursor off with **Insert+Z**. Freedom Scientific gives the same advice for [using Gmail's own single-key commands](https://doccenter.freedomscientific.com/doccenter/archives/2021_03_18_JAWS_and_Gmail_Standard_View/Using_JAWS_with_Gmail_in_Standard_View_Resource_File.pdf), and a game with letter shortcuts works the same way. Press it again to get your reading cursor back.
+- **Forms mode:** JAWS drops into forms mode when you reach an edit field. According to the [JAWS Quick Start Guide](https://support.freedomscientific.com/Content/Documents/Manuals/JAWS/JAWS-Quick-Start-Guide.pdf), Auto Forms Mode is on by default, so leave it that way. You can change it in Quick Settings (**Insert+V**), including per website under Personalize Web Settings.
+- **Verbosity:** turn verbosity down during play, so JAWS spends less breath describing every control and more on the game. The JAWS Startup Wizard has a verbosity step, and you can run it again any time from the Help menu in the JAWS window (**Insert+J**, then **Alt+H**).
+- **Pass-through key:** **Insert+3** on the number row (**Caps Lock+3** on the laptop layout) passes the next keystroke straight to the application.
+- **Speech rate:** **Alt+Ctrl+Page Up or Page Down** nudges the rate temporarily, and adding the Windows key makes the change stick.
 
 ## VoiceOver Tips (macOS and iOS)
 
-- **Web rotor:** on Mac, **VO+U** opens the rotor to jump between headings, buttons, and landmarks.
-- **Quick Nav:** turn it off while typing in a game's action field so arrow keys behave normally.
-- **iOS:** use the rotor to change speaking rate on the fly, and try **Screen Curtain** (three-finger triple-tap) to save battery during long sessions.
-- **Safari vs. Chrome:** VoiceOver is generally most reliable in Safari on Apple devices.
+- **Web rotor:** on a Mac, **VO+U** [opens the rotor](https://support.apple.com/guide/voiceover/voiceover-rotor-mchlp2719/mac) so you can jump between headings, landmarks and other parts of a page.
+- **Quick Nav:** this is the Mac's equivalent of browse-mode letter keys. Apple splits it in two: **VO+Q** toggles single-key Quick Nav, and **VO+Shift+Q** toggles arrow-key Quick Nav ([Apple's Quick Nav guide](https://support.apple.com/guide/voiceover/quick-nav-vo27943/mac) also covers pressing Left and Right Arrow together). Switch single-key Quick Nav off while you play a game that uses letter shortcuts, and switch arrow-key Quick Nav off while you type in an action field so the arrows behave normally.
+- **iOS speech rate:** rotate two fingers like a dial to reach Speaking Rate on the [VoiceOver rotor](https://support.apple.com/guide/iphone/control-voiceover-using-the-rotor-iph3e2e3a6d/ios), then swipe up or down. If it's missing, add it under Settings, Accessibility, VoiceOver, Rotor.
+- **Screen Curtain:** a [three-finger triple tap](https://support.apple.com/guide/iphone/use-voiceover-gestures-iph3e2e2281/ios) blacks out the display while everything keeps working (a quadruple tap if Zoom is on too). It saves battery on long sessions and keeps nosy neighbours on the bus out of your quest log.
+- **Safari vs. Chrome:** Safari is VoiceOver's home turf on Apple devices. In the WebAIM survey above, VoiceOver with Safari was the third most common screen reader and browser pairing overall, so it's the safest place to start.
 
 ## TalkBack Tips (Android)
 
-- **Reading controls:** set up a gesture for "read from next item".
-- **Speech rate:** adjust in TalkBack settings, then Text-to-speech.
-- **Chrome is recommended** for browser games on Android.
+- **Reading controls:** TalkBack lets you [reassign most gestures](https://support.google.com/accessibility/android/answer/6151827?hl=en) (TalkBack settings, then Gestures). "Read from the next item" is one of the actions on offer, and so is "Pause or resume speech", which I'd happily give a spare gesture during play.
+- **Speech rate:** set it in TalkBack settings under [Text-to-speech settings](https://support.google.com/accessibility/android/answer/6006589?hl=en). For quick changes mid-game, pick Speech rate in the [reading controls](https://support.google.com/accessibility/android/answer/6007066?hl=en) and swipe up for faster or down for slower.
+- **Browser choice:** I'd start in Chrome, especially if you want to use voice input. MDN notes that browser speech recognition, which voice input relies on, [doesn't work in some widely used browsers](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition). In Chrome your audio goes to a recognition server, so you'll need a connection. I learned how fragile the microphone side is on September 28, when I found the mic was blocked on EchoQuest's own pages and voice input quietly did nothing.
 
 ## Avoiding "Double Speech" in Self-Voicing Games
 
-Some games speak aloud *and* expose text to your screen reader, so you hear everything twice. Options:
+Some games speak aloud *and* expose their text to your screen reader, so you hear everything twice. You've got two options:
 
 - Turn off the game's built-in narration and rely on your screen reader, **or**
 - Keep the game's narration (often more expressive) and mute your screen reader during narration.
 
-EchoQuest gives you control here. You can keep the expressive narrator voice for the story and use your screen reader for menus and controls. Our [technical deep dive on screen readers](/blog/how-screen-readers-work-with-echoquest-a-technical-deep-dive) explains how the live regions are set up.
+EchoQuest gives you control here, and I'll be honest that I learned this the hard way. Back in May, the game announced the choices and moved focus onto them while the narrator was still mid-sentence, so screen reader users heard two voices talking over each other. Technically accessible, practically a racket. Now the choices wait until the narrator has finished, then get announced as one summary, and focus lands on the first choice (Settings can send it to the text box instead).
+
+Here's how the two options play out in EchoQuest today. If you keep the narrator's voice for the story, the story text stays hidden from your screen reader for as long as that voice is switched on, so you won't hear it twice. Your screen reader still handles the menus and controls, along with short announcements like damage taken or items picked up. If you'd rather hear the story in your own screen reader's voice at your own speed, drag the narrator volume to zero. The narration then becomes readable in a labelled "Story narration" region you can jump to like any other landmark. Our [technical write-up on screen readers](/blog/how-screen-readers-work-with-echoquest-a-technical-deep-dive) explains how the live regions are set up.
 
 ## What to Look for in a Screen-Reader-Friendly Game
 
-- Clear **headings and landmarks** so you can jump around quickly
+- Clear **headings and landmarks**, so you can jump around quickly
 - **Labelled buttons**, not "button, button, button"
 - **Live announcements** for new content
-- A **keyboard shortcut** to repeat the last message
+- A **keyboard shortcut** to repeat the last message (R does it in EchoQuest)
 - **No time limits** on reading
 - A published **accessibility statement**
 
+I'd add one more that people rarely mention: decent contrast for players with some sight. On October 2 I added an automated accessibility suite (Playwright plus axe) to EchoQuest's CI, and the first run was humbling. White text on the violet accent came out at 3.99:1, under the 4.5:1 minimum, and in high-contrast mode some buttons were white on yellow at 1.07:1. Both are fixed. It also caught a nasty one where, after a failed turn, the choices came back but stayed disabled, which left a keyboard player with no way to retry.
+
 ## A Quick Test You Can Run on Any Browser Game
 
-1. Load the game and press **Tab** repeatedly. Does focus move logically, and is every element announced with a meaningful name?
-2. Trigger an in-game event. Is it announced without you moving focus?
-3. Try to complete one core action (start a game, make a move) without using a mouse.
+1. Load the game and press **Tab** repeatedly. Does focus move in a logical order, and does every element get announced with a meaningful name?
+2. Trigger an in-game event. Is it announced without you having to move focus?
+3. Try to complete one core action (start a game, make a move) without touching a mouse.
 
-If a game passes all three, it's probably worth your time.
+If a game passes all three, it's probably worth your evening. Fail the first one and I wouldn't bother with the rest.
 
 ## Play EchoQuest With Your Screen Reader
 
-EchoQuest is tested with NVDA, JAWS, VoiceOver, TalkBack, and Orca. The free tier includes three narrated campaigns, and everything works by keyboard.
+EchoQuest is built from plain semantic HTML and standard ARIA, so it's meant to work with the screen reader you already use: NVDA, JAWS, VoiceOver, TalkBack, and Orca on Linux, which reads the same labels. The axe suite runs against the web app in CI, and the free tier includes three narrated campaigns. Everything works by keyboard, too. Press H at any point for the shortcuts, or [tell me](/contact-us) when something doesn't read the way it should. So, which campaign will you try first?
 
 **[Start playing with your screen reader →](/library)**
 `,
