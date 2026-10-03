@@ -5,69 +5,81 @@ export const AUTUMN_2026_A: ScheduledSeedPost[] = [
   {
     publishAt: "2026-09-24",
     title: "Best AI Dungeon Alternatives in 2026: What to Look For in an AI RPG",
-    excerpt: "Looking for an AI Dungeon alternative? Here's how to compare AI RPGs on game state, memory, voice narration, accessibility, and price, plus where EchoQuest fits.",
+    excerpt: "Shopping for an AI Dungeon alternative? Here are the questions I'd put to any AI RPG on state, memory, voice, accessibility and price, and where EchoQuest fits.",
     content: `# Best AI Dungeon Alternatives in 2026: What to Look For in an AI RPG
 
-AI Dungeon showed millions of people that a language model could improvise a story with them. Since then the field has grown quickly. There are now AI storytelling apps, AI roleplay chatbots, AI-assisted visual novels, and AI Game Masters that run real campaigns with rules behind them. If you're searching for an **AI Dungeon alternative**, you're really asking which of these categories suits the way you like to play.
+AI Dungeon showed millions of people that a language model could make up a story right alongside them. It started small, too. Nick Walton built the first version during a hackathon at Brigham Young University in 2019, and after the December 2019 relaunch [over 100,000 people played it in a single week](https://en.wikipedia.org/wiki/AI_Dungeon). Since then the field has sprawled in every direction. These days you'll find AI storytelling apps and AI roleplay chatbots. There are AI-assisted visual novels too, plus AI Game Masters that run proper campaigns with rules underneath. So if you're hunting for an **AI Dungeon alternative**, what you're really asking is which of these categories fits the way you like to play.
 
-This guide skips the "top 10" list, because those go out of date fast. Instead it gives you the questions that separate a good AI RPG from a chatbot in costume, and then explains where EchoQuest fits.
+I'm going to skip the usual "top 10" list. Partly that's because those lists go stale within months. Partly it's because I built one of the contenders, and you'd be right to raise an eyebrow at my rankings. Instead, I'll hand you the questions I think separate a good AI RPG from a chatbot in costume, and then I'll tell you plainly where EchoQuest fits. Fair warning: I have opinions.
 
 ## 1. Does It Track Real Game State?
 
-The biggest difference between AI RPGs is whether anything sits underneath the prose. A pure text generator will happily let you lose the same sword three times, heal from zero hit points by accident, or forget that the duke died two scenes ago.
+For me, this is the biggest dividing line between AI RPGs: does anything sit underneath the prose? A pure text generator will cheerfully let you lose the same sword three times. It'll also heal you from zero hit points by accident, or forget that the duke died two scenes ago.
 
-A proper AI RPG keeps a **structured game state** next to the story: hit points, inventory, conditions, quest flags, faction reputation, location, and time. The model narrates, but the state is the source of truth. When you ask "what's in my pack?", the answer comes from real data, not from the model guessing.
+A proper AI RPG keeps a **structured game state** next to the story: hit points, inventory, conditions, quest flags, faction reputation, location and time. The model narrates, but the state is the source of truth. So when you ask "what's in my pack?", the answer comes from real data and not from the model's best guess.
 
-**What to test:** pick up a distinctive item early, then ask about it twenty turns later. If it's gone or has changed, the app isn't tracking state.
+Real state brings real headaches, though, and I learned that the hard way. Back in May, a turn in EchoQuest that errored halfway through could leave half-applied changes behind. Say, gold gone from your purse with no sword in your pack to show for it. As a result, I added a full rollback, so a turn either lands completely or not at all. Single-step undo arrived in the same stretch (press U), along with auto-save every five turns and a manual Save button.
+
+**What to test:** pick up a distinctive item early, then ask about it twenty turns later. If it's vanished or quietly changed shape, the app isn't tracking state.
 
 ## 2. How Good Is Its Memory?
 
-Long campaigns need long memory. Look for an app that summarises earlier events, remembers named NPCs, and brings back the consequences of your choices. The best AI Game Masters bring up threads you'd forgotten, like the smuggler you spared in the first hour turning up again in the finale.
+Long campaigns need long memory. Look for an app that summarises earlier events and remembers named NPCs, then brings back the consequences of your choices. The best AI Game Masters dredge up threads you'd long forgotten, like the smuggler you spared in the first hour turning up again in the finale.
+
+To be fair to AI Dungeon, it takes this seriously. Its own help pages describe a [Memory System](https://help.aidungeon.com/faq/the-memory-system) that keeps a running Story Summary, refreshed every 15 actions, and stores short summaries of every six actions in a Memory Bank, pulling back whichever ones match the current scene. So a "memory" feature on a spec sheet won't settle much by itself these days. Test it in a long game instead.
+
+In EchoQuest, once enough turns pile up, a smaller and quicker Claude model folds each batch of ten turns into a compact factual summary that the GM reads on every turn. Honestly, that part bit me too. On October 2 I found that once a game passed a certain length, every turn re-summarised turns 1 to 10 and never got any further. Games that weren't saved on the server had a different problem: they simply forgot their oldest turns once the history filled up. Both are fixed now, but I'd never have caught them without playing long sessions myself. That's my advice to you as well.
 
 ## 3. Is There a Game Master or Just a Narrator?
 
-A narrator describes things. A Game Master **runs a game**. That means pacing scenes, asking for rolls when the outcome is uncertain, giving meaningful consequences, and steering toward a satisfying climax instead of wandering forever. If every session with an app feels like an endless middle, you're talking to a narrator.
+A narrator describes things. A Game Master **runs a game**. That means pacing scenes and asking for rolls when the outcome is genuinely uncertain. It also means handing out consequences with teeth and steering toward a satisfying climax instead of wandering forever. If every session with an app feels like an endless middle, you're talking to a narrator.
 
-EchoQuest's GM, powered by Claude, is prompted specifically to act as a Game Master: it respects the world's rules, keeps NPCs consistent, and builds toward story beats. You can read how that works in [How Claude AI Powers the EchoQuest Game Master](/blog/how-claude-ai-powers-the-echoquest-game-master).
+EchoQuest's GM, powered by Claude, is prompted specifically to act as a Game Master. It respects the world's rules and keeps its NPCs consistent from one scene to the next. It also builds toward story beats on purpose. When you try something risky, it can't just decide you succeed, either. The server rolls a d20, adds your stat modifier and compares the total against a difficulty number, and since October 2 the GM narrates that result in the same turn. That same day I also rewrote its instructions so it talks like a seasoned human GM leaning over the screen instead of reciting like a manual. You can read how all of that fits together in [How Claude AI Powers the EchoQuest Game Master](/blog/how-claude-ai-powers-the-echoquest-game-master).
 
 ## 4. Can You Listen Instead of Read?
 
-Most AI story apps are walls of text. That's fine on a desktop, but tiring on a phone and unusable for many blind or low-vision players. An **audio-first** AI RPG narrates every scene aloud, supports voice input, and lets you play with the screen off.
+Most AI story apps are walls of text. That works at a desk. On a phone, however, it gets tiring quickly, and for many blind or low-vision players an unspoken wall of text is a locked door. An **audio-first** AI RPG narrates every scene aloud and takes voice input, so you can play with the screen switched off.
 
-This is what EchoQuest was built around. Every scene is spoken, free players get browser text-to-speech, and Storyteller subscribers get expressive ElevenLabs narration with distinct NPC voices.
+That's what EchoQuest was built around. Every scene is spoken. Free players get browser text-to-speech, and Storyteller subscribers get expressive ElevenLabs narration with distinct NPC voices.
+
+I won't pretend audio is easy, mind you. More of my bug-hunting has gone into sound than into anything else. In May, Chrome's built-in voice would cut off after roughly 15 seconds, so I had to engineer around it. Later that month, raw JSON leaked into the spoken narration. Have you ever had a narrator solemnly read you a curly brace? I have, and it kills the mood instantly. These days the narration starts speaking while the GM's reply is still being written, so you're not left sitting in silence.
 
 ## 5. Is It Genuinely Accessible?
 
-"Accessible" gets used loosely. Here's a practical checklist:
+"Accessible" gets thrown around loosely. Here's a practical checklist:
 
 - Every control has a proper label for screen readers (NVDA, JAWS, VoiceOver, TalkBack)
-- The whole game works with a keyboard alone, with a visible focus indicator
-- New narration is announced through live regions, not just shown visually
-- You can adjust speech rate, text size, contrast, and motion
+- The whole game works with a keyboard alone, with a visible focus indicator. The W3C's guidelines make keyboard operation a [Level A requirement](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html), the most basic tier there is
+- New narration is announced through live regions, not just shown visually. WCAG calls these [status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html): updates should reach assistive technology without stealing focus or interrupting you
+- You can adjust speech rate, text size, contrast and motion
 
-If an app fails any of these, a large share of players can't use it. EchoQuest was designed accessibility-first. See [Why Audio-First Gaming Is a Revolution for Blind Players](/blog/why-audio-first-gaming-is-a-revolution-for-blind-players) for the reasoning.
+If an app fails any of these, a large share of players simply can't use it. EchoQuest was designed accessibility-first, and an automated Playwright and axe suite now checks the web app in CI. Still, the bugs that taught me the most were about timing, which no checker catches. On May 16 I realised the choices were being announced and focused while the narrator was still talking, so screen reader users got two voices at once. Now the choices wait their turn. I also made HP and inventory changes announce themselves, since losing six hit points in silence is miserable when you can't glance at a health bar. See [Why Audio-First Gaming Is a Revolution for Blind Players](/blog/why-audio-first-gaming-is-a-revolution-for-blind-players) for the reasoning behind all this.
 
 ## 6. Can You Bring Your Own World?
 
-Prebuilt adventures are great for getting started. Before long, though, most players want to play in *their* setting: a homebrew D&D world, a novel they're writing, or a genre nobody else covers. Look for an app that lets you upload lore, rules, and characters and have the AI respect them.
+Prebuilt adventures are great for getting started. Before long, though, most players want to play in *their* setting. Maybe that's a homebrew D&D world or the novel they've been chipping away at for years. Some people just want a genre nobody else bothers to cover. Look for an app that lets you upload your lore and rules (characters included), and then check that the AI actually respects them.
 
-In EchoQuest you do this with a **Game Bible** (a structured world document) or the step-by-step **World Builder Wizard**.
+In EchoQuest you do this with a **Game Bible** (a structured world document you upload as PDF, DOCX, TXT, MD or JSON) or with the step-by-step **World Builder Wizard**. If the Bible defines its own classes, or its own way of rolling stats, the GM is told to follow those instead of falling back on generic fantasy defaults.
 
 ## 7. Is the Pricing Honest?
 
-AI is expensive to run, so every serious AI RPG charges somewhere. What matters is transparency. Look for a real free tier, clear limits, and no dark patterns. EchoQuest's pricing is simple:
+AI costs real money to run, so every serious AI RPG charges somewhere. What matters is transparency. Look for a real free tier with clear limits. And walk away from dark patterns. The US Federal Trade Commission's 2022 report on the subject listed [making it hard to cancel subscriptions and burying key terms and junk fees](https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-report-shows-rise-sophisticated-dark-patterns-designed-trick-trap-consumers) among the most common tricks, so those are exactly the things I'd check. EchoQuest's pricing is simple:
 
-- **Free:** three official campaigns, browser narration, 60 AI turns per day, full accessibility support
-- **Storyteller ($15/month):** unlimited campaigns, premium ElevenLabs narration, unlimited saves, Game Bible upload, no ads
-- **Creator ($29/month):** everything above plus the World Builder Wizard, public world publishing, and creator analytics
+- **Free:** three prebuilt campaigns, browser narration, 60 AI turns per day (one turn uses one minute of credit), full accessibility support, and extra AI minutes you can buy whenever you like
+- **Storyteller ($15/month or $129/year):** unlimited turns, no ads, premium ElevenLabs narration with distinct NPC voices, and one private world built with the World Builder Wizard or a Game Bible upload
+- **Creator ($29/month or $239/year):** everything in Storyteller, plus publishing your worlds to the library and creator analytics
+
+The free tier does show ads between sessions, and I'd rather say so here than have you discover it.
 
 ## Quick Comparison: Types of AI Dungeon Alternatives
 
+Treat these as broad categories, not verdicts on any single app. Plenty of products blend two of them, and they change fast.
+
 | Type | Strengths | Weaknesses |
 | --- | --- | --- |
-| Freeform AI story generators | Maximum creative freedom | Little structure, weak memory, no rules |
-| AI character chat apps | Great for one-on-one roleplay | Rarely handle combat, inventory, or plot arcs |
-| AI visual novels | Pretty presentation | Limited agency, often not screen-reader friendly |
+| Freeform AI story generators | Maximum creative freedom | Little structure, memory that varies a lot, few or no rules |
+| AI character chat apps | Great for one-on-one roleplay | Rarely handle combat, inventory or plot arcs |
+| AI visual novels | Pretty presentation | Limited agency, often awkward with a screen reader |
 | AI Game Master platforms (like EchoQuest) | Real game state, pacing, voice narration | Less anything-goes than a raw generator |
 
 ## Who Should Try EchoQuest?
@@ -79,11 +91,11 @@ EchoQuest is a strong fit if you want:
 - A game that works fully with a **screen reader or keyboard**
 - To run adventures in **your own world**
 
-If you just want to write fiction with an AI co-author and no rules, a freeform generator may suit you better, and that's fine. Different tools suit different players.
+On the other hand, if you just want to write fiction with an AI co-author and no rules at all, a freeform generator will probably suit you better. I mean that. Different tools suit different players, and I'd rather you find the right one than force the wrong one.
 
 ## Try It Free
 
-The fastest way to compare is to play. Pick a campaign from the library, make a character in under a minute, and see whether an AI Game Master changes how AI storytelling feels to you.
+Reading comparisons only gets you so far, so play. Pick a campaign from the library and make a character in under a minute. Then see whether a real Game Master, with dice and a memory behind it, changes how AI storytelling feels to you. What's the first thing you'd try?
 
 **[Browse the Adventure Library →](/library)**
 `,
@@ -91,81 +103,87 @@ The fastest way to compare is to play. Pick a campaign from the library, make a 
   {
     publishAt: "2026-09-25",
     title: "Audio Games for Blind People: 10 Genres You Can Play Entirely by Ear",
-    excerpt: "A guide to audio games for blind and visually impaired players: 10 genres that work by sound alone, what makes them accessible, and where to start.",
+    excerpt: "Ten genres of audio games that blind and visually impaired players can enjoy by sound alone, with real examples, what makes each one work, and where to start.",
     content: `# Audio Games for Blind People: 10 Genres You Can Play Entirely by Ear
 
-Audio games are games you can play fully through sound. They've been around for decades, built by small teams and passionate blind developers, and in recent years mainstream studios have started adding serious accessibility too. If you're blind, visually impaired, or supporting someone who is, this guide covers the main genres of **audio games for blind people**, what makes each one work, and how to choose.
+Audio games are games you can play entirely through sound. They've been around for decades, mostly built by small teams and passionate blind developers, and lately the big studios have started taking accessibility seriously as well. If you're blind or visually impaired, or you're helping someone who is, this guide walks through the main genres of **audio games for blind people**. For each one I'll explain what makes it work, name a real example where I can, and help you pick a starting point.
+
+A quick word on why I care. I build EchoQuest, an audio-first RPG, so I spend an unreasonable share of my days listening to game audio with my eyes shut. That habit has made me picky. So consider this list a tour from someone who has broken plenty of audio himself and had to fix it.
 
 ## What Makes a Game Truly "Audio-Accessible"?
 
-A game is audio-accessible when every piece of information you need reaches you through sound or a screen reader. In practice that means:
+A game is audio-accessible when every scrap of information you need reaches you through sound or a screen reader. In practice that means:
 
-- **Spoken or screen-reader-readable text** for menus, dialogue, and status
+- **Spoken or screen-reader-readable text** for menus, dialogue and status
 - **Spatial audio cues** (left/right panning, distance, pitch) for position and movement
-- **Distinct sound signatures** for different objects, enemies, and events
-- **No timed visual-only prompts** such as quick-time events you can only see
+- **Distinct sound signatures** for different objects, enemies and events
+- **No timed visual-only prompts**, such as quick-time events you can only see
 
-Keep these in mind as you read. They're the difference between a game that's "technically playable" and one that's actually fun.
+Keep these in mind as you read. They're the difference between a game that's "technically playable" and one that's genuinely fun.
+
+I'd add a fifth rule from my own scars: sounds must not trample each other. Back in May I caught EchoQuest announcing and focusing the choices while the narrator was still mid-sentence, so screen reader users got two voices talking over each other. Everything was technically "accessible", and it was still a mess. The choices wait for the narrator now. Similarly, I made the ambient soundtrack duck under sound cues, and I drop duplicate cues that fire within 80 milliseconds of each other, because a doubled chime sounds like two events when there was only one.
 
 ## 1. Audio RPGs and Interactive Stories
 
-Narrative games are a natural fit because stories were spoken long before they were written down. Modern **AI-powered audio RPGs** go further than classic branching stories: you can say anything and the Game Master responds.
+Narrative games are a natural fit, since people told stories aloud long before anyone wrote them down. Modern **AI audio RPGs** go further than classic branching stories, too: you can say anything you like and the Game Master answers.
 
-EchoQuest is built for this genre. Every scene is narrated aloud, you act by speaking or typing, and the interface is tested with NVDA, JAWS, VoiceOver, and TalkBack. There's no map to read and no visual puzzle to solve. The whole game lives in the story.
+EchoQuest is built for exactly this genre. Every scene is narrated aloud, you act by speaking or typing, and the interface is built for NVDA, JAWS, VoiceOver and TalkBack. There's no map to decipher and no visual puzzle to solve. The whole game lives inside the story. Still, I'll be honest about one rough patch. In September I found that the microphone was being blocked on my own pages, which meant voice input silently did nothing. That's fixed, and speech transcripts get shown to you for confirmation before they reach the GM, since speech recognition does mishear people.
+
+If you'd like a hand-crafted audio story with action in it, look at [The Vale: Shadow of the Crown](https://afb.org/aw/22/12/17800) from Falling Squirrel. You play Alex, a blind princess, and the game was developed with the Canadian National Institute for the Blind. AccessWorld's reviewer praised it for "some of the best sound design and voice acting you will find in audio gaming."
 
 ## 2. Text Adventures and Interactive Fiction
 
-Classic parser games, the "go north, take lamp" style, work very well with screen readers because they are pure text. Thousands of free titles exist in the interactive fiction community. The learning curve is the command syntax, which modern AI games remove by understanding natural language. For background, see [The History of Interactive Fiction](/blog/the-history-of-interactive-fiction-and-where-ai-takes-it-next).
+Classic parser games, the "go north, take lamp" style, work beautifully with screen readers because they're pure text. Thousands of free titles exist across the interactive fiction community, and new ones arrive every autumn through [IFComp](https://ifcomp.org/about/comp), an annual competition that hobbyists started in 1995 and whose entries are freely available. The learning curve is the command syntax, which modern AI games remove by understanding plain language. For background, see [The History of Interactive Fiction](/blog/the-history-of-interactive-fiction-and-where-ai-takes-it-next).
 
 ## 3. Audio Action and Adventure Games
 
-Games like *A Blind Legend* showed that binaural audio alone can carry a full action adventure. You follow a guide's voice, hear enemies circling, and swing your sword toward the sound. Wear headphones: stereo positioning is how you aim.
+Games like *A Blind Legend* proved that binaural audio alone can carry a full action adventure. Made by the French studio DOWiNO with the Radio France station France Culture and released in 2015, it casts you as Edward Blake, a blind knight whose daughter Louise guides you by voice. You follow her, hear enemies circling, and swing your sword toward the sound. As [AccessWorld's review](https://afb.org/aw/17/3/15351) puts it, "Headphones or earbuds are a must when playing this game." Stereo positioning is how you aim.
 
 ## 4. Racing Games With Audio Assists
 
-Racing sounds impossible without sight, but audio-cue systems that signal upcoming turns, braking points, and track edges through pitched tones have made it possible. Mainstream racing titles have added blind driving assists, and dedicated audio racing games have existed in the community for years.
+Racing sounds impossible without sight, doesn't it? Yet audio-cue systems that signal upcoming turns, braking points and track edges through pitched tones have made it happen. The biggest mainstream example is *Forza Motorsport*. Its [Blind Driving Assists](https://news.xbox.com/en-us/2023/04/27/forza-motorsport-accessibility-features-blind-driving/) tell you where you sit on the track and how you're progressing through each turn, and they were built with feedback from blind accessibility consultant Brandon Cole. Dedicated audio racing games, meanwhile, have existed in the community for years.
 
 ## 5. Card and Board Games
 
-Poker, blackjack, solitaire, chess, Uno-style games, and word games all translate well to screen readers because the state is discrete and easy to announce. Many accessible online chess and card platforms support keyboard play and spoken board descriptions.
+Poker, blackjack, solitaire, chess, Uno-style games and word games all translate well to screen readers, because their state is discrete and easy to announce. Plenty of online chess and card platforms support keyboard play and spoken board descriptions. Lichess is a good example. Its [Blind Mode](https://lichess.org/page/blind-mode-tutorial) works with NVDA, JAWS, VoiceOver and Orca, presents the board as a real HTML table you can walk square by square, and lets you type moves like "Nf3" straight into a box.
 
 ## 6. Puzzle and Word Games
 
-Anagram games, trivia, crosswords with screen-reader support, and audio memory games are great for short sessions. Word games especially reward listening skills that many screen-reader users have already developed.
+Anagram games, trivia, screen-reader-friendly crosswords and audio memory games suit short sessions nicely. Word games in particular reward the sharp listening skills that many screen reader users have already built up over years.
 
 ## 7. Rhythm and Music Games
 
-Rhythm games are sound-first by nature. The best accessible ones map notes to distinct pitches or stereo positions so you can play by ear rather than following a scrolling track.
+Rhythm games are sound-first by their very nature. The best accessible ones map notes to distinct pitches or stereo positions, so you play by ear instead of chasing a scrolling track with your eyes.
 
 ## 8. MUDs and Multiplayer Text Worlds
 
-MUDs (multi-user dungeons) are online text worlds that date back to the 1970s and are still running. They're screen-reader friendly, social, and deep, and many have large blind player communities. Expect a learning curve and lots of text.
+MUDs (multi-user dungeons) are online text worlds, and they go back a long way. Roy Trubshaw and Richard Bartle wrote [MUD1 at the University of Essex in 1978](https://en.wikipedia.org/wiki/MUD1), and plenty of MUDs are still running today. They're screen-reader friendly and deeply social, and many have sizeable blind player communities. Alter Aeon, for instance, calls itself ["blind-friendly for the visually impaired"](http://www.alteraeon.com/indexb.html) and is free to play. Expect a learning curve and a torrent of text, though.
 
 ## 9. Fighting Games
 
-This surprises people, but some fighting games have long been popular with blind players because each character's moves have distinctive sounds. Newer releases add dedicated audio accessibility features that describe distance and positioning.
+This one surprises people, but some fighting games have long been popular with blind players, because each character's moves make distinctive sounds. Back in 2017, Kotaku covered a Dutch player named Sven who [won a match at his first Street Fighter V tournament](https://kotaku.com/blind-player-racks-up-a-win-at-his-first-street-fighter-1793936241) playing by sound alone. "I play with a headset on so I can hear left and right what's going on," he explained. Newer releases add dedicated audio accessibility features that describe distance and positioning. *Street Fighter 6*, for one, worked with blind players through the Japanese organisation ePARA and added cues such as a [distance-to-opponent sound and high, mid and low attack sounds](https://caniplaythat.com/2023/05/05/street-fighter-6-takes-the-fight-to-blind-accessibility/). That review also flagged that the menus lacked narration at the time, which shows how far even good efforts can still have to go.
 
 ## 10. Strategy and Simulation
 
-Turn-based strategy and management sims work when every unit, resource, and map tile can be queried by keyboard and read aloud. Audio-first strategy games exist in the community, and some mainstream titles are adding better screen-reader support.
+Turn-based strategy and management sims work when every unit, resource and map tile can be queried by keyboard and read aloud. Audio-first strategy games exist in the community, and some mainstream titles are slowly adding better screen reader support. Turn-based games are kinder here, honestly, because you can take all the time you need to listen.
 
 ## How to Choose Your First Audio Game
 
 - **Want a story?** Start with an audio RPG or interactive fiction.
 - **Want reflex challenges?** Try binaural action or rhythm games, and wear headphones.
 - **Want something social?** Look at MUDs or accessible card games.
-- **Short on time?** Word and puzzle games fit five-minute breaks.
+- **Short on time?** Word and puzzle games fit neatly into five-minute breaks.
 
 ## Tips for Getting Started
 
-1. **Use good headphones.** Stereo matters for spatial games.
-2. **Adjust speech rate.** Many experienced screen-reader users play at high speeds. Games should let you choose.
-3. **Learn the shortcuts early.** Accessible games usually have a key to repeat the last message. In EchoQuest you can replay the latest narration at any time.
-4. **Join a community.** Blind gaming forums and audio game communities are generous with recommendations.
+1. **Use good headphones.** Stereo matters enormously in spatial games.
+2. **Adjust speech rate.** Lots of experienced screen reader users play at very high speeds, and games should let you choose. In EchoQuest, the [ and ] keys nudge the narration speed mid-scene. I also had to make sure premium voices keep their pitch when you speed them up, because early on they squeaked like chipmunks.
+3. **Learn the shortcuts early.** Accessible games usually have a key that repeats the last message. In EchoQuest you can replay the latest narration at any time with R.
+4. **Join a community.** Blind gaming forums and audio game communities are generous with recommendations, and they'll steer you toward hidden gems no store page will.
 
 ## Why This Matters
 
-Gaming is social and cultural, a shared language for millions of people. When games are built sound-first, blind players get equal access to that culture instead of being left out. It's also good design: audio-first games are excellent for sighted players who want to rest their eyes, play on a commute, or simply be immersed.
+Gaming is social and cultural. It's a shared language for millions of people. When games are built sound-first, blind players get equal access to that culture instead of watching from the doorway. And it's simply good design, in my view. Audio-first games are excellent for sighted players too, if they want to rest their eyes or play on a commute, or just sink into a story without a screen glaring at them. Which genre are you going to try first?
 
 **[Start an audio adventure for free →](/library)**
 `,
@@ -554,75 +572,93 @@ So which item on this list do you find missing most often? My bet is Part 5, nea
   {
     publishAt: "2026-09-30",
     title: "Choose Your Own Adventure Games for Adults: Where to Start",
-    excerpt: "Loved choose-your-own-adventure books as a kid? Here's how CYOA games for adults have grown up, from branching stories to AI adventures with real consequences.",
+    excerpt: "Loved choose-your-own-adventure books as a kid? Here's how the grown-up versions work now, from stat-driven novels to AI adventures, and where to start.",
     content: `# Choose Your Own Adventure Games for Adults: Where to Start
 
-"If you open the door, turn to page 42. If you run, turn to page 17." For many of us, choose-your-own-adventure books were our first interactive stories. We kept a finger in the previous page and cheated shamelessly. The format has grown up since then, and **choose your own adventure games for adults** now range from thoughtful branching fiction to AI-driven stories with no fixed pages at all.
+"If you open the door, turn to page 42. If you run, turn to page 17." For plenty of us, that was the first interactive story we ever met. We kept a thumb wedged in the previous page, peeked at both outcomes and cheated without a flicker of shame. (Admit it. You did too.) The format has grown up a lot since then, and **choose your own adventure games for adults** now stretch from carefully authored branching fiction to AI-narrated stories with no fixed pages at all.
+
+A little history first, because it's a lovely one. Edward Packard came up with the idea while telling bedtime stories to his daughters. One night he ran out of things for his hero to do, so he asked the girls what *they* would do. Bantam published his The Cave of Time as the first official Choose Your Own Adventure book in 1979, and the series went on to sell [more than 250 million copies between 1979 and 1998](https://en.wikipedia.org/wiki/Choose_Your_Own_Adventure). Over in Britain, Steve Jackson and Ian Livingstone bolted dice and combat onto the idea with [The Warlock of Firetop Mountain](https://en.wikipedia.org/wiki/The_Warlock_of_Firetop_Mountain), which Puffin published in 1982 as the first Fighting Fantasy gamebook. Those kids flipping pages are grown-ups now, with long commutes and firm opinions about what a good story owes them.
+
+I'm one of them, frankly. When I started building EchoQuest, that page-42 thrill was the thing I most wanted to keep, minus the page numbers.
 
 ## What Makes a CYOA Game "for Adults"?
 
-"Adult" here doesn't mean explicit. It means **mature storytelling**:
+"Adult" here doesn't mean explicit. It means **grown-up storytelling**:
 
-- Moral dilemmas without clean answers
-- Consequences that carry across the whole story
-- Complex characters with conflicting motives
-- Themes like grief, ambition, loyalty, and power
+- Moral dilemmas without tidy answers
+- Consequences that follow you across the whole story
+- Knotty characters with clashing motives
+- Themes like grief, ambition, loyalty and power
 - Genres beyond kids' fantasy: noir, horror, political intrigue, hard sci-fi
+
+Put plainly, an adult CYOA trusts you with a choice that stings either way. The children's books mostly asked which tunnel you fancied. The good adult ones ask who you're prepared to let down.
 
 ## The Three Types of Modern CYOA Games
 
+Today's choice-driven games fall roughly into three families. They blur at the edges, of course. Still, the labels help a lot when you're trying to pick something for tonight.
+
 ### 1. Classic Branching Stories
 
-These are like the books: a set of choices at each junction leading to authored outcomes. The writing can be excellent because every path is hand-crafted. The trade-off is limited agency, because you can only choose what the author anticipated.
+These behave like the books did: a fixed set of options at each fork, each one leading to an outcome somebody wrote by hand. Because a person crafted every path, the prose can be superb. The price is agency, since you can only choose what the author anticipated. Those early Choose Your Own Adventure titles carried as many as 44 endings, which sounds generous right up until you want a 45th.
 
 ### 2. Stat-Driven Interactive Novels
 
-These track hidden variables such as reputation, relationships, and skills, which change what's available later. They feel more reactive, and your choices add up to a character.
+These keep track of hidden variables such as your reputation and your relationships (skills, too), and those numbers quietly change what's on offer later. They feel more reactive, and over a playthrough your choices add up to an actual person. Choice of Games has built a whole catalogue on this approach since Choice of the Dragon in 2009. Its own writing guide says a player [typically makes hundreds of individual decisions](https://www.choiceofgames.com/2011/07/by-the-numbers-how-to-write-a-long-interactive-novel-that-doesnt-suck/) in one run, and that a decision which modifies a stat has some effect. That's the clever bit. Nobody has to hand-write a callback to chapter one, because the numbers remember for them.
 
-### 3. AI-Driven Adventures
+inkle's 80 Days is another fine doorway. It's a steampunk riff on Jules Verne where you play Passepartout, plotting a route around the globe while you look after Phileas Fogg and try to earn his trust, and TIME made it [its Game of the Year for 2014](https://www.inklestudios.com/press/80days/). Not bad for a game built mostly out of words.
 
-This is the newest category. Instead of picking from fixed options, you can **type or say anything**, and an AI narrator responds in the context of an authored world. EchoQuest works this way, and it still offers three suggested choices each turn for when you'd rather pick than write.
+### 3. AI-Narrated Adventures
 
-| | Branching | Stat-driven | AI-driven |
+This is the newest family. Instead of choosing from fixed options, you can **type or say anything**, and an AI narrator responds within a world someone designed. EchoQuest works this way. Its Game Master runs on Anthropic's Claude, and it still offers a few suggested choices each turn (usually three or four) for the moments when you'd rather pick than write. Press the number key, or just say "option two".
+
+I learned something humbling about those suggestions, by the way. Back in May, EchoQuest was announcing and focusing them while the narrator was still mid-sentence, so screen reader users heard two voices tripping over each other. These days the choices wait until the story has finished speaking. A choice you can't actually hear is hardly a choice.
+
+| | Branching | Stat-driven | AI-narrated |
 | --- | --- | --- | --- |
 | Choices | Fixed | Fixed, stat-gated | Unlimited |
 | Replayability | Moderate | High | Very high |
 | Writing polish | Highest | High | Varies with the AI and world |
 | Surprise | Low on replay | Medium | High |
 
+I stand by that "writing polish" row, even though it's my own product sitting in the weakest spot. A great human author still writes a finer sentence than any model. Where AI wins is the dead end. You simply never hit one.
+
 ## Why Adults Are Rediscovering CYOA
 
-- **Time-friendly.** A satisfying session can take 15 minutes.
+- **Time-friendly.** A satisfying session can fit into 15 minutes, about the length of a coffee.
 - **Low barrier.** No reflexes or controller skills needed.
-- **Real agency.** Your choices matter in a way passive media can't match.
+- **Real agency.** Your choices count in a way passive media can't match.
 - **Screen fatigue.** Audio CYOA lets you close your eyes and listen.
 - **Personalisation.** AI adventures react to the specific character you bring.
+
+There's a quieter reason too. Games made of words have long been among the friendliest around for blind players, and Choice of Games in particular [has been noted for making games accessible to visually impaired players](https://en.wikipedia.org/wiki/Choice_of_Games). That tradition is a big part of why I went audio-first.
 
 ## How to Choose Your First Adult CYOA Game
 
 - **Love literary writing?** Start with hand-authored branching fiction.
-- **Love character building?** Try a stat-driven interactive novel.
+- **Love building a character?** Try a stat-driven interactive novel.
 - **Want total freedom?** Try an AI adventure.
-- **Want to listen instead of read?** Choose an audio-first platform like EchoQuest.
+- **Want to listen instead of read?** Pick an audio-first platform like EchoQuest.
+
+Still torn? My advice is to start with whatever you can play tonight, because a CYOA you keep meaning to try teaches you nothing. EchoQuest's free tier gives you three campaigns and 60 AI turns a day, which is plenty to learn if writing (or saying) your own moves suits you.
 
 ## Making Better Choices: Tips for CYOA Players
 
-1. **Play in character, not to "win".** The best stories come from choices your character would make, not the ones that look optimal.
-2. **Don't reload after every bad outcome.** Failure is often where the best story beats are.
-3. **Explore the unusual option.** In AI games, try things the story didn't suggest.
-4. **Replay with a different personality.** A cautious scholar and a reckless mercenary will get very different stories from the same world.
+1. **Play in character, not to "win".** The best stories come from choices your character would make, not the ones that look optimal on paper.
+2. **Don't reload after every bad outcome.** Failure is often where the best story beats are hiding. I did build single-step undo into EchoQuest (press U), but mainly for slipped fingers and misheard voice commands. Please don't use it to dodge every bruise. Since October, hitting 0 HP brings a genuine setback, and honestly, that's often where a session finally gets good.
+3. **Explore the unusual option.** In AI games, try things the story never suggested.
+4. **Replay with a different personality.** A cautious scholar and a reckless mercenary will pull very different stories out of the same world.
 
-For more on how branching works under the hood, see [The Power of Choice: How Branching Narratives Work in AI RPGs](/blog/the-power-of-choice-how-branching-narratives-work-in-ai-rpgs). If you like hard decisions, read [Crafting Moral Dilemmas](/blog/crafting-moral-dilemmas-how-to-make-players-truly-think).
+For more on how branching works under the hood, see [The Power of Choice: How Branching Narratives Work in AI RPGs](/blog/the-power-of-choice-how-branching-narratives-work-in-ai-rpgs). If you relish hard decisions, read [Crafting Moral Dilemmas](/blog/crafting-moral-dilemmas-how-to-make-players-truly-think).
 
 ## A Sample Adult CYOA Moment
 
 > The informant slides the ledger across the table. It proves the captain of the guard is selling weapons to the rebels, the same rebels who fed your village through the winter. The captain's daughter is waiting outside for her father.
 
-What do you do? Expose him? Blackmail him? Warn the rebels? Burn the ledger? In an AI-driven game, every one of those is an option, along with anything else you can think of.
+So what do you do? Expose him? Blackmail him? Warn the rebels? Burn the ledger? In an AI-narrated game, every one of those is available, along with anything else you can dream up. Fancy slipping the daughter a warning and letting her decide what happens to her father? Go ahead. A gamebook would need a whole extra page for that, and nobody wrote it. Here, you just say it.
 
 ## Start Your Adventure
 
-You don't need to keep a finger in page 42 anymore. Pick a world, make a character, and choose your own path out loud.
+You don't need a thumb jammed in page 42 anymore. Pick a world and make a character. After that, choose your own path, out loud if you like.
 
 **[Start a free adventure →](/library)**
 `,
