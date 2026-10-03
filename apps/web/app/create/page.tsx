@@ -62,7 +62,8 @@ function CreateCharacterPage() {
   const [worldLoadError, setWorldLoadError] = useState<string | null>(null);
 
   const { narrate } = useAnnouncer();
-  const { setSession, setCharacter, setWorld: setStoreWorld, setDbSessionId } = useGameStore();
+  const startNewGame = useGameStore((s) => s.startNewGame);
+  const setDbSessionId = useGameStore((s) => s.setDbSessionId);
 
   const [step, setStep] = useState<Step>("name");
   const [name, setName] = useState("");
@@ -275,9 +276,8 @@ function CreateCharacterPage() {
       codex: [],
     };
 
-    setStoreWorld(world);
-    setCharacter(character);
-    setSession(session);
+    // A new game: the previous one's server save and undo don't carry over.
+    startNewGame({ world, character, session });
 
     // Persist to DB (best-effort — game works without it). Awaited before the
     // opening request so a first-time guest gets one server-issued identity
@@ -401,9 +401,8 @@ function CreateCharacterPage() {
       codex: [],
     };
 
-    setStoreWorld(world);
-    setCharacter(character);
-    setSession(session);
+    // A new game: the previous one's server save and undo don't carry over.
+    startNewGame({ world, character, session });
 
     const guestId = readLegacyGuestId();
 

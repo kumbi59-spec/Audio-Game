@@ -2,8 +2,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { loadPublicWorlds } from "@/lib/worlds/shape";
 import { LibraryClient } from "./LibraryClient";
 
-export const revalidate = 60;
-
 export default async function LibraryPage() {
   const worlds = await loadPublicWorlds();
 

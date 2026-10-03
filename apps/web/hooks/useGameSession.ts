@@ -25,6 +25,7 @@ import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
+import { loadServerSave } from "@/lib/game/server-saves";
 import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
 // Same trim the server applies (lib/ai/memory/context-window.ts): the most
@@ -238,6 +239,7 @@ export function useGameSession() {
       let receivedStreamError = false;
       let streamErrorMessage: string | null = null;
       let streamErrorDegraded = false;
+      let turnConflict = false;
 
       // Narration is spoken sentence by sentence while it streams, rather
       // than after the whole reply (choices, state changes) has arrived.
@@ -580,6 +582,10 @@ export function useGameSession() {
                     await speakText(text);
                   }
                 });
+              } else if (eventType === "turn_conflict") {
+                // Another tab or device saved a turn on this game first, so
+                // the server didn't keep this one.
+                turnConflict = true;
               } else if (eventType === "character_sync") {
                 // The server's stored copy after this turn — the source of
                 // truth for a saved game.
@@ -624,6 +630,19 @@ export function useGameSession() {
           }
 
           if (receivedStreamError) break;
+        }
+
+        if (turnConflict && dbSessionId) {
+          narrator.cancel();
+          stopSpeech();
+          const reloaded = await loadServerSave(dbSessionId);
+          announce(
+            reloaded.ok
+              ? "This game moved on in another tab or device, so I loaded the latest save. Your last action wasn't kept."
+              : reloaded.message,
+            "assertive",
+          );
+          return false;
         }
 
         if (receivedStreamError) {

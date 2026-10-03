@@ -4,6 +4,7 @@ import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, Quest
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
+import { trimHistoryForContext } from "@/lib/ai/memory/context-window";
 import { mergeAchievement, mergeCodexEntry, mergeRelationship, type RelationshipChange } from "@/lib/game/session-progress";
 import {
   applyHpDelta,
@@ -53,6 +54,10 @@ interface GameStore {
   setCharacter: (character: CharacterData) => void;
   setWorld: (world: WorldData) => void;
   setDbSessionId: (id: string | null) => void;
+  /** Starts a fresh game: no server save and no undo carried over from the last one. */
+  startNewGame: (game: { world: WorldData; character: CharacterData; session: InMemorySession }) => void;
+  /** Forgets every game on this device (current and saved), e.g. on sign-out. */
+  forgetAllGames: () => void;
 
   addNarrationEntry: (entry: NarrationEntry) => void;
   setChoices: (choices: string[]) => void;
@@ -76,6 +81,70 @@ interface GameStore {
   deleteSavedCampaign: (id: string) => void;
 }
 
+/**
+ * Saved campaigns live in localStorage (about 5 MB per site), so each keeps
+ * only the recent log and the history the GM still sees.
+ */
+const SAVED_LOG_ENTRIES = 150;
+
+function compactSession(session: InMemorySession): InMemorySession {
+  return {
+    ...session,
+    isGenerating: false,
+    narrationLog: session.narrationLog.slice(-SAVED_LOG_ENTRIES),
+    history: trimHistoryForContext(session.history ?? []),
+  };
+}
+
+/** The world's GM prompt is only read on the server, so it isn't stored here. */
+function compactWorld(world: WorldData): WorldData {
+  return { ...world, systemPrompt: "" };
+}
+
+const GAME_STORE_VERSION = 1;
+
+type PersistedSession = Partial<InMemorySession> | null | undefined;
+
+function withProgressArrays<T extends PersistedSession>(session: T): T {
+  if (!session) return session;
+  return {
+    ...session,
+    achievements: session.achievements ?? [],
+    relationships: session.relationships ?? [],
+    codex: session.codex ?? [],
+    narrationLog: session.narrationLog ?? [],
+    history: session.history ?? [],
+    choices: session.choices ?? [],
+  };
+}
+
+/**
+ * Upgrades what an older version of the app stored. Version 0 saves can lack
+ * the achievements/relationships/codex arrays (added later), which crashed
+ * the store on the first relationship or codex change.
+ */
+export function migrateGameStore(persisted: unknown, version: number): unknown {
+  if (!persisted || typeof persisted !== "object") return persisted;
+  const state = persisted as {
+    session?: PersistedSession;
+    world?: WorldData | null;
+    savedCampaigns?: Array<{ session: PersistedSession; world: WorldData }>;
+  };
+  if (version < 1) {
+    return {
+      ...state,
+      session: withProgressArrays(state.session),
+      world: state.world ? compactWorld(state.world) : state.world,
+      savedCampaigns: (state.savedCampaigns ?? []).map((saved) => ({
+        ...saved,
+        session: withProgressArrays(saved.session),
+        world: compactWorld(saved.world),
+      })),
+    };
+  }
+  return state;
+}
+
 export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
@@ -90,6 +159,10 @@ export const useGameStore = create<GameStore>()(
       setCharacter: (character) => set({ character }),
       setWorld: (world) => set({ world }),
       setDbSessionId: (id) => set({ dbSessionId: id }),
+      startNewGame: ({ world, character, session }) =>
+        set({ world, character, session, dbSessionId: null, previousTurn: null }),
+      forgetAllGames: () =>
+        set({ session: null, character: null, world: null, dbSessionId: null, previousTurn: null, savedCampaigns: [] }),
 
       addNarrationEntry: (entry) =>
         set((state) => ({
@@ -201,7 +274,14 @@ export const useGameStore = create<GameStore>()(
       saveCurrentCampaign: () => set((state) => {
         if (!state.session || !state.character || !state.world) return {};
         const id = `${state.world.id}:${state.session.id}`;
-        const entry = { id, savedAt: Date.now(), session: { ...state.session, isGenerating: false }, character: state.character, world: state.world, dbSessionId: state.dbSessionId };
+        const entry = {
+          id,
+          savedAt: Date.now(),
+          session: compactSession(state.session),
+          character: state.character,
+          world: compactWorld(state.world),
+          dbSessionId: state.dbSessionId,
+        };
         return {
           savedCampaigns: [entry, ...state.savedCampaigns.filter((c) => c.id !== id)].slice(0, 20),
         };
@@ -217,10 +297,12 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: "echoquest-game",
+      version: GAME_STORE_VERSION,
+      migrate: migrateGameStore,
       partialize: (state) => ({
         session: state.session ? { ...state.session, isGenerating: false } : null,
         character: state.character,
-        world: state.world,
+        world: state.world ? compactWorld(state.world) : null,
         dbSessionId: state.dbSessionId,
         savedCampaigns: state.savedCampaigns.map((saved) => ({ ...saved, session: { ...saved.session, isGenerating: false } })),
       }),

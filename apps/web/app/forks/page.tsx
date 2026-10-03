@@ -11,8 +11,6 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/forks` },
 };
 
-export const revalidate = 60;
-
 export default async function ForkIndexPage() {
   // Call the data layer directly. The previous implementation did
   // fetch(`${NEXT_PUBLIC_BASE_URL ?? ""}/api/worlds`) from a server

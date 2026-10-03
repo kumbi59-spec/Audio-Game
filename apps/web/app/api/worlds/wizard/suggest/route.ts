@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
 
 export const runtime = "nodejs";
@@ -26,6 +27,11 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+  const limited = await limitAuthoringRequest(req, {
+    id: session.user.id,
+    isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
+  });
+  if (limited) return limited;
 
   let body: z.infer<typeof BodySchema>;
   try {

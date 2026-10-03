@@ -92,6 +92,9 @@ export default async function RootLayout({
   // Admins never get ads, whatever tier their session token carries.
   const tier = (sessionUser?.isAdmin ? "creator" : sessionUser?.tier ?? "free") as Tier;
   const serverShowsAds = ADSTERRA_ENABLED && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
+  // Reading the request headers (the per-request CSP nonce, the session) makes
+  // every page render per request, so page-level `revalidate` and
+  // Cache-Control rules for pages have no effect; none are set.
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-pathname") ?? "";
   // Set by middleware; every script we render carries it (lib/security/csp.ts).

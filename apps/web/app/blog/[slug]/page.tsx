@@ -10,8 +10,6 @@ import { planSectionImages } from "@/lib/blog/section-image-plan";
 import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
 import { renderBlogMarkdown, serializeJsonLd } from "@/lib/blog/render-markdown";
 
-export const revalidate = 60;
-
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 // Split rendered HTML into chunks at each <h2> boundary so AdSense units can

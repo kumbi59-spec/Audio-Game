@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { loadPublicWorlds } from "@/lib/worlds/shape";
 
-export const revalidate = 60;
-
 export default async function ForkWorldPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   // Direct data-layer call — see the note in /forks/page.tsx for why the

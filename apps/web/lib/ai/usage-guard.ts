@@ -8,11 +8,13 @@ import type { Player } from "@/lib/auth/player-identity";
  * free-tier AI-minute debit. All checks run before the model is invoked.
  */
 
-export type AiUsageKind = "turn" | "opening";
+export type AiUsageKind = "turn" | "opening" | "authoring";
 
 const LIMITS: Record<AiUsageKind, { player: number; ip: number; windowSeconds: number }> = {
   turn: { player: 30, ip: 60, windowSeconds: 60 },
   opening: { player: 10, ip: 20, windowSeconds: 60 * 60 },
+  // World-building helpers (wizard suggestions, notes import, bible re-parse).
+  authoring: { player: 30, ip: 60, windowSeconds: 10 * 60 },
 };
 
 export const MAX_CONCURRENT_STREAMS_PER_PLAYER = 2;
@@ -46,32 +48,51 @@ function acquireStreamSlot(userId: string): AiUsageGrant | null {
   };
 }
 
+async function checkRateLimits(
+  kind: AiUsageKind,
+  userId: string,
+  ip: string,
+): Promise<AiUsageDenial | null> {
+  const limits = LIMITS[kind];
+  for (const rule of [
+    { key: `ai:${kind}:player:${userId}`, limit: limits.player },
+    { key: `ai:${kind}:ip:${ip}`, limit: limits.ip },
+  ]) {
+    const decision = await consumeRateLimit({ ...rule, windowSeconds: limits.windowSeconds });
+    if (!decision.allowed) {
+      return {
+        status: 429,
+        error: "rate_limited",
+        message: "Too many requests. Please wait a moment and try again.",
+        retryAfterSeconds: decision.retryAfterSeconds,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Rate limits for the signed-in world-building helpers, which call the model
+ * without a game session (so no stream slot or AI-minute debit). Returns a
+ * 429 response when the caller is over the limit, otherwise null.
+ */
+export async function limitAuthoringRequest(
+  req: Request,
+  user: { id: string; isAdmin?: boolean },
+): Promise<Response | null> {
+  if (user.isAdmin) return null;
+  const denial = await checkRateLimits("authoring", user.id, getClientIp(req));
+  return denial ? aiUsageDenialResponse(denial) : null;
+}
+
 export async function authorizeAiUsage(
   req: Request,
   player: Player,
   kind: AiUsageKind,
 ): Promise<{ ok: true; grant: AiUsageGrant } | { ok: false; denial: AiUsageDenial }> {
-  const limits = LIMITS[kind];
-  const ip = getClientIp(req);
-
   if (!player.isAdmin) {
-    for (const rule of [
-      { key: `ai:${kind}:player:${player.userId}`, limit: limits.player },
-      { key: `ai:${kind}:ip:${ip}`, limit: limits.ip },
-    ]) {
-      const decision = await consumeRateLimit({ ...rule, windowSeconds: limits.windowSeconds });
-      if (!decision.allowed) {
-        return {
-          ok: false,
-          denial: {
-            status: 429,
-            error: "rate_limited",
-            message: "Too many requests. Please wait a moment and try again.",
-            retryAfterSeconds: decision.retryAfterSeconds,
-          },
-        };
-      }
-    }
+    const denial = await checkRateLimits(kind, player.userId, getClientIp(req));
+    if (denial) return { ok: false, denial };
   }
 
   const grant = acquireStreamSlot(player.userId);

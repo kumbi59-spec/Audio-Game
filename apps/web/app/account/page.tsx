@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useGameStore } from "@/store/game-store";
 import Link from "next/link";
 import { AI_MINUTE_PACKS } from "@audio-rpg/shared";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -434,7 +435,15 @@ export default function AccountPage() {
         <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              // Don't leave this player's games on a shared device.
+              useGameStore.getState().forgetAllGames();
+              void useGameStore.persist.clearStorage();
+              if ("caches" in window) {
+                void caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+              }
+              void signOut({ callbackUrl: "/" });
+            }}
             className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ borderColor: "var(--error, #dc2626)", color: "var(--error, #dc2626)" }}
           >
