@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Inter, Lora } from "next/font/google";
 import { NonceProvider } from "@/components/security/NonceContext";
 import { Suspense } from "react";
 import "./globals.css";
@@ -10,6 +11,9 @@ import { ServiceWorkerRegistrar } from "@/components/ServiceWorkerRegistrar";
 import { AuthProvider } from "./AuthProvider";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ThemeApplier } from "@/components/accessibility/ThemeApplier";
+import { A11Y_STORAGE_KEY, displayModesBootScript } from "@/lib/a11y/display-prefs";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
 import { AdRails } from "@/components/ads/AdRails";
@@ -22,6 +26,10 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
+
+// Self-hosted at build time; the Tailwind font families read these variables.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -102,8 +110,14 @@ export default async function RootLayout({
   const pageLevelAds = serverShowsAds && !ADSTERRA_EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
-    <html lang="en">
+    // The boot script sets display classes on <html> before React hydrates,
+    // so the server's markup never matches them exactly.
+    <html lang="en" className={`${inter.variable} ${lora.variable}`} suppressHydrationWarning>
+      <head>
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: displayModesBootScript(A11Y_STORAGE_KEY) }} />
+      </head>
       <body className="min-h-screen antialiased" style={{ backgroundColor: "var(--bg)", color: "var(--text)" }}>
+        <ThemeApplier />
         {ADSENSE_ENABLED && (
           <Script
             id="adsense-loader"
@@ -131,6 +145,7 @@ export default async function RootLayout({
                 <VerificationBanner />
               </Suspense>
               {children}
+              <SiteFooter />
               <Suspense>
                 <AdRails />
               </Suspense>

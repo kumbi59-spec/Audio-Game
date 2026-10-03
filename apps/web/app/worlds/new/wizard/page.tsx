@@ -239,7 +239,7 @@ export default function WorldWizardPage() {
       `}</style>
       {/* Skip link */}
       <a
-        href="#wizard-main"
+        href="#main-content"
         className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
         style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
@@ -270,7 +270,7 @@ export default function WorldWizardPage() {
         )}
       </header>
 
-      <main id="wizard-main" className="mx-auto max-w-xl px-6 pb-20">
+      <main id="main-content" className="mx-auto max-w-xl px-6 pb-20">
         {/* Progress bar */}
         <div
           role="progressbar"
@@ -340,7 +340,7 @@ export default function WorldWizardPage() {
                   aria-label={step.prompt}
                   aria-describedby={step.helper ? "step-helper" : undefined}
                   aria-required={step.required}
-                  className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+                  className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
                   style={{
                     borderColor: "var(--border)",
                     backgroundColor: "var(--surface2)",
@@ -365,7 +365,7 @@ export default function WorldWizardPage() {
                   type="text"
                   aria-label={step.prompt}
                   aria-required={step.required}
-                  className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+                  className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
                   style={{
                     borderColor: "var(--border)",
                     backgroundColor: "var(--surface2)",
@@ -572,7 +572,7 @@ export default function WorldWizardPage() {
               onChange={(e) => setCoverImageUrl(e.target.value)}
               placeholder="https://example.com/my-cover.jpg"
               disabled={busy}
-              className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2"
+              className="w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--text)" }}
             />
             {coverImageUrl.trim() && (

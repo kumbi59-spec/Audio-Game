@@ -1,5 +1,14 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * A theme colour that still takes Tailwind's opacity modifiers. A plain
+ * `var(--x)` can't, so `bg-surface/80` used to generate no CSS at all; mixing
+ * with transparent works for any colour format the theme uses (hex or rgba).
+ */
+function token(cssVar: string): string {
+  return `color-mix(in srgb, var(${cssVar}) calc(<alpha-value> * 100%), transparent)`;
+}
+
 const config: Config = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,47 +19,52 @@ const config: Config = {
     extend: {
       colors: {
         /* EchoQuest design tokens */
-        bg:       "var(--bg)",
-        surface:  "var(--surface)",
-        "surface-2": "var(--surface-2)",
-        "surface-3": "var(--surface-3)",
-        accent:   "var(--accent)",
-        "accent-solid": "var(--accent-solid)",
-        "on-accent":    "var(--on-accent)",
-        "accent-hover": "var(--accent-hover)",
-        "accent-dim":   "var(--accent-dim)",
-        success:  "var(--success)",
-        warning:  "var(--warning)",
-        danger:   "var(--danger)",
-        info:     "var(--info)",
-        border:   "var(--border)",
-        "border-muted": "var(--border-muted)",
+        bg:       token("--bg"),
+        surface:  token("--surface"),
+        "surface-2": token("--surface-2"),
+        "surface-3": token("--surface-3"),
+        accent:   token("--accent"),
+        "accent-solid": token("--accent-solid"),
+        "on-accent":    token("--on-accent"),
+        "accent-hover": token("--accent-hover"),
+        "accent-dim":   token("--accent-dim"),
+        success:  token("--success"),
+        warning:  token("--warning"),
+        danger:   token("--danger"),
+        info:     token("--info"),
+        border:   token("--border"),
+        "border-muted": token("--border-muted"),
 
         /* Legacy aliases so existing components keep working */
-        background:  "var(--bg)",
-        foreground:  "var(--text)",
+        background:  token("--bg"),
+        foreground:  token("--text"),
+        card: {
+          DEFAULT:    token("--surface"),
+          foreground: token("--text"),
+        },
+        input: token("--border"),
         primary: {
-          DEFAULT:    "var(--accent)",
-          foreground: "var(--on-accent)",
+          DEFAULT:    token("--accent"),
+          foreground: token("--on-accent"),
         },
         secondary: {
-          DEFAULT:    "var(--surface)",
-          foreground: "var(--text)",
+          DEFAULT:    token("--surface"),
+          foreground: token("--text"),
         },
         muted: {
-          DEFAULT:    "var(--surface-2)",
-          foreground: "var(--text-muted)",
+          DEFAULT:    token("--surface-2"),
+          foreground: token("--text-muted"),
         },
-        ring: "var(--focus-ring)",
+        ring: token("--focus-ring"),
       },
       // bg-primary is a fill under primary-foreground text: use the fill shade.
       backgroundColor: {
-        primary: "var(--accent-solid)",
+        primary: token("--accent-solid"),
       },
       textColor: {
-        DEFAULT: "var(--text)",
-        muted:   "var(--text-muted)",
-        subtle:  "var(--text-subtle)",
+        DEFAULT: token("--text"),
+        muted:   token("--text-muted"),
+        subtle:  token("--text-subtle"),
       },
       fontFamily: {
         sans:      ["var(--font-inter)", "system-ui", "sans-serif"],

@@ -56,7 +56,7 @@ export default async function BlogPage() {
         </div>
       </header>
 
-            <main className="mx-auto max-w-3xl px-6 py-12">
+            <main id="main-content" className="mx-auto max-w-3xl px-6 py-12">
         <nav aria-label="Related exploration" className="mb-8 rounded-xl border p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
           <p className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Keep exploring</p>
           <div className="mt-2 flex flex-wrap gap-4 text-sm">

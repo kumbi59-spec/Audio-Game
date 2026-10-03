@@ -6,6 +6,7 @@ import { useAudioStore } from "@/store/audio-store";
 import type { CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
+import { hpColor } from "@/lib/ui/hp-color";
 
 interface StatusBarProps {
   character: CharacterData;
@@ -112,12 +113,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
             className="status-hp-fill h-full rounded-full"
             style={{
               width: `${hpPercent}%`,
-              backgroundColor:
-                hpPercent > 50
-                  ? "var(--success)"
-                  : hpPercent > 25
-                  ? "var(--warning)"
-                  : "var(--danger)",
+              backgroundColor: hpColor(hpPercent),
             }}
           />
         </div>

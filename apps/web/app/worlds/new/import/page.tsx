@@ -119,7 +119,7 @@ export default function ImportNotesPage() {
               aria-required="true"
               aria-describedby={error ? "notes-error" : "notes-hint"}
               placeholder="Session notes, world documents, campaign summaries… Paste anything here. The more detail, the better Claude can extract your world's details."
-              className="w-full resize-y rounded-xl border p-4 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2"
+              className="w-full resize-y rounded-xl border p-4 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: error ? "var(--error, #dc2626)" : "var(--border)",
                 backgroundColor: "var(--surface)",

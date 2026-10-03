@@ -423,7 +423,7 @@ function CreateCharacterPage() {
   return (
     <div className="min-h-screen surface-gradient">
       <SiteHeader />
-      <div className="mx-auto max-w-lg px-4 py-8">
+      <main id="main-content" className="mx-auto max-w-lg px-4 py-8">
         {!world && (
           <section className="surface-gradient inner-highlight rounded-lg border border-border p-4 text-sm text-muted-foreground">
             {worldLoadError ?? "Loading world…"}
@@ -797,7 +797,7 @@ function CreateCharacterPage() {
         </section>
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }

@@ -253,7 +253,7 @@ export function VoiceCommandListener({
         aria-pressed={listening}
         aria-label={listening ? "Stop voice input" : "Start voice input (V)"}
         disabled={!isActive}
-        className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-40 ${
+        className={`flex h-14 w-14 items-center justify-center rounded-full text-2xl shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-40 ${
           listening
             ? "animate-pulse-slow bg-red-500 text-white"
             : "bg-primary text-primary-foreground hover:opacity-90"
@@ -274,13 +274,13 @@ export function VoiceCommandListener({
         <div
           role="alertdialog"
           aria-label="Confirm voice action"
-          className="flex max-w-xs flex-col items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-center"
+          className="flex max-w-xs flex-col items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 p-3 text-center"
         >
-          <p className="text-sm font-medium text-amber-200">
+          <p className="text-sm font-medium text-foreground">
             Heard: <span className="italic">&ldquo;{pendingAction}&rdquo;</span>
           </p>
-          <p className="text-xs text-amber-200/70">
-            Sending automatically — press Cancel to stop.
+          <p className="text-xs text-muted">
+            Sending automatically. Press Cancel to stop.
           </p>
           <div className="flex gap-2">
             <button
@@ -296,7 +296,7 @@ export function VoiceCommandListener({
                 announce("Voice action cancelled.");
               }}
               aria-label="Cancel voice action"
-              className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-md border border-border px-3 py-1 text-xs font-semibold text-muted-foreground hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Cancel
             </button>

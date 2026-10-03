@@ -80,7 +80,7 @@ function SignInForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-      <main className="w-full max-w-sm px-6" role="main">
+      <main id="main-content" className="w-full max-w-sm px-6">
         <h1 className="mb-6 text-2xl font-bold" style={{ color: "var(--text)" }}>
           {mode === "signin" ? "Sign in" : "Create account"}
         </h1>

@@ -496,7 +496,7 @@ export default function AdminPage() {
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>Signed in as {session?.user?.email}</p>
       </header>
 
-      <main className="px-6 py-8">
+      <main id="main-content" className="px-6 py-8">
         {/* Summary stats */}
         <section aria-label="Summary statistics" className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           {[
@@ -566,8 +566,8 @@ export default function AdminPage() {
                       <td className="py-3 pr-4">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold capitalize"
                           style={{
-                            backgroundColor: u.tier === "free" ? "var(--surface-2, var(--surface))" : "var(--accent)",
-                            color: u.tier === "free" ? "var(--text-muted)" : "#ffffff",
+                            backgroundColor: u.tier === "free" ? "var(--surface-2)" : "var(--accent-solid)",
+                            color: u.tier === "free" ? "var(--text-muted)" : "var(--on-accent)",
                           }}>
                           {u.tier}
                         </span>
@@ -630,8 +630,9 @@ export default function AdminPage() {
                       <td className="py-3 pr-4">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{
-                            backgroundColor: w.isPublic ? "var(--success, #16a34a)" : "var(--surface-2, var(--surface))",
-                            color: w.isPublic ? "#ffffff" : "var(--text-muted)",
+                            // White on the success green is under 2:1; tint it instead.
+                            backgroundColor: w.isPublic ? "color-mix(in srgb, var(--success) 15%, transparent)" : "var(--surface-2)",
+                            color: w.isPublic ? "var(--success)" : "var(--text-muted)",
                           }}>
                           {w.isPublic ? "Public" : "Private"}
                         </span>
@@ -739,8 +740,9 @@ export default function AdminPage() {
                       <div className="mt-1 flex items-center gap-2">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{
-                            backgroundColor: p.publishedAt ? "var(--success, #16a34a)" : "var(--surface-2, var(--surface))",
-                            color: p.publishedAt ? "#ffffff" : "var(--text-muted)",
+                            // White on the success green is under 2:1; tint it instead.
+                            backgroundColor: p.publishedAt ? "color-mix(in srgb, var(--success) 15%, transparent)" : "var(--surface-2)",
+                            color: p.publishedAt ? "var(--success)" : "var(--text-muted)",
                           }}>
                           {p.publishedAt ? "Published" : "Draft"}
                         </span>
@@ -758,7 +760,7 @@ export default function AdminPage() {
                         {getSeoChecks(p).map((check) => (
                           <span key={check.label}
                             className="rounded-full border px-2 py-0.5 text-[10px] font-medium"
-                            style={{ borderColor: check.pass ? "#16a34a" : "#f59e0b", color: check.pass ? "#16a34a" : "#f59e0b" }}>
+                            style={{ borderColor: check.pass ? "var(--success)" : "var(--warning)", color: check.pass ? "var(--success)" : "var(--warning)" }}>
                             {check.pass ? "✓" : "!"} {check.label}
                           </span>
                         ))}
@@ -777,7 +779,7 @@ export default function AdminPage() {
                       </button>
                       <button onClick={() => deletePost(p.id)}
                         className="rounded px-2 py-1 text-xs font-medium hover:opacity-80"
-                        style={{ backgroundColor: "transparent", color: "#ef4444", border: "1px solid #ef4444" }}>
+                        style={{ backgroundColor: "transparent", color: "var(--danger)", border: "1px solid var(--danger)" }}>
                         Del
                       </button>
                     </div>
@@ -834,7 +836,7 @@ export default function AdminPage() {
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                     style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--text)" }} />
                 </div>
-                {blogError && <p className="text-sm" style={{ color: "#ef4444" }}>{blogError}</p>}
+                {blogError && <p className="text-sm" style={{ color: "var(--danger)" }}>{blogError}</p>}
                 <div className="flex gap-3">
                   <button onClick={saveBlogPost} disabled={blogSaving}
                     className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"

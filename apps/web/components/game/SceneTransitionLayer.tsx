@@ -76,7 +76,7 @@ export function SceneTransitionLayer({
             <button
               type="button"
               onClick={onComplete}
-              className="rounded-md border border-border/70 bg-background/85 px-3 py-1 text-xs text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-md border border-border/70 bg-background/85 px-3 py-1 text-xs text-foreground hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Skip transition
             </button>

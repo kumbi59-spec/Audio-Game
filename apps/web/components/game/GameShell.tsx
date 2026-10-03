@@ -22,6 +22,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
+import { useReducedMotion } from "@/lib/a11y/use-reduced-motion";
 import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
 import { canPlayAudioNow, whenAudioUnlocked } from "@/lib/audio/unlock";
 import { AdBanner } from "@/components/ads/AdBanner";
@@ -66,9 +67,9 @@ export function GameShell() {
     openOperationsManual,
     closeOperationsManual,
     markOperationsManualSeen,
-    reducedMotion,
     audioOnlyMode,
   } = useAccessibilityStore();
+  const reducedMotion = useReducedMotion();
   const { announce } = useAnnouncer();
   const saveCurrentCampaign = useGameStore((s) => s.saveCurrentCampaign);
   const addNarrationEntry = useGameStore((s) => s.addNarrationEntry);
@@ -450,7 +451,7 @@ export function GameShell() {
         {/* Narration — fills available space */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
           {degradedMessage && (
-            <div className="mb-2 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+            <div className="mb-2 rounded border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-foreground">
               {degradedMessage}
             </div>
           )}
@@ -471,7 +472,7 @@ export function GameShell() {
                 type="button"
                 onClick={() => setHudOpen(false)}
                 aria-label="Close HUD"
-                className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
+                className="flex h-11 w-11 items-center justify-center rounded text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
               >
                 ✕
               </button>
@@ -551,16 +552,19 @@ export function GameShell() {
         {/* In-game the Adsterra native banner below is the ad; AdBanner adds AdSense only if enabled. */}
         <AdBanner visible={shouldShowAdBanner} fallback="none" />
         {nativeAdMounted && (
-          <div hidden={!shouldShowAdBanner}>
+          // Capped so an ad can never squeeze the narration off the screen.
+          <div hidden={!shouldShowAdBanner} className="max-h-[260px] shrink-0 overflow-hidden">
             <AdsterraNativeBanner />
           </div>
         )}
 
         {/* Bottom toolbar */}
         <div
+          id="game-toolbar"
+          tabIndex={-1}
           role="toolbar"
           aria-label="Game controls"
-          className="flex shrink-0 items-center justify-between border-t border-border bg-muted/10 px-4 py-2"
+          className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/10 px-4 py-2"
         >
           {/* A11y motion checklist: labels/icons communicate state without animation; all controls are keyboard/focus operable; reduced-motion uses static visuals. */}
           {/* Speed control — compact slider replaces ± buttons */}
@@ -591,7 +595,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 operationsManualOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               Help
@@ -603,7 +607,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 sheetOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               Sheet
@@ -615,7 +619,7 @@ export function GameShell() {
               className={`toolbar-btn rounded border px-3 py-1.5 text-xs font-medium transition-colors focus-ring ${
                 hudOpen
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                  : "border-border text-muted-foreground hover:bg-surface-2 hover:text-foreground"
               }`}
             >
               HUD
@@ -624,7 +628,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("inventory")}
               aria-label={`Open inventory (I). ${character.inventory.length} items.`}
-              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Briefcase
               {character.inventory.length > 0 && (
@@ -636,7 +640,7 @@ export function GameShell() {
             <button
               onClick={() => handleOpenSheetTab("quests")}
               aria-label={`Open quest log (Q). ${activeQuestCount} active quests.`}
-              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn relative hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Quest Book
               {activeQuestCount > 0 && (
@@ -648,7 +652,7 @@ export function GameShell() {
             <button
               onClick={() => recapRecentTurns(3)}
               aria-label="Catch up — recap the last 3 scenes"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Recap
             </button>
@@ -656,46 +660,46 @@ export function GameShell() {
               onClick={undoLastTurn}
               disabled={!canUndo}
               aria-label="Undo last turn (U)"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring disabled:opacity-40 md:inline-flex"
             >
               Undo
             </button>
             <button
               onClick={handleManualSave}
               aria-label="Save current campaign"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Save
             </button>
             <button
               onClick={shareRecap}
               aria-label="Share your session recap"
-              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring md:inline-flex"
+              className="toolbar-btn hidden rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring md:inline-flex"
             >
               Share Recap
             </button>
             {/* Mobile overflow menu — hidden on md+ */}
             <details className="relative md:hidden">
-              <summary className="toolbar-btn list-none cursor-pointer rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring">
+              <summary className="toolbar-btn inline-flex min-h-[44px] list-none cursor-pointer items-center rounded border border-border px-3 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring">
                 ⋯ More
               </summary>
               <div className="absolute bottom-full right-0 z-50 mb-1 flex flex-col gap-1 rounded-lg border border-border bg-background p-2 shadow-lg">
-                <button onClick={() => handleOpenSheetTab("inventory")} aria-label={`Open inventory. ${character.inventory.length} items.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => handleOpenSheetTab("inventory")} aria-label={`Open inventory. ${character.inventory.length} items.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Briefcase {character.inventory.length > 0 && `(${character.inventory.length})`}
                 </button>
-                <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => handleOpenSheetTab("quests")} aria-label={`Open quest log. ${activeQuestCount} active quests.`} className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Quest Book {activeQuestCount > 0 && `(${activeQuestCount})`}
                 </button>
-                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={() => recapRecentTurns(3)} aria-label="Catch up — recap the last 3 scenes" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Recap
                 </button>
-                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40">
+                <button onClick={undoLastTurn} disabled={!canUndo} aria-label="Undo last turn" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground disabled:opacity-40">
                   Undo
                 </button>
-                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={handleManualSave} aria-label="Save current campaign" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Save
                 </button>
-                <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground">
+                <button onClick={shareRecap} aria-label="Share session recap" className="toolbar-btn rounded border border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground">
                   Share Recap
                 </button>
               </div>
@@ -703,7 +707,7 @@ export function GameShell() {
             <Link
               href="/library"
               aria-label="Exit game and return to library"
-              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground focus-ring"
+              className="toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
             >
               ← Exit
             </Link>

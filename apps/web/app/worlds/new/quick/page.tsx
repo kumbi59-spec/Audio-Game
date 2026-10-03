@@ -107,7 +107,7 @@ export default function QuickBuildPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
       <a
-        href="#quick-main"
+        href="#main-content"
         className="sr-only focus:not-sr-only absolute left-4 top-4 rounded px-3 py-1 text-sm font-semibold"
         style={{ backgroundColor: "var(--accent-solid)", color: "var(--on-accent)" }}
       >
@@ -132,7 +132,7 @@ export default function QuickBuildPage() {
         </p>
       </header>
 
-      <main id="quick-main" className="mx-auto max-w-xl px-6 pb-20">
+      <main id="main-content" className="mx-auto max-w-xl px-6 pb-20">
         <form onSubmit={(e) => void handleSubmit(e)} noValidate className="space-y-6">
 
           {/* 1. World name */}
@@ -155,7 +155,7 @@ export default function QuickBuildPage() {
               onChange={(e) => setTitle(e.target.value)}
               disabled={busy}
               placeholder="e.g. The Shattered Realm"
-              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",
@@ -181,7 +181,7 @@ export default function QuickBuildPage() {
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               disabled={busy}
-              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+              className="w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",
@@ -201,7 +201,7 @@ export default function QuickBuildPage() {
                 onChange={(e) => setCustomGenre(e.target.value)}
                 disabled={busy}
                 placeholder="Describe your genre…"
-                className="mt-2 w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+                className="mt-2 w-full rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
                 style={{
                   borderColor: "var(--border)",
                   backgroundColor: "var(--surface2)",
@@ -233,7 +233,7 @@ export default function QuickBuildPage() {
               disabled={busy}
               placeholder="e.g. A dying empire where magic is outlawed and rebels speak in whispers."
               rows={3}
-              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",
@@ -264,7 +264,7 @@ export default function QuickBuildPage() {
               disabled={busy}
               placeholder="e.g. You wake in a burnt-out village, smoke still rising, clutching a letter you don't remember writing."
               rows={3}
-              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2"
+              className="w-full resize-none rounded-xl border px-4 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",
@@ -292,7 +292,7 @@ export default function QuickBuildPage() {
               onChange={(e) => setImageUrl(e.target.value)}
               disabled={busy}
               placeholder="https://example.com/cover.jpg"
-              className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2"
+              className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
               style={{
                 borderColor: "var(--border)",
                 backgroundColor: "var(--surface2)",

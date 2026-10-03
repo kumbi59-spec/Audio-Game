@@ -1,41 +1,60 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { loadPublicWorlds } from "@/lib/worlds/shape";
+import { SiteHeader } from "@/components/SiteHeader";
+import { ButtonLink } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 
-export default async function ForkWorldPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  // Direct data-layer call — see the note in /forks/page.tsx for why the
-  // prior fetch("/api/worlds/:id") from a server component was broken.
+type Params = { params: Promise<{ id: string }> };
+
+// Direct data-layer call; see the note in /forks/page.tsx for why the
+// earlier fetch("/api/worlds/:id") from a server component was broken.
+async function findWorld(id: string) {
   const worlds = await loadPublicWorlds();
-  const world = worlds.find((w) => w.id === id);
+  return worlds.find((w) => w.id === id) ?? null;
+}
 
-  if (!world) {
-    return <main className="mx-auto max-w-2xl px-6 py-10">World not found.</main>;
-  }
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const world = await findWorld((await params).id);
+  if (!world) return { title: "World not found", robots: { index: false } };
+  return {
+    title: `Fork ${world.name}`,
+    description: `Remix ${world.name}, a ${world.genre} world on EchoQuest, into your own version.`,
+  };
+}
+
+export default async function ForkWorldPage({ params }: Params) {
+  const world = await findWorld((await params).id);
+  if (!world) notFound();
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
-      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Fork this world</p>
-      <h1 className="mt-2 text-3xl font-bold">{world.name}</h1>
-      <p className="mt-2 text-sm text-muted-foreground">{world.description}</p>
-      <p className="mt-4 text-sm text-muted-foreground">Genre: {world.genre} · Tone: {world.tone}</p>
+    <>
+      <SiteHeader />
+      <main id="main-content" className="mx-auto max-w-2xl px-6 py-10">
+        <Eyebrow>Fork this world</Eyebrow>
+        <h1 className="mt-2 text-3xl font-bold text-foreground">{world.name}</h1>
+        <p className="mt-2 text-sm text-muted">{world.description}</p>
+        <p className="mt-4 text-sm text-muted">Genre: {world.genre} · Tone: {world.tone}</p>
 
-      <div className="mt-8 rounded-xl border border-border bg-card p-5">
-        <h2 className="text-lg font-semibold">How to fork</h2>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-          <li>Play the original world and identify what you want to remix.</li>
-          <li>Create your version with Quick Build, Wizard, or Game Bible upload.</li>
-          <li>Publish your remix and share your recap to bring players back to your world.</li>
-        </ol>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link href={`/create?worldId=${world.id}`} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Play original</Link>
-          <Link
-            href={`/worlds/new/wizard?forkFrom=${encodeURIComponent(world.id)}&forkName=${encodeURIComponent(world.name)}`}
-            className="rounded-md border border-border px-4 py-2 text-sm font-semibold"
-          >
-            Start your fork
-          </Link>
-        </div>
-      </div>
-    </main>
+        <Card className="mt-8">
+          <h2 className="text-lg font-semibold text-foreground">How to fork</h2>
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted">
+            <li>Play the original world and identify what you want to remix.</li>
+            <li>Create your version with Quick Build, Wizard, or Game Bible upload.</li>
+            <li>Publish your remix and share your recap to bring players back to your world.</li>
+          </ol>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <ButtonLink href={`/create?worldId=${world.id}`}>Play original</ButtonLink>
+            <ButtonLink
+              href={`/worlds/new/wizard?forkFrom=${encodeURIComponent(world.id)}&forkName=${encodeURIComponent(world.name)}`}
+              variant="secondary"
+            >
+              Start your fork
+            </ButtonLink>
+          </div>
+        </Card>
+      </main>
+    </>
   );
 }

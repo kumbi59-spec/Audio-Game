@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-      <main className="w-full max-w-sm px-6" role="main">
+      <main id="main-content" className="w-full max-w-sm px-6">
         <h1 className="mb-2 text-2xl font-bold" style={{ color: "var(--text)" }}>Forgot password</h1>
 
         {sent ? (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { loadPublicWorlds } from "@/lib/worlds/shape";
+import { SiteHeader } from "@/components/SiteHeader";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -22,7 +23,9 @@ export default async function ForkIndexPage() {
   const creatorWorlds = worlds.filter((w) => !!w.author);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
+    <>
+    <SiteHeader />
+    <main id="main-content" className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-3xl font-bold">Fork this world</h1>
       <p className="mt-2 text-sm text-muted-foreground">Browse creator worlds and launch your own remix page.</p>
       {creatorWorlds.length === 0 ? (
@@ -50,5 +53,6 @@ export default async function ForkIndexPage() {
         </ul>
       )}
     </main>
+    </>
   );
 }

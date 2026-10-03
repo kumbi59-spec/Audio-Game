@@ -37,7 +37,7 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-dvh overflow-hidden">
       <GameShell />
     </div>
   );

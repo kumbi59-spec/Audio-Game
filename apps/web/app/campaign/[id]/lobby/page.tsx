@@ -258,9 +258,9 @@ function ParticipantRow({
         className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
         style={{
           backgroundColor: participant.ready
-            ? "rgba(34, 197, 94, 0.12)"
-            : "var(--surface3)",
-          color: participant.ready ? "#22c55e" : "var(--text-muted)",
+            ? "color-mix(in srgb, var(--success) 12%, transparent)"
+            : "var(--surface-3)",
+          color: participant.ready ? "var(--success)" : "var(--text-muted)",
         }}
         aria-hidden="true"
       >
@@ -368,7 +368,7 @@ export default function LobbyPage() {
             {allReady && (
               <div
                 className="mt-6 rounded-xl border px-4 py-3 text-center text-sm font-semibold"
-                style={{ borderColor: "#22c55e", backgroundColor: "rgba(34,197,94,0.08)", color: "#22c55e" }}
+                style={{ borderColor: "var(--success)", backgroundColor: "color-mix(in srgb, var(--success) 8%, transparent)", color: "var(--success)" }}
                 role="status"
                 aria-live="assertive"
               >
@@ -381,7 +381,7 @@ export default function LobbyPage() {
               <div className="mt-6 flex gap-3">
                 <button
                   onClick={() => markReady(!me?.ready)}
-                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring"
                   style={{
                     backgroundColor: me?.ready ? "var(--surface3)" : "var(--accent-solid)",
                     color: me?.ready ? "var(--text-muted)" : "var(--on-accent)",
@@ -392,7 +392,7 @@ export default function LobbyPage() {
                 </button>
                 <button
                   onClick={leave}
-                  className="rounded-xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
+                  className="rounded-xl border px-4 py-3 text-sm font-semibold transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring"
                   style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
                 >
                   Leave

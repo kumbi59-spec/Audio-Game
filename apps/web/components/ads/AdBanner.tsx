@@ -6,6 +6,7 @@ import { useCanWeb } from "@/store/entitlements-store";
 import { ADSENSE_ENABLED } from "./adsense-config";
 import { AdsterraBanner } from "./AdsterraBanner";
 import { useIsWideScreen } from "./useIsWideScreen";
+import { useUnfilledCollapse } from "./useUnfilledCollapse";
 
 /**
  * AdSense needs `data-ad-client` in its "ca-pub-…" form. The env var has been
@@ -108,11 +109,15 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
  */
 function AdsterraDisplaySlot() {
   const wide = useIsWideScreen();
-  if (wide !== false) return null;
+  const narrow = wide === false;
+  const [ref, unfilled] = useUnfilledCollapse(narrow);
+  // Space is held from the first render (and hidden by CSS on rail-width
+  // screens) so the page doesn't jump when the 600px-tall unit arrives.
+  if (wide === true || unfilled) return null;
   return (
-    <div className="flex justify-center py-2" aria-label="Advertisement">
-      <AdsterraBanner />
-    </div>
+    <aside ref={ref} aria-label="Advertisement" className="flex min-h-[600px] justify-center py-2 xl:hidden">
+      {narrow && <AdsterraBanner />}
+    </aside>
   );
 }
 

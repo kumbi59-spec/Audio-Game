@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdsterraSmartlink } from "@/components/ads/AdsterraSmartlink";
 import { MobileAdSlot } from "@/components/ads/MobileAdSlot";
-import { LandingNav } from "@/components/landing/LandingNav";
+import { SiteHeader } from "@/components/SiteHeader";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
@@ -178,7 +177,7 @@ export default function LandingPage() {
       />
       <LandingEffects />
       <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
-        <LandingNav />
+        <SiteHeader />
 
         <main id="main-content">
           {/* Hero */}
@@ -394,19 +393,6 @@ export default function LandingPage() {
           </section>
         </main>
 
-        <footer className="px-6 py-6 text-center text-xs" style={{ color: "var(--text-subtle, var(--text-muted))", borderTop: "1px solid var(--border)" }}>
-          <p className="mb-2">EchoQuest — Powered by Claude AI · Audio-first interactive storytelling</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/about" className="hover:underline">About</Link>
-            <Link href="/library" className="hover:underline">Library</Link>
-            <Link href="/blog" className="hover:underline">Blog</Link>
-            <Link href="/auth/sign-in" className="hover:underline">Sign in</Link>
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/terms" className="hover:underline">Terms</Link>
-            <Link href="/contact-us" className="hover:underline">Contact</Link>
-            <AdsterraSmartlink />
-          </div>
-        </footer>
       </div>
     </>
   );

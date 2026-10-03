@@ -7,6 +7,7 @@ import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import type { CharacterData } from "@/types/character";
 import type { AchievementUnlock, NpcRelationship, CodexEntry } from "@/types/game";
 import { xpToReachLevel } from "@/lib/game/character-reducer";
+import { hpColor } from "@/lib/ui/hp-color";
 
 interface CharacterSheetProps {
   character: CharacterData;
@@ -114,7 +115,7 @@ function xpIntoLevel(totalXp: number, level: number) {
 function StatsTab({ character }: { character: CharacterData }) {
   const s = character.stats;
   const hpPct = Math.round((s.hp / s.maxHp) * 100);
-  const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
+  const barColor = hpColor(hpPct);
 
   const customStatEntries = Object.entries(character.customStats ?? {});
   const customPrimaryStats = (() => {
@@ -185,7 +186,7 @@ function StatsTab({ character }: { character: CharacterData }) {
       </div>
 
       {/* HP bar */}
-      <StatBar label="Health (HP)" value={s.hp} max={s.maxHp} color={hpColor} />
+      <StatBar label="Health (HP)" value={s.hp} max={s.maxHp} color={barColor} />
 
       {/* Custom resource bars (MP, Stamina, Sanity, etc.) */}
       {customStatEntries
@@ -396,7 +397,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
             Completed
           </h3>
           <ul className="space-y-2">
-            {completed.map((q) => <QuestCard key={q.id} quest={q} accent="#22c55e" />)}
+            {completed.map((q) => <QuestCard key={q.id} quest={q} accent="var(--success)" />)}
           </ul>
         </div>
       )}
@@ -406,7 +407,7 @@ function QuestsTab({ character }: { character: CharacterData }) {
             Failed
           </h3>
           <ul className="space-y-2">
-            {failed.map((q) => <QuestCard key={q.id} quest={q} accent="#ef4444" />)}
+            {failed.map((q) => <QuestCard key={q.id} quest={q} accent="var(--danger)" />)}
           </ul>
         </div>
       )}
@@ -664,7 +665,7 @@ export function CharacterSheet({
 
   const s = character.stats;
   const hpPct = Math.round((s.hp / s.maxHp) * 100);
-  const hpColor = hpPct > 50 ? "#22c55e" : hpPct > 25 ? "#eab308" : "#ef4444";
+  const barColor = hpColor(hpPct);
 
   return (
     <div
@@ -703,7 +704,7 @@ export function CharacterSheet({
             >
               <div
                 className="h-full rounded-full transition-all"
-                style={{ width: `${hpPct}%`, backgroundColor: hpColor }}
+                style={{ width: `${hpPct}%`, backgroundColor: barColor }}
               />
             </div>
           </div>

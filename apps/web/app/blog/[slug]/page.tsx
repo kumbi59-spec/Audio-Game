@@ -157,11 +157,12 @@ export default async function BlogPostPage({ params }: Props) {
         <SiteHeader />
         {post.coverImageUrl && (
           <div className="border-b" style={{ borderColor: "var(--border)" }}>
+            {/* Capped in width so the title stays above the fold. */}
             {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
             <img
               src={post.coverImageUrl}
               alt=""
-              className="aspect-[16/9] w-full object-cover"
+              className="mx-auto aspect-[16/9] w-full max-w-4xl object-cover"
               loading="eager"
               decoding="async"
             />
@@ -185,7 +186,7 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </header>
 
-        <main className="mx-auto max-w-3xl px-6 py-12">
+        <main id="main-content" className="mx-auto max-w-3xl px-6 py-12">
           <article className="blog-content">
             {(() => {
               // Adsterra native banner goes right after the intro so it sits

@@ -20,7 +20,7 @@ function ResetPasswordForm() {
   if (!token || !email) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-        <main className="w-full max-w-sm px-6" role="main">
+        <main id="main-content" className="w-full max-w-sm px-6">
           <p className="text-sm" style={{ color: "var(--danger, #ef4444)" }}>Invalid reset link.</p>
           <Link href="/auth/forgot-password" className="mt-4 inline-block text-sm underline" style={{ color: "var(--accent)" }}>
             Request a new one
@@ -59,7 +59,7 @@ function ResetPasswordForm() {
   if (done) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-        <main className="w-full max-w-sm px-6 text-center" role="main">
+        <main id="main-content" className="w-full max-w-sm px-6 text-center">
           <p className="text-lg font-semibold" style={{ color: "var(--text)" }}>Password updated!</p>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>Redirecting to sign in…</p>
         </main>
@@ -69,7 +69,7 @@ function ResetPasswordForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg)" }}>
-      <main className="w-full max-w-sm px-6" role="main">
+      <main id="main-content" className="w-full max-w-sm px-6">
         <h1 className="mb-2 text-2xl font-bold" style={{ color: "var(--text)" }}>Choose a new password</h1>
         <p className="mb-6 text-sm" style={{ color: "var(--text-muted)" }}>
           Resetting password for <strong style={{ color: "var(--text)" }}>{email}</strong>

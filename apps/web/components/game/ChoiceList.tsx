@@ -174,7 +174,7 @@ export function ChoiceList({ choices, onSelect, disabled = false }: ChoiceListPr
                   : `Option ${i + 1}: ${choice}`
               }
               aria-busy={submittedIdx === i}
-              className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+              className="choice-button flex w-full items-start gap-3 rounded-xl border border-border bg-secondary/85 px-4 py-3.5 text-left text-base font-medium leading-relaxed text-secondary-foreground transition-colors hover:bg-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg disabled:opacity-50"
             >
               <span
                 aria-hidden="true"
