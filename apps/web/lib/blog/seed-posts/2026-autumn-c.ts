@@ -191,15 +191,15 @@ In EchoQuest, the narrator pauses by itself when you open the mic and picks up a
 - **Pause briefly** before and after your action
 - **Say the whole intent** in one go: "I ask the captain where the cargo went, and watch his face as he answers."
 
-That third tip matters more with push-to-talk. In EchoQuest the mic listens for one utterance, and once you go quiet it treats you as finished. So if you stop mid-thought to remember the captain's name, it may send half a sentence. Speak in full thoughts and you'll rarely hit that.
+That third tip matters more with push-to-talk. In EchoQuest the mic listens for one utterance, and once you go quiet it treats you as finished. So if you stop mid-thought to remember the captain's name, it may stop listening halfway through. You can still cancel the half-sentence when it's read back, but speaking in full thoughts saves you the bother.
 
 ## Voice Gaming and Accessibility
 
 Voice control keeps cropping up in accessible game design for a simple reason: it removes a physical barrier. Pair it with **audio output**, where the game narrates everything, and voice input makes a game playable with no sight and no hands. That's the pairing I built EchoQuest around.
 
-Still, the [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/ensure-that-speech-input-is-not-required-and-included-only-as-a-supplementary-alternative-input-method/) make an important point. Speech should never be the *only* way in, because forcing it "excludes all players who are either physically unable to speak" or can't speak clearly enough for a recogniser. I think they're right, and it's why every voice command in EchoQuest has a keyboard twin. The number keys pick choices, for instance, and L tells you where you are.
+Still, the [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/ensure-that-speech-input-is-not-required-and-included-only-as-a-supplementary-alternative-input-method/) make an important point. Speech should never be the *only* way in, because forcing it "excludes all players who are either physically unable to speak" or can't speak clearly enough for a recogniser. I think they're right, and it's why every voice command in EchoQuest can also be done from the keyboard. The number keys pick choices, for instance, and L tells you where you are.
 
-Getting the audio half right taught me as much as the voice half did. This spring I noticed that EchoQuest was announcing the choices while the narrator was still speaking, so screen reader users heard two voices at once. Now the choices wait their turn. Recently I also made narration start speaking while the GM's reply is still being written, so the gap between saying your action and hearing a response feels far shorter.
+Getting the audio half right taught me as much as the voice half did. This spring I noticed that EchoQuest was announcing the choices while the narrator was still speaking, so screen reader users heard two voices at once. Now the choices wait their turn. Recently I also made narration start speaking while the GM's reply is still being written, to shrink the gap between saying your action and hearing the GM answer.
 
 Operating systems also come with system-wide voice control that can drive keyboard-accessible web games:
 
@@ -212,12 +212,12 @@ Well-built browser games that follow accessibility standards work with all of th
 
 ## Common Problems and Fixes
 
-- **"It keeps mishearing names."** Say an unusual name slowly once, spell it out, or swap in a simpler nickname. Plenty of mishearing isn't your fault, by the way. A 2020 study in [PNAS](https://www.pnas.org/doi/10.1073/pnas.1915768117) tested speech systems from Amazon, Apple, Google, IBM and Microsoft and found an average word error rate of 0.35 for Black speakers against 0.19 for white speakers. The authors traced the gap to the recognisers' acoustic models and called for more diverse training data. For now EchoQuest also asks the browser for US English, which is one more reason I show you the transcript before anything happens
+- **"It keeps mishearing names."** Spell an unusual name out once, or swap in a simpler nickname. Plenty of mishearing isn't your fault, by the way. A 2020 study in [PNAS](https://www.pnas.org/doi/10.1073/pnas.1915768117) tested speech systems from Amazon, Apple, Google, IBM and Microsoft and found an average word error rate of 0.35 for Black speakers against 0.19 for white speakers. The authors traced the gap to the recognisers' acoustic models and called for more diverse training data. For now EchoQuest also asks the browser for US English, which is one more reason I show you the transcript before anything happens
 - **"The game narration triggers the mic."** Use headphones, or push-to-talk. EchoQuest is push-to-talk already: nothing listens until you press V or the mic button
 - **"Recognition is slow."** Check your internet connection, because some recognition runs in the cloud. As [MDN's Web Speech API guide](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API/Using_the_Web_Speech_API) puts it, by default "your audio is sent to a web service for recognition processing, so it won't work offline"
 - **"I don't know what to say."** Ask the game: "What can I do here?" A good AI Game Master will happily lay out your options
 
-Misheard actions deserve a word of their own. Back in the spring I added a confirmation step after realising that "attack the wizard" could come out as "attack the lizard". Now EchoQuest reads your action back ("Heard: attack the lizard") and sends it after a few seconds, unless you hit Cancel. Short commands and choice numbers skip that wait, since they're hard to get badly wrong. I'd rather lose three seconds than spend a whole turn brawling with a reptile nobody asked for.
+Misheard actions deserve a word of their own. Back in the spring I added a confirmation step after realising that "attack the wizard" could come out as "attack the lizard". Now EchoQuest reads your action back ("Heard: attack the lizard") and sends it after a few seconds, unless you hit Cancel. Short commands and choice numbers skip that wait, since they're hard to get badly wrong. I'd rather lose a few seconds than spend a whole turn brawling with a reptile nobody asked for.
 
 ## The Future of Voice Gaming
 
@@ -236,17 +236,17 @@ That's not where things stand today, so I won't oversell it. Right now the job i
 
 Not everybody owns a gaming PC or a console, and plenty of phones are already groaning under the photos before a 5 GB download even enters the picture. Maybe you're on a work laptop or a Chromebook. Maybe it's a library computer with a timer in the corner. Good news: browser RPGs have grown surprisingly deep, and a lot of them cost nothing. Here's my tour of **free online RPGs you can play in a browser**, along with some advice on choosing between them.
 
-I have an obvious bias, so let me admit it up front. EchoQuest, the game I build, runs in a browser tab, and I chose that on purpose. Still, I'll name other games I think deserve your evening, because a good browser RPG is a good browser RPG no matter who made it.
+Let me admit my bias up front: EchoQuest, the game I build, runs in a browser tab, so I'm hardly a neutral judge. Still, I'll name other games I think deserve your evening, because a good browser RPG is a good browser RPG no matter who made it.
 
 ## Why Play RPGs in a Browser?
 
 - **No install:** open a tab and you're playing
 - **Any device:** laptop, Chromebook, tablet or phone
-- **Low hardware requirements:** text- and audio-based games will run on almost anything with a screen and a speaker
+- **Low hardware requirements:** text- and audio-based games will run on almost anything with a speaker
 - **Instant updates:** you always get the latest version, with no patch to download
 - **Accessibility:** browsers have mature support for screen readers, zoom and keyboard navigation
 
-That last point carries more weight than people assume. In [WebAIM's latest screen reader user survey](https://webaim.org/projects/screenreadersurvey11/), run in July and August 2026, 52.3% of respondents said Chrome was the browser they used with their main screen reader, and Edge came second. In other words, the browser is where a huge number of blind players already live, so it makes sense to bring the games to them.
+That last point carries more weight than people assume. In [WebAIM's latest screen reader user survey](https://webaim.org/projects/screenreadersurvey11/), run in July and August 2026, 52.3% of respondents said Chrome was the browser they used with their main screen reader, and Edge came second. In other words, the browser is where a huge number of screen reader users already live, so it makes sense to bring the games to them.
 
 ## Types of Free Browser RPGs
 
@@ -254,7 +254,7 @@ That last point carries more weight than people assume. In [WebAIM's latest scre
 
 Thousands of free games run right in the browser, both parser games (where you type commands) and choice-based ones. The [Interactive Fiction Archive](https://ifarchive.org/) has been collecting text adventures since 1992, and it's a lovely rabbit hole. These games are lightweight and literary, and they tend to work well with screen readers. For a longer guide, see [Text Adventure Games Online](/blog/text-adventure-games-online-a-modern-players-guide).
 
-If you want something sprawling, try Failbetter Games' [Fallen London](https://www.failbettergames.com/games/fallen-london), a gothic story game set in a Victorian London that has sunk underground. The studio describes it as free to play in any web browser, with "4.5 million handcrafted words" of story, and it resizes itself to fit a phone screen. It's been running since 2009, which in browser-game years makes it practically a cathedral.
+If you want something sprawling, try Failbetter Games' [Fallen London](https://www.failbettergames.com/games/fallen-london), a Victorian-Gothic story game whose tagline announces that "London was stolen by bats." The city now sits in an underworld called the Neath. The studio describes it as free to play in any web browser, with "4.5 million handcrafted words" of story, and it resizes itself to fit a phone screen. It's been running since 2009, which in browser-game years makes it practically a cathedral.
 
 ### Browser MMORPGs
 
@@ -276,17 +276,17 @@ These are procedurally generated dungeons with permadeath: die once, and that ch
 
 This is the newest category: a full tabletop-style RPG, run by an AI Game Master, inside your browser. You describe what you do in plain language and the story responds. [AI Dungeon](https://help.aidungeon.com/can-i-play-ai-dungeon-for-free) from Latitude is probably the best-known example, and its help pages say it's free to play on any device, with extra features for Premium members.
 
-EchoQuest belongs here as well. It's free to start and runs in a modern browser, and it narrates every scene aloud. One honest caveat: voice input relies on the browser's speech recognition, which works in Chrome but isn't available everywhere, so Firefox players will want to type.
+EchoQuest belongs here as well. It's free to start, and it narrates every scene aloud right there in your browser tab. One honest caveat: voice input relies on the browser's speech recognition, which works in Chrome but isn't available everywhere, so Firefox players will want to type.
 
 ## What EchoQuest's Free Tier Includes
 
-- **Three official campaigns** across different genres: a steampunk thriller, a cyberpunk noir and an age-of-sail pirate story
+- **Three official campaigns**, each in a different genre
 - **Browser text-to-speech narration**, using the voices already on your device
 - **60 AI turns per day** (each turn uses one minute of credit), with extra AI minutes for sale if you run out
 - **Full keyboard, voice and screen-reader support**
 - No download, no credit card
 
-Browser voices come with their quirks, and I've wrestled most of them. This spring Chrome's built-in voice had a race condition and a cut-off at roughly 15 seconds, so I had to work around it. A few weeks ago the narrator began stopping a few seconds into a scene, and I chased that one down too. Mobile threw its own curveball when the ambient soundtrack went completely silent on phones. Browser gaming is wonderful, but it keeps you humble.
+Browser voices come with their quirks, and I've wrestled most of them. This spring Chrome's built-in voice had a race condition and a cut-off at roughly 15 seconds, so I had to work around it. A few weeks ago the narrator began stopping a few seconds into a scene, and I chased that one down too. Mobile threw its own curveball, too: for a while the ambient soundtrack went completely silent on phones. Browser gaming is wonderful, but it keeps you humble.
 
 If you want more, the Storyteller plan costs $15 a month or $129 a year. It brings unlimited turns, no ads and premium ElevenLabs narration with distinct NPC voices. You also get unlimited saved campaigns, plus one private world of your own, built with the World Builder Wizard or by uploading a Game Bible. The Creator plan, at $29 a month or $239 a year, adds publishing your worlds to the public library and creator analytics.
 
@@ -304,7 +304,7 @@ So which of those four questions gets the loudest answer from you? Start there a
 ## Tips for Browser Gaming
 
 - **Use a modern browser** (Chrome, Edge, Firefox or Safari) and keep it updated
-- **Allow audio autoplay** for the game site, so narration isn't blocked. Chrome's [autoplay policy](https://developer.chrome.com/blog/autoplay) only lets sound play on its own once you've interacted with a site, or after you've installed it as an app
+- **Allow audio autoplay** for the game site, so narration isn't blocked. Chrome's [autoplay policy](https://developer.chrome.com/blog/autoplay) holds back sound that tries to start by itself unless you've already interacted with the site or installed it as an app (on desktop, Chrome also remembers sites where you often play media)
 - **Allow microphone access** if you want voice input. I learned this one from the wrong side: a few weeks ago I found my own security settings were blocking the mic on EchoQuest's pages, so voice input simply didn't start. That's fixed, but it's the first thing I'd check in any game
 - **Pin the tab** so you don't lose it among the forty others
 - **Bookmark it, or install it as an app** where supported, for one-click access. In Chrome on a computer, the menu has an [Install page as app](https://support.google.com/chrome/answer/9658361?hl=en) option, and EchoQuest is set up to be installed that way
@@ -313,15 +313,15 @@ Switching devices is the other thing people worry about with browser games. Rece
 
 ## Is "Free" Really Free?
 
-Lots of free games earn their keep through ads, cosmetic purchases or premium tiers. I don't think that's a problem, provided the game is upfront about it and the free experience is complete. What I'd steer well clear of is any game that stops you halfway through a story and demands money to continue. The same goes for pressure tactics like countdown timers. The US Federal Trade Commission flagged exactly that trick in its [2022 report on dark patterns](https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-report-shows-rise-sophisticated-dark-patterns-designed-trick-trap-consumers), describing "countdown timers designed to make consumers believe they only have a limited time to purchase a product."
+Lots of free games earn their keep through ads or premium tiers, and some sell cosmetic extras on top. I don't think that's a problem, provided the game is upfront about it and the free experience is complete. What I'd steer well clear of is any game that stops you halfway through a story and demands money to continue. The same goes for pressure tactics like countdown timers. The US Federal Trade Commission flagged exactly that trick in its [2022 report on dark patterns](https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-report-shows-rise-sophisticated-dark-patterns-designed-trick-trap-consumers), describing "countdown timers designed to make consumers believe they only have a limited time to purchase a product."
 
 Daily limits aren't automatically sinister, by the way. Plenty of honest games ration play. Failbetter has even written openly about [why Fallen London stays free-to-play](https://www.failbettergames.com/news/why-is-fallen-london-still-free-to-play), explaining that removing its action caps would have eaten more than a year of its writers' time. I respect that kind of candour, and I'll try to match it.
 
-So here's EchoQuest's deal, plainly. The free tier is a complete experience: three full campaigns and a daily turn allowance. It does show ads between sessions, which is how the free tier pays its way. The paid plans are optional, and there's no clock ticking down to scare you into one.
+So here's EchoQuest's deal, plainly. The free tier is a complete experience: three full campaigns and a daily turn allowance. It does show ads between sessions, and I'd rather tell you here than have you find out later. The paid plans are optional, and there's no clock ticking down to scare you into one.
 
 ## Start Playing Now
 
-No download, no card and no waiting. Pick a world, and your adventure can start within the next minute.
+No download and no card required. Pick a world, and your adventure can start within the next minute.
 
 **[Play free in your browser →](/library)**
 `,
@@ -329,19 +329,19 @@ No download, no card and no waiting. Pick a world, and your adventure can start 
   {
     publishAt: "2026-10-17",
     title: "Magic Systems 101: How to Design Magic That Feels Fair",
-    excerpt: "Design a fantasy magic system that feels fair and exciting. Learn about hard vs. soft magic, costs and limits, and how to write magic rules an AI GM can follow.",
+    excerpt: "How to design a fantasy magic system that feels fair: hard vs. soft magic, sources, costs and limits, and how to write magic rules an AI Game Master can follow.",
     content: `# Magic Systems 101: How to Design Magic That Feels Fair
 
-Magic can make a fantasy world wondrous, or break it completely. If a wizard can solve any problem with a spell, why does the story need anyone else? A good **magic system** creates wonder *and* tension. It gives characters power but makes that power cost something.
+Magic can make a fantasy world feel enchanted, or it can wreck it completely. If a wizard can fix any problem with a spell, why does the story need anybody else? A good **magic system** produces wonder *and* tension at once. It hands characters power, then makes that power cost them something.
 
-This guide covers the fundamentals of designing magic for your RPG world, and how to write the rules down so a Game Master, human or AI, can apply them consistently.
+This guide covers the basics of designing magic for your RPG world. It also shows how to write the rules down so a Game Master, human or AI, can apply them the same way every time. That second part is close to my heart, because EchoQuest's Game Master reads the world rules that creators write, and a vague rule gives it far too much room to wobble.
 
 ## Hard Magic vs. Soft Magic
 
-Fantasy writers often describe magic on a spectrum:
+Fantasy writers often describe magic on a spectrum, and the novelist Brandon Sanderson popularised the terms most people now use. His [First Law of magic](https://www.brandonsanderson.com/blogs/blog/sandersons-first-law) says "an author's ability to solve conflict with magic is DIRECTLY PROPORTIONAL to how well the reader understands said magic." For soft magic, he points to Tolkien. As he puts it, there's a reason Gandalf doesn't simply fly Frodo to Mount Doom: we don't know what his magic can do, so it can't be the thing that solves the plot.
 
-- **Hard magic** has clear, knowable rules. Players understand exactly what it can do and can use it cleverly to solve problems.
-- **Soft magic** is mysterious and unpredictable. It creates awe and dread, but can't be relied on.
+- **Hard magic** has clear, knowable rules. Players understand exactly what it can do, so they can use it cleverly to crack problems.
+- **Soft magic** stays mysterious and unpredictable. It stirs awe and dread, but nobody can count on it.
 
 | | Hard magic | Soft magic |
 | --- | --- | --- |
@@ -349,7 +349,9 @@ Fantasy writers often describe magic on a spectrum:
 | Player feeling | Clever, in control | Wonder, fear |
 | Risk | Can feel mechanical | Can feel arbitrary |
 
-For RPGs, where players *use* magic, you'll usually want **mostly hard magic for player abilities**, with **soft magic for the world's great mysteries**.
+For RPGs, where players actually *use* magic, you'll usually want **mostly hard magic for player abilities**, with **soft magic for the world's great mysteries**. I'd go further and call that a rule. A novelist can keep the reader guessing, but a player who can't predict their own spell will stop casting it, and fairly so.
+
+My own worlds lean on this split. In The Shattered Reaches, a dark fantasy world in EchoQuest's library, the rules note that magic is unstable and that spells may have unexpected side effects down in the Rift. That's soft magic on purpose, aimed at the scariest place on the map.
 
 ## The Three Pillars: Source, Cost, Limit
 
@@ -361,7 +363,7 @@ For RPGs, where players *use* magic, you'll usually want **mostly hard magic for
 - Natural energies (ley lines, stars, the sea)
 - Artefacts and relics
 
-The source shapes your world's politics. If magic comes from gods, temples hold power. If it comes from study, universities do.
+The source shapes your world's politics. If magic comes from gods, temples hold the power. If it comes from study, the universities do. Sanderson's [Third Law](https://www.brandonsanderson.com/blogs/blog/sandersons-third-law-of-magic) ("Expand what you already have before you add something new") pushes the same instinct. He suggests asking "what happens when" questions until the consequences fall out, such as what happens to warfare when magic can make food from thin air. Ask that sort of question about your source and you'll find half your plot hooks waiting.
 
 ### 2. Cost: What Does It Take?
 
@@ -373,9 +375,13 @@ Magic without cost has no drama. Costs can be:
 - **Moral:** corruption, lost memories, harm to others
 - **Risk:** a chance of mishap every time
 
+Tabletop games have been pricing magic for decades. In the current Dungeons & Dragons rules, [casting a spell expends a spell slot](https://www.dndbeyond.com/sources/dnd/br-2024/spells), and finishing a Long Rest is what restores them. Some spells also eat a costly material component, which the caster has to actually own. That's a stamina cost and a material one stacked together, and it's why wizards in D&D spend so much time worrying about when they'll next get to sleep.
+
+Here's something I learned building EchoQuest: a cost the game never enforces isn't really a cost. Until recently, hitting 0 HP in EchoQuest didn't carry a proper setback. I've since added one, because danger that never bites soon stops feeling like danger. Magic works the same way. If casting is supposed to exhaust you, the exhaustion has to show up in the story.
+
 ### 3. Limit: What Can't It Do?
 
-Limits are the most important design choice. Common ones:
+Limits are the most important design choice you'll make. Common ones:
 
 - Can't raise the dead
 - Can't create something from nothing
@@ -383,25 +389,35 @@ Limits are the most important design choice. Common ones:
 - Only works at night, near water, or while chanting
 - Range, duration, or number of uses per day
 
+True names have a long pedigree, by the way. In Ursula K. Le Guin's *A Wizard of Earthsea* (1968), to work a spell you need the true name of the thing you're enchanting, and as the [National Endowment for the Arts' reader's guide](https://www.arts.gov/sites/default/files/Readers-Guide-WizardofEarthsea.pdf) quotes the book, "A mage can control only what is near him, what he can name exactly and wholly." That one sentence gives you a range limit and a knowledge limit together. The greatest wizards there do all they can to avoid casting, too, because every spell disturbs the balance of the world.
+
+Sanderson sums the whole idea up in his [Second Law](https://www.brandonsanderson.com/blogs/blog/sandersons-second-law): "Limitations > Powers." Superman isn't interesting because he can fly. He's interesting because of kryptonite and his own moral code.
+
 **Players are most creative when they push against clear limits.**
 
 ## Make Magic Say Something
 
-The best magic systems reflect the world's themes:
+The best magic systems echo the world's themes:
 
-- In a world about **greed**, magic might be fuelled by gold, consumed with each spell.
+- In a world about **greed**, magic might be fuelled by gold, burned up with each spell.
 - In a world about **memory**, casting might erase your own recollections.
 - In a world about **community**, spells might need several casters working together.
 
+Sanderson's own example is pleasingly cheeky. While designing *Mistborn*, he [themed every power around what thieves would want](https://www.brandonsanderson.com/blogs/blog/sandersons-third-law-of-magic) and named each one after a role in a thieving crew, so the magic itself tells you it's a heist story. Here's a handy test for your world: drop your magic system into somebody else's setting. If nothing feels out of place, your magic isn't saying much yet.
+
+I did something along these lines in The Iron Citadel, a steampunk world in the library. It has no magic at all. Instead, a rare few workers have resonance, the ability to physically interface with the Engines that keep the city alive. The world's notes warn that it's exhausting, and that it can turn dangerous in high-energy places. So in a story about workers worn down by machines, the one "magical" talent wears its users down too.
+
 ## Sensory Signatures
 
-Give each type of magic a sound, smell, or feeling:
+Give each type of magic a signature your senses can catch:
 
 - Fire magic: a roar like a furnace door opening, the smell of scorched air
 - Necromancy: sudden silence, cold breath, the taste of iron
 - Healing: warmth, a hum just below hearing
 
-In audio-first games these signatures are how players *perceive* magic, and they make every spell memorable.
+In audio-first games these signatures are how players *perceive* magic, and they make every spell memorable. Lucasfilm Games understood this back in 1990 with [*Loom*](https://www.lucasfilm.com/news/lucasfilm-games-rewind-loom/), where you cast spells by playing four-note melodies called drafts on a distaff. The magic was literally music, and in my view few games since have made casting feel as personal.
+
+EchoQuest has its own small version of this. When the GM decides a spell goes off, it can trigger a sound cue: a successful cast swoops upward two octaves with a soft hiss of air. A fizzle does the reverse, sliding two octaves down into a buzzy rasp. Getting those cues heard took real work, though. This spring I made the ambient soundtrack duck under sound cues, and I started dropping duplicate cues that fire within 80 milliseconds of each other, because a doubled chime sounds like two spells when you can't see the screen.
 
 ## Writing Magic Rules for an AI Game Master
 
@@ -409,18 +425,20 @@ If you're building a world on EchoQuest, your magic rules go into your Game Bibl
 
 > **Tidecalling.** Only people born on a ship at sea can use it. Tidecallers command water within sight. Each casting costs the caster a memory; they choose which. Tidecalling cannot affect water inside a living body. Its sign is the smell of salt and a sound like a wave breaking far away.
 
-Clear sources, costs, limits, and signatures let the AI Game Master apply the rules consistently and describe them vividly. See [How to Write a Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template) for the full template.
+Clear sources, costs, limits and signatures let the AI Game Master apply the rules consistently and describe them vividly. When you upload a Game Bible, EchoQuest pulls the mechanical rules out of your document, magic systems included, and folds them into the brief the GM works from. It's told to take only what the document actually says, though, so whatever you leave vague, the GM will have to improvise. And if you'd rather build with the World Builder Wizard, one of its questions asks for a single hard rule the Game Master must respect. "Magic always costs blood" is one of the examples it offers, and it's a great place to start. Both routes come with the Storyteller plan's private world. See [How to Write a Game Bible](/blog/how-to-write-a-game-bible-the-world-builders-template) for the full template.
 
 ## Common Magic System Mistakes
 
 - **No cost:** magic becomes the answer to everything.
 - **Too many exceptions:** players stop trusting the rules.
-- **Only combat uses:** the best magic also solves social, exploration, and mystery problems.
+- **Only combat uses:** the best magic also solves social, exploration and mystery problems.
 - **Wizards everywhere:** if everyone can do magic, it stops feeling special.
+
+Of these, I think too many exceptions does the most damage, especially with an AI GM. Each exception is one more thing that can be misremembered in the middle of a tense scene. A short, firm rule beats a long, clever one every time.
 
 ## Try It Out
 
-Design one magic tradition with a source, a cost, a limit, and a sensory signature. Then play a session with it. Nothing tests a magic system faster than a creative player.
+Design one magic tradition with a source, a cost, a limit and a sensory signature. Then play a session with it. Nothing stress-tests a magic system faster than a creative player who has just spotted a loophole. So what will your magic cost?
 
 **[Build your world with the World Builder Wizard →](/library)**
 `,
