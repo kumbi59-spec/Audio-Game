@@ -110,10 +110,15 @@ function AdsterraDisplaySlot() {
   const narrow = wide === false;
   const [ref, unfilled] = useUnfilledCollapse(narrow);
   // Space is held from the first render (and hidden by CSS on rail-width
-  // screens) so the page doesn't jump when the 600px-tall unit arrives.
-  if (wide === true || unfilled) return null;
+  // screens) so the page doesn't jump when the 600px-tall unit arrives. An
+  // unfilled slot only gives that space back; the banner stays mounted.
+  if (wide === true) return null;
   return (
-    <aside ref={ref} aria-label="Advertisement" className="flex min-h-[600px] justify-center py-2 xl:hidden">
+    <aside
+      ref={ref}
+      aria-label="Advertisement"
+      className={`flex justify-center py-2 xl:hidden ${unfilled ? "" : "min-h-[600px]"}`}
+    >
       {narrow && <AdsterraBanner />}
     </aside>
   );
