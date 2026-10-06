@@ -6,9 +6,8 @@ import { ADSTERRA } from "@/components/ads/adsterra-config";
  * It used to be a srcdoc iframe. Inside srcdoc, location is "about:srcdoc"
  * with an empty hostname, so the ad script could not see which site it was
  * running on and the banner never filled. Served from a real URL on our
- * domain, the script sees the site's hostname. The frame stays sandboxed
- * without allow-same-origin, so it still can't reach our cookies, storage,
- * parent DOM or APIs.
+ * domain, the script sees the site's hostname. The frame keeps that origin
+ * (see AD_SANDBOX in AdsterraBanner for why it can't be opaque).
  *
  * The snippet is Adsterra's standard install code, written inline so its
  * document.write runs during parsing. Scripts carry the request's CSP nonce.
