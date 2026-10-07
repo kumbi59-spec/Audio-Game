@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
 import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
+import { publishState } from "@/lib/blog/publish-state";
 import { renderBlogMarkdown, serializeJsonLd } from "@/lib/blog/render-markdown";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
@@ -42,6 +44,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
   if (!post) return { title: "Not Found" };
+  if (publishState(post.publishedAt) !== "published") {
+    // Drafts and scheduled posts: keep the title private and out of search.
+    const title = (await requireAdmin()) ? `Preview: ${post.title}` : "Not Found";
+    return { title, robots: { index: false, follow: false } };
+  }
   const canonical = `${SITE_URL}/blog/${post.slug}`;
   const ogImage = `${canonical}/opengraph-image`;
   return {
@@ -81,7 +88,11 @@ export default async function BlogPostPage({ params }: Props) {
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
 
-  if (!post || !post.publishedAt || post.publishedAt > new Date()) notFound();
+  if (!post) notFound();
+  // Drafts and scheduled posts 404 for readers. Admins get a preview, so the
+  // admin list's link works before a post's release day.
+  const state = publishState(post.publishedAt);
+  if (state !== "published" && !(await requireAdmin())) notFound();
 
   // Old seed runs baked generic world-cover SVGs into the markdown; never render them.
   const markdown = stripPlaceholderImages(post.content);
@@ -123,7 +134,7 @@ export default async function BlogPostPage({ params }: Props) {
         headline: post.title,
         description: post.excerpt,
         url: `${SITE_URL}/blog/${post.slug}`,
-        datePublished: post.publishedAt.toISOString(),
+        datePublished: post.publishedAt?.toISOString(),
         dateModified: post.updatedAt.toISOString(),
         author: {
           "@type": "Person",
@@ -173,16 +184,21 @@ export default async function BlogPostPage({ params }: Props) {
             <Link href="/blog" className="mb-4 inline-block text-sm hover:underline text-muted">← All posts</Link>
             <h1 className="text-3xl font-bold text-foreground">{post.title}</h1>
             <div className="mt-3 flex items-center gap-3 text-sm text-muted">
-              <time dateTime={post.publishedAt.toISOString()}>
-                {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-              </time>
-              {post.author.name && (
-                <>
-                  <span aria-hidden>·</span>
-                  <span>{post.author.name}</span>
-                </>
+              {post.publishedAt && (
+                <time dateTime={post.publishedAt.toISOString()}>
+                  {new Date(post.publishedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                </time>
               )}
+              {post.publishedAt && post.author.name && <span aria-hidden>·</span>}
+              {post.author.name && <span>{post.author.name}</span>}
             </div>
+            {state !== "published" && (
+              <p className="mt-4 rounded-lg border px-4 py-3 text-sm border-warning text-foreground">
+                {state === "scheduled"
+                  ? "Preview: this post is scheduled. Only admins can see it until it goes live."
+                  : "Preview: this post is a draft. Only admins can see it."}
+              </p>
+            )}
           </div>
         </header>
 
