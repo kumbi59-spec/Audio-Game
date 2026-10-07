@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { publishState, type PublishState } from "@/lib/blog/publish-state";
 
 interface AdminUser {
   id: string;
@@ -38,6 +39,15 @@ interface BlogPost {
 }
 
 type Tab = "users" | "worlds" | "blog";
+
+const PUBLISH_BADGE: Record<PublishState, { label: string; background: string; color: string }> = {
+  // White on the success green is under 2:1; tint it instead.
+  published: { label: "Published", background: "color-mix(in srgb, var(--success) 15%, transparent)", color: "var(--success)" },
+  scheduled: { label: "Scheduled", background: "color-mix(in srgb, var(--warning) 15%, transparent)", color: "var(--text)" },
+  draft: { label: "Draft", background: "var(--surface-2)", color: "var(--text-muted)" },
+};
+
+const TOGGLE_LABEL: Record<PublishState, string> = { published: "Unpublish", scheduled: "Unschedule", draft: "Publish" };
 
 const EMPTY_DRAFT = { title: "", excerpt: "", content: "", publishedAt: "" };
 type SeoCheck = { label: string; pass: boolean };
@@ -486,7 +496,7 @@ export default function AdminPage() {
     return acc;
   }, {});
 
-  const publishedCount = posts.filter((p) => p.publishedAt).length;
+  const publishedCount = posts.filter((p) => publishState(p.publishedAt) === "published").length;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -732,20 +742,21 @@ export default function AdminPage() {
                       <div className="mt-1 flex items-center gap-2">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
                           style={{
-                            // White on the success green is under 2:1; tint it instead.
-                            backgroundColor: p.publishedAt ? "color-mix(in srgb, var(--success) 15%, transparent)" : "var(--surface-2)",
-                            color: p.publishedAt ? "var(--success)" : "var(--text-muted)",
+                            backgroundColor: PUBLISH_BADGE[publishState(p.publishedAt)].background,
+                            color: PUBLISH_BADGE[publishState(p.publishedAt)].color,
                           }}>
-                          {p.publishedAt ? "Published" : "Draft"}
+                          {PUBLISH_BADGE[publishState(p.publishedAt)].label}
                         </span>
                         {p.publishedAt && (
                           <span className="text-xs text-muted">
+                            {publishState(p.publishedAt) === "scheduled" ? "Goes live " : ""}
                             {new Date(p.publishedAt).toLocaleDateString()}
                           </span>
                         )}
+                        {/* Unreleased posts 404 for readers; admins see a preview. */}
                         <Link href={`/blog/${p.slug}`} target="_blank"
                           className="text-xs hover:underline text-accent">
-                          View ↗
+                          {publishState(p.publishedAt) === "published" ? "View ↗" : "Preview ↗"}
                         </Link>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -762,7 +773,7 @@ export default function AdminPage() {
                       <button onClick={() => togglePublish(p)}
                         className="rounded px-2 py-1 text-xs font-medium hover:opacity-80 bg-transparent text-muted border border-border"
                        >
-                        {p.publishedAt ? "Unpublish" : "Publish"}
+                        {TOGGLE_LABEL[publishState(p.publishedAt)]}
                       </button>
                       <button onClick={() => openEditPost(p)}
                         className="rounded px-2 py-1 text-xs font-medium hover:opacity-80 bg-accent-solid text-on-accent"
