@@ -9,6 +9,7 @@ import { useGameStore } from "@/store/game-store";
 import { useShallow } from "zustand/react/shallow";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import { ServerSaves } from "./ServerSaves";
+import { UpgradeNudge } from "@/components/entitlements/UpgradeNudge";
 import {
   sortWorldsByOrder,
   filterWorldsByTab,
@@ -69,6 +70,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
 
       <main id="main-content" className="px-6 pb-16">
         <div className="mx-auto max-w-2xl">
+          <UpgradeNudge />
           {hasSavedGame && (
             <div
               className="mb-6 flex items-center justify-between rounded-xl border p-4 border-accent bg-surface"

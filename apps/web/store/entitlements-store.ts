@@ -3,6 +3,8 @@
 import { create } from "zustand";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import type { Tier, Entitlements } from "@audio-rpg/shared";
+import { effectiveShowAds } from "@/lib/ads/hide-ads";
+import { useAccessibilityStore } from "@/store/accessibility-store";
 
 interface EntitlementsStore {
   entitlements: Entitlements;
@@ -59,10 +61,12 @@ export const useEntitlementsStore = create<EntitlementsStore>((set) => ({
 
 export function useCanWeb() {
   const { entitlements, adPreview } = useEntitlementsStore();
+  // "Hide ads" in the accessibility settings is free for everyone.
+  const hideAds = useAccessibilityStore((s) => s.hideAds);
   return {
     bibleUpload: entitlements.bibleUpload,
     worldWizard: entitlements.worldWizard,
-    showAds: entitlements.showAds || adPreview,
+    showAds: effectiveShowAds({ entitled: entitlements.showAds, hideAds, adPreview }),
     aiMinutesRemaining: entitlements.aiMinutesRemaining,
     tier: entitlements.tier,
     publicPublishing: entitlements.publicPublishing,

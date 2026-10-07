@@ -14,6 +14,7 @@ import { AudioControls } from "@/components/audio/AudioControls";
 import { AmbientPlayer } from "@/components/audio/AmbientPlayer";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { inferAmbientTrack, inferAmbientTrackSticky } from "@/lib/audio/ambient-inference";
+import { queueUpgradeNudge } from "@/components/entitlements/UpgradeNudge";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
 import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
@@ -25,8 +26,6 @@ import { useAccessibilityStore } from "@/store/accessibility-store";
 import { useReducedMotion } from "@/lib/a11y/use-reduced-motion";
 import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
 import { canPlayAudioNow, whenAudioUnlocked } from "@/lib/audio/unlock";
-import { AdBanner } from "@/components/ads/AdBanner";
-import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import type { PlayerAction, SceneTransition } from "@/types/game";
 
 /**
@@ -346,17 +345,6 @@ export function GameShell() {
 
   const activeQuestCount = character?.quests.filter((q) => q.status === "active").length ?? 0;
 
-  // Free tier: ad banner every 5th turn.
-  const turnCount = session?.turnCount ?? 0;
-  const shouldShowAdBanner = turnCount > 0 && turnCount % 5 === 0;
-  // Once the Adsterra native banner has been shown, keep it mounted and only
-  // hide it between ad turns. Unmounting it threw away the rendered ad, and
-  // re-running the ad script on the same page may not render it again.
-  const [nativeAdMounted, setNativeAdMounted] = useState(false);
-  useEffect(() => {
-    if (shouldShowAdBanner) setNativeAdMounted(true);
-  }, [shouldShowAdBanner]);
-
   if (!session || !character || !world) {
     return (
       <div role="status" className="flex h-full items-center justify-center">
@@ -548,15 +536,7 @@ export function GameShell() {
           </div>
         )}
 
-        {/* Ad banner — free tier only */}
-        {/* In-game the Adsterra native banner below is the ad; AdBanner adds AdSense only if enabled. */}
-        <AdBanner visible={shouldShowAdBanner} fallback="none" />
-        {nativeAdMounted && (
-          // Capped so an ad can never squeeze the narration off the screen.
-          <div hidden={!shouldShowAdBanner} className="max-h-[260px] shrink-0 overflow-hidden">
-            <AdsterraNativeBanner />
-          </div>
-        )}
+        {/* No ads on the play screen: nothing competes with the narration. */}
 
         {/* Bottom toolbar */}
         <div
@@ -706,6 +686,7 @@ export function GameShell() {
             </details>
             <Link
               href="/library"
+              onClick={queueUpgradeNudge}
               aria-label="Exit game and return to library"
               className="inline-flex items-center justify-center toolbar-btn rounded border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground focus-ring"
             >

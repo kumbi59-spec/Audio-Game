@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { useAccessibilityStore, type ThemePreference } from "@/store/accessibility-store";
 
 const THEMES: Array<{ value: ThemePreference; label: string; hint: string }> = [
@@ -45,6 +45,7 @@ function Toggle({
 
 export function DisplaySettings() {
   const s = useAccessibilityStore();
+  const [adsMessage, setAdsMessage] = useState("");
 
   return (
     <div className="mt-8 space-y-8">
@@ -111,6 +112,35 @@ export function DisplaySettings() {
           checked={s.focusAfterTurn === "input"}
           onChange={(on) => s.setFocusAfterTurn(on ? "input" : "choices")}
         />
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="text-lg font-semibold text-foreground">Ads</legend>
+        <Toggle
+          label="Hide ads"
+          hint="Free for everyone, on any plan. Ads can get in the way of a screen reader, so switch them off whenever you like. There are never ads during play."
+          checked={s.hideAds}
+          onChange={(on) => {
+            s.setHideAds(on);
+            setAdsMessage(
+              on
+                ? "Ads are off. Any ad already on this page goes when the page next loads."
+                : "Ads are back on from the next page you open.",
+            );
+          }}
+        />
+        <p role="status" className="text-sm text-muted">
+          {adsMessage}
+        </p>
+        {adsMessage && (
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-surface-2 focus-ring"
+          >
+            Reload this page now
+          </button>
+        )}
       </fieldset>
     </div>
   );

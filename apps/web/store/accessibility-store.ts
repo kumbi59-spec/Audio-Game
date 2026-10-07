@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { A11Y_STORAGE_KEY, type ThemePreference } from "@/lib/a11y/display-prefs";
+import { writeHideAdsCookie } from "@/lib/ads/hide-ads";
 
 export type { ThemePreference };
 
@@ -10,6 +11,8 @@ interface AccessibilityStore {
   reducedMotion: boolean;
   largeText: boolean;
   audioOnlyMode: boolean;
+  /** Free for everyone: ads can get in the way of a screen reader. */
+  hideAds: boolean;
   keyboardHelpOpen: boolean;
   operationsManualSeen: boolean;
   operationsManualOpen: boolean;
@@ -28,6 +31,7 @@ interface AccessibilityStore {
   setReducedMotion: (value: boolean) => void;
   setLargeText: (value: boolean) => void;
   setAudioOnlyMode: (value: boolean) => void;
+  setHideAds: (value: boolean) => void;
   setKeyboardHelpOpen: (value: boolean) => void;
   openOperationsManual: () => void;
   closeOperationsManual: () => void;
@@ -44,6 +48,7 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       reducedMotion: false,
       largeText: false,
       audioOnlyMode: false,
+      hideAds: false,
       keyboardHelpOpen: false,
       operationsManualSeen: false,
       operationsManualOpen: false,
@@ -55,6 +60,10 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       setReducedMotion: (value) => set({ reducedMotion: value }),
       setLargeText: (value) => set({ largeText: value }),
       setAudioOnlyMode: (value) => set({ audioOnlyMode: value }),
+      setHideAds: (value) => {
+        writeHideAdsCookie(value);
+        set({ hideAds: value });
+      },
       setKeyboardHelpOpen: (value) => set({ keyboardHelpOpen: value }),
       openOperationsManual: () => set({ operationsManualOpen: true }),
       closeOperationsManual: () => set({ operationsManualOpen: false }),
@@ -62,6 +71,10 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
       setFocusAfterTurn: (value) => set({ focusAfterTurn: value }),
       announce: (message) => set({ lastAnnouncement: message }),
     }),
-    { name: A11Y_STORAGE_KEY }
+    {
+      name: A11Y_STORAGE_KEY,
+      // An open shortcut list shouldn't reopen on the next visit.
+      partialize: ({ keyboardHelpOpen: _open, ...rest }) => rest,
+    }
   )
 );

@@ -14,8 +14,8 @@ function injectOnce(id: string, src: string) {
 }
 
 /**
- * Loads Adsterra's page-level formats (popunder + social bar) for free-tier
- * users, once per page load, outside of gameplay/admin/auth routes.
+ * Loads Adsterra's page-level format (the social bar) for free-tier users,
+ * once per page load, outside of gameplay/admin/auth routes.
  */
 export function AdsterraGlobal() {
   const { showAds } = useCanWeb();
@@ -24,7 +24,6 @@ export function AdsterraGlobal() {
 
   useEffect(() => {
     if (!ADSTERRA_ENABLED || !showAds || excluded) return;
-    injectOnce("adsterra-popunder", ADSTERRA.popunderSrc);
     injectOnce("adsterra-social-bar", ADSTERRA.socialBarSrc);
   }, [showAds, excluded]);
 
