@@ -1,12 +1,14 @@
 /**
  * Adsterra ad units. Every unit is free-tier only (gated on `showAds`).
  * Set NEXT_PUBLIC_ADSTERRA_DISABLED=1 at build time to turn all of them off.
+ *
+ * There is deliberately no popunder: a surprise new window on the first click
+ * is disorienting with a screen reader, and these are the players EchoQuest
+ * is built for.
  */
 export const ADSTERRA_ENABLED = process.env["NEXT_PUBLIC_ADSTERRA_DISABLED"] !== "1";
 
 export const ADSTERRA = {
-  popunderSrc:
-    "https://pl31480255.profitableratecpmnetwork.com/bc/ca/5c/bcca5c66a7bba1b94e405ed40dc681cc.js",
   socialBarSrc:
     "https://pl31480257.profitableratecpmnetwork.com/75/71/22/75712283ca9badb6df00a5cfa08e6bf8.js",
   nativeBannerSrc:
@@ -23,8 +25,8 @@ export const ADSTERRA = {
 } as const;
 
 /**
- * Routes where the page-level formats (popunder, social bar) are never loaded.
- * They open new windows / overlay the page and steal focus, which breaks
- * screen-reader play and the audio session, and have no place on admin/auth pages.
+ * Routes where the page-level format (the social bar) is never loaded. It
+ * overlays the page and can steal focus, which breaks screen-reader play and
+ * the audio session, and has no place on admin/auth pages.
  */
 export const ADSTERRA_EXCLUDED_PREFIXES = ["/play", "/admin", "/auth", "/account"];

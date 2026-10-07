@@ -141,3 +141,29 @@ test("play: reloading keeps the game in progress", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Option 1: Open the gate" })).toBeVisible();
   await expect(page).toHaveURL(/\/play$/);
 });
+
+test("play: ? lists the keyboard shortcuts, and Help (H) lists them too", async ({ page }) => {
+  await page.goto("/play");
+  await expect(page.getByRole("button", { name: "Option 1: Open the gate" })).toBeVisible();
+
+  await page.locator("body").press("?");
+  const list = page.getByRole("dialog", { name: "Keyboard Shortcuts" });
+  await expect(list).toBeVisible();
+  await expect(list.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeFocused();
+  await expect(list).toContainText("Show this list of shortcuts");
+  // Game keys stay inactive while the list is open.
+  await page.keyboard.press("1");
+  await expect(list).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(list).toBeHidden();
+
+  await page.locator("body").press("h");
+  const manual = page.getByRole("dialog", { name: "Help / Operations Manual" });
+  await expect(manual).toBeVisible();
+  await expect(manual.getByRole("heading", { name: "Help / Operations Manual" })).toBeFocused();
+  await expect(manual.getByRole("heading", { name: "Keyboard Shortcuts" })).toBeVisible();
+  await expect(manual).toContainText("Undo last turn");
+  await expectNoSeriousA11yViolations(page);
+  await page.keyboard.press("Escape");
+  await expect(manual).toBeHidden();
+});

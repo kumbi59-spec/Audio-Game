@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { usePathname } from "next/navigation";
 
 export function FocusManager() {
@@ -51,4 +51,27 @@ export function trapFocus(container: HTMLElement): () => void {
   first?.focus();
 
   return () => container.removeEventListener("keydown", handler);
+}
+
+/**
+ * For a modal dialog while `open`: keeps Tab inside `panel`, starts focus on
+ * `start` (its title, so a screen reader reads the dialog from the top), and
+ * puts focus back where it was when the dialog closes.
+ */
+export function useDialogFocus(
+  open: boolean,
+  panel: RefObject<HTMLElement | null>,
+  start: RefObject<HTMLElement | null>,
+): void {
+  useEffect(() => {
+    const el = panel.current;
+    if (!open || !el) return;
+    const returnTo = document.activeElement as HTMLElement | null;
+    const release = trapFocus(el);
+    start.current?.focus();
+    return () => {
+      release();
+      returnTo?.focus?.();
+    };
+  }, [open, panel, start]);
 }

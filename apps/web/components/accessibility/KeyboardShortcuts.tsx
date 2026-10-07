@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { isPaused, isSpeaking as narratorSpeaking, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
+import { useDialogFocus } from "@/components/accessibility/FocusManager";
 import { useAudioStore } from "@/store/audio-store";
 
 export const SHORTCUT_HELP = [
@@ -13,6 +14,7 @@ export const SHORTCUT_HELP = [
   { key: "]", description: "Speed up speech" },
   { key: "M", description: "Toggle ambient sound" },
   { key: "H", description: "Open / close Help / Operations Manual" },
+  { key: "?", description: "Show this list of shortcuts" },
   { key: "1–9", description: "Select a numbered choice" },
   { key: "T", description: "Focus the action input" },
   { key: "V", description: "Activate voice input" },
@@ -54,7 +56,7 @@ export function KeyboardShortcuts({
   onUndo,
   isSpeaking = false,
 }: KeyboardShortcutsProps) {
-  const { keyboardHelpOpen, setKeyboardHelpOpen } = useAccessibilityStore();
+  const { keyboardHelpOpen, setKeyboardHelpOpen, operationsManualOpen } = useAccessibilityStore();
   const { ttsSpeed, setTTSSpeed, ambientEnabled, setAmbientEnabled } = useAudioStore();
   const { announce } = useAnnouncer();
 
@@ -65,13 +67,27 @@ export function KeyboardShortcuts({
 
       // Allow Escape from inputs
       if (e.key === "Escape") {
+        if (keyboardHelpOpen) {
+          setKeyboardHelpOpen(false);
+          return;
+        }
         (document.activeElement as HTMLElement)?.blur();
-        setKeyboardHelpOpen(false);
         return;
       }
 
       // Don't intercept while typing
       if (isInput) return;
+
+      // "?" (Shift + /) toggles the shortcut list. While it's open, the game
+      // keys behind it stay inactive.
+      if (e.key === "?") {
+        e.preventDefault();
+        setKeyboardHelpOpen(!keyboardHelpOpen);
+        return;
+      }
+      if (keyboardHelpOpen) return;
+      // Behind the Help manual only H (which closes it) still works.
+      if (operationsManualOpen && e.key !== "h" && e.key !== "H") return;
 
       switch (e.key) {
         case " ":
@@ -162,7 +178,7 @@ export function KeyboardShortcuts({
       isSpeaking, ttsSpeed, ambientEnabled,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
-      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, setKeyboardHelpOpen, onUndo, announce,
+      setTTSSpeed, setAmbientEnabled, onToggleHelpManual, keyboardHelpOpen, setKeyboardHelpOpen, operationsManualOpen, onUndo, announce,
     ]
   );
 
@@ -171,17 +187,21 @@ export function KeyboardShortcuts({
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  useDialogFocus(keyboardHelpOpen, panelRef, titleRef);
+
   if (!keyboardHelpOpen) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Keyboard shortcuts"
+      aria-labelledby="keyboard-shortcuts-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
     >
-      <div className="w-full max-w-lg rounded-xl border border-border bg-background p-6 shadow-2xl">
-        <h2 className="mb-4 text-xl font-bold" id="help-title">
+      <div ref={panelRef} className="w-full max-w-lg rounded-xl border border-border bg-background p-6 shadow-2xl">
+        <h2 ref={titleRef} tabIndex={-1} className="mb-4 text-xl font-bold focus:outline-none" id="keyboard-shortcuts-title">
           Keyboard Shortcuts
         </h2>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">

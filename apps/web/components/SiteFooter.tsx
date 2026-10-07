@@ -4,6 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AdsterraSmartlink } from "@/components/ads/AdsterraSmartlink";
 
+/** Ko-fi / Buy Me a Coffee page, set in the deployment's environment. */
+const SUPPORT_URL = process.env["NEXT_PUBLIC_SUPPORT_URL"];
+const supportHref = SUPPORT_URL && /^https:\/\//.test(SUPPORT_URL) ? SUPPORT_URL : null;
+
 /** Pages that fill the screen and have no room for a footer. */
 const NO_FOOTER = ["/play", "/campaign/"];
 
@@ -22,6 +26,12 @@ export function SiteFooter() {
         <Link href="/privacy" className="inline-flex items-center hover:underline">Privacy</Link>
         <Link href="/terms" className="inline-flex items-center hover:underline">Terms</Link>
         <Link href="/contact-us" className="inline-flex items-center hover:underline">Contact</Link>
+        {supportHref && (
+          <a href={supportHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center hover:underline">
+            Support EchoQuest
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        )}
         <AdsterraSmartlink />
       </nav>
     </footer>

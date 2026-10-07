@@ -12,8 +12,8 @@ import { ADSTERRA, ADSTERRA_ENABLED } from "./adsterra-config";
  * the frame had an opaque origin: the ad script could not use its cookies or
  * storage, the restriction carried into Adsterra's own nested ad frame, and
  * the unit never recorded a single impression. Because /ads/rail is on our
- * domain, this gives the ad script the same access as Adsterra's popunder,
- * social bar and native banner, which already run in the page itself (a
+ * domain, this gives the ad script the same access as Adsterra's social bar
+ * and native banner, which already run in the page itself (a
  * same-origin frame with scripts could lift its own sandbox, so the remaining
  * flags are a guard against stray redirects and dialogs, not a wall). A click
  * opens the advertiser's page in a new tab.

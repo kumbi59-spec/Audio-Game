@@ -40,7 +40,7 @@ const PRICING = [
     price: "$0",
     period: "",
     highlight: false,
-    features: ["3 official campaigns", "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support"],
+    features: ["3 official campaigns", "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support", "Ads you can switch off anytime"],
     cta: "Start Playing",
     href: "/library",
   },
@@ -289,7 +289,7 @@ export default function LandingPage() {
           </section>
 
           {/* Pricing */}
-          <section aria-labelledby="pricing-heading" className="px-6 py-16">
+          <section id="pricing" aria-labelledby="pricing-heading" className="px-6 py-16">
             <h2 id="pricing-heading" className="mb-2 text-center text-2xl font-bold text-foreground">
               Simple pricing
             </h2>
