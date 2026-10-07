@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
@@ -10,6 +10,8 @@ import { useShallow } from "zustand/react/shallow";
 import { createLobbyPath } from "@/lib/multiplayer/create-lobby-client";
 import { ServerSaves } from "./ServerSaves";
 import { UpgradeNudge } from "@/components/entitlements/UpgradeNudge";
+import { DeleteSaveButton } from "@/components/game/DeleteSaveButton";
+import { deleteServerSave } from "@/lib/game/server-saves";
 import {
   sortWorldsByOrder,
   filterWorldsByTab,
@@ -27,6 +29,26 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
   const { session, world: savedWorld, dbSessionId, clearSession, savedCampaigns, saveCurrentCampaign, loadSavedCampaign, deleteSavedCampaign } = useGameStore(
     useShallow((s) => ({ session: s.session, world: s.world, dbSessionId: s.dbSessionId, clearSession: s.clearSession, savedCampaigns: s.savedCampaigns, saveCurrentCampaign: s.saveCurrentCampaign, loadSavedCampaign: s.loadSavedCampaign, deleteSavedCampaign: s.deleteSavedCampaign })),
   );
+  // Once a save is deleted the list stays, so focus has somewhere to land
+  // even if that was the last one.
+  const [deletedLocalSave, setDeletedLocalSave] = useState(false);
+  const savedCampaignsHeadingRef = useRef<HTMLHeadingElement>(null);
+
+  /** Deletes a saved campaign from this browser and, if it has one, its account copy. */
+  async function deleteLocalSave(save: (typeof savedCampaigns)[number]): Promise<boolean> {
+    if (save.dbSessionId) {
+      const result = await deleteServerSave(save.dbSessionId);
+      if (!result.ok) {
+        narrate(result.message, "assertive");
+        return false;
+      }
+    }
+    deleteSavedCampaign(save.id);
+    setDeletedLocalSave(true);
+    narrate(`Deleted the ${save.world.name} save from turn ${save.session.turnCount}.`);
+    savedCampaignsHeadingRef.current?.focus();
+    return true;
+  }
   const hasSavedGame = !!(session && savedWorld && session.narrationLog.length > 0);
 
   const [tab, setTab] = useState<Tab>("official");
@@ -110,9 +132,18 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
             ]}
           />
 
-          {savedCampaigns.length > 0 && (
+          {(savedCampaigns.length > 0 || deletedLocalSave) && (
             <div className="mb-6 rounded-xl border p-4 border-border bg-surface">
-              <h2 className="mb-3 text-sm font-semibold text-foreground">Saved campaigns</h2>
+              <h2
+                ref={savedCampaignsHeadingRef}
+                tabIndex={-1}
+                className="mb-3 text-sm font-semibold text-foreground focus:outline-none"
+              >
+                Saved campaigns
+              </h2>
+              {savedCampaigns.length === 0 && (
+                <p className="text-xs text-muted">No saved campaigns in this browser any more.</p>
+              )}
               <ul className="space-y-2">
                 {savedCampaigns.map((save) => (
                   <li key={save.id} className="flex items-center justify-between gap-2">
@@ -121,10 +152,18 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                       <p className="text-xs text-muted">Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Resume</button>
-                      <button onClick={async () => { const lobby = await createLobbyPath(); if (!lobby.ok) { narrate(lobby.message, "assertive"); return; } loadSavedCampaign(save.id); router.push(lobby.path); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }} aria-label={`Start multiplayer lobby for ${save.world.name}`}>Multiplayer</button>
-                      <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="min-h-[44px] rounded border px-3 py-2 text-xs" style={{ borderColor: 'var(--border)' }}>Share</button>
-                      <button onClick={() => deleteSavedCampaign(save.id)} className="min-h-[44px] rounded border px-3 py-2 text-xs hover:bg-red-500/10 hover:text-red-400" style={{ borderColor: 'var(--border)' }}>Delete</button>
+                      <button onClick={() => { loadSavedCampaign(save.id); router.push('/play'); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs">Resume</button>
+                      <button onClick={async () => { const lobby = await createLobbyPath(); if (!lobby.ok) { narrate(lobby.message, "assertive"); return; } loadSavedCampaign(save.id); router.push(lobby.path); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs" aria-label={`Start multiplayer lobby for ${save.world.name}`}>Multiplayer</button>
+                      <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs">Share</button>
+                      <DeleteSaveButton
+                        saveName={`${save.world.name}, turn ${save.session.turnCount}`}
+                        confirmText={
+                          save.dbSessionId
+                            ? "Delete this save from this browser and your account? It can't be undone."
+                            : "Delete this save? It can't be undone."
+                        }
+                        onConfirm={() => deleteLocalSave(save)}
+                      />
                     </div>
                   </li>
                 ))}

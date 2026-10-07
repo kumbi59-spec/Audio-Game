@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   createDbSession: vi.fn(),
   createSessionCharacter: vi.fn(),
   resolvePlayableWorld: vi.fn(),
+  deleteOwnedSession: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
@@ -28,13 +29,14 @@ vi.mock("@/lib/db/queries/sessions", () => ({
   listUserSessions: mocks.listUserSessions,
   getSessionWithHistory: mocks.getSessionWithHistory,
   createDbSession: mocks.createDbSession,
+  deleteOwnedSession: mocks.deleteOwnedSession,
 }));
 vi.mock("@/lib/worlds/resolve-playable-world", () => ({
   resolvePlayableWorld: mocks.resolvePlayableWorld,
 }));
 
 import { NextRequest } from "next/server";
-import { GET, POST } from "./route";
+import { DELETE, GET, POST } from "./route";
 
 const character = {
   id: "c1",
@@ -144,5 +146,32 @@ describe("/api/game/session", () => {
     expect(body.session.choices).toEqual(["Open it", "Leave"]);
     expect(body.session.codex).toEqual([{ key: "k" }]);
     expect(body.session.history).toHaveLength(3);
+  });
+
+  it("DELETE removes the signed-in player's own save", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "real-user" } });
+    mocks.deleteOwnedSession.mockResolvedValue(true);
+    const res = await DELETE(new NextRequest("http://localhost/api/game/session?sessionId=s1", { method: "DELETE" }));
+    expect(res.status).toBe(204);
+    expect(mocks.deleteOwnedSession).toHaveBeenCalledWith("s1", "real-user");
+  });
+
+  it("DELETE says not found for a save that isn't theirs", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "real-user" } });
+    mocks.deleteOwnedSession.mockResolvedValue(false);
+    const res = await DELETE(new NextRequest("http://localhost/api/game/session?sessionId=other", { method: "DELETE" }));
+    expect(res.status).toBe(404);
+  });
+
+  it("DELETE needs a sessionId", async () => {
+    const res = await DELETE(new NextRequest("http://localhost/api/game/session", { method: "DELETE" }));
+    expect(res.status).toBe(400);
+    expect(mocks.deleteOwnedSession).not.toHaveBeenCalled();
+  });
+
+  it("DELETE can't act for another account via ?guestId=", async () => {
+    const res = await DELETE(new NextRequest("http://localhost/api/game/session?sessionId=s1&guestId=real-user", { method: "DELETE" }));
+    expect(res.status).toBe(401);
+    expect(mocks.deleteOwnedSession).not.toHaveBeenCalled();
   });
 });

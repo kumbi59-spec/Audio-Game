@@ -60,6 +60,32 @@ export async function listUserSessions(userId: string) {
 }
 
 /**
+ * Deletes a saved game the player owns: its turn history, game state and the
+ * session itself, plus its character (with inventory and quests) when no other
+ * session uses it. Returns false, deleting nothing, when the session isn't
+ * theirs or doesn't exist.
+ */
+export async function deleteOwnedSession(sessionId: string, userId: string): Promise<boolean> {
+  return prisma.$transaction(async (tx) => {
+    const session = await tx.gameSession.findFirst({
+      where: { id: sessionId, userId },
+      select: { characterId: true },
+    });
+    if (!session) return false;
+    await tx.gameHistoryEntry.deleteMany({ where: { sessionId } });
+    await tx.gameState.deleteMany({ where: { sessionId } });
+    await tx.gameSession.delete({ where: { id: sessionId } });
+    const { characterId } = session;
+    if ((await tx.gameSession.count({ where: { characterId } })) === 0) {
+      await tx.inventoryItem.deleteMany({ where: { characterId } });
+      await tx.quest.deleteMany({ where: { characterId } });
+      await tx.character.deleteMany({ where: { id: characterId, userId } });
+    }
+    return true;
+  });
+}
+
+/**
  * Loads a session only if it belongs to `userId`. Game routes must resolve the
  * session through this before invoking the model or writing any turn data.
  */
