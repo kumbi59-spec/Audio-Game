@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { characterFromRow, createSessionCharacter } from "@/lib/db/queries/characters";
-import { createDbSession, getSessionWithHistory, listUserSessions } from "@/lib/db/queries/sessions";
+import { createDbSession, deleteOwnedSession, getSessionWithHistory, listUserSessions } from "@/lib/db/queries/sessions";
 import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
 import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { CharacterSchema, LegacyGuestIdSchema } from "@/lib/game/request-schemas";
@@ -162,5 +162,24 @@ async function loadForPlayer(userId: string, sessionId: string | null): Promise<
   } catch (err) {
     console.error("Session load error:", err);
     return NextResponse.json({ error: "Failed to load session" }, { status: 500 });
+  }
+}
+
+// DELETE /api/game/session?sessionId=... — delete one of the caller's saved games.
+// Identity comes only from the session or the guest cookie (never ?guestId=).
+export async function DELETE(req: NextRequest) {
+  const sessionId = req.nextUrl.searchParams.get("sessionId");
+  if (!sessionId || sessionId.length > 200) {
+    return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
+  }
+  const identity = await resolvePlayer(req);
+  if (!identity.ok) return playerErrorResponse(identity);
+  try {
+    const deleted = await deleteOwnedSession(sessionId, identity.player.userId);
+    if (!deleted) return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    return new NextResponse(null, { status: 204 });
+  } catch (err) {
+    console.error("Session delete error:", err);
+    return NextResponse.json({ error: "Failed to delete session" }, { status: 500 });
   }
 }

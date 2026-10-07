@@ -62,3 +62,26 @@ export async function loadServerSave(sessionId: string): Promise<LoadServerSaveR
   });
   return { ok: true };
 }
+
+export type DeleteServerSaveResult = { ok: true } | { ok: false; message: string };
+
+/**
+ * Deletes a saved game from the server. A save that's already gone counts as
+ * deleted. If it was the game loaded in this browser, that game stops saving
+ * to it.
+ */
+export async function deleteServerSave(sessionId: string): Promise<DeleteServerSaveResult> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/game/session?sessionId=${encodeURIComponent(sessionId)}`, { method: "DELETE" });
+  } catch {
+    return { ok: false, message: "Couldn't reach the server to delete that save." };
+  }
+  if (!res.ok && res.status !== 404) {
+    return { ok: false, message: "Couldn't delete that save. Try again in a moment." };
+  }
+  if (useGameStore.getState().dbSessionId === sessionId) {
+    useGameStore.setState({ dbSessionId: null });
+  }
+  return { ok: true };
+}
