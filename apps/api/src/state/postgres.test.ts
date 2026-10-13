@@ -78,6 +78,20 @@ describe("PostgresCampaignStore", () => {
     await expect(store.listWorlds()).resolves.toEqual([]);
   });
 
+  it("runs the schema in one transaction behind an advisory lock", async () => {
+    const store = new PostgresCampaignStore("postgres://test");
+    await store.listWorlds();
+    const sqls = latestPool().queries.map((q) => q.sql);
+    const begin = sqls.indexOf("BEGIN");
+    const lock = sqls.findIndex((s) => s.includes("pg_advisory_xact_lock"));
+    const schema = sqls.findIndex((s) => s.includes("CREATE TABLE IF NOT EXISTS worlds"));
+    const commit = sqls.indexOf("COMMIT");
+    expect(begin).toBeGreaterThanOrEqual(0);
+    expect(begin).toBeLessThan(lock);
+    expect(lock).toBeLessThan(schema);
+    expect(schema).toBeLessThan(commit);
+  });
+
   it("orders recent turns by turn, then insert time, oldest first", async () => {
     const store = new PostgresCampaignStore("postgres://test");
     fake.respond = (sql) =>

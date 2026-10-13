@@ -23,6 +23,9 @@ import type {
   WorldAnalyticsSummary,
 } from "./types.js";
 
+/** Any constant works; every instance just has to use the same one. */
+const MIGRATION_LOCK_KEY = 4_724_210_117;
+
 /**
  * Postgres-backed CampaignStore. Every world, campaign, turn, and scene
  * summary lives in Postgres; semantic retrieval uses pgvector via the
@@ -70,11 +73,24 @@ export class PostgresCampaignStore implements CampaignStore {
     const schemaPath = join(here, "schema.sql");
     const sql = await readFile(schemaPath, "utf8");
     const client = await this.pool.connect();
+    let broken = false;
     try {
+      // One transaction behind an advisory lock, so instances (or test
+      // workers) booting together against a fresh database don't race on
+      // CREATE EXTENSION / CREATE TABLE. A transaction-scoped lock also
+      // holds through a transaction-mode pooler.
+      await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock($1)", [MIGRATION_LOCK_KEY]);
       await client.query(sql);
       await this.seedOfficial(client);
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {
+        broken = true;
+      });
+      throw err;
     } finally {
-      client.release();
+      client.release(broken);
     }
   }
 
