@@ -9,7 +9,8 @@ const SuggestBody = z.object({
 });
 
 export async function registerWizardRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/wizard/suggest", { preHandler: requireTier("creator") }, async (req, reply) => {
+  // Matches the worldWizard entitlement, which storyteller includes.
+  app.post("/wizard/suggest", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     const body = SuggestBody.safeParse(req.body);
     if (!body.success) {
       return reply.status(400).send({ error: body.error.message });

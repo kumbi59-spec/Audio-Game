@@ -1,5 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { buildServer } from "../server.js";
+import { issueTierToken } from "../auth/entitlements.js";
+import { clearTtsRateLimit } from "./tts.js";
+
+const storyteller = { authorization: `Bearer ${issueTierToken("storyteller")}` };
 
 let app: Awaited<ReturnType<typeof buildServer>>;
 
@@ -14,31 +18,32 @@ afterAll(async () => {
 beforeEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
+  clearTtsRateLimit();
 });
 
 describe("GET /tts/stream", () => {
   it("returns 503 when ELEVENLABS_API_KEY is not set", async () => {
     vi.stubEnv("ELEVENLABS_API_KEY", "");
-    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=test" });
+    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=test", headers: storyteller });
     expect(res.statusCode).toBe(503);
     expect(res.json<{ error: string }>().error).toBe("tts_unavailable");
   });
 
   it("returns 400 when text param is missing", async () => {
     vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
-    const res = await app.inject({ method: "GET", url: "/tts/stream?voiceId=test" });
+    const res = await app.inject({ method: "GET", url: "/tts/stream?voiceId=test", headers: storyteller });
     expect(res.statusCode).toBe(400);
   });
 
   it("returns 400 when text is empty", async () => {
     vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
-    const res = await app.inject({ method: "GET", url: "/tts/stream?text=&voiceId=test" });
+    const res = await app.inject({ method: "GET", url: "/tts/stream?text=&voiceId=test", headers: storyteller });
     expect(res.statusCode).toBe(400);
   });
 
   it("returns 400 when text exceeds 3000 chars", async () => {
     vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
-    const res = await app.inject({ method: "GET", url: `/tts/stream?text=${"x".repeat(3001)}&voiceId=test` });
+    const res = await app.inject({ method: "GET", url: `/tts/stream?text=${"x".repeat(3001)}&voiceId=test`, headers: storyteller });
     expect(res.statusCode).toBe(400);
   });
 
@@ -51,7 +56,7 @@ describe("GET /tts/stream", () => {
         headers: { "Content-Type": "audio/mpeg" },
       }),
     );
-    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello+world&voiceId=21m00Tcm4TlvDq8ikWAM" });
+    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello+world&voiceId=21m00Tcm4TlvDq8ikWAM", headers: storyteller });
     expect(res.statusCode).toBe(200);
     expect(res.headers["content-type"]).toContain("audio/mpeg");
     expect(res.headers["cache-control"]).toContain("immutable");
@@ -62,7 +67,7 @@ describe("GET /tts/stream", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
       new Response(JSON.stringify({ detail: "quota_exceeded" }), { status: 429 }),
     );
-    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=21m00Tcm4TlvDq8ikWAM" });
+    const res = await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=21m00Tcm4TlvDq8ikWAM", headers: storyteller });
     expect(res.statusCode).toBe(502);
     expect(res.json<{ error: string }>().error).toBe("tts_upstream_error");
   });
@@ -75,7 +80,7 @@ describe("GET /tts/stream", () => {
       capturedUrl = url as string;
       return new Response(Buffer.from([0xff]), { status: 200, headers: { "Content-Type": "audio/mpeg" } });
     });
-    await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceRole=narrator" });
+    await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceRole=narrator", headers: storyteller });
     expect(capturedUrl).toContain("custom_narrator_id");
   });
 
@@ -87,9 +92,52 @@ describe("GET /tts/stream", () => {
       capturedUrl = url as string;
       return new Response(Buffer.from([0xff]), { status: 200, headers: { "Content-Type": "audio/mpeg" } });
     });
-    await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=explicit_voice&voiceRole=narrator" });
+    await app.inject({ method: "GET", url: "/tts/stream?text=Hello&voiceId=explicit_voice&voiceRole=narrator", headers: storyteller });
     expect(capturedUrl).toContain("explicit_voice");
     expect(capturedUrl).not.toContain("custom_narrator_id");
+  });
+});
+
+describe("GET /tts/stream access", () => {
+  it("requires a storyteller tier token", async () => {
+    vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    const anonymous = await app.inject({ method: "GET", url: "/tts/stream?text=Hello" });
+    expect(anonymous.statusCode).toBe(403);
+    expect(anonymous.json()).toMatchObject({ error: "forbidden", requiredTier: "storyteller" });
+
+    const free = await app.inject({
+      method: "GET",
+      url: "/tts/stream?text=Hello",
+      headers: { authorization: `Bearer ${issueTierToken("free")}` },
+    });
+    expect(free.statusCode).toBe(403);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects models outside the allowlist", async () => {
+    vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
+    const res = await app.inject({
+      method: "GET",
+      url: "/tts/stream?text=Hello&model=eleven_multilingual_v2",
+      headers: storyteller,
+    });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("rate-limits clips per IP", async () => {
+    vi.stubEnv("ELEVENLABS_API_KEY", "test_key");
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () => new Response(Buffer.from([0xff]), { status: 200, headers: { "Content-Type": "audio/mpeg" } }),
+    );
+    const statuses: number[] = [];
+    for (let i = 0; i < 61; i += 1) {
+      const res = await app.inject({ method: "GET", url: `/tts/stream?text=Line+${i}`, headers: storyteller });
+      statuses.push(res.statusCode);
+    }
+    expect(statuses.slice(0, 60).every((s) => s === 200)).toBe(true);
+    expect(statuses[60]).toBe(429);
   });
 });
 

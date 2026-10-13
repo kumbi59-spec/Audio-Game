@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { createSlidingWindowLimiter } from "./rate-limit.js";
 
 /**
  * Deepgram short-lived key minter. The mobile client opens its own
@@ -11,29 +12,45 @@ import type { FastifyInstance } from "fastify";
  * expo-speech-recognition on native, mock in tests).
  */
 
-// Per-IP last mint timestamp; prevents cost inflation from rapid key minting.
-const lastMintByIp = new Map<string, number>();
-const STT_MINT_COOLDOWN_MS = 60_000;
+// Per-IP mint window; caps cost inflation from rapid key minting. A
+// session mints one key per utterance, so a few per minute is normal use.
+const STT_MINTS_PER_WINDOW = 10;
+const STT_MINT_WINDOW_MS = 60_000;
+const sttMintLimiter = createSlidingWindowLimiter({
+  limit: STT_MINTS_PER_WINDOW,
+  windowMs: STT_MINT_WINDOW_MS,
+});
+
+/** Exposed for test teardown only. */
+export function clearSttRateLimit(): void {
+  sttMintLimiter.clear();
+}
+
+function sttConfig(): { apiKey: string; projectId: string } | null {
+  const apiKey = process.env["DEEPGRAM_API_KEY"];
+  const projectId = process.env["DEEPGRAM_PROJECT_ID"];
+  return apiKey && projectId ? { apiKey, projectId } : null;
+}
 
 export async function registerSttRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/stt/token", async (_req, reply) => {
-    const clientIp = _req.ip;
-    const now = Date.now();
-    const last = lastMintByIp.get(clientIp) ?? 0;
-    if (now - last < STT_MINT_COOLDOWN_MS) {
-      const retryAfterSeconds = Math.ceil((last + STT_MINT_COOLDOWN_MS - now) / 1000);
-      reply.header("Retry-After", String(retryAfterSeconds));
-      return reply.status(429).send({ error: "stt_rate_limited", retryAfterSeconds });
-    }
-    lastMintByIp.set(clientIp, now);
-    const apiKey = process.env["DEEPGRAM_API_KEY"];
-    const projectId = process.env["DEEPGRAM_PROJECT_ID"];
-    if (!apiKey || !projectId) {
+  // Availability probe for clients; never mints, so it costs nothing and
+  // doesn't count against the mint limit.
+  app.get("/stt/status", async () => ({ available: sttConfig() !== null }));
+
+  app.post("/stt/token", async (req, reply) => {
+    const deepgram = sttConfig();
+    if (!deepgram) {
       return reply.status(503).send({
         error: "stt_unavailable",
         message:
           "DEEPGRAM_API_KEY / DEEPGRAM_PROJECT_ID are not set. Client should fall back to platform STT.",
       });
+    }
+    const { apiKey, projectId } = deepgram;
+    const retryAfterSeconds = sttMintLimiter.retryAfterSeconds(req.ip);
+    if (retryAfterSeconds > 0) {
+      reply.header("Retry-After", String(retryAfterSeconds));
+      return reply.status(429).send({ error: "stt_rate_limited", retryAfterSeconds });
     }
     try {
       const upstream = await fetch(
@@ -61,6 +78,8 @@ export async function registerSttRoutes(app: FastifyInstance): Promise<void> {
         api_key_id: string;
         expiration_date: string;
       };
+      // Only a key that was actually minted counts against the window.
+      sttMintLimiter.record(req.ip);
       return {
         token: data.key,
         keyId: data.api_key_id,

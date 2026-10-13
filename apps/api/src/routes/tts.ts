@@ -1,6 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { Readable } from "node:stream";
+import { requireTier } from "../auth/entitlements.js";
+import { createSlidingWindowLimiter } from "./rate-limit.js";
 
 const VOICE_DEFAULTS = {
   narrator: "21m00Tcm4TlvDq8ikWAM",
@@ -25,7 +27,8 @@ function getConfiguredVoices(): Record<keyof typeof VOICE_DEFAULTS, string> {
 const QuerySchema = z.object({
   text: z.string().min(1).max(3000),
   voiceId: z.string().default("21m00Tcm4TlvDq8ikWAM"),
-  model: z.string().default("eleven_flash_v2_5"),
+  // Allowlisted so a caller cannot pick a pricier model on the server key.
+  model: z.enum(["eleven_flash_v2_5", "eleven_turbo_v2_5"]).default("eleven_flash_v2_5"),
   voiceRole: z.enum(["narrator", "voice_a", "voice_b", "voice_c"]).optional(),
   // Optional. ElevenLabs accepts 0.7–1.2; out-of-range values are clamped.
   speed: z.coerce.number().min(0.5).max(2.0).optional(),
@@ -36,6 +39,20 @@ const QuerySchema = z.object({
 const ELEVENLABS_SPEED_MIN = 0.7;
 const ELEVENLABS_SPEED_MAX = 1.2;
 
+// Per-IP clip window. A turn is a handful of sentence clips, so this
+// leaves room for normal play while capping spend on the server's key.
+const TTS_CLIPS_PER_WINDOW = 60;
+const TTS_WINDOW_MS = 60_000;
+const ttsLimiter = createSlidingWindowLimiter({
+  limit: TTS_CLIPS_PER_WINDOW,
+  windowMs: TTS_WINDOW_MS,
+});
+
+/** Exposed for test teardown only. */
+export function clearTtsRateLimit(): void {
+  ttsLimiter.clear();
+}
+
 /**
  * TTS proxy. The client never holds an ElevenLabs key; it requests
  * narration by turnId+voiceId and we stream MP3 audio back. In production
@@ -44,9 +61,12 @@ const ELEVENLABS_SPEED_MAX = 1.2;
  *
  * If ELEVENLABS_API_KEY is not set, the route returns 503 so the mobile
  * client can fall back to the on-device TTS (expo-speech) without error.
+ * Callers below the storyteller tier get 403 and fall back the same way.
  */
 export async function registerTtsRoutes(app: FastifyInstance): Promise<void> {
-  app.get("/tts/stream", async (req, reply) => {
+  // Premium narration is a paid entitlement (premiumTts), and every call
+  // spends the server's ElevenLabs key.
+  app.get("/tts/stream", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     const parsed = QuerySchema.safeParse(req.query);
     if (!parsed.success) {
       return reply.status(400).send({ error: parsed.error.flatten() });
@@ -59,6 +79,13 @@ export async function registerTtsRoutes(app: FastifyInstance): Promise<void> {
           "ELEVENLABS_API_KEY is not set. Client should fall back to on-device TTS.",
       });
     }
+
+    const retryAfterSeconds = ttsLimiter.retryAfterSeconds(req.ip);
+    if (retryAfterSeconds > 0) {
+      reply.header("Retry-After", String(retryAfterSeconds));
+      return reply.status(429).send({ error: "tts_rate_limited", retryAfterSeconds });
+    }
+    ttsLimiter.record(req.ip);
 
     const { text, model, voiceRole, speed } = parsed.data;
     const voiceId =

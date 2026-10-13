@@ -34,8 +34,10 @@ export interface SessionRouteOptions {
 
 type EmitFn = (evt: ServerEvent) => void;
 const campaignEmitters = new Map<string, Set<EmitFn>>();
-// Prevents two players from simultaneously driving a GM turn for the same campaign.
-const campaignTurnLock = new Map<string, boolean>();
+// Prevents two players from simultaneously driving a GM turn for the same
+// campaign. Only the running turn's own `finally` releases it, so a player
+// disconnecting mid-turn can't let a second turn start alongside it.
+const campaignTurnLock = new Set<string>();
 
 function broadcastToCampaign(campaignId: string, evt: ServerEvent): void {
   for (const emitter of campaignEmitters.get(campaignId) ?? []) {
@@ -52,10 +54,7 @@ function unregisterEmitter(campaignId: string, emit: EmitFn): void {
   const set = campaignEmitters.get(campaignId);
   if (!set) return;
   set.delete(emit);
-  if (set.size === 0) {
-    campaignEmitters.delete(campaignId);
-    campaignTurnLock.delete(campaignId);
-  }
+  if (set.size === 0) campaignEmitters.delete(campaignId);
 }
 
 /** Exposed for test teardown only. */
@@ -82,8 +81,17 @@ export async function registerSessionRoutes(
     let sessionState: SessionState = "connected";
     let session: Awaited<ReturnType<typeof loadSession>> | null = null;
     let turnLimit: number | null = null;
+    // The free-tier limit is per play session, so count this socket's turns
+    // rather than the campaign's lifetime turn number.
+    let turnsThisSession = 0;
+    let joinRequested = false;
     let currentCampaignId: string | null = null;
+    // Kept so each turn can reload the campaign: other players' turns
+    // change it while this socket is connected.
+    let authToken: string | null = null;
+    // Event ids of completed turns; a failed turn's id may be retried.
     const handledEventIds = new Set<string>();
+    const inFlightEventIds = new Set<string>();
 
     // Local emit — sends to this socket only (used for join ACK, errors).
     const localEmit = (evt: ServerEvent): void => {
@@ -178,20 +186,38 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "join") {
+        // One campaign per socket: a second join would leave this socket in
+        // the first room and broadcast its turns there.
+        if (joinRequested) {
+          localEmit({
+            type: "error",
+            code: "already_joined",
+            message: "This connection has already joined a campaign.",
+            recoverable: true,
+          });
+          return;
+        }
         if (!transitionState("join")) {
           return;
         }
+        joinRequested = true;
         try {
-          session = await loadSession(event.campaignId, event.authToken);
+          const loaded = await loadSession(event.campaignId, event.authToken);
+          // The socket closed while the campaign loaded. Its close handler
+          // saw no room to leave, so registering now would leak the emitter.
+          if (socket.readyState !== socket.OPEN) return;
+          session = loaded;
+          authToken = event.authToken;
           const tier = event.tierToken
             ? tierFromToken(event.tierToken)
             : "free";
           turnLimit = TIER_ENTITLEMENTS[tier].sessionTurnLimit;
 
           // Register this socket in the campaign room so turns broadcast to all players.
-          currentCampaignId = event.campaignId;
-          registerEmitter(currentCampaignId, localEmit);
-          emit = (evt) => broadcastToCampaign(currentCampaignId!, evt);
+          const campaignId = event.campaignId;
+          currentCampaignId = campaignId;
+          registerEmitter(campaignId, localEmit);
+          emit = (evt) => broadcastToCampaign(campaignId, evt);
 
           localEmit({
             type: "session_ready",
@@ -224,8 +250,11 @@ export async function registerSessionRoutes(
       }
 
       if (event.type === "player_input") {
+        const campaignId = session.campaignId;
+        const retryOfRunningTurn = Boolean(event.eventId && inFlightEventIds.has(event.eventId));
         // Reject if another player is already driving a turn for this campaign.
-        if (currentCampaignId && campaignTurnLock.get(currentCampaignId)) {
+        // A retry of this socket's running turn is reported as a duplicate below.
+        if (campaignTurnLock.has(campaignId) && !retryOfRunningTurn) {
           localEmit({
             type: "error",
             code: "turn_in_progress",
@@ -240,7 +269,7 @@ export async function registerSessionRoutes(
         if (!transitionState("player_input")) {
           return;
         }
-        if (event.eventId && handledEventIds.has(event.eventId)) {
+        if (retryOfRunningTurn || (event.eventId && handledEventIds.has(event.eventId))) {
           sessionState = stateBeforeTurn;
           incrementSessionMetric("duplicateInputs");
           localEmit({
@@ -252,7 +281,7 @@ export async function registerSessionRoutes(
           });
           return;
         }
-        if (turnLimit !== null && session.state.turn_number >= turnLimit) {
+        if (turnLimit !== null && turnsThisSession >= turnLimit) {
           sessionState = stateBeforeTurn;
           incrementSessionMetric("turnLimitRejected");
           localEmit({
@@ -264,10 +293,14 @@ export async function registerSessionRoutes(
           });
           return;
         }
+        incrementSessionMetric("turnRequests");
+        // Taken before the first await so no other socket can start a turn.
+        campaignTurnLock.add(campaignId);
+        if (event.eventId) inFlightEventIds.add(event.eventId);
         try {
-          incrementSessionMetric("turnRequests");
-          if (event.eventId) handledEventIds.add(event.eventId);
-          if (currentCampaignId) campaignTurnLock.set(currentCampaignId, true);
+          // Another player's turn may have advanced the campaign since this
+          // socket loaded it; running on the stale copy would overwrite it.
+          session = await loadSession(campaignId, authToken!);
           session = await runTurn(
             session,
             event.input,
@@ -283,6 +316,8 @@ export async function registerSessionRoutes(
             },
             emit,
           );
+          turnsThisSession += 1;
+          if (event.eventId) handledEventIds.add(event.eventId);
           if (!transitionState("turn_completed")) {
             return;
           }
@@ -298,7 +333,8 @@ export async function registerSessionRoutes(
             eventId: event.eventId,
           });
         } finally {
-          if (currentCampaignId) campaignTurnLock.set(currentCampaignId, false);
+          if (event.eventId) inFlightEventIds.delete(event.eventId);
+          campaignTurnLock.delete(campaignId);
         }
         return;
       }
@@ -364,12 +400,8 @@ export async function registerSessionRoutes(
     });
 
     socket.on("close", () => {
-      if (currentCampaignId) {
-        unregisterEmitter(currentCampaignId, localEmit);
-        if (campaignTurnLock.get(currentCampaignId)) {
-          campaignTurnLock.set(currentCampaignId, false);
-        }
-      }
+      // A turn this socket started keeps the campaign lock until it ends.
+      if (currentCampaignId) unregisterEmitter(currentCampaignId, localEmit);
       incrementSessionMetric("connectionsClosed");
       app.log.info("session closed");
     });

@@ -88,11 +88,10 @@ function classify(input: ExtractInput): ExtractResult["format"] {
 }
 
 async function extractPdf(buf: Buffer): Promise<ExtractResult> {
-  // pdf-parse ships with a CJS default export; dynamic import avoids its
-  // debug-only top-level side effect on module load.
-  const { default: pdfParse } = (await import("pdf-parse")) as {
-    default: (b: Buffer) => Promise<{ text: string; numpages: number }>;
-  };
+  // Import the library file, not the package entry: index.js runs a debug
+  // block when `module.parent` is unset (always, under ESM) that reads a
+  // test PDF and fails every parse with ENOENT.
+  const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
   const result = await pdfParse(buf);
   const text = result.text.trim();
   if (!text) {
