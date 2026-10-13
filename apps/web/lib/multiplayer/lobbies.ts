@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 // Upper bound on distinct members per lobby (the API room itself seats 4 at a
@@ -55,10 +56,37 @@ export async function authorizeLobbyAccess(
     return { ok: false, status: 403, error: "lobby_full" };
   }
 
-  await prisma.lobbyMember.upsert({
-    where: { lobbyId_userId: { lobbyId, userId } },
-    create: { lobbyId, userId },
-    update: {},
-  });
+  if (!(await admitMember(lobbyId, userId))) {
+    return { ok: false, status: 403, error: "lobby_full" };
+  }
   return { ok: true, inviteCode: lobby.inviteCode, isHost };
+}
+
+/**
+ * Records a membership unless the lobby is full. The count and the insert run
+ * in one serializable transaction, so simultaneous joins can't all see a free
+ * seat and push the lobby past the cap; the loser of a conflict retries.
+ */
+async function admitMember(lobbyId: string, userId: string): Promise<boolean> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const existing = await tx.lobbyMember.findUnique({
+            where: { lobbyId_userId: { lobbyId, userId } },
+            select: { userId: true },
+          });
+          if (existing) return true;
+          if ((await tx.lobbyMember.count({ where: { lobbyId } })) >= MAX_LOBBY_MEMBERS) return false;
+          await tx.lobbyMember.create({ data: { lobbyId, userId } });
+          return true;
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      );
+    } catch (err) {
+      const retryable =
+        err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2034" || err.code === "P2002");
+      if (!retryable || attempt >= 3) throw err;
+    }
+  }
 }

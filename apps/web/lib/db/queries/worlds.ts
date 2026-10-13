@@ -2,7 +2,11 @@ import { prisma } from "@/lib/db";
 import { PREBUILT_WORLDS } from "@/lib/worlds/shattered-reaches";
 
 export async function seedPrebuiltWorldsIfNeeded(): Promise<void> {
-  const count = await prisma.world.count({ where: { isPrebuilt: true } });
+  // Count the code's prebuilt ids, so a retired prebuilt row can't stand in
+  // for a newly added world.
+  const count = await prisma.world.count({
+    where: { isPrebuilt: true, id: { in: PREBUILT_WORLDS.map((w) => w.id) } },
+  });
   if (count >= PREBUILT_WORLDS.length) return;
 
   for (const [i, world] of PREBUILT_WORLDS.entries()) {
@@ -41,7 +45,9 @@ export async function getWorldById(id: string) {
   return prisma.world.findUnique({
     where: { id },
     include: {
-      locations: true,
+      // A game starts at locations[0], so the order must be stable: location
+      // ids sort in creation order, starting location first.
+      locations: { orderBy: { id: "asc" } },
       npcs: true,
       libraryItem: true,
       gameBible: { select: { parsedData: true } },

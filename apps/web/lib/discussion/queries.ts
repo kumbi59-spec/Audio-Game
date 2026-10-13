@@ -74,9 +74,11 @@ export async function listThreads(cursor: string | null, take = THREAD_PAGE_SIZE
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     include: {
       author: { select: { name: true } },
+      // The newest comments, so new ones still show once a thread passes the
+      // cap; reversed to chronological order below.
       comments: {
         where: { hidden: false },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: COMMENTS_PER_THREAD,
         include: { author: { select: { name: true } } },
       },
@@ -89,7 +91,7 @@ export async function listThreads(cursor: string | null, take = THREAD_PAGE_SIZE
     body: t.body,
     author: displayName(t.author),
     createdAt: t.createdAt.toISOString(),
-    comments: t.comments.map(toCommentDto),
+    comments: t.comments.map(toCommentDto).reverse(),
   }));
   return { threads, nextCursor: rows.length > take ? page[page.length - 1]!.id : null };
 }

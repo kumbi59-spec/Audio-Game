@@ -3,6 +3,8 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
+import { getUserTier } from "@/lib/db/queries/users";
+import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +34,13 @@ export async function POST(req: NextRequest) {
     isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
   });
   if (limited) return limited;
+
+  // An AI call on behalf of the world wizard, so it's gated like the wizard.
+  const tier = await getUserTier(session.user.id);
+  const { worldWizard } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
+  if (!worldWizard) {
+    return NextResponse.json({ error: "Upgrade to the Storyteller plan to create custom worlds." }, { status: 403 });
+  }
 
   let body: z.infer<typeof BodySchema>;
   try {

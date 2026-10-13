@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ auth: vi.fn(), create: vi.fn(), consumeRateLimit: vi.fn() }));
+const mocks = vi.hoisted(() => ({ auth: vi.fn(), create: vi.fn(), consumeRateLimit: vi.fn(), getUserTier: vi.fn() }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
+vi.mock("@/lib/db/queries/users", () => ({ getUserTier: mocks.getUserTier }));
 vi.mock("@/lib/rate-limit", () => ({
   consumeRateLimit: mocks.consumeRateLimit,
   getClientIp: () => "203.0.113.7",
@@ -28,6 +29,14 @@ describe("POST /api/worlds/wizard/suggest", () => {
     vi.clearAllMocks();
     mocks.auth.mockResolvedValue({ user: { id: "u1" } });
     mocks.consumeRateLimit.mockResolvedValue({ allowed: true, retryAfterSeconds: 0 });
+    mocks.getUserTier.mockResolvedValue("storyteller");
+  });
+
+  it("is for plans that include the world wizard", async () => {
+    mocks.getUserTier.mockResolvedValueOnce("free");
+    const res = await suggest();
+    expect(res.status).toBe(403);
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 
   it("turns a player away once they're over the authoring rate limit", async () => {

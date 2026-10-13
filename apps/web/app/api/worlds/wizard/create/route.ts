@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
@@ -6,6 +7,7 @@ import { getUserTier } from "@/lib/db/queries/users";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { draftToBible, draftToSystemPrompt, type Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
+import { CoverImageUrlSchema } from "@/lib/worlds/data-url";
 import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 
 export const runtime = "nodejs";
@@ -22,8 +24,8 @@ const DraftSchema = z.object({
   hardConstraint: z.string(),
   startingScenario: z.string().min(1, "Opening scene is required"),
   characterName: z.string().min(1, "Character name is required"),
-  // Optional creator-supplied cover image URL (http/https or data URL)
-  imageUrl: z.string().optional(),
+  // Optional creator-supplied cover image: an http(s) link or a base64 raster data URL
+  imageUrl: CoverImageUrlSchema.optional(),
 }) satisfies z.ZodType<Draft & { imageUrl?: string }>;
 
 export async function POST(req: NextRequest) {
@@ -57,7 +59,8 @@ export async function POST(req: NextRequest) {
 
   const { imageUrl: suppliedImageUrl, ...draft } = body;
 
-  const stamp = Date.now().toString(36);
+  // Random suffix so two creates in the same millisecond can't collide.
+  const stamp = `${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
   const worldId = `world-wiz-${stamp}`;
   const locId = `loc-wiz-${stamp}-start`;
 

@@ -40,6 +40,15 @@ interface BlogPost {
 type Tab = "users" | "worlds" | "blog";
 
 const EMPTY_DRAFT = { title: "", excerpt: "", content: "", publishedAt: "" };
+
+// <input type="datetime-local"> shows and returns local wall-clock time, while
+// the API speaks UTC ISO strings. Slicing the ISO string would shift the
+// publish time by the UTC offset on every save.
+function toDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
 type SeoCheck = { label: string; pass: boolean };
 
 function stripMarkdown(markdown: string): string {
@@ -398,7 +407,7 @@ export default function AdminPage() {
       title: post.title,
       excerpt: post.excerpt,
       content: post.content,
-      publishedAt: post.publishedAt ? post.publishedAt.slice(0, 16) : "",
+      publishedAt: post.publishedAt ? toDatetimeLocal(post.publishedAt) : "",
     });
     setBlogError("");
   }

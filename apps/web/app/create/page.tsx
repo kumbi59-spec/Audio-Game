@@ -66,7 +66,8 @@ function CreateCharacterPage() {
   const setDbSessionId = useGameStore((s) => s.setDbSessionId);
 
   const [step, setStep] = useState<Step>("name");
-  const [name, setName] = useState("");
+  // Prefilled from the world wizard, which already asked for the character's name.
+  const [name, setName] = useState(() => searchParams.get("name")?.trim() ?? "");
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
   const [selectedWorldClass, setSelectedWorldClass] = useState<string | null>(null);
   const [customRoleTitle, setCustomRoleTitle] = useState("");

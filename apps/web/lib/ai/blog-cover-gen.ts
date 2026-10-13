@@ -37,23 +37,25 @@ export type BlogCoverResult =
 
 // Visual-cue keywords mapped to short scene descriptors. The mapping is
 // intentionally restrictive — a vague match dilutes the prompt. We pick at
-// most three matched scenes and weave them into the prompt below.
+// most three matched scenes and weave them into the prompt below. Every cue
+// starts on a word boundary (and whole-word cues end on one), so "ai" doesn't
+// fire on "said", "mage" on "image", or "quest" on "EchoQuest".
 const CUE_MAP: Array<{ test: RegExp; scene: string }> = [
-  { test: /screen reader|nvda|jaws|voiceover|talkback|keyboard navigation|accessibilit/i, scene: "a glowing keyboard under low light with sound waves rippling above the keys" },
-  { test: /voice command|voice input|microphone/i, scene: "a softly glowing microphone surrounded by spoken word ribbons" },
-  { test: /ambient|sound design|audio/i, scene: "an atmospheric tableau with a flickering hearth, motes of dust, and curling sound ribbons" },
-  { test: /world.?build|game bible|lore|world.?wizard/i, scene: "an open leather-bound atlas with hand-drawn maps and scattered relics" },
-  { test: /dungeon|combat|battle|monster/i, scene: "the silhouette of an adventurer at the threshold of a vast stone chamber" },
-  { test: /npc|character archetype|hero|paladin|rogue|warrior|mage|bard|ranger/i, scene: "an ensemble of cloaked travelers gathered around a campfire under starlight" },
-  { test: /quest|adventure|campaign/i, scene: "a lone traveler on a winding mountain road at dawn" },
-  { test: /immersion|imagination|brain|cognitive/i, scene: "a constellation of stars forming the shape of an open book" },
-  { test: /tabletop|d&d|dungeons.*dragons/i, scene: "a softly lit table with dice, parchment, and a steaming mug" },
-  { test: /ai|claude|model|machine/i, scene: "a delicate filigree of glowing threads weaving themselves into a story" },
-  { test: /accessibility|blind|low vision|visually impaired/i, scene: "warm light streaming across a tactile braille manuscript" },
-  { test: /narrat|story|fiction/i, scene: "a candlelit reading nook with a story spilling visibly from the open book" },
+  { test: /\b(?:screen readers?\b|nvda\b|jaws\b|voiceover\b|talkback\b|keyboard navigation\b|accessibilit)/i, scene: "a glowing keyboard under low light with sound waves rippling above the keys" },
+  { test: /\b(?:voice commands?|voice input|microphones?)\b/i, scene: "a softly glowing microphone surrounded by spoken word ribbons" },
+  { test: /\b(?:ambient|sound design|audio)\b/i, scene: "an atmospheric tableau with a flickering hearth, motes of dust, and curling sound ribbons" },
+  { test: /\b(?:world.?build|game bibles?\b|lore\b|world.?wizard\b)/i, scene: "an open leather-bound atlas with hand-drawn maps and scattered relics" },
+  { test: /\b(?:dungeons?|combat|battles?|monsters?)\b/i, scene: "the silhouette of an adventurer at the threshold of a vast stone chamber" },
+  { test: /\b(?:npcs?|character archetypes?|hero(?:es)?|paladins?|rogues?|warriors?|mages?|bards?|rangers?)\b/i, scene: "an ensemble of cloaked travelers gathered around a campfire under starlight" },
+  { test: /\b(?:quests?|adventures?|campaigns?)\b/i, scene: "a lone traveler on a winding mountain road at dawn" },
+  { test: /\b(?:immersion|imagination|brains?|cognitive)\b/i, scene: "a constellation of stars forming the shape of an open book" },
+  { test: /\btabletop\b|\bd&d\b|\bdungeons\b.*\bdragons\b/i, scene: "a softly lit table with dice, parchment, and a steaming mug" },
+  { test: /\b(?:ai|claude|models?|machines?)\b/i, scene: "a delicate filigree of glowing threads weaving themselves into a story" },
+  { test: /\b(?:accessibility|blind|low vision|visually impaired)\b/i, scene: "warm light streaming across a tactile braille manuscript" },
+  { test: /\b(?:narrat|stor(?:y|ies)\b|fiction\b)/i, scene: "a candlelit reading nook with a story spilling visibly from the open book" },
 ];
 
-function pickScenes(haystack: string): string[] {
+export function pickScenes(haystack: string): string[] {
   const matches: string[] = [];
   for (const { test, scene } of CUE_MAP) {
     if (test.test(haystack) && !matches.includes(scene)) {

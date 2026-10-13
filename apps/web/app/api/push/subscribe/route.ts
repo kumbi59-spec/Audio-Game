@@ -5,7 +5,13 @@ import { upsertPushToken } from "@/lib/push/tokens";
 
 const WebSubscriptionSchema = z.object({
   type: z.literal("web"),
-  endpoint: z.string().url(),
+  // The server later POSTs to this URL, so only accept a real (https) push
+  // service endpoint, never an internal http:// address.
+  endpoint: z
+    .string()
+    .max(2048)
+    .url()
+    .refine((u) => /^https:\/\//i.test(u), "Push endpoint must be https"),
   keys: z.object({ p256dh: z.string(), auth: z.string() }),
 });
 

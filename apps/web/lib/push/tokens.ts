@@ -32,6 +32,12 @@ export async function deletePushToken(userId: string, token: string): Promise<vo
   await prisma.pushToken.deleteMany({ where: { userId, token } });
 }
 
+/** Removes tokens the push service reports as gone, whoever they belong to. */
+export async function deletePushTokens(tokens: string[]): Promise<void> {
+  if (tokens.length === 0) return;
+  await prisma.pushToken.deleteMany({ where: { token: { in: tokens } } });
+}
+
 export async function getUserPushTokens(userId: string) {
   const rows = await prisma.pushToken.findMany({
     where: { userId },

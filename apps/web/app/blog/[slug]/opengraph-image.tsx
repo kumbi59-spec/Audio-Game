@@ -16,8 +16,9 @@ export default async function BlogOgImage({ params }: Props) {
   const { slug } = await params;
   let post: { title: string; excerpt: string; coverImageUrl: string | null } | null = null;
   try {
-    post = await prisma.blogPost.findUnique({
-      where: { slug },
+    // Published posts only: drafts and scheduled posts get the generic card.
+    post = await prisma.blogPost.findFirst({
+      where: { slug, publishedAt: { not: null, lte: new Date() } },
       select: { title: true, excerpt: true, coverImageUrl: true },
     });
   } catch {

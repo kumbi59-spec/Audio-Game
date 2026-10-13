@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { extractText, MAX_FILE_BYTES } from "@/lib/upload/file-router";
 import { UploadParseError } from "@/lib/upload/guards";
 import { parseGameBible, createWorldFromBible } from "@/lib/ai/bible-parser";
@@ -10,32 +11,51 @@ import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import type { UploadProgressEvent } from "@/lib/upload/types";
 import { UploadParseErrorCode } from "@/lib/upload/guards";
 
+// Room for the multipart boundaries and part headers around the file itself.
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
+
 function sse(event: UploadProgressEvent): string {
   return `event: progress\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
 export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
+  // Set once the client has gone away (or the stream is finished); enqueue
+  // and close throw after that, which would abort the world being built.
+  let closed = false;
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       function send(event: UploadProgressEvent) {
-        controller.enqueue(encoder.encode(sse(event)));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(sse(event)));
+        } catch {
+          closed = true;
+        }
       }
 
       let file: File | null = null;
       let gameBibleId: string | null = null;
 
+      // Gives the bible a terminal "failed" status on the paths that stop
+      // without one, leaving an already-terminal status alone.
+      async function markFailed(errorMessage: string) {
+        if (!gameBibleId) return;
+        await prisma.gameBible
+          .updateMany({
+            where: { id: gameBibleId, processingStatus: { notIn: ["failed", "quarantine", "complete"] } },
+            data: { processingStatus: "failed", errorMessage },
+          })
+          .catch((err: unknown) => console.error("[upload] could not mark bible failed:", err));
+      }
+
       try {
         send({ stage: "receiving", message: "Receiving your file…" });
 
-        const [formData, session] = await Promise.all([req.formData(), auth()]);
-        file = formData.get("file") as File | null;
-
-        if (!file) {
-          send({ stage: "error", message: "No file received. Please select a file and try again." });
-          return;
-        }
+        // Who's asking is checked before the body is read, so an anonymous or
+        // oversized request is never buffered.
+        const session = await auth();
         // Parsing a bible is an AI call and uploads are a paid-tier feature, so
         // anonymous callers are rejected rather than attributed to a
         // client-supplied guest id (which could name any account).
@@ -45,6 +65,16 @@ export async function POST(req: NextRequest) {
         }
 
         const ownerId = session.user.id;
+
+        const limited = await limitAuthoringRequest(req, {
+          id: ownerId,
+          isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
+        });
+        if (limited) {
+          const { message } = (await limited.json()) as { message?: string };
+          send({ stage: "error", message: message ?? "Too many requests. Please wait a moment and try again." });
+          return;
+        }
 
         // Enforce maxWorlds tier limit
         {
@@ -61,6 +91,20 @@ export async function POST(req: NextRequest) {
               return;
             }
           }
+        }
+
+        const declaredLength = Number(req.headers.get("content-length") ?? "");
+        if (declaredLength > MAX_FILE_BYTES + MULTIPART_OVERHEAD_BYTES) {
+          send({ stage: "error", message: "File is too large. Maximum is 10 MB." });
+          return;
+        }
+
+        const formData = await req.formData();
+        file = formData.get("file") as File | null;
+
+        if (!file) {
+          send({ stage: "error", message: "No file received. Please select a file and try again." });
+          return;
         }
 
         if (file.size > MAX_FILE_BYTES) {
@@ -152,6 +196,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (rawText.length < 20) {
+          await markFailed("no readable text");
           send({ stage: "error", message: "The file appears to be empty or contains no readable text." });
           return;
         }
@@ -236,13 +281,24 @@ export async function POST(req: NextRequest) {
           worldName: bible.worldName,
         });
       } catch (err) {
+        await markFailed(err instanceof Error ? err.message : String(err));
         send({
           stage: "error",
           message: err instanceof Error ? err.message : "An unexpected error occurred.",
         });
       } finally {
-        controller.close();
+        if (!closed) {
+          closed = true;
+          try {
+            controller.close();
+          } catch {
+            // Already closed by a client disconnect.
+          }
+        }
       }
+    },
+    cancel() {
+      closed = true;
     },
   });
 

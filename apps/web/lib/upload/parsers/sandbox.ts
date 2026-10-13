@@ -28,7 +28,9 @@ export async function runParserInSandbox(kind: "pdf" | "docx", buffer: Buffer): 
 
     worker.once("message", (msg: { ok: boolean; text?: string; error?: string }) => {
       clearTimeout(timer);
-      if (msg.ok && msg.text) return resolve(msg.text);
+      // A scanned PDF has no text layer and parses to "": that's a successful
+      // parse, which the upload route reports as "no readable text".
+      if (msg.ok) return resolve(msg.text ?? "");
       reject(
         new UploadParseError(
           UploadParseErrorCode.ParserFailed,

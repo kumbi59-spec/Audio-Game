@@ -30,21 +30,19 @@ export async function getWorldsEngagementTrends(
 
   const sessions = await prisma.gameSession.findMany({
     where: { worldId: { in: worldIds }, createdAt: { gte: since } },
-    select: { id: true, worldId: true, createdAt: true },
+    select: { worldId: true, createdAt: true },
   });
 
-  const turns = sessions.length
-    ? await prisma.gameHistoryEntry.findMany({
-        where: {
-          sessionId: { in: sessions.map((s) => s.id) },
-          role: "user",
-          createdAt: { gte: since },
-        },
-        select: { sessionId: true, createdAt: true },
-      })
-    : [];
-
-  const sessionWorldById = new Map(sessions.map((s) => [s.id, s.worldId]));
+  // Turns are matched by their session's world rather than by the sessions
+  // above, so play in the window from a campaign started before it counts.
+  const turns = await prisma.gameHistoryEntry.findMany({
+    where: {
+      session: { worldId: { in: worldIds } },
+      role: "user",
+      createdAt: { gte: since },
+    },
+    select: { createdAt: true, session: { select: { worldId: true } } },
+  });
 
   const result: Record<string, EngagementSeries> = {};
   for (const worldId of worldIds) {
@@ -70,9 +68,7 @@ export async function getWorldsEngagementTrends(
   }
 
   for (const t of turns) {
-    const wId = sessionWorldById.get(t.sessionId);
-    if (!wId) continue;
-    const series = result[wId];
+    const series = result[t.session.worldId];
     if (!series) continue;
     const i = dayIndex(t.createdAt);
     if (i >= 0 && i < days) series.playerTurns[i] = (series.playerTurns[i] ?? 0) + 1;

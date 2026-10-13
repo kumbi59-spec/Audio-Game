@@ -147,7 +147,10 @@ export default function WorldWizardPage() {
         return;
       }
       narrate(`Your world "${finalDraft.title}" is ready. Starting character creation.`, "assertive");
-      router.push(`/create?worldId=${data.worldId}`);
+      // Carry the character name the wizard asked for into character creation.
+      const next = new URLSearchParams({ worldId: data.worldId });
+      if (finalDraft.characterName.trim()) next.set("name", finalDraft.characterName.trim());
+      router.push(`/create?${next.toString()}`);
     } catch {
       const msg = "Network error. Please check your connection and try again.";
       setError(msg);

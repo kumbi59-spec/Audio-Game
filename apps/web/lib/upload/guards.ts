@@ -35,7 +35,6 @@ export function isMimeExtensionCoherent(mimeType: string, filename: string): boo
     'application/json': ['json'],
     'text/markdown': ['md', 'markdown'],
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['docx'],
-    'application/msword': ['doc'],
     'text/plain': ['txt', 'md', 'markdown'],
   };
   const allowed = map[mimeType];

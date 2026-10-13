@@ -12,12 +12,11 @@ export { ACCEPTED_MIME_TYPES, ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "./cons
 const PDF_MIME = "application/pdf";
 const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-const DOC_MIME = "application/msword";
 const JSON_MIME = "application/json";
 
 const MARKDOWN_EXTS = new Set(["md", "markdown"]);
 const PDF_EXTS = new Set(["pdf"]);
-const DOCX_EXTS = new Set(["docx", "doc"]);
+const DOCX_EXTS = new Set(["docx"]);
 const JSON_EXTS = new Set(["json"]);
 
 function ext(filename: string): string {
@@ -69,7 +68,7 @@ export async function extractText(
     return enforceTextBudget(await parsePdf(buffer));
   }
 
-  if (mimeType === DOCX_MIME || mimeType === DOC_MIME || DOCX_EXTS.has(fileExt)) {
+  if (mimeType === DOCX_MIME || DOCX_EXTS.has(fileExt)) {
     if (!hasDocxSignature(buffer)) {
       throw new UploadParseError(
         UploadParseErrorCode.InvalidDocxSignature,
