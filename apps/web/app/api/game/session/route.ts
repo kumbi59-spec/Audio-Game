@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { characterFromRow, createSessionCharacter } from "@/lib/db/queries/characters";
 import { createDbSession, deleteOwnedSession, getSessionWithHistory, listUserSessions } from "@/lib/db/queries/sessions";
+import { seedPrebuiltWorldsIfNeeded } from "@/lib/db/queries/worlds";
 import { resolvePlayer, playerErrorResponse, withPlayerCookie } from "@/lib/auth/player-identity";
 import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { CharacterSchema, LegacyGuestIdSchema } from "@/lib/game/request-schemas";
@@ -44,6 +45,18 @@ export async function POST(req: NextRequest) {
       ));
     }
     const world = worldResult.world;
+
+    // Prebuilt worlds load from code, but the session row still references a
+    // World row, which a world added since the last seed doesn't have yet.
+    if (world.isPrebuilt) {
+      try {
+        await seedPrebuiltWorldsIfNeeded();
+      } catch (err) {
+        // A concurrent seed can race this one; the create below still works
+        // once either has written the row.
+        console.error("Prebuilt world seed failed:", err);
+      }
+    }
 
     const dbCharacter = await createSessionCharacter(userId, body.character as CharacterData);
     const startingLocationId = world.locations[0]?.id ?? null;

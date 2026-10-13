@@ -14,6 +14,19 @@ function randomName() {
   return `${a} ${n}`;
 }
 
+// Where to go after signing in: only a path on this site. "//host" is
+// protocol-relative, and the URL parser also turns "/\host" or a path with a
+// tab after the first slash into one, so the resolved origin is checked too.
+function sameSiteCallbackUrl(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
+}
+
 function SignInForm() {
   const router = useRouter();
   const { narrate } = useAnnouncer();
@@ -75,7 +88,11 @@ function SignInForm() {
         }
         setError(msg);
       } else {
-        router.replace("/");
+        const callbackUrl = sameSiteCallbackUrl(searchParams.get("callbackUrl"));
+        // A full navigation, since the callback can be a route handler (such
+        // as checkout) that the client router can't render.
+        if (callbackUrl) window.location.assign(callbackUrl);
+        else router.replace("/");
       }
     } catch {
       setError("Something went wrong. Please try again.");

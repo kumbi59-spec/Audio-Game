@@ -52,6 +52,7 @@ describe("checkout return URLs", () => {
   });
 
   it("POST builds return URLs from the canonical site URL", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "user_1", email: "player@example.com" } });
     const res = await POST(new NextRequest("https://echoquest.us/api/payments/checkout", {
       method: "POST",
       headers: { origin: "https://echoquest.us", host: "evil.example", "content-type": "application/json" },
@@ -65,6 +66,7 @@ describe("checkout return URLs", () => {
   });
 
   it("GET ignores a forged Host when building return URLs", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "user_1", email: "player@example.com" } });
     const res = await GET(new NextRequest("https://evil.example/api/payments/checkout?tier=storyteller_monthly", {
       headers: { host: "evil.example" },
     }));
@@ -73,5 +75,25 @@ describe("checkout return URLs", () => {
       successUrl: "https://echoquest.us/?upgraded=true",
       cancelUrl: "https://echoquest.us/",
     }));
+  });
+
+  it("POST of a pack without a session is 401, since there is no account to credit", async () => {
+    const res = await POST(new NextRequest("https://echoquest.us/api/payments/checkout", {
+      method: "POST",
+      headers: { origin: "https://echoquest.us", "content-type": "application/json" },
+      body: JSON.stringify({ priceKey: "pack_small" }),
+    }));
+    expect(res.status).toBe(401);
+    expect(mocks.createCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("GET without a session redirects to sign-in and back to this checkout", async () => {
+    const res = await GET(new NextRequest("https://echoquest.us/api/payments/checkout?tier=pack_small"));
+    expect(res.status).toBe(307);
+    const location = new URL(res.headers.get("location")!);
+    expect(location.origin).toBe("https://echoquest.us");
+    expect(location.pathname).toBe("/auth/sign-in");
+    expect(location.searchParams.get("callbackUrl")).toBe("/api/payments/checkout?tier=pack_small");
+    expect(mocks.createCheckoutSession).not.toHaveBeenCalled();
   });
 });

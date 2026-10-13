@@ -10,6 +10,11 @@ interface UpgradeModalProps {
   onClose: () => void;
 }
 
+/** Checkout link for a tier's monthly plan (checkout takes a price key, not a tier). */
+export function upgradeCheckoutUrl(tier: UpgradeModalProps["requiredTier"]): string {
+  return `/api/payments/checkout?tier=${tier}_monthly`;
+}
+
 export function UpgradeModal({ open, requiredTier, featureName, onClose }: UpgradeModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -63,7 +68,7 @@ export function UpgradeModal({ open, requiredTier, featureName, onClose }: Upgra
   const tierLabel = requiredTier === "storyteller" ? "Storyteller" : "Creator";
 
   function handleUpgrade() {
-    window.open(`/api/payments/checkout?tier=${requiredTier}`, "_blank");
+    window.open(upgradeCheckoutUrl(requiredTier), "_blank");
     onClose();
   }
 

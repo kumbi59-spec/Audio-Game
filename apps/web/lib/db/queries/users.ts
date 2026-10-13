@@ -96,6 +96,54 @@ export async function resetDailyMinutesIfNeeded(userId: string, tier: string): P
   });
 }
 
+function startOfMonth(at: Date): Date {
+  const start = new Date(at);
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+/**
+ * Reserves `chars` of the user's monthly ElevenLabs allowance before the
+ * upstream call. Conditional updates rather than read-then-write, so parallel
+ * requests can't all pass the cap check on the same stale count: the first
+ * starts a new month's count (only if the request fits), the second adds to
+ * this month's count only while the total stays within the cap. Returns false
+ * when the request would go over.
+ */
+export async function reserveTtsChars(userId: string, chars: number, cap: number, now = new Date()): Promise<boolean> {
+  if (chars > cap) return false;
+  const monthStart = startOfMonth(now);
+  const newMonth = await prisma.user.updateMany({
+    where: { id: userId, ttsCharsResetAt: { lt: monthStart } },
+    data: { ttsCharsUsedThisMonth: chars, ttsCharsResetAt: now },
+  });
+  if (newMonth.count > 0) return true;
+  const added = await prisma.user.updateMany({
+    where: { id: userId, ttsCharsResetAt: { gte: monthStart }, ttsCharsUsedThisMonth: { lte: cap - chars } },
+    data: { ttsCharsUsedThisMonth: { increment: chars } },
+  });
+  return added.count > 0;
+}
+
+/**
+ * Gives back a reservation whose upstream request failed. Skipped once the
+ * count has rolled over into a later month, which already dropped it.
+ */
+export async function refundTtsChars(userId: string, chars: number, reservedAt: Date): Promise<void> {
+  const monthStart = startOfMonth(reservedAt);
+  const nextMonthStart = new Date(monthStart);
+  nextMonthStart.setMonth(nextMonthStart.getMonth() + 1);
+  await prisma.user.updateMany({
+    where: {
+      id: userId,
+      ttsCharsResetAt: { gte: monthStart, lt: nextMonthStart },
+      ttsCharsUsedThisMonth: { gte: chars },
+    },
+    data: { ttsCharsUsedThisMonth: { decrement: chars } },
+  });
+}
+
 export async function recordTtsChars(userId: string, chars: number): Promise<void> {
   const user = await prisma.user.findUnique({
     where: { id: userId },

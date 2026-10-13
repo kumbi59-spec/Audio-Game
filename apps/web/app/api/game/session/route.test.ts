@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   createSessionCharacter: vi.fn(),
   resolvePlayableWorld: vi.fn(),
   deleteOwnedSession: vi.fn(),
+  seedPrebuiltWorldsIfNeeded: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
@@ -33,6 +34,9 @@ vi.mock("@/lib/db/queries/sessions", () => ({
 }));
 vi.mock("@/lib/worlds/resolve-playable-world", () => ({
   resolvePlayableWorld: mocks.resolvePlayableWorld,
+}));
+vi.mock("@/lib/db/queries/worlds", () => ({
+  seedPrebuiltWorldsIfNeeded: mocks.seedPrebuiltWorldsIfNeeded,
 }));
 
 import { NextRequest } from "next/server";
@@ -63,6 +67,7 @@ describe("/api/game/session", () => {
     mocks.createSessionCharacter.mockResolvedValue({ id: "db-char" });
     mocks.createDbSession.mockResolvedValue({ id: "db-session" });
     mocks.resolvePlayableWorld.mockResolvedValue({ ok: true, world: { id: "w1", locations: [{ id: "l1" }] } });
+    mocks.seedPrebuiltWorldsIfNeeded.mockResolvedValue(undefined);
   });
 
   it("GET does not list another account's sessions via ?guestId=", async () => {
@@ -90,6 +95,34 @@ describe("/api/game/session", () => {
     expect(mocks.createDbSession.mock.calls[0]![2]).toBe("db-char");
     expect(await res.json()).toEqual({ sessionId: "db-session", characterId: "db-char" });
     expect(res.headers.get("set-cookie")).toContain("eq_guest=");
+  });
+
+  it("POST seeds prebuilt world rows before creating a session on one", async () => {
+    mocks.resolvePlayableWorld.mockResolvedValue({
+      ok: true,
+      world: { id: "new-prebuilt", isPrebuilt: true, locations: [{ id: "l1" }] },
+    });
+    mocks.createDbSession.mockImplementation(async () => {
+      expect(mocks.seedPrebuiltWorldsIfNeeded).toHaveBeenCalledTimes(1);
+      return { id: "db-session" };
+    });
+    const res = await POST(new NextRequest("http://localhost/api/game/session", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ worldId: "new-prebuilt", character }),
+    }));
+    expect(res.status).toBe(200);
+    expect(mocks.createDbSession.mock.calls[0]![0]).toBe("new-prebuilt");
+  });
+
+  it("POST does not seed for a player-made world", async () => {
+    const res = await POST(new NextRequest("http://localhost/api/game/session", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ worldId: "w1", character }),
+    }));
+    expect(res.status).toBe(200);
+    expect(mocks.seedPrebuiltWorldsIfNeeded).not.toHaveBeenCalled();
   });
 
   it("POST refuses worlds the caller may not play", async () => {

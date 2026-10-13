@@ -71,7 +71,7 @@ Make sure `ADMIN_EMAILS` (set in the Render dashboard) also contains that email 
 ## 5. Stripe live mode
 
 1. Create products + prices in Stripe Dashboard → Products: one `Storyteller` ($9/mo + annual) and one `Creator` ($19/mo + annual). Copy the four `price_…` IDs.
-2. Webhook endpoint: `https://echoquest-web.onrender.com/api/payments/webhook`. Subscribe to `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the signing secret.
+2. Webhook endpoint: `https://echoquest-web.onrender.com/api/payments/webhook`. Subscribe to `checkout.session.completed`, `checkout.session.async_payment_succeeded` (credits minute packs paid by a delayed method), `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the signing secret.
 3. Paste keys into Render: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, the four `STRIPE_PRICE_*`.
 
 ## 6. Domains, email, push

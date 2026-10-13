@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { recordTtsChars } from "@/lib/db/queries/users";
+import { recordTtsChars, refundTtsChars, reserveTtsChars } from "@/lib/db/queries/users";
 import { DEFAULT_ELEVENLABS_VOICE_ID } from "@/lib/audio/voices-catalog";
 
 const Schema = z.object({
@@ -65,18 +65,17 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
+  const userId = session.user.id;
 
   // Use the effective tier from the JWT (already has effectiveTierForEmail applied)
   // rather than reading raw tier from DB, which would block admin-email users.
   const isAdmin = (session.user as { isAdmin?: boolean }).isAdmin === true;
   const tier = (session.user as { tier?: string }).tier ?? "free";
-  // Admins always get unlimited TTS regardless of their stored tier.
-  const cap: number | null = isAdmin ? null : (TTS_CHAR_CAPS[tier] ?? 0);
-
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { ttsCharsUsedThisMonth: true, ttsCharsResetAt: true },
-  });
+  // Admins always get unlimited TTS regardless of their stored tier. A known
+  // tier's null cap (enterprise) is unlimited too, so it is looked up with
+  // Object.hasOwn rather than ?? (which would turn it into 0); unknown tiers
+  // get none.
+  const cap: number | null = isAdmin ? null : Object.hasOwn(TTS_CHAR_CAPS, tier) ? TTS_CHAR_CAPS[tier] : 0;
 
   if (cap === 0) {
     return NextResponse.json({ error: "ElevenLabs requires a paid plan" }, { status: 403 });
@@ -89,9 +88,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  // Monthly cap check (cap === null means unlimited)
-  if (cap !== null) {
-    const startOfMonth = new Date();
+  // Monthly cap (cap === null means unlimited). The characters are reserved
+  // before the upstream call, so parallel requests can't overrun the cap, and
+  // handed back if the call fails.
+  const chars = body.text.length;
+  const reservedAt = new Date();
+  if (cap !== null && !(await reserveTtsChars(userId, chars, cap, reservedAt))) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { ttsCharsUsedThisMonth: true, ttsCharsResetAt: true },
+    });
+    const startOfMonth = new Date(reservedAt);
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
@@ -100,18 +107,25 @@ export async function POST(req: NextRequest) {
         ? user.ttsCharsUsedThisMonth
         : 0;
 
-    if (charsUsed + body.text.length > cap) {
-      return NextResponse.json(
-        {
-          error: "tts_cap_reached",
-          message: `Monthly ElevenLabs limit reached (${cap.toLocaleString()} characters). Switching to browser narrator for the rest of the month.`,
-          charsUsed,
-          cap,
-        },
-        { status: 429 },
-      );
-    }
+    return NextResponse.json(
+      {
+        error: "tts_cap_reached",
+        message: `Monthly ElevenLabs limit reached (${cap.toLocaleString()} characters). Switching to browser narrator for the rest of the month.`,
+        charsUsed,
+        cap,
+      },
+      { status: 429 },
+    );
   }
+
+  const refundReservation = async () => {
+    if (cap === null) return;
+    try {
+      await refundTtsChars(userId, chars, reservedAt);
+    } catch (error) {
+      console.error("Failed to refund ElevenLabs character reservation", { userId, chars, error });
+    }
+  };
 
   const apiSpeed = Math.max(ELEVENLABS_SPEED_MIN, Math.min(ELEVENLABS_SPEED_MAX, body.speed));
 
@@ -119,31 +133,39 @@ export async function POST(req: NextRequest) {
   // synthesises. We pipe that body straight to the client, which can start
   // playback before the full clip is buffered — TTFA drops from
   // O(synthesis time) to O(network round-trip).
-  const res = await fetch(
-    `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}/stream`,
-    {
-      method: "POST",
-      // A prefetched clip the player skipped is aborted by the browser; stop
-      // the upstream synthesis with it.
-      signal: req.signal,
-      headers: {
-        "xi-api-key": apiKey,
-        "Content-Type": "application/json",
-        Accept: "audio/mpeg",
-      },
-      body: JSON.stringify({
-        text: body.text,
-        model_id: "eleven_turbo_v2_5",
-        voice_settings: {
-          stability: ELEVENLABS_STABILITY,
-          similarity_boost: ELEVENLABS_SIMILARITY,
-          style: ELEVENLABS_STYLE,
-          use_speaker_boost: ELEVENLABS_USE_SPEAKER_BOOST,
-          speed: apiSpeed,
+  let res: Response;
+  try {
+    res = await fetch(
+      `${ELEVENLABS_BASE}/text-to-speech/${body.voiceId}/stream`,
+      {
+        method: "POST",
+        // A prefetched clip the player skipped is aborted by the browser; stop
+        // the upstream synthesis with it.
+        signal: req.signal,
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+          Accept: "audio/mpeg",
         },
-      }),
-    }
-  );
+        body: JSON.stringify({
+          text: body.text,
+          model_id: "eleven_turbo_v2_5",
+          voice_settings: {
+            stability: ELEVENLABS_STABILITY,
+            similarity_boost: ELEVENLABS_SIMILARITY,
+            style: ELEVENLABS_STYLE,
+            use_speaker_boost: ELEVENLABS_USE_SPEAKER_BOOST,
+            speed: apiSpeed,
+          },
+        }),
+      }
+    );
+  } catch (error) {
+    // Network failure, or the client aborted the prefetch.
+    await refundReservation();
+    if (!req.signal.aborted) console.error("ElevenLabs request failed", { voiceId: body.voiceId, error });
+    return NextResponse.json({ error: "ElevenLabs request failed" }, { status: 502 });
+  }
 
   if (!res.ok) {
     let errorMsg = `ElevenLabs error ${res.status}`;
@@ -174,18 +196,25 @@ export async function POST(req: NextRequest) {
       speed: apiSpeed,
       message: errorMsg,
     });
+    await refundReservation();
     return NextResponse.json({ error: errorMsg }, { status: res.status });
   }
 
   if (!res.body) {
+    await refundReservation();
     return NextResponse.json({ error: "ElevenLabs returned no body" }, { status: 502 });
   }
 
-  // Credit usage asynchronously — don't block the audio response. Recording
-  // happens before the body has been fully consumed by the client, but that's
-  // fine: characters were submitted upstream, so the user owes them whether
-  // or not the client finishes downloading.
-  void recordTtsChars(session.user.id, body.text.length);
+  // Capped usage was reserved above. Unlimited usage is still recorded,
+  // asynchronously so it doesn't block the audio response. Either way the
+  // count lands before the client has consumed the body, which is fine: the
+  // characters were submitted upstream, so the user owes them whether or not
+  // the client finishes downloading.
+  if (cap === null) {
+    recordTtsChars(userId, chars).catch((error) => {
+      console.error("Failed to record ElevenLabs character usage", { userId, chars, error });
+    });
+  }
 
   // Stream the upstream body straight through. Next.js will forward it to
   // the client as it arrives.
