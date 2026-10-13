@@ -6,7 +6,11 @@ const { parentPort, workerData } = require('node:worker_threads');
   try {
     if (kind === 'pdf') {
       const pdfParse = require('pdf-parse/lib/pdf-parse.js');
-      const data = await pdfParse(buffer);
+      // Pass a plain Uint8Array, not the Buffer: pdf.js copies its input with
+      // the input's own constructor, and for a Buffer that copy can land in
+      // Node's shared pool, which pdf.js then reads from offset 0, parsing
+      // whatever else shares the slab ("bad XRef entry" on small PDFs).
+      const data = await pdfParse(new Uint8Array(buffer));
       parentPort.postMessage({ ok: true, text: (data.text || '').trim() });
       return;
     }
