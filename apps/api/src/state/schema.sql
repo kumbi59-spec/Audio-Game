@@ -28,9 +28,12 @@ CREATE TABLE IF NOT EXISTS world_chunks (
 );
 
 CREATE INDEX IF NOT EXISTS world_chunks_world_id_idx ON world_chunks (world_id);
-CREATE INDEX IF NOT EXISTS world_chunks_embedding_idx
-  ON world_chunks USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+-- HNSW, not ivfflat: ivfflat picks its lists when built, and these tables
+-- are empty at first boot, so its recall stays poor. The DROP only removes
+-- the old ivfflat index once.
+DROP INDEX IF EXISTS world_chunks_embedding_idx;
+CREATE INDEX IF NOT EXISTS world_chunks_embedding_hnsw_idx
+  ON world_chunks USING hnsw (embedding vector_cosine_ops);
 
 CREATE TABLE IF NOT EXISTS campaigns (
   campaign_id  text PRIMARY KEY,
@@ -60,9 +63,9 @@ CREATE TABLE IF NOT EXISTS turns (
 );
 
 CREATE INDEX IF NOT EXISTS turns_campaign_turn_idx ON turns (campaign_id, turn_number);
-CREATE INDEX IF NOT EXISTS turns_embedding_idx
-  ON turns USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+DROP INDEX IF EXISTS turns_embedding_idx;
+CREATE INDEX IF NOT EXISTS turns_embedding_hnsw_idx
+  ON turns USING hnsw (embedding vector_cosine_ops);
 
 CREATE TABLE IF NOT EXISTS scene_summaries (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),

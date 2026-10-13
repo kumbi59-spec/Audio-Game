@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { CampaignState, GameBible, GmTurn } from "@audio-rpg/shared";
 import { GmTurn as GmTurnSchema } from "@audio-rpg/shared";
+import { ZodError } from "zod";
 import { STYLE_PROFILES, buildSystemPrompt } from "@audio-rpg/gm-engine";
 import type { MemoryTurn } from "@audio-rpg/gm-engine";
 import { config } from "../config.js";
@@ -18,6 +19,9 @@ export type ProviderErrorClass =
   | "provider_error";
 
 export function classifyProviderError(error: unknown): ProviderErrorClass {
+  // A reply that isn't valid JSON, or doesn't match the turn schema, is bad
+  // model output, not a provider fault.
+  if (error instanceof ZodError || error instanceof SyntaxError) return "malformed_output";
   const message =
     error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
   if (message.includes("timeout") || message.includes("timed out")) return "timeout";
@@ -42,6 +46,8 @@ export interface GenerateTurnArgs {
   bible: GameBible;
   userPrompt: string;
   onText?: (chunk: string) => void;
+  /** Aborts the request, e.g. when the orchestrator's attempt times out. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -67,7 +73,7 @@ export async function generateGmTurn(args: GenerateTurnArgs): Promise<GmTurn> {
       },
     ],
     messages: [{ role: "user", content: args.userPrompt }],
-  });
+  }, { signal: args.signal });
 
   if (args.onText) {
     stream.on("text", args.onText);
@@ -113,10 +119,12 @@ export async function generateSceneSummary(args: {
     .trim();
 
   try {
-    const parsed = JSON.parse(text) as { summary: string; keyEvents: string[] };
+    const parsed = extractJson(text) as { summary?: unknown; keyEvents?: unknown };
     return {
-      summary: parsed.summary ?? text,
-      keyEvents: parsed.keyEvents ?? [],
+      summary: typeof parsed.summary === "string" ? parsed.summary : text.slice(0, 300),
+      keyEvents: Array.isArray(parsed.keyEvents)
+        ? parsed.keyEvents.filter((e): e is string => typeof e === "string")
+        : [],
     };
   } catch {
     return { summary: text.slice(0, 300), keyEvents: [] };
@@ -243,15 +251,27 @@ export async function generateWizardSuggestions(args: {
   return [];
 }
 
-function extractJson(text: string): unknown {
+export function extractJson(text: string): unknown {
   const trimmed = text.trim();
-  if (trimmed.startsWith("{")) return JSON.parse(trimmed);
+  // Try each shape in turn, so a reply that opens with JSON but then adds
+  // prose still reaches the fence and outer-brace fallbacks.
+  const candidates: string[] = [];
+  if (trimmed.startsWith("{")) candidates.push(trimmed);
   const fence = trimmed.match(/```(?:json)?\s*([\s\S]+?)```/);
-  if (fence?.[1]) return JSON.parse(fence[1]);
+  if (fence?.[1]) candidates.push(fence[1]);
   const braceStart = trimmed.indexOf("{");
   const braceEnd = trimmed.lastIndexOf("}");
   if (braceStart >= 0 && braceEnd > braceStart) {
-    return JSON.parse(trimmed.slice(braceStart, braceEnd + 1));
+    candidates.push(trimmed.slice(braceStart, braceEnd + 1));
   }
+  let firstError: unknown;
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (err) {
+      firstError ??= err;
+    }
+  }
+  if (firstError) throw firstError;
   throw new Error("No JSON object found in model response");
 }

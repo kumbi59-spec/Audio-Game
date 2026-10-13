@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import * as pg from "pg";
+import pg from "pg";
 import type { Pool, PoolClient } from "pg";
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
 import type {
@@ -12,6 +12,7 @@ import type {
 } from "@audio-rpg/gm-engine";
 import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
+import { normalizeAndTrimCriticalFacts, selectCriticalFacts } from "./critical-facts.js";
 import type {
   CampaignStore,
   CriticalFactRecord,
@@ -32,11 +33,36 @@ import type {
 export class PostgresCampaignStore implements CampaignStore {
   readonly kind = "postgres";
   private pool: Pool;
-  private ready: Promise<void>;
+  private ready: Promise<void> | null;
 
   constructor(databaseUrl: string) {
     this.pool = new pg.Pool({ connectionString: databaseUrl });
-    this.ready = this.runMigrations();
+    // An idle client dropped by a DB restart or pgbouncer emits 'error' on
+    // the pool; with no listener that is an uncaught exception.
+    this.pool.on("error", (err) => {
+      console.warn(JSON.stringify({ event: "pg_pool_error", error: err.message }));
+    });
+    this.ready = this.migrate();
+  }
+
+  /** Resolves once migrations have run; a failed run is retried on the next call. */
+  private ensureReady(): Promise<void> {
+    this.ready ??= this.migrate();
+    return this.ready;
+  }
+
+  private migrate(): Promise<void> {
+    const attempt = this.runMigrations();
+    attempt.catch((err: unknown) => {
+      // Drop the rejected promise so one failed boot doesn't fail every
+      // later query.
+      if (this.ready === attempt) this.ready = null;
+      console.warn(JSON.stringify({
+        event: "pg_migrations_failed",
+        error: err instanceof Error ? err.message : String(err),
+      }));
+    });
+    return attempt;
   }
 
   private async runMigrations(): Promise<void> {
@@ -69,7 +95,7 @@ export class PostgresCampaignStore implements CampaignStore {
   async embedOfficialWorldIfMissing(
     embed: (chunks: readonly string[]) => Promise<number[][]>,
   ): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{ count: string }>(
       `SELECT count(*) FROM world_chunks WHERE world_id = 'sunken_bell'`,
     );
@@ -101,7 +127,7 @@ export class PostgresCampaignStore implements CampaignStore {
     bible: GameBible;
     warnings?: string[];
   }): Promise<StoredWorld> {
-    await this.ready;
+    await this.ensureReady();
     const warnings = args.warnings ?? [];
     const { rows } = await this.pool.query<{
       world_id: string;
@@ -135,7 +161,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async getWorld(worldId: string): Promise<StoredWorld | null> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       world_id: string;
       kind: StoredWorld["kind"];
@@ -159,7 +185,7 @@ export class PostgresCampaignStore implements CampaignStore {
   async listWorlds(): Promise<
     Pick<StoredWorld, "worldId" | "kind" | "title" | "createdAt">[]
   > {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       world_id: string;
       kind: StoredWorld["kind"];
@@ -176,7 +202,7 @@ export class PostgresCampaignStore implements CampaignStore {
 
   async getWorldAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
     if (worldIds.length === 0) return [];
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       world_id: string;
       session_count: string;
@@ -186,7 +212,8 @@ export class PostgresCampaignStore implements CampaignStore {
               COUNT(DISTINCT c.campaign_id)::text AS session_count,
               COUNT(t.id)::text                   AS total_turns
          FROM campaigns c
-         LEFT JOIN turns t ON t.campaign_id = c.campaign_id
+         -- One GM row per turn; player rows would double the count.
+         LEFT JOIN turns t ON t.campaign_id = c.campaign_id AND t.role = 'gm'
         WHERE c.world_id = ANY($1::text[])
         GROUP BY c.world_id`,
       [worldIds],
@@ -206,7 +233,7 @@ export class PostgresCampaignStore implements CampaignStore {
     bible: GameBible;
     state: CampaignState;
   }): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.pool.query(
       `INSERT INTO campaigns (campaign_id, world_id, title, state)
        VALUES ($1, $2, $3, $4::jsonb)`,
@@ -215,7 +242,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async getCampaignSummary(campaignId: string): Promise<StoredCampaign | null> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       campaign_id: string;
       world_id: string;
@@ -240,7 +267,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async listCampaigns(): Promise<StoredCampaignSummary[]> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       campaign_id: string;
       world_id: string;
@@ -261,7 +288,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async loadSession(campaignId: string, authToken: string): Promise<Session> {
-    await this.ready;
+    await this.ensureReady();
     if (!verifySessionToken(authToken, campaignId)) {
       throw new Error("Invalid or expired session token.");
     }
@@ -288,7 +315,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async persistTurn(args: PersistTurnArgs): Promise<{ turnId: string | null }> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{ id: string }>(
       `INSERT INTO turns (campaign_id, turn_number, role, text)
        VALUES ($1, $2, $3, $4)
@@ -307,7 +334,7 @@ export class PostgresCampaignStore implements CampaignStore {
       embedding: number[];
     }[],
   ): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     if (chunks.length === 0) return;
     const client = await this.pool.connect();
     try {
@@ -338,7 +365,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async storeTurnEmbedding(turnId: string, embedding: number[]): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.pool.query(
       `UPDATE turns SET embedding = $2::vector WHERE id = $1`,
       [turnId, toVectorLiteral(embedding)],
@@ -346,7 +373,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async persistState(campaignId: string, state: CampaignState): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.pool.query(
       `UPDATE campaigns
           SET state = $2::jsonb,
@@ -360,7 +387,7 @@ export class PostgresCampaignStore implements CampaignStore {
     campaignId: string,
     choices: { id: string; label: string }[],
   ): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.pool.query(
       `UPDATE campaigns SET presented_choices = $2::jsonb WHERE campaign_id = $1`,
       [campaignId, JSON.stringify(choices)],
@@ -371,7 +398,7 @@ export class PostgresCampaignStore implements CampaignStore {
     campaignId: string,
     summary: { sceneNumber: number; summary: string; keyEvents: string[] },
   ): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.pool.query(
       `INSERT INTO scene_summaries (campaign_id, scene_number, summary, key_events)
        VALUES ($1, $2, $3, $4::jsonb)
@@ -382,7 +409,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   async persistCriticalFacts(campaignId: string, facts: CriticalFactRecord[]): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     if (facts.length === 0) return;
     const client = await this.pool.connect();
     try {
@@ -424,6 +451,19 @@ export class PostgresCampaignStore implements CampaignStore {
 
   private embedQuery: (text: string) => Promise<number[] | null> = async () => null;
 
+  /** An embedding outage only costs this turn its retrieval, not the turn. */
+  private async embedQueryOrNull(text: string): Promise<number[] | null> {
+    try {
+      return await this.embedQuery(text);
+    } catch (err) {
+      console.warn(JSON.stringify({
+        event: "query_embed_failed",
+        error: err instanceof Error ? err.message : String(err),
+      }));
+      return null;
+    }
+  }
+
   memoryStore(): MemoryStore {
     return {
       recentTurns: (campaignId, n) => this.recentTurns(campaignId, n),
@@ -439,8 +479,8 @@ export class PostgresCampaignStore implements CampaignStore {
     query: string,
     k: number,
   ): Promise<MemoryTurn[]> {
-    await this.ready;
-    const vector = await this.embedQuery(query);
+    await this.ensureReady();
+    const vector = await this.embedQueryOrNull(query);
     if (!vector) return [];
     // Hybrid score: 0.7 cosine similarity + 0.3 recency (0..1 over the
     // last 200 turns). Cheap to compute in SQL and keeps older-but-
@@ -474,8 +514,8 @@ export class PostgresCampaignStore implements CampaignStore {
     query: string,
     k: number,
   ): Promise<BibleChunk[]> {
-    await this.ready;
-    const vector = await this.embedQuery(query);
+    await this.ensureReady();
+    const vector = await this.embedQueryOrNull(query);
     if (!vector) return [];
     const { rows } = await this.pool.query<{
       categories: string[];
@@ -499,7 +539,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   private async recentTurns(campaignId: string, n: number): Promise<MemoryTurn[]> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       turn_number: number;
       role: "gm" | "player";
@@ -507,7 +547,7 @@ export class PostgresCampaignStore implements CampaignStore {
     }>(
       `SELECT turn_number, role, text FROM turns
         WHERE campaign_id = $1
-     ORDER BY turn_number DESC, id DESC
+     ORDER BY turn_number DESC, created_at DESC, id DESC
         LIMIT $2`,
       [campaignId, n],
     );
@@ -517,7 +557,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   private async sceneSummaries(campaignId: string): Promise<SceneSummary[]> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{
       scene_number: number;
       summary: string;
@@ -536,7 +576,7 @@ export class PostgresCampaignStore implements CampaignStore {
   }
 
   private async criticalFacts(campaignId: string, n: number): Promise<{ turnNumber: number; text: string }[]> {
-    await this.ready;
+    await this.ensureReady();
     const { rows } = await this.pool.query<{ critical_facts: unknown; state: CampaignState }>(
       `SELECT critical_facts, state FROM campaigns WHERE campaign_id = $1`,
       [campaignId],
@@ -544,50 +584,9 @@ export class PostgresCampaignStore implements CampaignStore {
     const row = rows[0];
     if (!row) return [];
     const facts = normalizeAndTrimCriticalFacts(asCriticalFactRecords(row.critical_facts), 200);
-    return facts.slice(-n).map((fact) => ({ turnNumber: fact.turnNumber, text: fact.text, importance: fact.importance }));
+    return selectCriticalFacts(facts, n);
   }
 }
-
-function semanticKey(fact: CriticalFactRecord): string {
-  const normalizedText = fact.text.trim().toLowerCase().replace(/\s+/g, " ");
-  const entityRefs = Array.from(new Set(fact.entityRefs.map((ref) => ref.trim().toLowerCase()).filter(Boolean))).sort();
-  return `${fact.kind}|${normalizedText}|${entityRefs.join(",")}`;
-}
-
-function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: number): CriticalFactRecord[] {
-  const deduped = new Map<string, CriticalFactRecord>();
-  for (const fact of facts) {
-    if (!fact.text?.trim()) continue;
-    const normalized: CriticalFactRecord = {
-      turnNumber: Math.max(0, Number.isFinite(fact.turnNumber) ? fact.turnNumber : 0),
-      text: fact.text.trim(),
-      kind: fact.kind,
-      importance: Number.isFinite(fact.importance) ? fact.importance : 0,
-      entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
-      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
-    };
-    const key = semanticKey(normalized);
-    const existing = deduped.get(key);
-    if (!existing) {
-      deduped.set(key, normalized);
-      continue;
-    }
-    if (
-      normalized.importance > existing.importance ||
-      (normalized.importance === existing.importance && normalized.turnNumber >= existing.turnNumber)
-    ) {
-      deduped.set(key, normalized);
-    }
-  }
-  return Array.from(deduped.values())
-    .sort((a, b) => {
-      if (a.importance !== b.importance) return b.importance - a.importance;
-      return b.turnNumber - a.turnNumber;
-    })
-    .slice(0, maxFacts)
-    .sort((a, b) => a.turnNumber - b.turnNumber);
-}
-
 
 function asCriticalFactRecords(value: unknown): CriticalFactRecord[] {
   if (!Array.isArray(value)) return [];

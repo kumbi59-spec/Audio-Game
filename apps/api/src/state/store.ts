@@ -27,14 +27,20 @@ export function getStore(): CampaignStore {
     const pg = new PostgresCampaignStore(databaseUrl);
     const { embedder, available } = getServerEmbedder();
     if (available) {
+      const { embedder: queryEmbedder } = getServerEmbedder("query");
       pg.setQueryEmbedder(async (text) => {
-        const [vec] = await embedder.embed([text]);
+        const [vec] = await queryEmbedder.embed([text]);
         return vec ?? null;
       });
       // Embed the bundled official world on the first tick so retrieval
       // works without a manual re-save. Fire-and-forget; any failure
       // just means searches over the sample world return empty.
-      void pg.embedOfficialWorldIfMissing((texts) => embedder.embed(texts));
+      pg.embedOfficialWorldIfMissing((texts) => embedder.embed(texts)).catch((err: unknown) => {
+        console.warn(JSON.stringify({
+          event: "official_world_embed_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }));
+      });
     }
     singleton = pg;
   } else {
@@ -126,7 +132,13 @@ export function getPersistence() {
         void (async () => {
           try {
             const { embedTurn } = await import("../embeddings/runner.js");
-            await embedTurn({ store, embedder, turnId, text: args.text });
+            await embedTurn({
+              store,
+              embedder,
+              turnId,
+              text: args.text,
+              log: (msg, meta) => console.warn(JSON.stringify({ event: "turn_embed_failed", message: msg, ...meta })),
+            });
           } catch {
             /* already logged inside embedTurn */
           }
