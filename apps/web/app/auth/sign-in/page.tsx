@@ -29,6 +29,8 @@ function SignInForm() {
       ? "Your verification link has expired. Sign in and request a new one."
       : verifyError === "invalid"
       ? "Invalid verification link. Sign in and request a new one."
+      : verifyError === "failed"
+      ? "We couldn't verify your email just now. Please open the link again."
       : ""
   );
   const [busy, setBusy] = useState(false);
@@ -58,6 +60,10 @@ function SignInForm() {
         let msg: string;
         if (result.error === "Configuration") {
           msg = "Unable to sign in right now. Please try again in a moment.";
+        } else if (result.error === "CredentialsSignin" && result.code === "rate_limited") {
+          msg = "Too many attempts. Please wait a few minutes and try again.";
+        } else if (result.error === "CredentialsSignin" && result.code === "password_too_short") {
+          msg = "Password must be at least 8 characters.";
         } else if (result.error === "CredentialsSignin") {
           msg = mode === "signup"
             ? "Could not create account. That email may already be in use."

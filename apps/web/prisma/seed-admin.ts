@@ -30,6 +30,8 @@ async function main() {
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
+  // Admin rights require a verified email; the operator running this script
+  // vouches for the address.
   if (existing) {
     await prisma.user.update({
       where: { email },
@@ -37,6 +39,7 @@ async function main() {
         passwordHash,
         ...(name ? { name } : {}),
         tier: "creator",
+        emailVerified: existing.emailVerified ?? new Date(),
       },
     });
     console.log(`Updated admin account: ${email}`);
@@ -47,6 +50,7 @@ async function main() {
         passwordHash,
         name: name ?? email.split("@")[0],
         tier: "creator",
+        emailVerified: new Date(),
       },
     });
     console.log(`Created admin account: ${email}`);

@@ -1,7 +1,7 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { isAdminEmail } from "@/lib/admin";
+import { isVerifiedAdmin } from "@/lib/admin";
 import { consumeRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
@@ -125,11 +125,10 @@ export async function resolvePlayer(
   if (sessionUserId) {
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true, tier: true, email: true },
+      select: { id: true, tier: true, email: true, emailVerified: true },
     });
     if (!user) return { ok: false, status: 401, error: "authentication_required" };
-    const isAdmin =
-      isAdminEmail(user.email) || (session.user as { isAdmin?: boolean }).isAdmin === true;
+    const isAdmin = isVerifiedAdmin(user);
     return { ok: true, player: { userId: user.id, kind: "user", tier: user.tier, isAdmin }, setCookie: null };
   }
 

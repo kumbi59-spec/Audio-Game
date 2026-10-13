@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Tier } from "@audio-rpg/shared";
-import { effectiveTierForEmail } from "@/lib/admin";
+import { effectiveTierForUser } from "@/lib/admin";
 
 export async function ensureGuestUser(guestId: string) {
   return prisma.user.upsert({
@@ -15,9 +15,12 @@ export async function ensureGuestUser(guestId: string) {
 }
 
 export async function getUserTier(userId: string): Promise<string> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, email: true } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { tier: true, email: true, emailVerified: true },
+  });
   if (!user) return "free";
-  return effectiveTierForEmail(user.email, user.tier);
+  return effectiveTierForUser(user, user.tier);
 }
 
 export async function updateUserTier(userId: string, tier: Tier) {
@@ -71,23 +74,26 @@ const FREE_DAILY_AI_MINUTES = 60;
 export async function resetDailyMinutesIfNeeded(userId: string, tier: string): Promise<void> {
   if (tier !== "free") return;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { aiMinutesResetAt: true, aiMinutesRemaining: true },
-  });
-  if (!user) return;
-
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  if (user.aiMinutesResetAt < startOfToday) {
-    // Preserve purchased credits above the free daily cap — only top up if below it
-    const refreshed = Math.max(user.aiMinutesRemaining, FREE_DAILY_AI_MINUTES);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { aiMinutesRemaining: refreshed, aiMinutesResetAt: new Date() },
-    });
-  }
+  // Conditional updates rather than read-then-write: once one request has
+  // moved aiMinutesResetAt into today, a concurrent one no longer matches, so
+  // the daily top-up can't be applied twice or overwrite a minute just spent.
+  // Purchased credits above the free daily cap are preserved — only top up
+  // when below it.
+  await prisma.user.updateMany({
+    where: {
+      id: userId,
+      aiMinutesResetAt: { lt: startOfToday },
+      aiMinutesRemaining: { lt: FREE_DAILY_AI_MINUTES },
+    },
+    data: { aiMinutesRemaining: FREE_DAILY_AI_MINUTES, aiMinutesResetAt: new Date() },
+  });
+  await prisma.user.updateMany({
+    where: { id: userId, aiMinutesResetAt: { lt: startOfToday } },
+    data: { aiMinutesResetAt: new Date() },
+  });
 }
 
 export async function recordTtsChars(userId: string, chars: number): Promise<void> {

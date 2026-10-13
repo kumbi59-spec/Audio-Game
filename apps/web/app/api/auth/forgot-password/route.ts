@@ -12,7 +12,13 @@ const FORGOT_WINDOW_SECONDS = 60 * 60;
 const THROTTLED_MESSAGE = "If the details are valid, we'll send reset instructions shortly.";
 
 export async function POST(req: Request) {
-  const { email } = await req.json() as { email?: string };
+  let body: { email?: unknown } | null;
+  try {
+    body = await req.json() as { email?: unknown } | null;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+  const email = body?.email;
   if (!email || typeof email !== "string") {
     return NextResponse.json({ error: "Email is required." }, { status: 400 });
   }

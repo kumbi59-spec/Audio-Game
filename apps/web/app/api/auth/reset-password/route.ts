@@ -12,13 +12,18 @@ const RESET_COOLDOWN_SECONDS = 15 * 60;
 const THROTTLED_MESSAGE = "Unable to process reset request right now. Please try again later.";
 
 export async function POST(req: Request) {
-  const { email, token, newPassword } = await req.json() as {
-    email?: string;
-    token?: string;
-    newPassword?: string;
-  };
+  let body: { email?: unknown; token?: unknown; newPassword?: unknown } | null;
+  try {
+    body = await req.json() as { email?: unknown; token?: unknown; newPassword?: unknown } | null;
+  } catch {
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+  }
+  const { email, token, newPassword } = body ?? {};
 
-  if (!email || !token || !newPassword || typeof newPassword !== "string") {
+  if (
+    !email || !token || !newPassword ||
+    typeof email !== "string" || typeof token !== "string" || typeof newPassword !== "string"
+  ) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
   if (newPassword.length < 8) {
@@ -36,9 +41,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: THROTTLED_MESSAGE }, { status: 429, headers: { "Retry-After": String(ipDecision.retryAfterSeconds) } });
   }
 
-  const identifierKey = `${normalised}:${token}`;
+  // Failures are counted per email, not per email+token: a fresh guess per
+  // attempt would otherwise get a fresh bucket (so the limit never trips), and
+  // the raw reset token would be written into the bucket key.
+  const failureKey = `auth:reset:email:${normalised}`;
   const guardDecision = await consumeRateLimit({
-    key: `auth:reset:identifier:${identifierKey}`,
+    key: failureKey,
     limit: RESET_IDENTIFIER_FAIL_LIMIT,
     windowSeconds: RESET_WINDOW_SECONDS,
     cooldownSeconds: RESET_COOLDOWN_SECONDS,
@@ -53,11 +61,11 @@ export async function POST(req: Request) {
     // Validate token WITHOUT deleting — so the user can retry if the update fails
     const result = await validatePasswordResetToken(normalised, token);
     if (result === "expired") {
-      await consumeRateLimit({ key: `auth:reset:identifier:${identifierKey}`, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
+      await consumeRateLimit({ key: failureKey, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
       return NextResponse.json({ error: "Reset link has expired. Please request a new one." }, { status: 410 });
     }
     if (result === "invalid") {
-      await consumeRateLimit({ key: `auth:reset:identifier:${identifierKey}`, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
+      await consumeRateLimit({ key: failureKey, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
       return NextResponse.json({ error: "Invalid or already-used reset link." }, { status: 400 });
     }
 
@@ -67,7 +75,7 @@ export async function POST(req: Request) {
       select: { id: true },
     });
     if (!user) {
-      await consumeRateLimit({ key: `auth:reset:identifier:${identifierKey}`, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
+      await consumeRateLimit({ key: failureKey, limit: RESET_IDENTIFIER_FAIL_LIMIT, windowSeconds: RESET_WINDOW_SECONDS, cooldownSeconds: RESET_COOLDOWN_SECONDS, incrementOnFailureOnly: true, wasFailure: true });
       return NextResponse.json({ error: "Invalid reset request." }, { status: 400 });
     }
 
