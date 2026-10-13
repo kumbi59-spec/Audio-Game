@@ -80,6 +80,31 @@ describe("ingestBibleFromText", () => {
     expect(modelCalled).toBe(false);
   });
 
+  it("parses JSON followed by trailing prose, and fenced JSON", async () => {
+    const bible = JSON.stringify({
+      title: "Tidewater",
+      style_mode: "adventure",
+      tone: { content_rating: "teen", forbidden_topics: [] },
+      rules: { hard_constraints: [] },
+      entities: [],
+      timeline: [],
+      character_creation: { origins: [], classes: [], stats: [], starting_items: [] },
+      win_states: [],
+      fail_states: [],
+    });
+
+    for (const reply of [
+      `${bible}\n\nLet me know if you'd like more entities.`,
+      `Here is the bible:\n\`\`\`json\n${bible}\n\`\`\`\nEnjoy!`,
+    ]) {
+      const result = await ingestBibleFromText({
+        rawText: "A drowned coast.",
+        runModel: async () => reply,
+      });
+      expect(result.bible.title).toBe("Tidewater");
+    }
+  });
+
   it("throws a descriptive error when model output fails validation", async () => {
     await expect(
       ingestBibleFromText({

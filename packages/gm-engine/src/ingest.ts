@@ -106,13 +106,23 @@ function buildIngestUserPrompt(text: string, titleHint?: string): string {
 
 function extractJson(text: string): unknown {
   const trimmed = text.trim();
-  if (trimmed.startsWith("{")) return JSON.parse(trimmed);
+  // Try each shape in turn, so a reply that opens with JSON but then adds
+  // prose still reaches the fence and outer-brace fallbacks.
+  const candidates: string[] = [];
+  if (trimmed.startsWith("{")) candidates.push(trimmed);
   const fence = trimmed.match(/```(?:json)?\s*([\s\S]+?)```/);
-  if (fence?.[1]) return JSON.parse(fence[1]);
+  if (fence?.[1]) candidates.push(fence[1]);
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
-  if (start >= 0 && end > start) {
-    return JSON.parse(trimmed.slice(start, end + 1));
+  if (start >= 0 && end > start) candidates.push(trimmed.slice(start, end + 1));
+  let firstError: unknown;
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (err) {
+      firstError ??= err;
+    }
   }
+  if (firstError) throw firstError;
   throw new Error("No JSON object found in ingest model response");
 }

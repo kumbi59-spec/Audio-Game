@@ -89,6 +89,71 @@ describe("reducer", () => {
     expect(s.relationships.find((r) => r.npc === "Vorn")?.standing).toBe(-100);
   });
 
+  it("crosses several levels from one large XP grant", () => {
+    let s = baseState();
+    s.character.stats = { level: 1, experience: 0, hp: 12, maxHp: 15 };
+    // 900 XP reaches level 4 (level N+1 at N² × 100): three level-ups.
+    s = applyMutation(s, { op: "stat.adjust", stat: "experience", delta: 900 });
+    expect(s.character.stats).toMatchObject({
+      level: 4,
+      experience: 900,
+      maxHp: 30,
+      hp: 27,
+      // Levels 3 (odd) and 2, 4 (even) from the default 10s.
+      strength: 11,
+      dexterity: 11,
+      intelligence: 12,
+      charisma: 12,
+    });
+  });
+
+  it("defaults hp to the previous maxHp on a first level-up", () => {
+    let s = baseState();
+    s = applyMutation(s, { op: "stat.adjust", stat: "experience", delta: 100 });
+    expect(s.character.stats).toMatchObject({ level: 2, maxHp: 15, hp: 15 });
+  });
+
+  it("ignores direct level deltas", () => {
+    let s = baseState();
+    s.character.stats = { level: 2, experience: 100 };
+    s = applyMutation(s, { op: "stat.adjust", stat: "level", delta: 1 });
+    expect(s.character.stats["level"]).toBe(2);
+  });
+
+  it("clamps hp to [0, maxHp]", () => {
+    let s = baseState();
+    s.character.stats = { hp: 8, maxHp: 10 };
+    s = applyMutation(s, { op: "stat.adjust", stat: "hp", delta: 50 });
+    expect(s.character.stats["hp"]).toBe(10);
+    s = applyMutation(s, { op: "stat.adjust", stat: "hp", delta: -99 });
+    expect(s.character.stats["hp"]).toBe(0);
+    s = applyMutation(s, { op: "stat.adjust", stat: "hp", delta: 10 });
+    s = applyMutation(s, { op: "stat.adjust", stat: "maxHp", delta: -4 });
+    expect(s.character.stats).toMatchObject({ hp: 6, maxHp: 6 });
+
+    // Without a maxHp stat only the floor applies.
+    let t = baseState();
+    t.character.stats = { hp: 3 };
+    t = applyMutation(t, { op: "stat.adjust", stat: "hp", delta: -5 });
+    expect(t.character.stats["hp"]).toBe(0);
+  });
+
+  it("resets the scene summary when the scene changes", () => {
+    let s = baseState();
+    s = applyMutation(s, { op: "scene.set", name: "Docks", summary: "Fog over the piers." });
+    s = applyMutation(s, { op: "scene.set", name: "Docks" });
+    expect(s.scene).toEqual({ name: "Docks", summary: "Fog over the piers." });
+    s = applyMutation(s, { op: "scene.set", name: "Lighthouse" });
+    expect(s.scene).toEqual({ name: "Lighthouse", summary: "" });
+  });
+
+  it("never keeps a zero-quantity inventory row", () => {
+    let s = baseState();
+    s.inventory = [{ name: "rope", quantity: 0, tags: [] }];
+    s = applyMutation(s, { op: "inventory.add", item: "torch", quantity: 1 });
+    expect(s.inventory).toEqual([expect.objectContaining({ name: "torch", quantity: 1 })]);
+  });
+
   it("applies flag and codex mutations idempotently", () => {
     let s = baseState();
     s = applyMutation(s, { op: "flag.set", key: "saw_ghost", value: true });

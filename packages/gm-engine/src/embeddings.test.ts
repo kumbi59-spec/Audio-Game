@@ -99,4 +99,32 @@ describe("chunkText", () => {
     expect(chunks.length).toBeGreaterThan(1);
     expect(chunks.every((c) => c.text.length <= 3400)).toBe(true);
   });
+
+  it("makes progress through a long unspaced run and covers all of it", () => {
+    // A base64-like blob with no spaces, behind a short spaced intro so the
+    // only space sits inside the overlap window.
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let x = 0x2545f491;
+    const blob = Array.from({ length: 12_000 }, () => {
+      x ^= x << 13;
+      x ^= x >>> 17;
+      x ^= x << 5;
+      return alphabet[(x >>> 0) % alphabet.length];
+    }).join("");
+    for (const text of [blob, `Intro ${blob}`]) {
+      const chunks = chunkText(text, ["raw"]);
+      expect(chunks.length).toBeGreaterThan(1);
+      expect(chunks.every((c) => c.text.length <= 3200)).toBe(true);
+      // Each chunk continues where the previous one ended, so none of the
+      // text is dropped.
+      let covered = 0;
+      for (const c of chunks) {
+        const at = text.indexOf(c.text);
+        expect(at).toBeGreaterThanOrEqual(0);
+        expect(at).toBeLessThanOrEqual(covered);
+        covered = Math.max(covered, at + c.text.length);
+      }
+      expect(covered).toBe(text.length);
+    }
+  });
 });

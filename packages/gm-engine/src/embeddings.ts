@@ -181,9 +181,12 @@ function splitLongText(
     const tail = current.slice(-OVERLAP_CHARS);
     current = tail ? `${tail}\n\n${p}` : p;
     while (current.length > TARGET_CHARS) {
-      const cut = current.lastIndexOf(" ", TARGET_CHARS) || TARGET_CHARS;
+      let cut = current.lastIndexOf(" ", TARGET_CHARS);
+      // No space past the overlap (an unspaced run such as a URL or
+      // base64): hard-cut, so every pass moves forward.
+      if (cut <= OVERLAP_CHARS) cut = TARGET_CHARS;
       out.push({ text: current.slice(0, cut).trim(), categories, metadata });
-      current = current.slice(Math.max(0, cut - OVERLAP_CHARS));
+      current = current.slice(cut - OVERLAP_CHARS);
     }
   }
   push();

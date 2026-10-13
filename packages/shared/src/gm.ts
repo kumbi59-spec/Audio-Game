@@ -34,14 +34,14 @@ export const StateMutation = z.discriminatedUnion("op", [
   z.object({
     op: z.literal("inventory.add"),
     item: z.string(),
-    quantity: z.number().int().default(1),
+    quantity: z.number().int().positive().default(1),
     description: z.string().optional(),
     tags: z.array(z.string()).optional(),
   }),
   z.object({
     op: z.literal("inventory.remove"),
     item: z.string(),
-    quantity: z.number().int().default(1),
+    quantity: z.number().int().positive().default(1),
   }),
   z.object({
     op: z.literal("relationship.adjust"),
@@ -126,8 +126,8 @@ export const GmTurn = z.object({
 export type GmTurn = z.infer<typeof GmTurn>;
 
 export const PlayerInput = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("choice"), choiceId: z.string() }),
+  z.object({ kind: z.literal("choice"), choiceId: z.string().max(128) }),
   z.object({ kind: z.literal("freeform"), text: z.string().min(1).max(2000) }),
-  z.object({ kind: z.literal("utility"), command: z.string() }),
+  z.object({ kind: z.literal("utility"), command: z.string().max(200) }),
 ]);
 export type PlayerInput = z.infer<typeof PlayerInput>;
