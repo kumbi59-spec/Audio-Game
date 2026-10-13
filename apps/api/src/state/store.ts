@@ -34,7 +34,14 @@ export function getStore(): CampaignStore {
       // Embed the bundled official world on the first tick so retrieval
       // works without a manual re-save. Fire-and-forget; any failure
       // just means searches over the sample world return empty.
-      void pg.embedOfficialWorldIfMissing((texts) => embedder.embed(texts));
+      void pg
+        .embedOfficialWorldIfMissing((texts) => embedder.embed(texts))
+        .catch((err: unknown) => {
+          console.warn(
+            "[store] embedding the official world failed:",
+            err instanceof Error ? err.message : err,
+          );
+        });
     }
     singleton = pg;
   } else {

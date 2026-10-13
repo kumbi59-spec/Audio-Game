@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import * as pg from "pg";
+import pg from "pg";
 import type { Pool, PoolClient } from "pg";
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
 import type {
@@ -36,6 +36,11 @@ export class PostgresCampaignStore implements CampaignStore {
 
   constructor(databaseUrl: string) {
     this.pool = new pg.Pool({ connectionString: databaseUrl });
+    // An idle client dropped by the database or pooler emits "error" on
+    // the pool; without a listener that is an uncaught exception.
+    this.pool.on("error", (err) => {
+      console.warn("[postgres] idle client error:", err.message);
+    });
     this.ready = this.runMigrations();
   }
 
