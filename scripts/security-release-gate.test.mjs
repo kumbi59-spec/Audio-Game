@@ -116,3 +116,81 @@ test("fails closed on unreadable audit output", () => {
   assert.equal(status, 1);
   assert.match(output, /RELEASE_GATED: could not evaluate --audit-json/);
 });
+
+// ── OSV-Scanner path (what CI uses when pnpm audit returns no metadata) ──
+
+function osvReport(...vulns) {
+  return {
+    results: [
+      {
+        packages: vulns.map(([name, version, id, severity, aliases = []]) => ({
+          package: { name, version, ecosystem: "npm" },
+          vulnerabilities: [{ id, aliases, summary: `${name} advisory`, database_specific: { severity } }],
+        })),
+      },
+    ],
+  };
+}
+
+function runOsvGate(report, waivers = { packageNames: [], advisoryUrls: [] }) {
+  const run = spawnSync(
+    process.execPath,
+    [gate, "--osv-json", write(report), "--waivers", write(waivers)],
+    { encoding: "utf8" },
+  );
+  return { status: run.status, output: `${run.stdout}${run.stderr}` };
+}
+
+const vitestUrl = "https://github.com/advisories/GHSA-5xrq-8626-4rwp";
+
+test("osv: blocks on a critical advisory", () => {
+  const { status, output } = runOsvGate(osvReport(["vitest", "2.1.9", "GHSA-5xrq-8626-4rwp", "CRITICAL"]));
+  assert.equal(status, 1);
+  assert.match(output, /\[osv-scanner\] critical=1 high=0/);
+  assert.match(output, /CRITICAL vitest \(2\.1\.9\) -> https:\/\/github\.com\/advisories\/GHSA-5xrq-8626-4rwp/);
+});
+
+test("osv: honours a waiver by advisory URL", () => {
+  const { status, output } = runOsvGate(
+    osvReport(["vitest", "2.1.9", "GHSA-5xrq-8626-4rwp", "CRITICAL"]),
+    { packageNames: [], advisoryUrls: [vitestUrl] },
+  );
+  assert.equal(status, 0);
+  assert.match(output, /Waived findings:\n - CRITICAL vitest/);
+  assert.match(output, /PASS: no high\/critical dependency vulnerabilities \(source: osv-scanner\)/);
+});
+
+test("osv: an advisory waiver does not hide another advisory in the same package", () => {
+  const { status, output } = runOsvGate(
+    osvReport(
+      ["vitest", "2.1.9", "GHSA-5xrq-8626-4rwp", "CRITICAL"],
+      ["vitest", "2.1.9", "GHSA-aaaa-bbbb-cccc", "HIGH"],
+    ),
+    { packageNames: [], advisoryUrls: [vitestUrl] },
+  );
+  assert.equal(status, 1);
+  assert.match(output, /\[osv-scanner\] critical=0 high=1/);
+});
+
+test("osv: matches a waiver through the advisory's GHSA alias", () => {
+  const { status } = runOsvGate(
+    osvReport(["vitest", "2.1.9", "CVE-2026-0001", "CRITICAL", ["GHSA-5xrq-8626-4rwp"]]),
+    { packageNames: [], advisoryUrls: [vitestUrl] },
+  );
+  assert.equal(status, 0);
+});
+
+test("osv: honours a waiver by package name", () => {
+  const { status } = runOsvGate(osvReport(["braces", "3.0.3", "GHSA-vfj7-8cjw-p6xm", "HIGH"]), {
+    packageNames: ["braces"],
+    advisoryUrls: [],
+  });
+  assert.equal(status, 0);
+});
+
+test("osv: the repo's waivers leave no unexplained entries", () => {
+  const waivers = JSON.parse(readFileSync(new URL("../security-release-waivers.json", import.meta.url), "utf8"));
+  for (const url of waivers.advisoryUrls) {
+    assert.ok(waivers.notes?.[url], `waiver ${url} has no note explaining it`);
+  }
+});

@@ -1,4 +1,25 @@
 {
   "packageNames": [],
-  "advisoryUrls": []
+  "advisoryUrls": [
+    "https://github.com/advisories/GHSA-5xrq-8626-4rwp",
+    "https://github.com/advisories/GHSA-5gmw-xhrv-c9v3",
+    "https://github.com/advisories/GHSA-85c8-ppgw-ccpr",
+    "https://github.com/advisories/GHSA-fx2h-pf6j-xcff",
+    "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+    "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+    "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+    "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+    "https://github.com/advisories/GHSA-rxv8-25v2-qmq8"
+  ],
+  "notes": {
+    "https://github.com/advisories/GHSA-5xrq-8626-4rwp": "vitest 2.1.9 (dev only). Needs the Vitest UI server, which is never started (tests run `vitest run`). Fix is vitest 3.2.6, a major upgrade; review when vitest is upgraded.",
+    "https://github.com/advisories/GHSA-5gmw-xhrv-c9v3": "tinypool 1.1.1, vitest's worker pool (dev only). Worker options come from vitest, not from user input. Fixed in tinypool 2.x with the vitest major upgrade.",
+    "https://github.com/advisories/GHSA-85c8-ppgw-ccpr": "tinypool 1.1.1, vitest's worker pool (dev only). run() options come from vitest, not from user input. Fixed in tinypool 2.x with the vitest major upgrade.",
+    "https://github.com/advisories/GHSA-fx2h-pf6j-xcff": "vite 5.4.21, only pulled in by vitest (dev only). server.fs.deny bypass on Windows paths; no vite dev server is exposed. Fix is vite 6.4.3, with the vitest major upgrade.",
+    "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm": "braces 3.0.3 in the Expo CLI / metro build toolchain (mobile, build time). Patterns come from our own config, not user input. No fixed release exists yet.",
+    "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq": "image-size 1.2.1 in metro (mobile build time). Only reads the app's own image assets. Fix is image-size 2.0.3, a major upgrade metro 0.80 doesn't take.",
+    "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr": "image-size 1.2.1 in metro (mobile build time). Only reads the app's own image assets. Fix is image-size 2.0.3, a major upgrade metro 0.80 doesn't take.",
+    "https://github.com/advisories/GHSA-86w9-cpqp-85rv": "node-forge 1.4.0 in the Expo CLI (dev-server certificates). Not used to verify signatures in any shipped code. No fixed release exists yet.",
+    "https://github.com/advisories/GHSA-rxv8-25v2-qmq8": "turbo-stream 2.4.1 via expo-router's @expo/server (Remix server runtime). The mobile app ships as a native/static export and never runs @expo/server. Fix needs turbo-stream 3 / a newer expo-router."
+  }
 }

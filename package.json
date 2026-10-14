@@ -50,7 +50,8 @@
       "js-yaml@^4": "^4.3.2",
       "@babel/plugin-transform-modules-systemjs@^7": "^7.29.4",
       "@remix-run/server-runtime@^2": "^2.17.5",
-      "@auth/core@^0.41": "^0.41.3"
+      "@auth/core@^0.41": "^0.41.3",
+      "sharp@^0.34": "^0.35.5"
     }
   }
 }
