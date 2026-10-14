@@ -2375,9 +2375,10 @@ See you in the next session.
   },
 ];
 
+/** 09:00 UTC, `daysFromNow` days after 1 May 2026, whatever the server's timezone. */
 export function launchPublishDate(daysFromNow: number): Date {
   const d = new Date("2026-05-01T00:00:00Z");
-  d.setDate(d.getDate() + daysFromNow);
-  d.setHours(9, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + daysFromNow);
+  d.setUTCHours(9, 0, 0, 0);
   return d;
 }

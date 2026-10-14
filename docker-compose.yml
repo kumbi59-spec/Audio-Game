@@ -1,6 +1,8 @@
 # Local development stack for Audio RPG.
 # Run: docker compose up -d postgres
-# Then export DATABASE_URL=postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg
+# Then use DATABASE_URL=postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web
+# (as in .env.example): the web's Prisma tables go in schema "web", and the api
+# ignores ?schema and keeps its tables in public.
 services:
   postgres:
     image: pgvector/pgvector:pg16

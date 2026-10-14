@@ -38,7 +38,7 @@ jobs:
           chmod +x /usr/local/bin/osv-scanner
           osv-scanner --version
 
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
 
       # Produce SARIF for the Security tab. Don't fail the job on findings —
       # the gate step below decides what's release-blocking.

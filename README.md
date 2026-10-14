@@ -63,6 +63,7 @@ For current web/mobile parity status and intentional gaps, see `docs/product/pla
 |---|---|
 | Node.js | ≥ 20.11 |
 | pnpm | 9.x (`npm i -g pnpm@9`) |
+| Docker (or any Postgres 16 with pgvector) | For the local database |
 | Anthropic API key | Required for all AI features |
 
 Optional (features degrade gracefully without them):
@@ -74,7 +75,7 @@ Optional (features degrade gracefully without them):
 
 ## Setup: Web app (fastest path to playing)
 
-The web app is self-contained — it uses SQLite locally and browser TTS, so you can play without any paid API keys except Anthropic.
+The web app uses a local Postgres (from `docker-compose.yml`) and browser TTS, so you can play without any paid API keys except Anthropic. `bash scripts/setup-dev.sh` does steps 1–3 for you (it is also what the dev container runs).
 
 ### 1. Install
 
@@ -82,6 +83,7 @@ The web app is self-contained — it uses SQLite locally and browser TTS, so you
 git clone https://github.com/kumbi59-spec/Audio-Game.git
 cd Audio-Game
 pnpm install
+docker compose up -d postgres   # Postgres 16 + pgvector on localhost:5432
 ```
 
 ### 2. Configure environment (canonical path)
@@ -102,8 +104,9 @@ ANTHROPIC_API_KEY=sk-ant-...
 NEXTAUTH_SECRET=replace-with-random-secret
 NEXTAUTH_URL=http://localhost:3000
 
-# Database for web local dev (SQLite works out of the box)
-DATABASE_URL=file:./dev.db
+# Database: the docker-compose Postgres. The web's tables live in their own
+# "web" schema so they never mix with the api's tables in the same database.
+DATABASE_URL=postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web
 ```
 
 Everything else (Stripe, ElevenLabs, Resend, VAPID) is optional — leave blank and those features are simply disabled.
@@ -111,9 +114,11 @@ Everything else (Stripe, ElevenLabs, Resend, VAPID) is optional — leave blank 
 ### 3. Set up the database
 
 ```bash
-pnpm --filter @audio-rpg/web db:generate   # generate Prisma client
-pnpm --filter @audio-rpg/web db:push       # create SQLite tables
+pnpm --filter @audio-rpg/web db:generate                     # generate Prisma client
+pnpm --filter @audio-rpg/web exec prisma migrate deploy      # apply the migrations
 ```
+
+The Prisma CLI does not read `apps/web/.env.local`; it uses `DATABASE_URL` from your shell or, failing that, `apps/web/prisma/.env`, which points at the same docker-compose URL. To change the schema, edit `apps/web/prisma/schema.prisma` and run `pnpm --filter @audio-rpg/web db:migrate` to create a migration.
 
 ### 4. Start the dev server
 
@@ -195,10 +200,11 @@ Press `V` or click the microphone button. Say:
 ### Setup
 
 ```bash
-# In one terminal — start the Fastify API
+# In one terminal — start the Fastify API (it reads the repo-root .env)
 cp .env.example .env
-# Set ANTHROPIC_API_KEY in .env
-# For API dev, DATABASE_URL should be your Postgres URL (not SQLite)
+# Set ANTHROPIC_API_KEY in .env. DATABASE_URL points at the docker-compose
+# Postgres (`docker compose up -d postgres`); remove it to run the API on its
+# in-memory store instead.
 pnpm dev:api
 
 # In another terminal — start Expo
@@ -271,7 +277,7 @@ Claude extracts: world name, genre, tone, locations, NPCs, factions, campaign ho
 
 Set `ADMIN_EMAILS=your@email.com` in `.env.local`, then go to `/admin`.
 
-Any email listed in `ADMIN_EMAILS` is automatically elevated to **Creator** tier on every sign-in (see `apps/web/lib/admin.ts`), so the same account also has access to the World Builder Wizard, Game Bible upload, creator analytics, and every paid feature — that's why it's the "always-on" account.
+Any email listed in `ADMIN_EMAILS` is automatically elevated to **Creator** tier on every sign-in once the account's email is verified (see `apps/web/lib/admin.ts`; the seeder below marks it verified), so the same account also has access to the World Builder Wizard, Game Bible upload, creator analytics, and every paid feature — that's why it's the "always-on" account.
 
 **Users tab** — lists all users with tier, world count, session count.  
 **Worlds tab** — lists community worlds; toggle publish/unpublish.
@@ -327,7 +333,7 @@ fetch('/api/auth/refresh-tier', {
 })
 ```
 
-Or directly in the SQLite DB:
+Or directly in the database:
 
 ```bash
 cd apps/web
@@ -374,13 +380,22 @@ pnpm --filter @audio-rpg/mobile test:e2e
 
 ## CI (GitHub Actions)
 
-Three CI jobs run on every PR to `main`:
+Four CI jobs run on every PR to `main` (all install with `pnpm install --frozen-lockfile`, so commit `pnpm-lock.yaml` with any dependency change):
 
 | Job | What it checks |
 |---|---|
-| `typecheck + unit + in-memory integration` | TypeScript + unit tests + API integration (SQLite) |
-| `integration (Postgres + pgvector)` | API integration suite against `pgvector/pgvector:pg16` |
+| `typecheck + unit + in-memory integration` | TypeScript, web lint, unit tests (shared, gm-engine, api, web, mobile), API integration on the in-memory store, and the release-gate script's tests |
+| `integration (Postgres + pgvector)` | API integration suite against `pgvector/pgvector:pg16`, the DB-backed web authorization suite (web migrations applied into `?schema=web`), and a smoke test of the built API (`node dist/server.js`, `GET /worlds` must return 200) |
 | `mobile web e2e (Expo web + Playwright + axe-core)` | Runs Expo mobile app e2e in web mode via Playwright (`pnpm --filter @audio-rpg/mobile test:e2e:install` then `pnpm --filter @audio-rpg/mobile test:e2e`) and uploads `apps/mobile/playwright-report/` on failure |
+| `web e2e (Next.js + Playwright + axe-core)` | Builds and serves the production web bundle and runs its Playwright + axe suite |
+
+To run the DB-backed web authorization suite locally, migrate a scratch schema and point `TEST_DATABASE_URL` at it:
+
+```bash
+export TEST_DATABASE_URL=postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web_test
+DATABASE_URL=$TEST_DATABASE_URL pnpm --filter @audio-rpg/web exec prisma migrate deploy
+pnpm --filter @audio-rpg/web test -- lib/db/authorization.db.test.ts
+```
 
 A manually-dispatched `Credentialed E2E` workflow runs against real external providers (Anthropic, ElevenLabs, Deepgram, Postgres). Trigger from the Actions tab — secrets live in the `credentialed` environment.
 

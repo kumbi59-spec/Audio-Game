@@ -3,7 +3,8 @@
  *
  *   IMAGE_GEN_PROVIDER=bfl                      (Black Forest Labs — recommended)
  *   BFL_API_KEY=bfl_...                          (required when provider=bfl)
- *   MODEL_NAME=black-forest-labs/flux-dev        (default; only the part after "/" is used)
+ *   BFL_MODEL_NAME=black-forest-labs/flux-dev    (default; only the part after "/" is used;
+ *                                                MODEL_NAME is still read as a fallback)
  *                                                (flux-schnell is Replicate-only; BFL supports flux-dev, flux-pro, flux-pro-1.1)
  *
  *   IMAGE_GEN_PROVIDER=replicate                 (Replicate fallback)
@@ -17,7 +18,8 @@
 const TIMEOUT_MS = 60_000;
 // Global endpoint routes to the nearest regional cluster. Override with
 // BFL_API_BASE if a specific region is desired (e.g. https://api.us.bfl.ai/v1).
-const BFL_BASE = process.env["BFL_API_BASE"] ?? "https://api.bfl.ai/v1";
+// `||` so an empty value (as .env.example ships it) keeps the default.
+const BFL_BASE = process.env["BFL_API_BASE"] || "https://api.bfl.ai/v1";
 
 export interface CoverGenInput {
   worldName: string;
@@ -77,7 +79,8 @@ async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
 
   // Accept "black-forest-labs/flux-dev" or just "flux-dev".
   // Note: flux-schnell is not available on api.bfl.ai — use Replicate provider for it.
-  const modelEnv = process.env["MODEL_NAME"] ?? "black-forest-labs/flux-dev";
+  const modelEnv =
+    process.env["BFL_MODEL_NAME"] || process.env["MODEL_NAME"] || "black-forest-labs/flux-dev";
   const modelName = modelEnv.includes("/") ? modelEnv.split("/").pop()! : modelEnv;
 
   const controller = new AbortController();
@@ -142,7 +145,7 @@ async function generateViaBFL(input: CoverGenInput): Promise<CoverGenResult> {
 // ── Replicate ──────────────────────────────────────────────────────────────
 
 const REPLICATE_DEFAULT_MODEL =
-  process.env["REPLICATE_IMAGE_MODEL"] ?? "black-forest-labs/flux-schnell";
+  process.env["REPLICATE_IMAGE_MODEL"] || "black-forest-labs/flux-schnell";
 
 interface ReplicatePrediction {
   id: string;

@@ -19,13 +19,15 @@ jobs:
         with:
           node-version: 20.11.0
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - run: pnpm check:anthropic-sdk-version
       - run: pnpm -r typecheck
       - run: pnpm --filter @audio-rpg/web lint
-      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api --filter @audio-rpg/web test
+      - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api --filter @audio-rpg/web --filter @audio-rpg/mobile test
       - run: pnpm --filter @audio-rpg/api test -- state-machine.matrix.test.ts
+      - name: release gate parses pnpm audit output
+        run: node --test scripts/security-release-gate.test.mjs
 
   postgres-e2e:
     name: "integration (Postgres + pgvector)"
@@ -55,7 +57,7 @@ jobs:
         with:
           node-version: 20.11.0
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - name: Wait for Postgres
         run: |
@@ -73,6 +75,49 @@ jobs:
         run: pnpm --filter @audio-rpg/api test -- session-compat.replay.test.ts
       - name: transport compatibility contracts
         run: pnpm --filter @audio-rpg/api test -- session-compat.contract.test.ts
+      # The web app's Prisma tables live in their own schema so they never
+      # mix with the api's tables in the same database.
+      - name: Migrate the web schema
+        env:
+          DATABASE_URL: postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web
+        run: pnpm --filter @audio-rpg/web exec prisma migrate deploy
+      - name: DB-backed web authorization suite
+        env:
+          DATABASE_URL: postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web
+          TEST_DATABASE_URL: postgres://audio_rpg:audio_rpg@localhost:5432/audio_rpg?schema=web
+        run: pnpm --filter @audio-rpg/web test -- lib/db/authorization.db.test.ts
+      - run: pnpm --filter @audio-rpg/api build
+      # vitest's module interop can hide imports that break under Node ESM
+      # (`import * as pg` left pg.Pool undefined in production), so also boot
+      # the built server against Postgres and hit a store-backed route.
+      - name: Smoke-test the built API on Postgres
+        working-directory: apps/api
+        env:
+          PORT: "4100"
+        run: |
+          node dist/server.js > api-smoke.log 2>&1 &
+          echo $! > api-smoke.pid
+          health=""
+          for i in $(seq 1 60); do
+            if health=$(curl -fsS "http://127.0.0.1:$PORT/health" 2>/dev/null); then break; fi
+            health=""
+            sleep 1
+          done
+          status=0
+          if [ -z "$health" ]; then
+            echo "::error::the built API did not come up"
+            status=1
+          elif ! echo "$health" | grep -q '"storageBackend":"postgres"'; then
+            echo "::error::the API is not on the Postgres store: $health"
+            status=1
+          else
+            code=$(curl -fsS -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/worlds") || code="error"
+            echo "GET /worlds -> $code"
+            [ "$code" = "200" ] || status=1
+          fi
+          kill "$(cat api-smoke.pid)" 2>/dev/null || true
+          if [ "$status" -ne 0 ]; then tail -n 200 api-smoke.log; fi
+          exit "$status"
 
   mobile-web-e2e:
     name: "mobile web e2e (Expo web + Playwright + axe-core)"
@@ -86,7 +131,7 @@ jobs:
         with:
           node-version: 20.11.0
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - run: pnpm --filter @audio-rpg/mobile test:e2e:install
       - run: pnpm --filter @audio-rpg/mobile test:e2e
@@ -109,7 +154,7 @@ jobs:
         with:
           node-version: 20.11.0
           cache: pnpm
-      - run: pnpm install --frozen-lockfile=false
+      - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine build
       - run: pnpm --filter @audio-rpg/web test:e2e:install
       # Builds and serves the production bundle itself (playwright.config.ts);
