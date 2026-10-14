@@ -132,8 +132,10 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
-      name: BRAND_NAME,
-      alternateName: BRAND_TTRPG,
+      // Google takes the site name shown in results from WebSite.name, so it
+      // carries the modifier (matching og:site_name and the title).
+      name: BRAND_TTRPG,
+      alternateName: BRAND_NAME,
       publisher: { "@id": `${SITE_URL}/#organization` },
     },
     {
