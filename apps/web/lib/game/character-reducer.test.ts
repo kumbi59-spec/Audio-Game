@@ -46,6 +46,26 @@ describe("character reducer", () => {
     expect(applyStatDelta(ninja, "experience", 10).customStats).toBe(ninja.customStats);
   });
 
+  it("grows stats at the pace of the world's own scale", () => {
+    // Default scale: unchanged, +1 every other level.
+    expect(applyStatDelta(base, "experience", 450).stats.strength).toBe(13);
+
+    const small = { min: 1, max: 5 };
+    const ninja = { ...base, stats: { ...base.stats, strength: 3 }, customStats: { Ninjutsu: 2 } };
+    // A 1 to 5 world gains a point every third raise: STR is raised at
+    // levels 3, 5, 7 and gets its point at 7.
+    const strAt = (level: number) =>
+      applyStatDelta(ninja, "experience", xpToReachLevel(level), small).stats.strength;
+    expect([strAt(3), strAt(5), strAt(7), strAt(13)]).toEqual([3, 3, 4, 5]);
+    expect(applyStatDelta(ninja, "experience", xpToReachLevel(7), small).customStats).toEqual({ Ninjutsu: 3 });
+
+    // A 0 to 100 world gains 8 or 9 a raise (100 / 12 = 8.33).
+    const wide = { min: 0, max: 100 };
+    const pct = { ...base, stats: { ...base.stats, strength: 50 } };
+    expect(applyStatDelta(pct, "experience", xpToReachLevel(3), wide).stats.strength).toBe(58);
+    expect(applyStatDelta(pct, "experience", xpToReachLevel(7), wide).stats.strength).toBe(75);
+  });
+
   it("says what a level-up raised", () => {
     const ninja = { ...base, customStats: { Ninjutsu: 4 } };
     const after = applyStatDelta(ninja, "experience", 400);

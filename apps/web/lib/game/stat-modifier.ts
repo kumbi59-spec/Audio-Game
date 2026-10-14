@@ -9,7 +9,7 @@ export interface StatRange {
 }
 
 /** The range the roll formula is written for: 6 to 18, average 10 to 11. */
-const BASE_RANGE: StatRange = {
+export const BASE_RANGE: StatRange = {
   min: OFFICIAL_DEFAULT_STAT_RULES.perStatMin,
   max: OFFICIAL_DEFAULT_STAT_RULES.perStatMax,
 };
