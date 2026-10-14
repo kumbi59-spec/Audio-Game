@@ -42,11 +42,14 @@ export interface GMResponse {
 
 /** A server-resolved d20 skill check (see roll_skill_check in lib/ai/gm-engine.ts). */
 export interface SkillCheckResult {
-  stat: "strength" | "dexterity" | "intelligence" | "charisma";
+  /** A core stat ("strength", "dexterity", "intelligence", "charisma") or one of the world's own. */
+  stat: string;
+  /** The stat's value when the roll was made; absent when the character had no such stat. */
+  statValue?: number;
   label: string;
   dc: number;
   roll: number;
-  /** Stat modifier: floor((stat - 10) / 2). */
+  /** Stat modifier on the world's stat scale (see lib/game/stat-modifier.ts). */
   modifier: number;
   /** Passive bonuses that apply to this check (matching stat, or luck). */
   bonus: number;

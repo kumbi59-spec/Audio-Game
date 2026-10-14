@@ -150,6 +150,9 @@ describe("game domain use-cases", () => {
     expect(formatSkillCheckLine({ ...base, modifier: -1, bonus: 2, total: 15, dc: 16, success: false })).toBe(
       "🎲 STRENGTH check — Force the gate: rolled 14 -1 +2 bonus = 15 vs DC 16 — Failure.",
     );
+    expect(formatSkillCheckLine({ ...base, stat: "Ninjutsu", statValue: 5, modifier: 4, total: 18 })).toBe(
+      "🎲 Ninjutsu 5 check — Force the gate: rolled 14 +4 = 18 vs DC 12 — Success!",
+    );
   });
 
   describe("wovenTail", () => {

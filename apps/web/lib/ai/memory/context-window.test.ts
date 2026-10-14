@@ -82,6 +82,7 @@ describe("buildCharacterStateBlock", () => {
 
   it("flags a character at 0 HP as down", () => {
     expect(buildCharacterStateBlock(hero)).not.toContain("Condition: DOWN");
+    expect(buildCharacterStateBlock(hero)).toMatch(/Roll Modifiers: strength [+-]\d+, dexterity [+-]\d+, intelligence [+-]\d+, charisma [+-]\d+/);
     expect(buildCharacterStateBlock({ ...hero, stats: { ...hero.stats, hp: 0 } })).toContain("Condition: DOWN (0 HP)");
   });
 });
