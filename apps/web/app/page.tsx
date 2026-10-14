@@ -6,6 +6,7 @@ import { LandingEffects } from "@/components/landing/LandingEffects";
 import { serializeJsonLd } from "@/lib/blog/render-markdown";
 import { getSiteUrl } from "@/lib/site-url";
 import { BRAND_ALTERNATE_NAMES, BRAND_DEFINITION, BRAND_NAME, BRAND_TTRPG, SAME_AS } from "@/lib/seo/brand";
+import { OFFICIAL_CAMPAIGN_COUNT } from "@/lib/seo/official-campaigns";
 
 const SITE_URL = getSiteUrl();
 
@@ -43,7 +44,7 @@ const PRICING = [
     price: "$0",
     period: "",
     highlight: false,
-    features: ["3 official campaigns", "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support", "Ads you can switch off anytime"],
+    features: [`All ${OFFICIAL_CAMPAIGN_COUNT} official campaigns`, "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support", "Ads you can switch off anytime"],
     cta: "Start Playing",
     href: "/library",
   },
@@ -163,7 +164,7 @@ const jsonLd = {
           acceptedAnswer: {
             "@type": "Answer",
             text:
-              "Yes. The Free tier includes three official campaigns, browser text-to-speech, 60 AI turns per day, and full keyboard and screen-reader support. Premium plans (Storyteller from $15/month) unlock unlimited campaigns, ElevenLabs narration, unlimited saves, and uploading your own Game Bible.",
+              `Yes. The Free tier includes all ${OFFICIAL_CAMPAIGN_COUNT} official campaigns, browser text-to-speech, 60 AI turns per day, and full keyboard and screen-reader support. Premium plans (Storyteller from $15/month) unlock unlimited campaigns, ElevenLabs narration, unlimited saves, and uploading your own Game Bible.`,
           },
         },
         {

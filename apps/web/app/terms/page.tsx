@@ -51,7 +51,7 @@ export default function TermsPage() {
 
           <h2 className="mt-8 text-xl font-semibold text-foreground">2. Accounts</h2>
           <p>
-            You can play three official campaigns without an account. Paid
+            You can play every official campaign without an account. Paid
             features and saving sessions require an account. You&rsquo;re
             responsible for keeping your sign-in credentials safe and for
             anything that happens on your account. If we suspect abuse — for

@@ -51,7 +51,7 @@ export default function AboutPage() {
           to touch a token, a grid, or a dice tower.
         </p>
         <p className="mt-3 text-base text-muted">
-          The free tier lets you play three official campaigns with the
+          The free tier lets you play every official campaign with the
           browser&rsquo;s built-in text-to-speech and sixty AI minutes per
           day. Paid tiers unlock ElevenLabs premium narration, unlimited
           campaigns, uploading your own Game Bible PDF, and the World Builder

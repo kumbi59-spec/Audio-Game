@@ -7,6 +7,7 @@ import { BRAND_TTRPG } from "@/lib/seo/brand";
 import { guideBreadcrumbJsonLd, guideFaqJsonLd, type GuideFaq } from "@/lib/seo/guide-jsonld";
 import { getSiteUrl } from "@/lib/site-url";
 import { socialMetadata } from "@/lib/seo/social";
+import { OFFICIAL_CAMPAIGN_COUNT } from "@/lib/seo/official-campaigns";
 
 const PATH = "/seo/audio-games-for-the-blind";
 const SITE_URL = getSiteUrl();
@@ -39,7 +40,7 @@ const FAQS: GuideFaq[] = [
   {
     question: "Is it free for blind players?",
     answer:
-      "The Free tier includes three official campaigns, browser text-to-speech, 60 AI turns a day and full keyboard and screen-reader support. Accessibility features are never behind a paywall.",
+      `The Free tier includes all ${OFFICIAL_CAMPAIGN_COUNT} official campaigns, browser text-to-speech, 60 AI turns a day and full keyboard and screen-reader support. Accessibility features are never behind a paywall.`,
   },
 ];
 
@@ -96,9 +97,10 @@ export default function Page() {
           What you can play
         </h2>
         <p className="mt-3 text-base text-muted">
-          Start with the official campaigns, from colony-ship mystery to desert archaeology,
-          or explore worlds other players have built. There are no battle maps or dice to read:
-          the Game Master tells you what happens, and you answer in plain language.
+          All {OFFICIAL_CAMPAIGN_COUNT} official campaigns are free, from colony-ship mystery to
+          desert archaeology, and you can also explore worlds other players have built. There are
+          no battle maps or dice to read: the Game Master tells you what happens, and you answer in
+          plain language.
         </p>
 
         <section aria-labelledby="faq-heading">
