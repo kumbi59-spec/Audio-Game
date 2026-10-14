@@ -14,6 +14,19 @@ function randomName() {
   return `${a} ${n}`;
 }
 
+// Where to go after signing in: only a path on this site. "//host" is
+// protocol-relative, and the URL parser also turns "/\host" or a path with a
+// tab after the first slash into one, so the resolved origin is checked too.
+function sameSiteCallbackUrl(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : null;
+  } catch {
+    return null;
+  }
+}
+
 function SignInForm() {
   const router = useRouter();
   const { narrate } = useAnnouncer();
@@ -29,6 +42,8 @@ function SignInForm() {
       ? "Your verification link has expired. Sign in and request a new one."
       : verifyError === "invalid"
       ? "Invalid verification link. Sign in and request a new one."
+      : verifyError === "failed"
+      ? "We couldn't verify your email just now. Please open the link again."
       : ""
   );
   const [busy, setBusy] = useState(false);
@@ -58,6 +73,10 @@ function SignInForm() {
         let msg: string;
         if (result.error === "Configuration") {
           msg = "Unable to sign in right now. Please try again in a moment.";
+        } else if (result.error === "CredentialsSignin" && result.code === "rate_limited") {
+          msg = "Too many attempts. Please wait a few minutes and try again.";
+        } else if (result.error === "CredentialsSignin" && result.code === "password_too_short") {
+          msg = "Password must be at least 8 characters.";
         } else if (result.error === "CredentialsSignin") {
           msg = mode === "signup"
             ? "Could not create account. That email may already be in use."
@@ -69,7 +88,11 @@ function SignInForm() {
         }
         setError(msg);
       } else {
-        router.replace("/");
+        const callbackUrl = sameSiteCallbackUrl(searchParams.get("callbackUrl"));
+        // A full navigation, since the callback can be a route handler (such
+        // as checkout) that the client router can't render.
+        if (callbackUrl) window.location.assign(callbackUrl);
+        else router.replace("/");
       }
     } catch {
       setError("Something went wrong. Please try again.");

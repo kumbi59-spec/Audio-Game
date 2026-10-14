@@ -1,0 +1,124 @@
+{
+  "actions": [
+    {
+      "action": "review",
+      "module": "cross-spawn",
+      "resolves": [
+        {
+          "id": 1100563,
+          "path": "apps__web>next>@next/env>cross-spawn",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    },
+    {
+      "action": "review",
+      "module": "nanoid",
+      "resolves": [
+        {
+          "id": 1101163,
+          "path": "apps__web>next>postcss>nanoid",
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ]
+    }
+  ],
+  "advisories": {
+    "1100563": {
+      "findings": [
+        {
+          "version": "7.0.3",
+          "paths": [
+            "apps__web>next>@next/env>cross-spawn"
+          ]
+        }
+      ],
+      "metadata": null,
+      "vulnerable_versions": ">=7.0.0 <7.0.5",
+      "module_name": "cross-spawn",
+      "severity": "high",
+      "github_advisory_id": "GHSA-3xgq-45jj-v275",
+      "cves": [
+        "CVE-2024-21538"
+      ],
+      "access": "public",
+      "patched_versions": ">=7.0.5",
+      "cvss": {
+        "score": 7.5,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+      },
+      "updated": "2024-11-19T20:09:15.000Z",
+      "recommendation": "Upgrade to version 7.0.5 or later",
+      "cwe": [
+        "CWE-1333"
+      ],
+      "found_by": null,
+      "deleted": null,
+      "id": 1100563,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2024-21538\n- https://github.com/advisories/GHSA-3xgq-45jj-v275",
+      "created": "2024-11-08T18:30:46.000Z",
+      "reported_by": null,
+      "title": "Regular Expression Denial of Service (ReDoS) in cross-spawn",
+      "npm_advisory_id": null,
+      "overview": "Versions of the package cross-spawn before 7.0.5 are vulnerable to Regular Expression Denial of Service (ReDoS) due to improper input sanitization.",
+      "url": "https://github.com/advisories/GHSA-3xgq-45jj-v275"
+    },
+    "1101163": {
+      "findings": [
+        {
+          "version": "3.3.7",
+          "paths": [
+            "apps__web>next>postcss>nanoid"
+          ]
+        }
+      ],
+      "metadata": null,
+      "vulnerable_versions": "<3.3.8",
+      "module_name": "nanoid",
+      "severity": "moderate",
+      "github_advisory_id": "GHSA-mwcw-c2x4-8c55",
+      "cves": [
+        "CVE-2024-55565"
+      ],
+      "access": "public",
+      "patched_versions": ">=3.3.8",
+      "cvss": {
+        "score": 4.3,
+        "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+      },
+      "updated": "2024-12-12T17:08:57.000Z",
+      "recommendation": "Upgrade to version 3.3.8 or later",
+      "cwe": [
+        "CWE-835"
+      ],
+      "found_by": null,
+      "deleted": null,
+      "id": 1101163,
+      "references": "- https://nvd.nist.gov/vuln/detail/CVE-2024-55565\n- https://github.com/advisories/GHSA-mwcw-c2x4-8c55",
+      "created": "2024-12-09T02:33:03.000Z",
+      "reported_by": null,
+      "title": "Predictable results in nanoid generation when given non-integer values",
+      "npm_advisory_id": null,
+      "overview": "When nanoid is called with a fractional value, there were a number of undesirable effects.",
+      "url": "https://github.com/advisories/GHSA-mwcw-c2x4-8c55"
+    }
+  },
+  "muted": [],
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 1,
+      "critical": 0
+    },
+    "dependencies": 912,
+    "devDependencies": 0,
+    "optionalDependencies": 0,
+    "totalDependencies": 912
+  }
+}

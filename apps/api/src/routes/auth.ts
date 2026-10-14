@@ -10,11 +10,15 @@ const IssueBody = z.object({
   tier: z.enum(["free", "storyteller", "creator", "enterprise"]).default("free"),
 });
 
+/**
+ * Dev tier-token minter. It issues any tier without auth, so it is only
+ * mounted when ENABLE_DEV_TIER_TOKENS=true outside production.
+ */
 export async function registerAuthRoutes(
   app: FastifyInstance,
   domainEvents?: DomainEventBus,
 ): Promise<void> {
-  if (config.NODE_ENV === "production") return;
+  if (!config.ENABLE_DEV_TIER_TOKENS || config.NODE_ENV === "production") return;
 
   app.post("/auth/token", async (req, reply) => {
     const body = IssueBody.safeParse(req.body);

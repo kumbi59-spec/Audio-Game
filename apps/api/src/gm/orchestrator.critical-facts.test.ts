@@ -59,7 +59,7 @@ describe("extractCriticalFacts", () => {
       [{ op: "quest.update", name: "Find the Amulet", objective: "Talk to Elder Fenn", done: false }],
       5,
     );
-    expect(facts.map((f) => f.text)).not.toContain(expect.stringMatching(/QUEST_OBJECTIVE_DONE/));
+    expect(facts.map((f) => f.text)).not.toEqual(expect.arrayContaining([expect.stringMatching(/QUEST_OBJECTIVE_DONE/)]));
   });
 
   it("tracks significant stat changes", () => {
@@ -72,14 +72,14 @@ describe("extractCriticalFacts", () => {
     );
     const texts = facts.map((f) => f.text);
     expect(texts).toContain("STAT_CHANGE|hp|LOSS|10");
-    expect(texts).not.toContain(expect.stringMatching(/STAT_CHANGE\|luck/));
+    expect(texts).not.toEqual(expect.arrayContaining([expect.stringMatching(/STAT_CHANGE\|luck/)]));
     const hpFact = facts.find((f) => f.text === "STAT_CHANGE|hp|LOSS|10")!;
     expect(hpFact.importance).toBe(0.70);
   });
 
   it("does not track minor stat adjustments below threshold", () => {
     const facts = extractCriticalFacts([{ op: "stat.adjust", stat: "hp", delta: -4 }], 5);
-    expect(facts.map((f) => f.text)).not.toContain(expect.stringMatching(/STAT_CHANGE/));
+    expect(facts.map((f) => f.text)).not.toEqual(expect.arrayContaining([expect.stringMatching(/STAT_CHANGE/)]));
   });
 
   it("appends relationship note to fact text when present", () => {

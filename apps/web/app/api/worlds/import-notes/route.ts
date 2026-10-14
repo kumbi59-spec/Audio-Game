@@ -3,6 +3,8 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
+import { getUserTier } from "@/lib/db/queries/users";
+import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,6 +40,13 @@ export async function POST(req: NextRequest) {
   });
   if (limited) return limited;
 
+  // An AI call on behalf of the world wizard, so it's gated like the wizard.
+  const tier = await getUserTier(session.user.id);
+  const { worldWizard } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
+  if (!worldWizard) {
+    return NextResponse.json({ error: "Upgrade to the Storyteller plan to create custom worlds." }, { status: 403 });
+  }
+
   let body: z.infer<typeof BodySchema>;
   try {
     body = BodySchema.parse(await req.json());
@@ -64,10 +73,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No response from AI" }, { status: 502 });
     }
 
-    let extracted: Record<string, string>;
+    // Strip code fences the model sometimes adds despite the prompt.
+    const raw = text.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "").trim();
+    let extracted: unknown;
     try {
-      extracted = JSON.parse(text.trim()) as Record<string, string>;
+      extracted = JSON.parse(raw);
     } catch {
+      return NextResponse.json({ error: "AI returned non-JSON response" }, { status: 502 });
+    }
+    if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
       return NextResponse.json({ error: "AI returned non-JSON response" }, { status: 502 });
     }
 

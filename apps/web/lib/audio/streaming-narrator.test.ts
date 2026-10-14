@@ -37,6 +37,16 @@ describe("findSegmentCut", () => {
     expect(findSegmentCut(text, "last")).toBe(text.indexOf("The rain"));
   });
 
+  it("never cuts inside a curly-quoted line either", () => {
+    const text = "[Voss]: “Halt. Who goes there?” He waits. The rain";
+    expect(findSegmentCut(text, "first")).toBe(text.indexOf("He"));
+    expect(findSegmentCut(text, "last")).toBe(text.indexOf("The rain"));
+    expect(findSegmentCut("She says “Wait. Then", "last")).toBe(-1);
+    // A quote running into a new paragraph opens it again, closing only once.
+    const paragraphs = "“Listen. \n\n“There is more. Much more.” Silence. And";
+    expect(findSegmentCut(paragraphs, "first")).toBe(paragraphs.indexOf("Silence"));
+  });
+
   it("respects the minimum length and reports no cut when there is none", () => {
     expect(findSegmentCut("Hi. There is more to say. And", "first", 10)).toBe("Hi. There is more to say. ".length);
     expect(findSegmentCut("No sentence end yet", "last")).toBe(-1);

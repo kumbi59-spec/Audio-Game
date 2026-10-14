@@ -14,6 +14,41 @@ const longText = z.string().max(8_000);
 const statValue = (min: number, max: number) => z.number().finite().min(min).max(max);
 const coreStat = statValue(0, 1_000);
 
+/**
+ * A free-form map the GM writes to (world flags, NPC states). Values can be
+ * anything JSON, so the map is bounded by key count and serialised size.
+ */
+const stateMap = z
+  .record(shortText, z.unknown())
+  .refine((r) => Object.keys(r).length <= 1_000, { message: "too many keys" })
+  .refine((r) => JSON.stringify(r).length <= 100_000, { message: "too large" });
+
+// GM-written progress the client keeps and sends back on every turn. Names,
+// notes and titles reach the GM's prompt, so each entry is bounded; fields
+// the server doesn't read are optional, and unknown ones are dropped.
+const AchievementSchema = z.object({
+  key: shortText,
+  title: shortText,
+  description: mediumText.nullish(),
+  unlockedAt: z.number().finite().nullish(),
+});
+
+const RelationshipSchema = z.object({
+  npcId: shortText,
+  name: shortText,
+  standing: z.number().finite(),
+  notes: mediumText.nullish(),
+  lastSeenTurn: z.number().finite().nullish(),
+  gender: z.string().max(20).nullish(),
+});
+
+const CodexEntrySchema = z.object({
+  key: shortText,
+  title: shortText,
+  body: longText.default(""),
+  unlockedAt: z.number().finite().nullish(),
+});
+
 export const CharacterSchema = z.object({
   id: shortText.min(1),
   name: shortText.min(1),
@@ -30,7 +65,7 @@ export const CharacterSchema = z.object({
     level: statValue(0, 1_000),
     experience: statValue(0, 1_000_000_000),
   }),
-  customStats: z.record(statValue(-1_000_000, 1_000_000_000)).refine((r) => Object.keys(r).length <= 50).optional(),
+  customStats: z.record(shortText, statValue(-1_000_000, 1_000_000_000)).refine((r) => Object.keys(r).length <= 50).optional(),
   inventory: z.array(
     z.object({
       id: shortText.min(1),
@@ -81,8 +116,8 @@ export const SessionSnapshotSchema = z.object({
   currentLocationId: shortText.nullish(),
   timeOfDay: z.string().max(50).default("morning"),
   weather: z.string().max(50).default("clear"),
-  globalFlags: z.record(z.unknown()).default({}),
-  npcStates: z.record(z.unknown()).default({}),
+  globalFlags: stateMap.default({}),
+  npcStates: stateMap.default({}),
   memorySummary: z.string().max(20_000).default(""),
   /** Leading history messages already folded into memorySummary (unsaved games). */
   summarizedMessages: z.number().int().min(0).optional(),
@@ -98,9 +133,9 @@ export const SessionSnapshotSchema = z.object({
   narrationLog: z.array(z.unknown()).max(5_000).default([]),
   choices: z.array(mediumText).max(20).default([]),
   isGenerating: z.boolean().default(false),
-  achievements: z.array(z.unknown()).max(500).default([]),
-  relationships: z.array(z.unknown()).max(500).default([]),
-  codex: z.array(z.unknown()).max(1_000).default([]),
+  achievements: z.array(AchievementSchema).max(500).default([]),
+  relationships: z.array(RelationshipSchema).max(500).default([]),
+  codex: z.array(CodexEntrySchema).max(1_000).default([]),
 });
 
 

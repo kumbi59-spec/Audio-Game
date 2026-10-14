@@ -88,11 +88,18 @@ interface GameStore {
 const SAVED_LOG_ENTRIES = 150;
 
 function compactSession(session: InMemorySession): InMemorySession {
+  const history = trimHistoryForContext(session.history ?? []);
+  const dropped = (session.history?.length ?? 0) - history.length;
   return {
     ...session,
     isGenerating: false,
     narrationLog: session.narrationLog.slice(-SAVED_LOG_ENTRIES),
-    history: trimHistoryForContext(session.history ?? []),
+    history,
+    // summarizedMessages counts from the start of the history, so it moves
+    // back by however many messages the trim dropped.
+    ...(session.summarizedMessages !== undefined
+      ? { summarizedMessages: Math.max(0, session.summarizedMessages - dropped) }
+      : {}),
   };
 }
 
@@ -215,13 +222,15 @@ export const useGameStore = create<GameStore>()(
             : {},
         ),
 
+      // Progress lands mid-turn, before incrementTurnCount, so it's stamped
+      // with the turn being played (turnCount + 1), as the server stamps it.
       unlockAchievement: (achievement) =>
         set((s) =>
           s.session
             ? {
                 session: {
                   ...s.session,
-                  achievements: mergeAchievement(s.session.achievements ?? [], achievement, s.session.turnCount),
+                  achievements: mergeAchievement(s.session.achievements ?? [], achievement, s.session.turnCount + 1),
                 },
               }
             : s
@@ -233,7 +242,7 @@ export const useGameStore = create<GameStore>()(
             ? {
                 session: {
                   ...s.session,
-                  relationships: mergeRelationship(s.session.relationships ?? [], change, s.session.turnCount),
+                  relationships: mergeRelationship(s.session.relationships ?? [], change, s.session.turnCount + 1),
                 },
               }
             : s
@@ -242,7 +251,7 @@ export const useGameStore = create<GameStore>()(
       addCodexEntry: (entry) =>
         set((s) =>
           s.session
-            ? { session: { ...s.session, codex: mergeCodexEntry(s.session.codex ?? [], entry, s.session.turnCount) } }
+            ? { session: { ...s.session, codex: mergeCodexEntry(s.session.codex ?? [], entry, s.session.turnCount + 1) } }
             : s
         ),
 
@@ -286,10 +295,11 @@ export const useGameStore = create<GameStore>()(
           savedCampaigns: [entry, ...state.savedCampaigns.filter((c) => c.id !== id)].slice(0, 20),
         };
       }),
+      // The undo target belongs to the game being left, so it doesn't come along.
       loadSavedCampaign: (id) => set((state) => {
         const saved = state.savedCampaigns.find((c) => c.id === id);
         if (!saved) return {};
-        return { session: { ...saved.session, achievements: saved.session.achievements ?? [], relationships: saved.session.relationships ?? [], codex: saved.session.codex ?? [], isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId };
+        return { session: { ...saved.session, achievements: saved.session.achievements ?? [], relationships: saved.session.relationships ?? [], codex: saved.session.codex ?? [], isGenerating: false }, character: saved.character, world: saved.world, dbSessionId: saved.dbSessionId, previousTurn: null };
       }),
       deleteSavedCampaign: (id) => set((state) => ({
         savedCampaigns: state.savedCampaigns.filter((c) => c.id !== id),

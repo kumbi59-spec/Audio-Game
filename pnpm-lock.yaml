@@ -159,6 +159,9 @@ importers:
       typescript:
         specifier: 5.5.4
         version: 5.5.4
+      vitest:
+        specifier: 2.1.9
+        version: 2.1.9(@types/node@20.14.10)(terser@5.46.2)
 
   apps/web:
     dependencies:

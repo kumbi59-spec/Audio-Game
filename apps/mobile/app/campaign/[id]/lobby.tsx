@@ -29,6 +29,8 @@ function useLobbySocket(campaignId: string, displayName: string) {
   const [lobby, setLobby] = useState<LobbyState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  // Bumped by Retry to run the connect effect again.
+  const [connectAttempt, setConnectAttempt] = useState(0);
   const wsRef = useRef<WebSocket | null>(null);
   const router = useRouter();
 
@@ -46,12 +48,18 @@ function useLobbySocket(campaignId: string, displayName: string) {
 
   const leave = useCallback(() => {
     send({ type: "lobby_leave", v: "v1", campaignId });
-    wsRef.current?.close();
+    const ws = wsRef.current;
+    wsRef.current = null;
+    ws?.close();
     router.back();
   }, [send, campaignId, router]);
 
+  const retry = useCallback(() => setConnectAttempt((n) => n + 1), []);
+
   useEffect(() => {
     let cancelled = false;
+    setStatus("connecting");
+    setError(null);
 
     async function connect() {
       let token: string;
@@ -146,9 +154,12 @@ function useLobbySocket(campaignId: string, displayName: string) {
       };
 
       ws.onclose = () => {
-        if (!cancelled) {
-          setStatus((curr) => (curr === "starting" || curr === "error" ? curr : "connecting"));
-        }
+        // Closed by leave() or a newer attempt: nothing to report.
+        if (cancelled || wsRef.current !== ws) return;
+        // The server has already dropped this player from the room, so
+        // waiting would hang on "Connecting…"; offer Retry instead.
+        setStatus("error");
+        setError((curr) => curr ?? "Lost the connection to the lobby. Check your connection.");
       };
     }
 
@@ -159,9 +170,9 @@ function useLobbySocket(campaignId: string, displayName: string) {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [campaignId, displayName, router]);
+  }, [campaignId, displayName, router, connectAttempt]);
 
-  return { status, lobby, error, markReady, leave, myUserId };
+  return { status, lobby, error, markReady, leave, retry, myUserId };
 }
 
 // ── Participant row ────────────────────────────────────────────────────────
@@ -230,13 +241,14 @@ function EmptySlot() {
 export default function LobbyScreen(): JSX.Element {
   const { id: campaignId } = useLocalSearchParams<{ id: string }>();
   const displayName = "Player"; // In a real app this would come from user profile
-  const { status, lobby, error, markReady, leave, myUserId } =
+  const { status, lobby, error, markReady, leave, retry, myUserId } =
     useLobbySocket(campaignId, displayName);
 
   const me = myUserId ? lobby?.participants.find((p) => p.userId === myUserId) : undefined;
   const readyCount = lobby?.participants.filter((p) => p.ready).length ?? 0;
   const totalCount = lobby?.participants.length ?? 0;
-  const allReady = totalCount > 0 && readyCount === totalCount;
+  // The server starts only with at least two players, all ready.
+  const allReady = totalCount >= 2 && readyCount === totalCount;
 
   return (
     <ScrollView
@@ -261,9 +273,7 @@ export default function LobbyScreen(): JSX.Element {
           <Text style={styles.errorMsg}>{error}</Text>
           <Pressable
             style={styles.retryBtn}
-            onPress={() => {
-              // Re-mount by navigating back and forward — simplest recovery
-            }}
+            onPress={retry}
             accessibilityRole="button"
             accessibilityLabel="Retry connection"
           >

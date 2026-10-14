@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Tier } from "@audio-rpg/shared";
-import { constructWebhookEvent, getStripe, isPackPriceKey, minutesForPackKey } from "@/lib/payments/stripe";
-import { resolveUserForCustomer, tierForSubscription } from "@/lib/payments/sync";
+import { constructWebhookEvent, isPackPriceKey, minutesForPackKey } from "@/lib/payments/stripe";
+import { bestTierForCustomer, resolveUserForCustomer } from "@/lib/payments/sync";
 import {
   updateUserTier,
   setStripeCustomerId,
@@ -40,6 +40,24 @@ async function applyPaidTier(
   }
 }
 
+/**
+ * Sets the tier Stripe currently entitles the user to. An upgrade goes
+ * through applyPaidTier (with its "plan active" notices); a downgrade, to
+ * free or from Creator to Storyteller, is written quietly.
+ */
+async function applyStripeTier(
+  user: { id: string; email: string; name: string | null; tier: string },
+  tier: Tier,
+  eventId: string,
+) {
+  if (user.tier === tier) return;
+  if (tier === "free" || (tier === "storyteller" && user.tier === "creator")) {
+    await updateUserTier(user.id, tier);
+    return;
+  }
+  await applyPaidTier(user, tier, eventId);
+}
+
 export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature");
   if (!sig) return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
@@ -59,9 +77,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true, duplicate: true });
     }
 
-    if (event.type === "checkout.session.completed") {
+    // A delayed payment method (bank debit, voucher) completes the checkout
+    // unpaid and only settles later, in checkout.session.async_payment_succeeded.
+    if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as {
         mode?: string;
+        payment_status?: string;
         metadata?: Record<string, string>;
         customer?: string;
         subscription?: string | { id: string } | null;
@@ -72,9 +93,9 @@ export async function POST(req: NextRequest) {
 
       if (userId && customerId) await setStripeCustomerId(userId, customerId);
 
-      // One-time pack purchase — credit AI minutes immediately
+      // One-time pack purchase — credit AI minutes once the payment has cleared
       const packId = session.metadata?.["packId"];
-      if (session.mode === "payment" && userId && packId && isPackPriceKey(packId)) {
+      if (session.mode === "payment" && session.payment_status === "paid" && userId && packId && isPackPriceKey(packId)) {
         const minutes = minutesForPackKey(packId);
         if (minutes > 0) {
           await addAiMinutes(userId, minutes);
@@ -100,29 +121,27 @@ export async function POST(req: NextRequest) {
           email: session.customer_details?.email,
         });
         if (user) {
-          const sub = await getStripe().subscriptions.retrieve(subscriptionId);
-          const newTier = tierForSubscription(sub);
-          if (newTier) await applyPaidTier(user, newTier, event.id);
+          await applyStripeTier(user, await bestTierForCustomer(customerId), event.id);
         } else {
           console.error("Subscription checkout completed but no matching user", { eventId: event.id, customerId });
         }
       }
     }
 
+    // The event's subscription is a snapshot that a late retry can deliver
+    // after a newer change, so the tier is recomputed from the customer's
+    // current subscriptions. That also downgrades a plan that went unpaid or
+    // canceled, and keeps a second plan's tier when one of two is deleted.
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-      const sub = event.data.object as Parameters<typeof tierForSubscription>[0] & {
-        customer: string;
-        metadata?: Record<string, string>;
-      };
+      const sub = event.data.object as { customer: string; metadata?: Record<string, string> };
       const user = await resolveUserForCustomer(sub.customer, { userId: sub.metadata?.["userId"] });
-      const newTier = tierForSubscription(sub);
-      if (user && newTier) await applyPaidTier(user, newTier, event.id);
+      if (user) await applyStripeTier(user, await bestTierForCustomer(sub.customer), event.id);
     }
 
     if (event.type === "customer.subscription.deleted") {
       const sub = event.data.object as { customer: string };
       const user = await findUserByStripeCustomerId(sub.customer);
-      if (user) await updateUserTier(user.id, "free");
+      if (user) await applyStripeTier(user, await bestTierForCustomer(sub.customer), event.id);
     }
   } catch (err) {
     console.error("Webhook handler error:", err);

@@ -42,7 +42,7 @@ Track every change accurately. Leave a key out entirely when nothing changed (no
 - experience: award XP in statDeltas for meaningful actions. Typical amounts are 10 to 30 for something minor, 50 to 100 for something major, and 150 to 300 for a boss or milestone. That's all you do for levels: the game levels the character up and announces it itself, so never emit "level" or level-up stat boosts, and don't narrate a level-up.
 - inventoryChanges: whenever the player picks up, uses, loses or drops an item. Always include op, name and quantity.
 - questChanges: when a quest starts (op "start" with its objectives), when an objective is done (op "update", copying the objective text exactly as CHARACTER STATE lists it), and when a quest ends (op "complete" or "fail").
-- locationId: whenever the player moves somewhere else. Use the exact location ID from WORLD STATE.
+- locationId: whenever the player moves somewhere else. Use one of the Location IDs listed in WORLD STATE, exactly as written, and leave locationId out when the new place isn't one of them.
 
 WHEN THE CHARACTER IS DOWN
 If CHARACTER STATE says "Condition: DOWN", the character is at 0 HP and can't act normally. Don't carry on as if nothing happened. Narrate a real setback that fits the moment: they're captured, dragged clear by someone with an agenda, robbed, or they wake hours later with a cost to pay. Healing happens through the story (a rescuer, rest, a potion), with a positive hp change when it does. Nobody dies permanently.

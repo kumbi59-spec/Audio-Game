@@ -15,9 +15,25 @@ import type { Embedder } from "@audio-rpg/gm-engine";
 const MODEL = "voyage-3";
 const DIMS = 1024;
 const BATCH = 32;
-const MAX_RETRIES = 3;
 
-export function createVoyageEmbedder(apiKey: string): Embedder {
+/** Voyage tunes vectors for what they're used for: stored text or a search query. */
+export type VoyageInputType = "document" | "query";
+
+/** Per-request timeout and attempt count, so a hung Voyage call can't stall a turn. */
+const REQUEST_POLICY: Record<VoyageInputType, { timeoutMs: number; attempts: number }> = {
+  // Document embeds run in the background and can wait out a blip.
+  document: { timeoutMs: 10_000, attempts: 3 },
+  // A query embed runs inside the turn deadline, so it gets one short try.
+  query: { timeoutMs: 2_500, attempts: 1 },
+};
+
+/** A response Voyage will reject again on retry (bad key, bad input). */
+class VoyageClientError extends Error {}
+
+export function createVoyageEmbedder(
+  apiKey: string,
+  inputType: VoyageInputType = "document",
+): Embedder {
   return {
     dimensions: DIMS,
     async embed(texts) {
@@ -25,7 +41,7 @@ export function createVoyageEmbedder(apiKey: string): Embedder {
       const vectors: number[][] = [];
       for (let i = 0; i < texts.length; i += BATCH) {
         const batch = texts.slice(i, i + BATCH);
-        const batchVectors = await embedBatch(apiKey, batch);
+        const batchVectors = await embedBatch(apiKey, batch, inputType);
         vectors.push(...batchVectors);
       }
       return vectors;
@@ -42,17 +58,24 @@ export function createNoopEmbedder(): Embedder {
   };
 }
 
-export function getServerEmbedder(): { embedder: Embedder; available: boolean } {
+export function getServerEmbedder(
+  inputType: VoyageInputType = "document",
+): { embedder: Embedder; available: boolean } {
   const key = process.env["VOYAGE_API_KEY"];
   if (!key) {
     return { embedder: createNoopEmbedder(), available: false };
   }
-  return { embedder: createVoyageEmbedder(key), available: true };
+  return { embedder: createVoyageEmbedder(key, inputType), available: true };
 }
 
-async function embedBatch(apiKey: string, texts: readonly string[]): Promise<number[][]> {
+async function embedBatch(
+  apiKey: string,
+  texts: readonly string[],
+  inputType: VoyageInputType,
+): Promise<number[][]> {
+  const { timeoutMs, attempts } = REQUEST_POLICY[inputType];
   let lastErr: unknown;
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const res = await fetch("https://api.voyageai.com/v1/embeddings", {
         method: "POST",
@@ -63,24 +86,26 @@ async function embedBatch(apiKey: string, texts: readonly string[]): Promise<num
         body: JSON.stringify({
           input: texts,
           model: MODEL,
-          input_type: "document",
+          input_type: inputType,
         }),
+        signal: AbortSignal.timeout(timeoutMs),
       });
       if (!res.ok) {
         if (res.status >= 500 || res.status === 429) {
           lastErr = new Error(`voyage ${res.status}: ${await res.text().catch(() => "")}`);
-          await sleep(250 * Math.pow(2, attempt));
+          if (attempt < attempts - 1) await sleep(250 * Math.pow(2, attempt));
           continue;
         }
-        throw new Error(`voyage ${res.status}: ${await res.text().catch(() => "")}`);
+        throw new VoyageClientError(`voyage ${res.status}: ${await res.text().catch(() => "")}`);
       }
       const body = (await res.json()) as {
         data: { embedding: number[] }[];
       };
       return body.data.map((d) => d.embedding);
     } catch (err) {
+      if (err instanceof VoyageClientError) throw err;
       lastErr = err;
-      if (attempt === MAX_RETRIES - 1) break;
+      if (attempt === attempts - 1) break;
       await sleep(250 * Math.pow(2, attempt));
     }
   }

@@ -4,14 +4,20 @@ import type { CharacterData } from "@/types/character";
 import type { InMemorySession, PlayerAction } from "@/types/game";
 import type { WorldData } from "@/types/world";
 
-const mocks = vi.hoisted(() => ({ stream: vi.fn() }));
+const mocks = vi.hoisted(() => ({ stream: vi.fn(), create: vi.fn() }));
 
 vi.mock("./client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./client")>()),
-  getAnthropicClient: () => ({ messages: { stream: mocks.stream } }),
+  getAnthropicClient: () => ({ messages: { stream: mocks.stream, create: mocks.create } }),
 }));
 
-import { computePassiveBonuses, resolveSkillCheck, streamGMTurn, type GMStreamEvent } from "./gm-engine";
+import {
+  computePassiveBonuses,
+  generateOpeningNarration,
+  resolveSkillCheck,
+  streamGMTurn,
+  type GMStreamEvent,
+} from "./gm-engine";
 
 interface Script {
   text?: string[];
@@ -108,6 +114,7 @@ function eventData<T>(events: GMStreamEvent[], type: GMStreamEvent["type"]): T {
 
 beforeEach(() => {
   mocks.stream.mockReset();
+  mocks.create.mockReset();
 });
 
 afterEach(() => {
@@ -444,3 +451,29 @@ describe("computePassiveBonuses", () => {
   });
 });
 
+
+describe("generateOpeningNarration", () => {
+  const reply = (text: string, stopReason = "end_turn") => ({
+    content: text ? [{ type: "text", text }] : [],
+    stop_reason: stopReason,
+  });
+
+  it("returns the opening scene", async () => {
+    mocks.create.mockResolvedValueOnce(reply(REPLY));
+    await expect(generateOpeningNarration(world, character)).resolves.toMatchObject({
+      narration: "The gate groans and gives way.",
+    });
+  });
+
+  it("throws rather than starting a game with a blank opening", async () => {
+    mocks.create.mockResolvedValueOnce(reply(""));
+    await expect(generateOpeningNarration(world, character)).rejects.toThrow("gm_empty_reply");
+    mocks.create.mockResolvedValueOnce(reply(JSON.stringify({ narration: "  ", choices: ["Go"] })));
+    await expect(generateOpeningNarration(world, character)).rejects.toThrow("gm_empty_reply");
+  });
+
+  it("throws on a refusal", async () => {
+    mocks.create.mockResolvedValueOnce(reply("I can't write that.", "refusal"));
+    await expect(generateOpeningNarration(world, character)).rejects.toThrow("gm_safety_refusal");
+  });
+});

@@ -13,7 +13,9 @@ export async function GET(_req: Request, { params }: RouteContext) {
     const error = result.status === 404 ? "World not found." : "Not allowed to play this world.";
     return NextResponse.json({ error }, { status: result.status });
   }
-  return NextResponse.json(result.world);
+  // The game routes load the world (and its prompt) server-side, so a
+  // creator's system prompt never needs to reach the browser.
+  return NextResponse.json({ ...result.world, systemPrompt: "" });
 }
 
 export async function DELETE(_req: Request, { params }: RouteContext) {

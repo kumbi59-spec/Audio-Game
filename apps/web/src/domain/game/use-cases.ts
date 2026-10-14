@@ -205,7 +205,7 @@ export function wovenTail(
   return narration.slice(spoken.length);
 }
 
-function prettifyNpcId(npcId: string): string {
+export function prettifyNpcId(npcId: string): string {
   if (!npcId) return "";
   return npcId
     .split(/[_\s-]+/)

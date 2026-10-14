@@ -35,6 +35,10 @@ export class SideEffectProcessor {
   constructor(
     private readonly maxRetries = 3,
     private readonly baseBackoffMs = 20,
+    // Bounds for a long-running process: the dedupe set forgets its least
+    // recently seen keys and the dead-letter queue keeps only the newest.
+    private readonly maxDedupeKeys = 10_000,
+    private readonly maxDeadLetters = 1_000,
   ) {}
 
   register(bus: DomainEventBus, config: SideEffectConfig): void {
@@ -51,22 +55,36 @@ export class SideEffectProcessor {
     const handlerDedupeKey = `${event.dedupeKey}:${config.name}`;
     if (this.dedupeStore.has(handlerDedupeKey)) {
       this.dedupeHits += 1;
+      // Re-insert so the key counts as recently seen.
+      this.dedupeStore.delete(handlerDedupeKey);
+      this.dedupeStore.add(handlerDedupeKey);
       return;
     }
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       try {
         await config.action(event);
-        this.dedupeStore.add(handlerDedupeKey);
+        this.rememberDedupeKey(handlerDedupeKey);
         return;
       } catch {
         if (attempt === this.maxRetries) {
           this.deadLetterQueue.push(event);
+          if (this.deadLetterQueue.length > this.maxDeadLetters) this.deadLetterQueue.shift();
           return;
         }
         this.retryVolume += 1;
         await sleep(this.baseBackoffMs * (attempt + 1));
       }
+    }
+  }
+
+  private rememberDedupeKey(key: string): void {
+    this.dedupeStore.add(key);
+    // A Set iterates in insertion order, so the first key is the stalest.
+    while (this.dedupeStore.size > this.maxDedupeKeys) {
+      const stalest = this.dedupeStore.values().next().value;
+      if (stalest === undefined) break;
+      this.dedupeStore.delete(stalest);
     }
   }
 

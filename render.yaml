@@ -2,7 +2,9 @@
 #
 # Database is intentionally NOT provisioned here. EchoQuest uses Supabase Postgres
 # (with the pgvector extension) so the same instance can serve Prisma (web) and
-# the API's pg-based vector queries. See DEPLOY.md for the full walkthrough.
+# the API's pg-based vector queries. Both services connect through Supabase's
+# session-mode pooler (port 5432); the direct db.<ref>.supabase.co host is
+# IPv6-only and Render has no outbound IPv6. See DEPLOY.md for the full walkthrough.
 #
 # After importing this blueprint, fill the secret env vars (those marked
 # `sync: false`) under each service in the Render dashboard.
@@ -23,11 +25,7 @@ services:
       pnpm --filter @audio-rpg/web db:generate &&
       pnpm --filter @audio-rpg/web build
     startCommand: >-
-      sh -c "pnpm --filter @audio-rpg/web exec prisma migrate resolve
-      --rolled-back 20260429011215_initial_postgres 2>/dev/null || true &&
-      pnpm --filter @audio-rpg/web exec prisma migrate resolve
-      --applied 20260429011215_initial_postgres 2>/dev/null || true &&
-      pnpm --filter @audio-rpg/web exec prisma migrate deploy &&
+      sh -c "pnpm --filter @audio-rpg/web exec prisma migrate deploy &&
       pnpm --filter @audio-rpg/web start"
     envVars:
       - key: NODE_VERSION
@@ -41,7 +39,7 @@ services:
       - key: SESSION_SIGNING_KEY
         sync: false           # MUST match echoquest-api's SESSION_SIGNING_KEY exactly. Both services HMAC-sign and verify lobby tokens with this key; if they differ, the api rejects every token with "Invalid auth token". Generate one 32-byte random value (e.g. `openssl rand -base64 32`) and paste the same value into both services.
       - key: DATABASE_URL
-        sync: false           # Supabase session-mode pooler URL — see DEPLOY.md for the correct format
+        sync: false           # Supabase session-mode pooler URL (port 5432, user postgres.<project-ref>). Not the transaction pooler on 6543: `prisma migrate deploy` needs session mode. See DEPLOY.md.
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ADMIN_EMAILS
@@ -61,10 +59,22 @@ services:
         sync: false
       - key: STRIPE_PRICE_CREATOR_ANNUAL
         sync: false
+      - key: STRIPE_PRICE_PACK_60
+        sync: false           # One-time AI minute packs (one-time prices in Stripe)
+      - key: STRIPE_PRICE_PACK_180
+        sync: false
+      - key: STRIPE_PRICE_PACK_600
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false           # Optional. With the token below, rate limits use Upstash Redis; unset, they use the Postgres RateLimitBucket table.
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: RESEND_FROM
         sync: false           # Required when RESEND_API_KEY is set — must be an address on a Resend-verified domain, e.g. "EchoQuest <noreply@yourdomain.com>"
+      - key: CONTACT_EMAIL
+        sync: false           # Inbox for /contact-us messages (sent through Resend)
       - key: IMAGE_GEN_PROVIDER
         sync: false           # set to "replicate" to enable AI cover art
       - key: REPLICATE_API_TOKEN
@@ -98,24 +108,32 @@ services:
     rootDir: .
     autoDeploy: true
     healthCheckPath: /health
+    # NODE_ENV=production (below) is also set at build time, and pnpm then skips
+    # devDependencies; --prod=false keeps the TypeScript toolchain the build needs.
     buildCommand: |
       corepack enable && corepack prepare pnpm@9.12.0 --activate &&
-      pnpm install --frozen-lockfile=false &&
+      pnpm install --frozen-lockfile=false --prod=false &&
       pnpm --filter @audio-rpg/shared --filter @audio-rpg/gm-engine --filter @audio-rpg/api build
     startCommand: pnpm --filter @audio-rpg/api start
     envVars:
       - key: NODE_VERSION
         value: 20.11.0
+      - key: NODE_ENV
+        value: production     # Enables the production guards: refuses to boot without a real SESSION_SIGNING_KEY, never mounts the dev tier-token route
       - key: PORT
         value: "4000"
+      - key: TRUST_PROXY_HOPS
+        value: "1"            # Render's proxy is one hop; per-IP rate limits read the client IP through it. Keep 1 on Render.
+      # ENABLE_DEV_TIER_TOKENS is for local development only (it mounts an
+      # unauthenticated tier-token route). Never set it here.
       - key: SESSION_SIGNING_KEY
-        sync: false           # MUST match echoquest-web's SESSION_SIGNING_KEY exactly — see the note on the web service above.
+        sync: false           # REQUIRED before deploying: the api refuses to boot in production without a real secret. MUST match echoquest-web's SESSION_SIGNING_KEY exactly — see the note on the web service above.
       - key: ALLOWED_ORIGINS
         sync: false           # Comma-separated list of allowed web origins for the multiplayer lobby WebSocket, e.g. https://echoquest-web.onrender.com,https://echoquest.us
       - key: DATABASE_URL
-        sync: false           # Supabase direct connection string (port 5432) for vector queries
-      - key: REDIS_URL
-        sync: false
+        sync: false           # Supabase session-mode pooler URL (port 5432, user postgres.<project-ref>), ending ?sslmode=verify-full&sslrootcert=/etc/secrets/supabase-ca.crt (CA as a Secret File) or at least ?sslmode=no-verify. Never ?sslmode=require: node-postgres treats it as verify-full and Supabase's CA isn't trusted by Node. See DEPLOY.md.
+      - key: DATABASE_POOL_MAX
+        sync: false           # Optional api pg pool size (default 10). Use ~5 on small Supabase compute so web + api stay under the pooler's limit.
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: CLAUDE_GM_MODEL
@@ -123,16 +141,10 @@ services:
       - key: CLAUDE_SUMMARY_MODEL
         value: claude-haiku-4-5-20251001
       - key: ELEVENLABS_API_KEY
-        sync: false
+        sync: false           # Server-side narration via /tts/stream, which needs a storyteller tier token
       - key: DEEPGRAM_API_KEY
+        sync: false           # With DEEPGRAM_PROJECT_ID; unset, POST /stt/token returns 503 and clients use on-device STT (GET /stt/status reports which)
+      - key: DEEPGRAM_PROJECT_ID
         sync: false
       - key: VOYAGE_API_KEY
-        sync: false
-      - key: R2_ACCOUNT_ID
-        sync: false
-      - key: R2_ACCESS_KEY_ID
-        sync: false
-      - key: R2_SECRET_ACCESS_KEY
-        sync: false
-      - key: R2_BUCKET
         sync: false

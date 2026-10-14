@@ -13,6 +13,12 @@ function stripMarkdown(markdown: string): string {
     .trim();
 }
 
+// Lowercase words only, so punctuation or markdown in the title or the body
+// (a hyphen, a colon, an apostrophe) can't stop the key phrase matching.
+function normalizeWords(text: string): string {
+  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
 function buildExcerpt(content: string): string {
   const plain = stripMarkdown(content);
   if (plain.length <= 155) return plain;
@@ -20,18 +26,18 @@ function buildExcerpt(content: string): string {
 }
 
 function improveContent(title: string, content: string): string {
-  const lower = content.toLowerCase();
-  const keyPhrase = title.split(/\s+/).slice(0, 4).join(" ").trim();
+  const keyPhrase = normalizeWords(title).split(" ").slice(0, 4).join(" ");
   let next = content.trim();
 
-  const first100Words = stripMarkdown(content).toLowerCase().split(/\s+/).slice(0, 100).join(" ");
-  if (keyPhrase && !first100Words.includes(keyPhrase.toLowerCase())) {
+  const first100Words = normalizeWords(stripMarkdown(content)).split(" ").slice(0, 100).join(" ");
+  if (keyPhrase && !first100Words.includes(keyPhrase)) {
     next = `${title} is the focus of this guide.\n\n${next}`;
   }
   if (!/^#{2,3}\s+/m.test(next)) {
     next += "\n\n## Key Takeaways\n- Apply these steps consistently to improve search visibility.\n";
   }
-  if (!/\]\(\/(blog|library|campaigns|pricing|worlds)[^)]+\)/i.test(next)) {
+  // [^)]* so the bare "/blog" link added below counts on the next run.
+  if (!/\]\(\/(blog|library|campaigns|pricing|worlds)[^)]*\)/i.test(next)) {
     next += "\n\nRelated reading: [Browse all EchoQuest blog posts](/blog).";
   }
   if (!/\]\(https?:\/\/(?!echoquest\.(?:app|us))[^)]+\)/i.test(next)) {

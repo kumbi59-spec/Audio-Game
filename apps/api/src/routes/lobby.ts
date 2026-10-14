@@ -17,12 +17,15 @@ interface LobbyRoom {
   connections: Map<string, LobbyConnection>;
   hostUserId: string;
   maxPlayers: number;
+  /** Pending game-start countdown; cleared when anyone un-readies or leaves. */
+  startTimer: ReturnType<typeof setTimeout> | null;
 }
 
 const rooms = new Map<string, LobbyRoom>();
 
 /** Exposed for test teardown only. */
 export function clearRooms(): void {
+  for (const room of rooms.values()) cancelStart(room);
   rooms.clear();
 }
 
@@ -41,20 +44,82 @@ function participantList(room: LobbyRoom): LobbyParticipant[] {
   return Array.from(room.connections.values()).map((c) => c.participant);
 }
 
-function handleLeave(campaignId: string, userId: string, app: FastifyInstance): void {
+function lobbyState(campaignId: string, room: LobbyRoom): MultiplayerServerEvent {
+  return {
+    type: "lobby_state",
+    v: "v1",
+    campaignId,
+    participants: participantList(room),
+    maxPlayers: room.maxPlayers,
+    hostUserId: room.hostUserId,
+  };
+}
+
+function allReady(room: LobbyRoom): boolean {
+  const participants = participantList(room);
+  return participants.length >= 2 && participants.every((p) => p.ready);
+}
+
+function cancelStart(room: LobbyRoom): void {
+  if (room.startTimer) {
+    clearTimeout(room.startTimer);
+    room.startTimer = null;
+  }
+}
+
+/**
+ * Starts the countdown to turn_request once at least two players are all
+ * ready. At most one countdown runs per room.
+ */
+function maybeStart(campaignId: string, room: LobbyRoom, startDelayMs: number): void {
+  if (room.startTimer || !allReady(room)) return;
+
+  broadcast(room, {
+    type: "lobby_ready",
+    v: "v1",
+    campaignId,
+    participants: participantList(room),
+  });
+
+  const turnId = randomUUID();
+  room.startTimer = setTimeout(() => {
+    room.startTimer = null;
+    if (rooms.get(campaignId) !== room || !allReady(room)) return;
+    const hostConn = room.connections.get(room.hostUserId);
+    broadcast(room, {
+      type: "turn_request",
+      v: "v1",
+      campaignId,
+      requestingUserId: room.hostUserId,
+      requestingDisplayName: hostConn?.participant.displayName ?? "Host",
+      turnId,
+    });
+    rooms.delete(campaignId);
+  }, startDelayMs);
+}
+
+function handleLeave(
+  campaignId: string,
+  userId: string,
+  app: FastifyInstance,
+  startDelayMs: number,
+): void {
   const room = rooms.get(campaignId);
   if (!room) return;
   const conn = room.connections.get(userId);
   if (!conn) return;
 
   room.connections.delete(userId);
+  // The roster changed, so any countdown restarts from the new roster.
+  cancelStart(room);
 
   if (room.connections.size === 0) {
     rooms.delete(campaignId);
     return;
   }
 
-  if (room.hostUserId === userId) {
+  const hostChanged = room.hostUserId === userId;
+  if (hostChanged) {
     room.hostUserId = room.connections.keys().next().value as string;
   }
 
@@ -65,8 +130,13 @@ function handleLeave(campaignId: string, userId: string, app: FastifyInstance): 
     userId,
     displayName: conn.participant.displayName,
   });
+  // player_left carries no host, so clients learn the new one from here.
+  if (hostChanged) broadcast(room, lobbyState(campaignId, room));
 
   app.log.info({ campaignId, userId }, "lobby participant left");
+
+  // The player who left may have been the only one not ready.
+  maybeStart(campaignId, room, startDelayMs);
 }
 
 export async function registerLobbyRoutes(
@@ -129,6 +199,19 @@ export async function registerLobbyRoutes(
         }
 
         if (event.type === "lobby_join") {
+          if (userId) {
+            // A second join would add a ghost participant that never leaves.
+            socket.send(
+              JSON.stringify({
+                type: "error",
+                v: "v1",
+                code: "already_joined",
+                message: "This connection has already joined the lobby.",
+                recoverable: true,
+              }),
+            );
+            return;
+          }
           const claims = verifyLobbyToken(event.authToken, campaignId);
           if (!claims) {
             socket.send(
@@ -152,7 +235,7 @@ export async function registerLobbyRoutes(
 
           let room = rooms.get(campaignId);
           if (!room) {
-            room = { connections: new Map(), hostUserId: userId, maxPlayers: 4 };
+            room = { connections: new Map(), hostUserId: userId, maxPlayers: 4, startTimer: null };
             rooms.set(campaignId, room);
           }
 
@@ -177,6 +260,8 @@ export async function registerLobbyRoutes(
             joinedAt: new Date().toISOString(),
           };
           room.connections.set(userId, { socket, participant });
+          // A new player isn't ready yet, so a running countdown stops.
+          cancelStart(room);
 
           // Send full state to the new joiner, including their own userId so the
           // client can identify itself in the participant list without guessing.
@@ -238,57 +323,21 @@ export async function registerLobbyRoutes(
           if (!conn) return;
           conn.participant = { ...conn.participant, ready: event.ready };
 
-          const participants = participantList(room);
-          broadcast(room, {
-            type: "lobby_state",
-            v: "v1",
-            campaignId,
-            participants,
-            maxPlayers: room.maxPlayers,
-            hostUserId: room.hostUserId,
-          });
+          broadcast(room, lobbyState(campaignId, room));
 
-          if (
-            participants.length >= 2 &&
-            participants.every((p) => p.ready)
-          ) {
-            broadcast(room, {
-              type: "lobby_ready",
-              v: "v1",
-              campaignId,
-              participants,
-            });
-
-            const hostConn = room.connections.get(room.hostUserId);
-            const hostDisplayName = hostConn?.participant.displayName ?? "Host";
-            const hostId = room.hostUserId;
-            const turnId = randomUUID();
-
-            setTimeout(() => {
-              const r = rooms.get(campaignId);
-              if (!r) return;
-              broadcast(r, {
-                type: "turn_request",
-                v: "v1",
-                campaignId,
-                requestingUserId: hostId,
-                requestingDisplayName: hostDisplayName,
-                turnId,
-              });
-              rooms.delete(campaignId);
-            }, startDelayMs);
-          }
+          if (event.ready) maybeStart(campaignId, room, startDelayMs);
+          else cancelStart(room);
           return;
         }
 
         if (event.type === "lobby_leave") {
-          handleLeave(campaignId, userId, app);
+          handleLeave(campaignId, userId, app, startDelayMs);
           socket.close();
         }
       });
 
       socket.on("close", () => {
-        if (userId) handleLeave(campaignId, userId, app);
+        if (userId) handleLeave(campaignId, userId, app, startDelayMs);
       });
     },
   );

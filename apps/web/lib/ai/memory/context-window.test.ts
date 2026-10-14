@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { CharacterData } from "@/types/character";
-import { buildCharacterStateBlock, pendingSummaryFor, trimHistoryForContext } from "./context-window";
+import type { InMemorySession } from "@/types/game";
+import type { WorldData } from "@/types/world";
+import {
+  buildCharacterStateBlock,
+  buildContextMessages,
+  buildWorldStateBlock,
+  pendingSummaryFor,
+  trimHistoryForContext,
+} from "./context-window";
 
 const msg = (i: number, size = 10) => ({ role: i % 2 ? "assistant" : "user", content: String(i).padEnd(size, ".") });
 
@@ -75,5 +83,47 @@ describe("buildCharacterStateBlock", () => {
   it("flags a character at 0 HP as down", () => {
     expect(buildCharacterStateBlock(hero)).not.toContain("Condition: DOWN");
     expect(buildCharacterStateBlock({ ...hero, stats: { ...hero.stats, hp: 0 } })).toContain("Condition: DOWN (0 HP)");
+  });
+});
+
+describe("buildContextMessages and buildWorldStateBlock", () => {
+  const world = {
+    id: "w1",
+    locations: [
+      { id: "harbor", name: "The Harbor", shortDesc: "Gulls and tar" },
+      { id: "chapel", name: "Drowned Chapel", shortDesc: "Water to the knees" },
+    ],
+  } as unknown as WorldData;
+  const session = {
+    currentLocationId: "harbor",
+    timeOfDay: "dusk",
+    weather: "fog",
+    globalFlags: {},
+    relationships: [],
+    codex: [],
+    history: [],
+  } as unknown as InMemorySession;
+  const hero = { stats: {}, inventory: [], quests: [] } as unknown as CharacterData;
+
+  it("leaves blank messages out of the request, since the API rejects them", () => {
+    const history = [
+      { role: "assistant" as const, content: "" },
+      { role: "user" as const, content: "I look around" },
+      { role: "assistant" as const, content: "  \n" },
+      { role: "user" as const, content: "I wait" },
+      { role: "assistant" as const, content: '{"narration":"Rain."}' },
+    ];
+    expect(buildContextMessages({ ...session, history }, hero, world)).toEqual([
+      { role: "user", content: "I look around" },
+      { role: "user", content: "I wait" },
+      { role: "assistant", content: '{"narration":"Rain."}' },
+    ]);
+  });
+
+  it("lists the world's location ids for the GM to move the player with", () => {
+    const block = buildWorldStateBlock(session, world);
+    expect(block).toContain("Current Location: The Harbor");
+    expect(block).toContain("Location IDs: harbor (The Harbor), chapel (Drowned Chapel)");
+    expect(buildWorldStateBlock(session, { ...world, locations: [] })).toContain("Location IDs: none");
   });
 });

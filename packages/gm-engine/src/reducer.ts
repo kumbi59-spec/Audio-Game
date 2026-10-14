@@ -7,6 +7,8 @@ import type {
   StateMutation,
 } from "@audio-rpg/shared";
 
+const MAX_LEVEL_UPS_PER_ADJUST = 100;
+
 /**
  * Deterministic reducer that applies GM-proposed mutations to canonical
  * campaign state. The model never owns inventory, quests, or relationships
@@ -48,19 +50,27 @@ export function applyMutation(
             ],
       };
     case "stat.adjust": {
+      // Level only changes through experience, as in the web reducer: a
+      // "level" delta from the GM would double a level-up it also granted
+      // XP for.
+      if (m.stat === "level") return state;
       const current = state.character.stats[m.stat] ?? 0;
       const newValue = current + m.delta;
-      let newStats = { ...state.character.stats, [m.stat]: newValue };
+      const newStats = { ...state.character.stats, [m.stat]: newValue };
 
       if (m.stat === "experience") {
-        const currentLevel = newStats["level"] ?? 1;
-        const xpThreshold = currentLevel * currentLevel * 100;
-        if (newValue >= xpThreshold) {
+        // Loop so a large XP grant crosses several levels in one turn.
+        // Bounded so an absurd grant can't stall the event loop.
+        for (let i = 0; i < MAX_LEVEL_UPS_PER_ADJUST; i += 1) {
+          const currentLevel = newStats["level"] ?? 1;
+          const xpThreshold = currentLevel * currentLevel * 100;
+          if (newValue < xpThreshold) break;
           const nextLevel = currentLevel + 1;
           newStats["level"] = nextLevel;
-          const newMaxHp = (newStats["maxHp"] ?? 10) + 5;
+          const prevMaxHp = newStats["maxHp"] ?? 10;
+          const newMaxHp = prevMaxHp + 5;
           newStats["maxHp"] = newMaxHp;
-          newStats["hp"] = Math.min((newStats["hp"] ?? 0) + 5, newMaxHp);
+          newStats["hp"] = Math.min((newStats["hp"] ?? prevMaxHp) + 5, newMaxHp);
           // Alternate bonus: odd levels boost STR+DEX, even levels boost INT+CHA
           if (nextLevel % 2 !== 0) {
             newStats["strength"] = (newStats["strength"] ?? 10) + 1;
@@ -72,6 +82,14 @@ export function applyMutation(
         }
       }
 
+      if (m.stat === "hp" || m.stat === "maxHp") {
+        const hp = newStats["hp"];
+        const maxHp = newStats["maxHp"];
+        if (hp !== undefined) {
+          newStats["hp"] = Math.max(0, typeof maxHp === "number" ? Math.min(hp, maxHp) : hp);
+        }
+      }
+
       return {
         ...state,
         character: { ...state.character, stats: newStats },
@@ -80,7 +98,11 @@ export function applyMutation(
     case "scene.set":
       return {
         ...state,
-        scene: { name: m.name, summary: m.summary ?? state.scene.summary },
+        // A new scene starts without the old scene's summary.
+        scene: {
+          name: m.name,
+          summary: m.summary ?? (m.name === state.scene.name ? state.scene.summary : ""),
+        },
       };
     case "achievement.unlock":
       return {
@@ -103,9 +125,11 @@ function addItem(
 ): InventoryItem[] {
   const existing = inv.find((i) => i.name.toLowerCase() === m.item.toLowerCase());
   if (existing) {
-    return inv.map((i) =>
-      i === existing ? { ...i, quantity: i.quantity + m.quantity } : i,
-    );
+    return inv
+      .map((i) =>
+        i === existing ? { ...i, quantity: i.quantity + m.quantity } : i,
+      )
+      .filter((i) => i.quantity > 0);
   }
   return [
     ...inv,
@@ -115,7 +139,7 @@ function addItem(
       description: m.description,
       tags: m.tags ?? [],
     },
-  ];
+  ].filter((i) => i.quantity > 0);
 }
 
 function removeItem(

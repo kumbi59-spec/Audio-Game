@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Tier } from "@audio-rpg/shared";
-import { effectiveTierForEmail } from "@/lib/admin";
+import { effectiveTierForUser } from "@/lib/admin";
 
 export async function ensureGuestUser(guestId: string) {
   return prisma.user.upsert({
@@ -15,9 +15,12 @@ export async function ensureGuestUser(guestId: string) {
 }
 
 export async function getUserTier(userId: string): Promise<string> {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true, email: true } });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { tier: true, email: true, emailVerified: true },
+  });
   if (!user) return "free";
-  return effectiveTierForEmail(user.email, user.tier);
+  return effectiveTierForUser(user, user.tier);
 }
 
 export async function updateUserTier(userId: string, tier: Tier) {
@@ -71,23 +74,74 @@ const FREE_DAILY_AI_MINUTES = 60;
 export async function resetDailyMinutesIfNeeded(userId: string, tier: string): Promise<void> {
   if (tier !== "free") return;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { aiMinutesResetAt: true, aiMinutesRemaining: true },
-  });
-  if (!user) return;
-
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
-  if (user.aiMinutesResetAt < startOfToday) {
-    // Preserve purchased credits above the free daily cap — only top up if below it
-    const refreshed = Math.max(user.aiMinutesRemaining, FREE_DAILY_AI_MINUTES);
-    await prisma.user.update({
-      where: { id: userId },
-      data: { aiMinutesRemaining: refreshed, aiMinutesResetAt: new Date() },
-    });
-  }
+  // Conditional updates rather than read-then-write: once one request has
+  // moved aiMinutesResetAt into today, a concurrent one no longer matches, so
+  // the daily top-up can't be applied twice or overwrite a minute just spent.
+  // Purchased credits above the free daily cap are preserved — only top up
+  // when below it.
+  await prisma.user.updateMany({
+    where: {
+      id: userId,
+      aiMinutesResetAt: { lt: startOfToday },
+      aiMinutesRemaining: { lt: FREE_DAILY_AI_MINUTES },
+    },
+    data: { aiMinutesRemaining: FREE_DAILY_AI_MINUTES, aiMinutesResetAt: new Date() },
+  });
+  await prisma.user.updateMany({
+    where: { id: userId, aiMinutesResetAt: { lt: startOfToday } },
+    data: { aiMinutesResetAt: new Date() },
+  });
+}
+
+function startOfMonth(at: Date): Date {
+  const start = new Date(at);
+  start.setDate(1);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+/**
+ * Reserves `chars` of the user's monthly ElevenLabs allowance before the
+ * upstream call. Conditional updates rather than read-then-write, so parallel
+ * requests can't all pass the cap check on the same stale count: the first
+ * starts a new month's count (only if the request fits), the second adds to
+ * this month's count only while the total stays within the cap. Returns false
+ * when the request would go over.
+ */
+export async function reserveTtsChars(userId: string, chars: number, cap: number, now = new Date()): Promise<boolean> {
+  if (chars > cap) return false;
+  const monthStart = startOfMonth(now);
+  const newMonth = await prisma.user.updateMany({
+    where: { id: userId, ttsCharsResetAt: { lt: monthStart } },
+    data: { ttsCharsUsedThisMonth: chars, ttsCharsResetAt: now },
+  });
+  if (newMonth.count > 0) return true;
+  const added = await prisma.user.updateMany({
+    where: { id: userId, ttsCharsResetAt: { gte: monthStart }, ttsCharsUsedThisMonth: { lte: cap - chars } },
+    data: { ttsCharsUsedThisMonth: { increment: chars } },
+  });
+  return added.count > 0;
+}
+
+/**
+ * Gives back a reservation whose upstream request failed. Skipped once the
+ * count has rolled over into a later month, which already dropped it.
+ */
+export async function refundTtsChars(userId: string, chars: number, reservedAt: Date): Promise<void> {
+  const monthStart = startOfMonth(reservedAt);
+  const nextMonthStart = new Date(monthStart);
+  nextMonthStart.setMonth(nextMonthStart.getMonth() + 1);
+  await prisma.user.updateMany({
+    where: {
+      id: userId,
+      ttsCharsResetAt: { gte: monthStart, lt: nextMonthStart },
+      ttsCharsUsedThisMonth: { gte: chars },
+    },
+    data: { ttsCharsUsedThisMonth: { decrement: chars } },
+  });
 }
 
 export async function recordTtsChars(userId: string, chars: number): Promise<void> {

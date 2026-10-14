@@ -32,6 +32,44 @@ describe("game store", () => {
     expect(state.previousTurn).toBeNull();
   });
 
+  it("loads a saved campaign without the last game's undo", () => {
+    useGameStore.setState({ world, character, session: session("saved"), dbSessionId: "saved-db" });
+    useGameStore.getState().saveCurrentCampaign();
+    useGameStore.setState({
+      session: session("other"),
+      dbSessionId: "other-db",
+      previousTurn: { character, session: session("other") },
+    });
+    useGameStore.getState().loadSavedCampaign("w1:saved");
+    const state = useGameStore.getState();
+    expect(state.session?.id).toBe("saved");
+    expect(state.dbSessionId).toBe("saved-db");
+    expect(state.previousTurn).toBeNull();
+  });
+
+  it("moves summarizedMessages back by the history a saved campaign drops", () => {
+    // 30 messages of 10k chars: the context trim drops the oldest 20.
+    const history = Array.from({ length: 30 }, (_, i) => ({
+      role: i % 2 === 0 ? ("user" as const) : ("assistant" as const),
+      content: `${i}`.padEnd(10_000, "."),
+    }));
+    useGameStore.setState({ world, character, session: { ...session("s1"), history, summarizedMessages: 25 } });
+    useGameStore.getState().saveCurrentCampaign();
+    const saved = useGameStore.getState().savedCampaigns[0]!.session;
+    expect(saved.history).toHaveLength(10);
+    expect(saved.summarizedMessages).toBe(5);
+
+    useGameStore.setState({ session: { ...session("s2"), history, summarizedMessages: 4 } });
+    useGameStore.getState().saveCurrentCampaign();
+    expect(useGameStore.getState().savedCampaigns[0]!.session.summarizedMessages).toBe(0);
+  });
+
+  it("stamps progress with the turn being played, as the server does", () => {
+    useGameStore.setState({ world, character, session: session("s1") });
+    useGameStore.getState().updateNpcRelationship({ npcId: "voss", name: "Voss", standing: 10 });
+    expect(useGameStore.getState().session!.relationships[0]!.lastSeenTurn).toBe(4);
+  });
+
   it("keeps saved campaigns small: recent log only, no GM prompt", () => {
     useGameStore.setState({ world, character, session: session("s1", 400) });
     useGameStore.getState().saveCurrentCampaign();

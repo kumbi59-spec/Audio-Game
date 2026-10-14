@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { prisma } from "@/lib/db";
 import { generateAICoverArt } from "@/lib/ai/cover-art-gen";
 
@@ -14,11 +15,16 @@ function providerDiagnostic(): string | null {
 }
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+  const limited = await limitAuthoringRequest(req, {
+    id: session.user.id,
+    isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
+  });
+  if (limited) return limited;
 
   const tier = (session.user as { tier?: string }).tier ?? "free";
   if (tier !== "creator") {

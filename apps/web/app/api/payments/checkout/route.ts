@@ -26,15 +26,22 @@ export async function GET(req: NextRequest) {
 
   try {
     const session = await auth();
-    const user = session?.user?.id
-      ? await prisma.user.findUnique({ where: { id: session.user.id }, select: { stripeCustomerId: true, email: true } })
-      : null;
+    // A purchase has to belong to an account (a pack bought signed out has
+    // no user to credit), so sign in first and come back to this checkout.
+    if (!session?.user?.id) {
+      const callbackUrl = `/api/payments/checkout?tier=${encodeURIComponent(tier)}`;
+      return NextResponse.redirect(`${origin}/auth/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
+    }
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { stripeCustomerId: true, email: true },
+    });
 
     const result = await buildCheckoutResult(
       tier as PriceKey,
       origin,
-      session?.user?.id,
-      session?.user?.email ?? undefined,
+      session.user.id,
+      session.user.email ?? undefined,
       user?.stripeCustomerId ?? undefined,
     );
     return NextResponse.redirect(result.url);
@@ -62,6 +69,11 @@ export async function POST(req: NextRequest) {
 
     const origin = getPublicOrigin(req);
     const session = await auth();
+    // Pack minutes are credited to the signed-in user; without one there is
+    // nobody to credit.
+    if (!session?.user?.id && isPackPriceKey(priceKey)) {
+      return NextResponse.json({ error: "Sign in to buy AI minutes." }, { status: 401 });
+    }
     const user = session?.user?.id
       ? await prisma.user.findUnique({ where: { id: session.user.id }, select: { stripeCustomerId: true, email: true } })
       : null;

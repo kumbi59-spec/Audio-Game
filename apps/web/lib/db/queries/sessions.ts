@@ -55,7 +55,7 @@ export async function listUserSessions(userId: string) {
       gameState: { select: { currentLocationId: true } },
     },
     orderBy: { lastPlayedAt: "desc" },
-    take: 10,
+    take: 50,
   });
 }
 

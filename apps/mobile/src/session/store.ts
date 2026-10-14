@@ -6,7 +6,8 @@ import type {
   StateMutation,
 } from "@audio-rpg/shared";
 import { applyMutations } from "@audio-rpg/gm-engine";
-import { updateNpcVoiceMap } from "@/audio/narrator";
+import { resetNpcVoiceMap, updateNpcVoiceMap } from "@/audio/narrator";
+import { usePrefs } from "@/prefs/store";
 import { buildPlayerTranscript, buildTranscriptPlainText } from "@/domain/session/use-cases";
 
 export interface TranscriptEntry {
@@ -28,10 +29,15 @@ export interface SessionSlice {
   acceptsFreeform: boolean;
   awaitingGm: boolean;
   lastError: string | null;
+  /** Why the campaign couldn't be joined or re-joined; the screen offers Retry. */
+  connectionError: string | null;
+  /** Choices cleared by the pending input, restored if the server rejects it. */
+  choicesBeforeInput: ChoiceOption[] | null;
 
   // lifecycle
   reset: () => void;
   setConnected: (connected: boolean) => void;
+  setConnectionError: (message: string | null) => void;
   joined: (args: {
     campaignId: string;
     authToken: string;
@@ -54,8 +60,11 @@ export const useSession = create<SessionSlice>((set, get) => ({
   acceptsFreeform: true,
   awaitingGm: false,
   lastError: null,
+  connectionError: null,
+  choicesBeforeInput: null,
 
-  reset: () =>
+  reset: () => {
+    resetNpcVoiceMap();
     set({
       connected: false,
       campaignId: null,
@@ -68,11 +77,21 @@ export const useSession = create<SessionSlice>((set, get) => ({
       acceptsFreeform: true,
       awaitingGm: false,
       lastError: null,
-    }),
+      connectionError: null,
+      choicesBeforeInput: null,
+    });
+  },
 
-  setConnected: (connected) => set({ connected }),
+  // A dropped socket loses the running turn, so input is released.
+  setConnected: (connected) =>
+    set(connected ? { connected } : { connected, awaitingGm: false }),
 
-  joined: ({ campaignId, authToken, title, state }) =>
+  setConnectionError: (connectionError) => set({ connectionError }),
+
+  joined: ({ campaignId, authToken, title, state }) => {
+    // Kept per campaign so the campaign screen can resume or reconnect.
+    usePrefs.getState().setSessionToken(campaignId, authToken);
+    resetNpcVoiceMap();
     set({
       campaignId,
       authToken,
@@ -80,10 +99,14 @@ export const useSession = create<SessionSlice>((set, get) => ({
       state,
       transcript: [],
       choices: [],
+      acceptsFreeform: true,
       currentTurnId: null,
       awaitingGm: false,
       lastError: null,
-    }),
+      connectionError: null,
+      choicesBeforeInput: null,
+    });
+  },
 
   appendPlayer: (text) =>
     set((s) => {
@@ -103,6 +126,7 @@ export const useSession = create<SessionSlice>((set, get) => ({
       ],
       awaitingGm: true,
       choices: [],
+      choicesBeforeInput: s.choicesBeforeInput ?? s.choices,
     };
   }),
 
@@ -127,10 +151,14 @@ export const useSession = create<SessionSlice>((set, get) => ({
               { id: turnId, role: "gm", text, streaming: !done },
             ];
           }
+          // The turn lock is held until turn_complete or error, not until
+          // the narration's done chunk.
           return {
             transcript,
             currentTurnId: turnId,
-            awaitingGm: !done,
+            awaitingGm: true,
+            lastError: null,
+            choicesBeforeInput: null,
           };
         });
         return;
@@ -139,15 +167,22 @@ export const useSession = create<SessionSlice>((set, get) => ({
         set({
           choices: evt.choices,
           acceptsFreeform: evt.acceptsFreeform,
+          choicesBeforeInput: null,
         });
         return;
       case "state_delta": {
         const mutations: StateMutation[] = evt.mutations;
-        set((s) =>
-          s.state
-            ? { state: applyMutations(s.state, mutations) }
-            : {},
-        );
+        set((s) => {
+          if (!s.state) return {};
+          // The server applies a turn's mutations at that turn's number, so
+          // unlock and interaction stamps match; turn_complete then
+          // advances the counter.
+          const next = applyMutations(
+            { ...s.state, turn_number: s.state.turn_number + 1 },
+            mutations,
+          );
+          return { state: { ...next, turn_number: s.state.turn_number } };
+        });
         return;
       }
       case "sound_cue":
@@ -171,13 +206,21 @@ export const useSession = create<SessionSlice>((set, get) => ({
           s.state
             ? {
                 awaitingGm: false,
+                choicesBeforeInput: null,
                 state: { ...s.state, turn_number: evt.turnNumber },
               }
-            : { awaitingGm: false },
+            : { awaitingGm: false, choicesBeforeInput: null },
         );
         return;
       case "error":
-        set({ lastError: evt.message, awaitingGm: false });
+        set((s) => ({
+          lastError: evt.message,
+          awaitingGm: false,
+          // The input didn't produce a turn, so its choices come back.
+          ...(s.choicesBeforeInput
+            ? { choices: s.choicesBeforeInput, choicesBeforeInput: null }
+            : {}),
+        }));
         return;
       case "voice_plan": {
         const assignments: Record<string, "voice_a" | "voice_b" | "voice_c"> = {};

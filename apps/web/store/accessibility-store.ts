@@ -73,8 +73,8 @@ export const useAccessibilityStore = create<AccessibilityStore>()(
     }),
     {
       name: A11Y_STORAGE_KEY,
-      // An open shortcut list shouldn't reopen on the next visit.
-      partialize: ({ keyboardHelpOpen: _open, ...rest }) => rest,
+      // An open shortcut list or Help manual shouldn't reopen on the next visit.
+      partialize: ({ keyboardHelpOpen: _open, operationsManualOpen: _manualOpen, ...rest }) => rest,
     }
   )
 );

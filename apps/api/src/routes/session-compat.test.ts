@@ -40,18 +40,21 @@ describe("session transport compatibility", () => {
       }),
     ).toThrowError(UnsupportedClientEventVersionError);
 
+    let caught: unknown;
     try {
       normalizeClientEventV1({
         type: "leave",
         v: "v2",
       });
     } catch (err) {
-      expect(err).toBeInstanceOf(UnsupportedClientEventVersionError);
-      const typed = err as UnsupportedClientEventVersionError;
-      expect(typed.code).toBe("unsupported_event_version");
-      expect(typed.recoverable).toBe(true);
-      expect(typed.providedVersion).toBe("v2");
+      caught = err;
     }
+    expect(caught).toBeInstanceOf(UnsupportedClientEventVersionError);
+    expect(caught).toMatchObject({
+      code: "unsupported_event_version",
+      recoverable: true,
+      providedVersion: "v2",
+    });
   });
 
   it("serializes outbound events in a versioned transport envelope", () => {

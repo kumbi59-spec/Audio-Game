@@ -17,15 +17,20 @@ jobs:
   deploy:
     name: "Trigger Render deploys"
     runs-on: ubuntu-latest
+    # `secrets` can't be read in a step-level `if:`, so the hooks go through
+    # job env (an unset secret is an empty string) and the steps test that.
+    env:
+      RENDER_DEPLOY_HOOK_API: ${{ secrets.RENDER_DEPLOY_HOOK_API }}
+      RENDER_DEPLOY_HOOK_WEB: ${{ secrets.RENDER_DEPLOY_HOOK_WEB }}
     steps:
       - name: Deploy echoquest-api
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_API != '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_API != '' }}
         run: |
-          curl -fsS --retry 3 "${{ secrets.RENDER_DEPLOY_HOOK_API }}"
+          curl -fsS --retry 3 "$RENDER_DEPLOY_HOOK_API"
           echo "echoquest-api deploy triggered"
 
       - name: Deploy echoquest-web
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_WEB != '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_WEB != '' }}
         run: |
-          curl -fsS --retry 3 "${{ secrets.RENDER_DEPLOY_HOOK_WEB }}"
+          curl -fsS --retry 3 "$RENDER_DEPLOY_HOOK_WEB"
           echo "echoquest-web deploy triggered"

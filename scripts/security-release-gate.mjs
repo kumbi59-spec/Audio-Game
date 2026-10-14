@@ -5,6 +5,11 @@
  * Strategy: gate on `pnpm audit --prod` first so release blocking reflects
  * production/runtime dependency risk. If registry audit is unavailable,
  * fall back to OSV-Scanner against the lockfile. Fails closed on UNKNOWN.
+ *
+ * Options (used by scripts/security-release-gate.test.mjs):
+ *   --audit-json <file>  gate on saved `pnpm audit --prod --json` output
+ *                        instead of running pnpm audit; no OSV fallback
+ *   --waivers <file>     waivers file (default: security-release-waivers.json)
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -12,7 +17,14 @@ import { resolve } from "node:path";
 
 const repoRoot = resolve(new URL(".", import.meta.url).pathname, "..");
 const lockfile = resolve(repoRoot, "pnpm-lock.yaml");
-const waiversFile = resolve(repoRoot, "security-release-waivers.json");
+
+function argValue(name) {
+  const i = process.argv.indexOf(name);
+  return i >= 0 ? process.argv[i + 1] : undefined;
+}
+
+const auditJsonFile = argValue("--audit-json");
+const waiversFile = resolve(argValue("--waivers") ?? resolve(repoRoot, "security-release-waivers.json"));
 
 function fail(message) {
   console.error(`RELEASE_GATED: ${message}`);
@@ -179,9 +191,28 @@ function estimateCvssV4Severity(vector) {
 }
 
 // ──────────────────────────── pnpm audit fallback ──────────────────────
-function runPnpmAudit() {
+function readPnpmAudit() {
+  if (auditJsonFile) {
+    try {
+      return readFileSync(resolve(auditJsonFile), "utf8").trim();
+    } catch (e) {
+      fail(`cannot read --audit-json file ${auditJsonFile}: ${e.message}`);
+    }
+  }
   const run = spawnSync("pnpm", ["audit", "--prod", "--json"], { encoding: "utf8" });
-  const raw = (run.stdout || "").trim();
+  return (run.stdout || "").trim();
+}
+
+// npm audit levels; "info" is the lowest and gates like "low".
+function auditSeverity(value) {
+  const s = String(value || "unknown").toLowerCase();
+  if (s === "info") return "low";
+  if (s === "medium") return "moderate";
+  return s;
+}
+
+function runPnpmAudit() {
+  const raw = readPnpmAudit();
   if (!raw) return { ran: true, ok: false, reason: "empty pnpm audit output" };
 
   const candidates = [raw, ...raw.split("\n").map((l) => l.trim()).filter(Boolean)];
@@ -204,35 +235,39 @@ function runPnpmAudit() {
   const v = payload?.metadata?.vulnerabilities;
   if (!v) return { ran: true, ok: false, reason: "pnpm audit response missing vulnerability metadata" };
 
-  const findings = Object.entries(payload?.vulnerabilities ?? {}).map(([name, item]) => ({
-    name,
-    severity: String(item?.severity || "unknown").toLowerCase(),
-    via: (item?.via ?? []).map((entry) => {
-      if (typeof entry === "string") return { source: entry };
-      return {
-        source: entry?.source,
-        title: entry?.title,
-        url: entry?.url,
-        severity: entry?.severity,
-      };
-    }),
-    fixAvailable: item?.fixAvailable,
-    range: item?.range,
-    nodes: item?.nodes ?? [],
+  const metadataCounts = {
+    critical: Number(v.critical || 0),
+    high: Number(v.high || 0),
+    moderate: Number(v.moderate || 0),
+    low: Number(v.low || 0) + Number(v.info || 0),
+    unknown: 0,
+  };
+
+  // pnpm prints the npm v6 audit report: one entry per advisory under
+  // `advisories`, keyed by advisory id.
+  const advisories = Object.values(payload?.advisories ?? {});
+  const reported = Object.values(metadataCounts).reduce((n, c) => n + c, 0);
+  if (advisories.length === 0 && reported > 0) {
+    // Totals without per-advisory detail: nothing to match waivers against,
+    // so gate on the totals.
+    return { ran: true, ok: true, findings: null, counts: metadataCounts };
+  }
+
+  const findings = advisories.map((item) => ({
+    name: String(item?.module_name ?? "unknown"),
+    severity: auditSeverity(item?.severity),
+    via: [
+      {
+        source: item?.id,
+        title: item?.title,
+        url: item?.url,
+        severity: item?.severity,
+      },
+    ],
+    range: item?.vulnerable_versions,
   }));
 
-  return {
-    ran: true,
-    ok: true,
-    findings,
-    counts: {
-      critical: Number(v.critical || 0),
-      high: Number(v.high || 0),
-      moderate: Number(v.moderate || 0),
-      low: Number(v.low || 0),
-      unknown: 0,
-    },
-  };
+  return { ran: true, ok: true, findings };
 }
 
 function loadWaivers() {
@@ -299,9 +334,13 @@ function evaluate(source, counts) {
 
 // ───────────────────────────── main ────────────────────────────────────
 const audit = runPnpmAudit();
+if (audit.ok && !audit.findings) {
+  console.warn("pnpm audit returned totals without advisories; waivers cannot apply.");
+  evaluate("pnpm-audit", audit.counts);
+}
 if (audit.ok) {
   const waivers = loadWaivers();
-  const { active, waived } = applyWaiversToFindings(audit.findings ?? [], waivers);
+  const { active, waived } = applyWaiversToFindings(audit.findings, waivers);
   if (waived.length) {
     printFindings("Waived", waived);
   }
@@ -310,9 +349,11 @@ if (audit.ok) {
   evaluate("pnpm-audit", counts);
 }
 
-if (!audit.ok) {
-  console.warn(`pnpm audit could not produce a result (${audit.reason}); falling back to osv-scanner.`);
+if (auditJsonFile) {
+  fail(`could not evaluate --audit-json file ${auditJsonFile} (${audit.reason}).`);
 }
+
+console.warn(`pnpm audit could not produce a result (${audit.reason}); falling back to osv-scanner.`);
 
 const osv = runOsvScanner();
 if (osv.ran && osv.ok) {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { SiteHeader } from "@/components/SiteHeader";
+import { blogCoverSrc } from "@/lib/blog/cover-src";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -75,9 +76,9 @@ export default async function BlogPage() {
                  >
                   {post.coverImageUrl && (
                     <Link href={`/blog/${post.slug}`} aria-hidden="true" tabIndex={-1} className="block">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
+                      {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/cover route, not a static asset */}
                       <img
-                        src={post.coverImageUrl}
+                        src={blogCoverSrc(post.id, post.coverImageUrl)}
                         alt=""
                         className="aspect-[16/9] w-full object-cover"
                         loading="lazy"

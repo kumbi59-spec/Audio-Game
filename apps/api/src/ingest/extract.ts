@@ -88,12 +88,15 @@ function classify(input: ExtractInput): ExtractResult["format"] {
 }
 
 async function extractPdf(buf: Buffer): Promise<ExtractResult> {
-  // pdf-parse ships with a CJS default export; dynamic import avoids its
-  // debug-only top-level side effect on module load.
-  const { default: pdfParse } = (await import("pdf-parse")) as {
-    default: (b: Buffer) => Promise<{ text: string; numpages: number }>;
-  };
-  const result = await pdfParse(buf);
+  // Import the library file, not the package entry: index.js runs a debug
+  // block when `module.parent` is unset (always, under ESM) that reads a
+  // test PDF and fails every parse with ENOENT.
+  const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
+  // Pass a plain Uint8Array, not the Buffer: pdf.js copies its input with
+  // the input's own constructor, and for a Buffer that copy can land in
+  // Node's shared pool, which pdf.js then reads from offset 0, parsing
+  // whatever else shares the slab ("bad XRef entry" on small PDFs).
+  const result = await pdfParse(new Uint8Array(buf));
   const text = result.text.trim();
   if (!text) {
     throw new Error(

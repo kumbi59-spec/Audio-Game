@@ -5,6 +5,7 @@ import { MemoryCampaignStore } from "./memory.js";
 import { PostgresCampaignStore } from "./postgres.js";
 import type { CampaignStore } from "./types.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
+import { config } from "../config.js";
 
 export type StorageBackend = "memory" | "postgres";
 
@@ -24,24 +25,23 @@ export function getStore(): CampaignStore {
   if (singleton) return singleton;
   const databaseUrl = process.env["DATABASE_URL"];
   if (databaseUrl) {
-    const pg = new PostgresCampaignStore(databaseUrl);
+    const pg = new PostgresCampaignStore(databaseUrl, { poolMax: config.DATABASE_POOL_MAX });
     const { embedder, available } = getServerEmbedder();
     if (available) {
+      const { embedder: queryEmbedder } = getServerEmbedder("query");
       pg.setQueryEmbedder(async (text) => {
-        const [vec] = await embedder.embed([text]);
+        const [vec] = await queryEmbedder.embed([text]);
         return vec ?? null;
       });
       // Embed the bundled official world on the first tick so retrieval
       // works without a manual re-save. Fire-and-forget; any failure
       // just means searches over the sample world return empty.
-      void pg
-        .embedOfficialWorldIfMissing((texts) => embedder.embed(texts))
-        .catch((err: unknown) => {
-          console.warn(
-            "[store] embedding the official world failed:",
-            err instanceof Error ? err.message : err,
-          );
-        });
+      pg.embedOfficialWorldIfMissing((texts) => embedder.embed(texts)).catch((err: unknown) => {
+        console.warn(JSON.stringify({
+          event: "official_world_embed_failed",
+          error: err instanceof Error ? err.message : String(err),
+        }));
+      });
     }
     singleton = pg;
   } else {
@@ -133,7 +133,13 @@ export function getPersistence() {
         void (async () => {
           try {
             const { embedTurn } = await import("../embeddings/runner.js");
-            await embedTurn({ store, embedder, turnId, text: args.text });
+            await embedTurn({
+              store,
+              embedder,
+              turnId,
+              text: args.text,
+              log: (msg, meta) => console.warn(JSON.stringify({ event: "turn_embed_failed", message: msg, ...meta })),
+            });
           } catch {
             /* already logged inside embedTurn */
           }

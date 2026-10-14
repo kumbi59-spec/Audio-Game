@@ -1,12 +1,15 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { limitAuthoringRequest } from "@/lib/ai/usage-guard";
 import { prisma } from "@/lib/db";
 import { getUserTier } from "@/lib/db/queries/users";
 import { TIER_ENTITLEMENTS } from "@audio-rpg/shared";
 import { draftToBible, draftToSystemPrompt } from "@/lib/wizard/steps";
 import type { Draft } from "@/lib/wizard/steps";
 import { resolveWorldCoverImage } from "@/lib/worlds/cover-art-resolver";
+import { CoverImageUrlSchema } from "@/lib/worlds/data-url";
 import { getAnthropicClient, messageText, modelParams, MODEL } from "@/lib/ai/client";
 import { inferAmbientTrack } from "@/lib/audio/ambient-inference";
 
@@ -18,7 +21,7 @@ const BodySchema = z.object({
   genre: z.string().min(1, "Genre is required"),
   pitch: z.string().min(1, "Pitch is required"),
   openingScene: z.string().min(1, "Opening scene is required"),
-  imageUrl: z.string().optional(),
+  imageUrl: CoverImageUrlSchema.optional(),
 });
 
 interface ClaudeWorldDetails {
@@ -88,6 +91,11 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+  const limited = await limitAuthoringRequest(req, {
+    id: session.user.id,
+    isAdmin: (session.user as { isAdmin?: boolean }).isAdmin === true,
+  });
+  if (limited) return limited;
 
   const tier = await getUserTier(session.user.id);
   const { maxWorlds, worldWizard } = TIER_ENTITLEMENTS[tier as keyof typeof TIER_ENTITLEMENTS] ?? TIER_ENTITLEMENTS.free;
@@ -144,7 +152,8 @@ export async function POST(req: NextRequest) {
     characterName: "the hero",
   };
 
-  const stamp = Date.now().toString(36);
+  // Random suffix so two creates in the same millisecond can't collide.
+  const stamp = `${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
   const worldId = `world-quick-${stamp}`;
   const locId = `loc-quick-${stamp}-start`;
 

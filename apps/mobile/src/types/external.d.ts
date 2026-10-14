@@ -49,6 +49,7 @@ declare module "@playwright/test" {
   export const test: {
     (name: string, fn: (args: { page: Page }) => Promise<void>): void;
     beforeEach(fn: (args: { page: Page }) => Promise<void>): void;
+    afterEach(fn: (args: { page: Page }) => Promise<void>): void;
   };
 
   export function expect(actual: unknown, message?: string): {

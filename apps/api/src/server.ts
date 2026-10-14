@@ -34,6 +34,8 @@ export async function buildServer(options: BuildServerOptions = {}) {
     logger: {
       level: options.logLevel ?? process.env["LOG_LEVEL"] ?? "info",
     },
+    // req.ip is the client behind the proxy, so per-IP limits are per user.
+    trustProxy: config.TRUST_PROXY_HOPS,
   });
   const domainEvents = new InMemoryDomainEventBus();
   const sideEffects = new SideEffectProcessor();

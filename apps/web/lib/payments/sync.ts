@@ -23,8 +23,8 @@ export function tierForSubscription(sub: Pick<Stripe.Subscription, "status" | "i
  * Find the app user for a Stripe customer. Stripe does not guarantee event
  * order, so `customer.subscription.created` often arrives before
  * `checkout.session.completed` has stored the customer id. Fall back to the
- * userId we put in subscription metadata, then to the customer's email, and
- * link the customer id when found that way.
+ * userId we put in subscription metadata, then to the customer's email (for
+ * verified accounts only), and link the customer id when found that way.
  */
 export async function resolveUserForCustomer(
   customerId: string,
@@ -40,14 +40,38 @@ export async function resolveUserForCustomer(
     const customer = await getStripe().customers.retrieve(customerId);
     if (!("deleted" in customer && customer.deleted)) email = customer.email ?? null;
   }
+  // Only a verified address may claim the customer: anyone can sign up with
+  // a typed email, which would otherwise link someone else's payment.
   if (!user && email) {
-    user = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
+    user = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" }, emailVerified: { not: null } },
+    });
   }
 
   if (user && !user.stripeCustomerId) {
     user = await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } });
   }
   return user;
+}
+
+// Creator beats Storyteller when a customer holds more than one paid plan.
+function outranks(tier: Tier, current: Tier): boolean {
+  return tier === "creator" && current !== "creator";
+}
+
+/**
+ * The tier a Stripe customer is entitled to right now, from their current
+ * subscriptions rather than an event's snapshot (Stripe retries can deliver
+ * a stale one late). "free" when none of them grants paid access.
+ */
+export async function bestTierForCustomer(customerId: string): Promise<Tier> {
+  const subs = await getStripe().subscriptions.list({ customer: customerId, status: "all", limit: 20 });
+  let best: Tier | null = null;
+  for (const sub of subs.data) {
+    const tier = tierForSubscription(sub);
+    if (tier && (!best || outranks(tier, best))) best = tier;
+  }
+  return best ?? "free";
 }
 
 /**
@@ -67,12 +91,9 @@ export async function syncUserTierFromStripe(userId: string): Promise<{ tier: Ti
 
   let best: { tier: Tier; customerId: string } | null = null;
   for (const customerId of customerIds) {
-    const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 20 });
-    for (const sub of subs.data) {
-      const tier = tierForSubscription(sub);
-      if (!tier) continue;
-      if (!best || (tier === "creator" && best.tier !== "creator")) best = { tier, customerId };
-    }
+    const tier = await bestTierForCustomer(customerId);
+    if (tier === "free") continue;
+    if (!best || outranks(tier, best.tier)) best = { tier, customerId };
   }
 
   const tier: Tier = best?.tier ?? "free";

@@ -3,6 +3,7 @@ import { SUNKEN_BELL_BIBLE } from "@audio-rpg/shared";
 import type { MemoryStore } from "@audio-rpg/gm-engine";
 import type { Session } from "../gm/orchestrator.js";
 import { verifySessionToken } from "./tokens.js";
+import { normalizeAndTrimCriticalFacts, selectCriticalFacts } from "./critical-facts.js";
 import type {
   CampaignStore,
   CriticalFactRecord,
@@ -15,6 +16,7 @@ import type {
 
 interface MemCampaign extends StoredCampaign {
   bible: GameBible;
+  lastPlayedAt: number;
   lastPresentedChoices: { id: string; label: string }[];
   narrationLog: { turnNumber: number; role: "gm" | "player"; text: string }[];
   sceneSummaries: { sceneNumber: number; summary: string; keyEvents: string[] }[];
@@ -72,7 +74,16 @@ export class MemoryCampaignStore implements CampaignStore {
   }
 
   async getWorldAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
-    return worldIds.map((id) => ({ worldId: id, sessionCount: 0, totalTurns: 0 }));
+    return worldIds.map((id) => {
+      const campaigns = Array.from(this.campaigns.values()).filter((c) => c.worldId === id);
+      return {
+        worldId: id,
+        sessionCount: campaigns.length,
+        // Each committed GM turn advances turn_number by one, which matches
+        // the GM-row count Postgres reports.
+        totalTurns: campaigns.reduce((sum, c) => sum + c.state.turn_number, 0),
+      };
+    });
   }
 
   async seedCampaign(args: {
@@ -82,6 +93,7 @@ export class MemoryCampaignStore implements CampaignStore {
     bible: GameBible;
     state: CampaignState;
   }): Promise<void> {
+    const now = Date.now();
     this.campaigns.set(args.campaignId, {
       campaignId: args.campaignId,
       worldId: args.worldId,
@@ -90,7 +102,8 @@ export class MemoryCampaignStore implements CampaignStore {
       turnNumber: args.state.turn_number,
       state: args.state,
       bible: args.bible,
-      createdAt: Date.now(),
+      createdAt: now,
+      lastPlayedAt: now,
       lastPresentedChoices: [],
       narrationLog: [],
       sceneSummaries: [],
@@ -101,12 +114,22 @@ export class MemoryCampaignStore implements CampaignStore {
   async getCampaignSummary(campaignId: string): Promise<StoredCampaign | null> {
     const c = this.campaigns.get(campaignId);
     if (!c) return null;
-    const { bible: _bible, lastPresentedChoices: _lpc, narrationLog: _log, ...rest } = c;
-    return { ...rest, sceneName: c.state.scene.name, turnNumber: c.state.turn_number };
+    // Only the summary fields, as Postgres returns; the rest is internal.
+    return {
+      campaignId: c.campaignId,
+      worldId: c.worldId,
+      title: c.title,
+      state: c.state,
+      sceneName: c.state.scene.name,
+      turnNumber: c.state.turn_number,
+      createdAt: c.createdAt,
+    };
   }
 
   async listCampaigns(): Promise<StoredCampaignSummary[]> {
+    // Most recently played first, as Postgres orders by last_played_at.
     return Array.from(this.campaigns.values())
+      .sort((a, b) => b.lastPlayedAt - a.lastPlayedAt)
       .map((c) => ({
         campaignId: c.campaignId,
         worldId: c.worldId,
@@ -114,8 +137,7 @@ export class MemoryCampaignStore implements CampaignStore {
         sceneName: c.state.scene.name,
         turnNumber: c.state.turn_number,
         createdAt: c.createdAt,
-      }))
-      .sort((a, b) => b.createdAt - a.createdAt);
+      }));
   }
 
   async loadSession(campaignId: string, authToken: string): Promise<Session> {
@@ -166,7 +188,9 @@ export class MemoryCampaignStore implements CampaignStore {
 
   async persistState(campaignId: string, state: CampaignState): Promise<void> {
     const existing = this.campaigns.get(campaignId);
-    if (existing) existing.state = state;
+    if (!existing) return;
+    existing.state = state;
+    existing.lastPlayedAt = Date.now();
   }
 
   async persistPresentedChoices(
@@ -237,40 +261,10 @@ export class MemoryCampaignStore implements CampaignStore {
       async criticalFacts(campaignId: string, n: number) {
         const c = self.campaigns.get(campaignId);
         if (!c) return [];
-        return c.criticalFacts.slice(-n).map(({ turnNumber, text, importance }) => ({ turnNumber, text, importance }));
+        return selectCriticalFacts(c.criticalFacts, n);
       },
     };
   }
-}
-
-function semanticKey(fact: CriticalFactRecord): string {
-  const normalizedText = fact.text.trim().toLowerCase().replace(/\s+/g, " ");
-  const refs = Array.from(new Set(fact.entityRefs.map((ref) => ref.trim().toLowerCase()).filter(Boolean))).sort();
-  return `${fact.kind}|${normalizedText}|${refs.join(",")}`;
-}
-
-function normalizeAndTrimCriticalFacts(facts: CriticalFactRecord[], maxFacts: number): CriticalFactRecord[] {
-  const deduped = new Map<string, CriticalFactRecord>();
-  for (const fact of facts) {
-    if (!fact.text?.trim()) continue;
-    const normalized: CriticalFactRecord = {
-      turnNumber: Math.max(0, Number.isFinite(fact.turnNumber) ? fact.turnNumber : 0),
-      text: fact.text.trim(),
-      kind: fact.kind,
-      importance: Number.isFinite(fact.importance) ? fact.importance : 0,
-      entityRefs: Array.from(new Set((fact.entityRefs ?? []).map((r) => r.trim()).filter(Boolean))),
-      sourceMutation: typeof fact.sourceMutation === "string" && fact.sourceMutation.trim() ? fact.sourceMutation : "unknown",
-    };
-    const key = semanticKey(normalized);
-    const existing = deduped.get(key);
-    if (!existing || normalized.importance > existing.importance || (normalized.importance === existing.importance && normalized.turnNumber >= existing.turnNumber)) {
-      deduped.set(key, normalized);
-    }
-  }
-  return Array.from(deduped.values())
-    .sort((a, b) => (a.importance === b.importance ? b.turnNumber - a.turnNumber : b.importance - a.importance))
-    .slice(0, maxFacts)
-    .sort((a, b) => a.turnNumber - b.turnNumber);
 }
 
 function scoreNarrationTurns(

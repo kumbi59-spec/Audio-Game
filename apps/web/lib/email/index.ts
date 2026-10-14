@@ -49,6 +49,25 @@ export async function sendVerificationEmail(to: string, name: string, verifyUrl:
   });
 }
 
+export interface ContactMessage {
+  topic: string;
+  message: string;
+  /** The sender's address, when they left one for a reply. */
+  email?: string;
+}
+
+/** A message from the contact form, sent to the team's inbox. */
+export async function sendContactEmail(to: string, contact: ContactMessage): Promise<void> {
+  await sendEmail({
+    from: FROM,
+    to,
+    subject: `Contact form: ${contact.topic}`,
+    ...(contact.email ? { replyTo: contact.email } : {}),
+    text: `${contact.topic}\nFrom: ${contact.email ?? "no reply address"}\n\n${contact.message}`,
+    html: contactHtml(contact),
+  });
+}
+
 export async function sendUpgradeEmail(to: string, name: string, tier: string): Promise<void> {
   const tierLabel = tier === "creator" ? "Creator" : "Storyteller";
   await sendEmail({
@@ -174,6 +193,18 @@ function passwordResetHtml(resetUrl: string): string {
       If you didn&apos;t request a password reset, you can safely ignore this email.
     </p>
   </div>
+</body>
+</html>`;
+}
+
+function contactHtml(contact: ContactMessage): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Contact form: ${escapeHtml(contact.topic)}</title></head>
+<body style="font-family:system-ui,sans-serif;margin:0;padding:24px 16px;">
+  <h1 style="font-size:18px;margin:0 0 8px;">${escapeHtml(contact.topic)}</h1>
+  <p style="color:#555;font-size:13px;margin:0 0 16px;">From: ${contact.email ? escapeHtml(contact.email) : "no reply address"}</p>
+  <p style="font-size:14px;line-height:1.6;white-space:pre-wrap;margin:0;">${escapeHtml(contact.message)}</p>
 </body>
 </html>`;
 }

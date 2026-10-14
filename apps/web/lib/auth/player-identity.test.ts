@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  auth: vi.fn(),
-  userFindUnique: vi.fn(),
-  userCreate: vi.fn(),
-  consumeRateLimit: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  process.env["ADMIN_EMAILS"] = "owner@echoquest.us";
+  return {
+    auth: vi.fn(),
+    userFindUnique: vi.fn(),
+    userCreate: vi.fn(),
+    consumeRateLimit: vi.fn(),
+  };
+});
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({
@@ -23,7 +26,7 @@ import {
   resolvePlayer,
 } from "./player-identity";
 
-type Row = { id: string; email: string; tier: string; passwordHash: string | null; createdAt: Date };
+type Row = { id: string; email: string; tier: string; passwordHash: string | null; createdAt: Date; emailVerified?: Date | null };
 const users = new Map<string, Row>();
 
 function req(cookie?: string) {
@@ -61,6 +64,16 @@ describe("resolvePlayer", () => {
     users.set("u1", { id: "u1", email: "u1@example.com", tier: "creator", passwordHash: "h", createdAt: new Date() });
     const result = await resolvePlayer(req(), { allowGuestCreation: true });
     expect(result).toMatchObject({ ok: true, player: { userId: "u1", kind: "user", tier: "creator" }, setCookie: null });
+  });
+
+  it("treats an admin email as admin only once it is verified", async () => {
+    // A stale session flag must not grant admin on its own.
+    mocks.auth.mockResolvedValue({ user: { id: "a1", isAdmin: true } });
+    users.set("a1", { id: "a1", email: "owner@echoquest.us", tier: "free", passwordHash: "h", createdAt: new Date(), emailVerified: null });
+    expect(await resolvePlayer(req())).toMatchObject({ ok: true, player: { userId: "a1", isAdmin: false } });
+
+    users.set("a1", { ...users.get("a1")!, emailVerified: new Date() });
+    expect(await resolvePlayer(req())).toMatchObject({ ok: true, player: { userId: "a1", isAdmin: true } });
   });
 
   it("requires an identity when guest creation is not allowed", async () => {

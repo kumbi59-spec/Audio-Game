@@ -437,7 +437,8 @@ describe("session end-to-end", () => {
           onText?.("failed-attempt-chunk");
           throw new Error("first attempt failed");
         }
-        onText?.("successful-attempt-chunk");
+        // The real generator streams the model's whole JSON reply.
+        onText?.(JSON.stringify(fakeTurn));
         return fakeTurn;
       },
     });
@@ -475,11 +476,20 @@ describe("session end-to-end", () => {
     );
     await waitForEvent(events, "turn_complete");
 
-    const narrationEvents = events.filter((e) => e.type === "narration_chunk");
-    const chunkTexts = narrationEvents.map((e) => (e.type === "narration_chunk" ? e.text : ""));
-    expect(chunkTexts).toContain("successful-attempt-chunk");
-    expect(chunkTexts).not.toContain("failed-attempt-chunk");
-    expect(narrationEvents.filter((e) => e.type === "narration_chunk" && e.done)).toHaveLength(1);
+    const narrationEvents = events.filter(
+      (e): e is Extract<ServerEvent, { type: "narration_chunk" }> => e.type === "narration_chunk",
+    );
+    const chunkTexts = narrationEvents.filter((e) => !e.done).map((e) => e.text);
+    // Sentence chunks of the parsed narration, never raw model output.
+    expect(chunkTexts).toEqual([
+      "The fog rolls in over Lirren. ",
+      "A single lantern bobs along the breakwater, then stops.",
+    ]);
+    expect(chunkTexts.join("")).toBe(fakeTurn.narration);
+    expect(chunkTexts.some((t) => t.includes("failed-attempt-chunk"))).toBe(false);
+    expect(chunkTexts.some((t) => t.includes('"narration"'))).toBe(false);
+    expect(narrationEvents.filter((e) => e.done)).toHaveLength(1);
+    expect(new Set(narrationEvents.map((e) => e.turnId)).size).toBe(1);
 
     retryWs.close();
     await retryApp.close();

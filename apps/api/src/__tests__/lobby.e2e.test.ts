@@ -203,4 +203,149 @@ describe("lobby WebSocket", () => {
 
     ws1.close();
   });
+
+  it("rejects a second lobby_join on the same connection", async () => {
+    const cid = "lob-7";
+    const ws1 = await openWs(cid);
+    const ev1 = collect(ws1);
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
+    await waitFor(ev1, "lobby_state");
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice again"));
+    await waitFor(ev1, "error");
+    expect(ev1.find((e) => e.type === "error")).toMatchObject({ code: "already_joined" });
+
+    // No ghost participant was added.
+    const ws2 = await openWs(cid);
+    const ev2 = collect(ws2);
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
+    await waitFor(ev2, "lobby_state");
+    const state = ev2.find((e) => e.type === "lobby_state") as { participants: { displayName: string }[] };
+    expect(state.participants.map((p) => p.displayName)).toEqual(["Alice", "Bob"]);
+
+    ws1.close();
+    ws2.close();
+  });
+
+  it("cancels the start countdown when a player un-readies", async () => {
+    const cid = "lob-8";
+    const ws1 = await openWs(cid);
+    const ev1 = collect(ws1);
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
+    await waitFor(ev1, "lobby_state");
+    const ws2 = await openWs(cid);
+    const ev2 = collect(ws2);
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
+    await waitFor(ev2, "lobby_state");
+
+    ws1.send(readyMsg(cid, true));
+    await waitForReadyCount(ev2, 1);
+    // Ready then immediately un-ready: the countdown starts and is cancelled.
+    ws2.send(readyMsg(cid, true));
+    ws2.send(readyMsg(cid, false));
+    await waitFor(ev1, "lobby_ready");
+
+    await new Promise((r) => setTimeout(r, 300));
+    expect(ev1.some((e) => e.type === "turn_request")).toBe(false);
+    expect(ev2.some((e) => e.type === "turn_request")).toBe(false);
+
+    ws1.close();
+    ws2.close();
+  });
+
+  it("cancels the start countdown when a player leaves", async () => {
+    const cid = "lob-9";
+    const ws1 = await openWs(cid);
+    const ev1 = collect(ws1);
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
+    await waitFor(ev1, "lobby_state");
+    const ws2 = await openWs(cid);
+    const ev2 = collect(ws2);
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
+    await waitFor(ev2, "lobby_state");
+
+    ws1.send(readyMsg(cid, true));
+    await waitForReadyCount(ev2, 1);
+    ws2.send(readyMsg(cid, true));
+    ws2.send(JSON.stringify({ type: "lobby_leave", v: "v1", campaignId: cid }));
+    await waitFor(ev1, "player_left");
+
+    await new Promise((r) => setTimeout(r, 300));
+    expect(ev1.some((e) => e.type === "turn_request")).toBe(false);
+
+    ws1.close();
+    ws2.close();
+  });
+
+  it("starts once the only player who wasn't ready leaves", async () => {
+    const cid = "lob-10";
+    const sockets: WebSocket[] = [];
+    const events: AnyEvent[][] = [];
+    for (const name of ["Alice", "Bob", "Cara"]) {
+      const ws = await openWs(cid);
+      const ev = collect(ws);
+      ws.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), name));
+      await waitFor(ev, "lobby_state");
+      sockets.push(ws);
+      events.push(ev);
+    }
+    const [ws1, ws2, ws3] = sockets as [WebSocket, WebSocket, WebSocket];
+    const ev1 = events[0]!;
+
+    ws1.send(readyMsg(cid, true));
+    await waitForReadyCount(ev1, 1);
+    ws2.send(readyMsg(cid, true));
+    await waitForReadyCount(ev1, 2);
+    expect(ev1.some((e) => e.type === "lobby_ready")).toBe(false);
+
+    ws3.close();
+    await waitFor(ev1, "lobby_ready");
+    await waitFor(ev1, "turn_request");
+
+    ws1.close();
+    ws2.close();
+  });
+
+  it("broadcasts lobby_state with the new host when the host leaves", async () => {
+    const cid = "lob-11";
+    const ws1 = await openWs(cid);
+    const ev1 = collect(ws1);
+    ws1.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Alice"));
+    await waitFor(ev1, "lobby_state");
+    const ws2 = await openWs(cid);
+    const ev2 = collect(ws2);
+    ws2.send(joinMsg(cid, issueLobbyToken(cid, "test-user"), "Bob"));
+    await waitFor(ev2, "lobby_state");
+    const joined = ev2.find((e) => e.type === "lobby_state") as { hostUserId: string; myUserId: string };
+    expect(joined.hostUserId).not.toBe(joined.myUserId);
+
+    ws1.close();
+    await waitFor(ev2, "player_left");
+    for (let i = 0; i < 50 && ev2.filter((e) => e.type === "lobby_state").length < 2; i += 1) {
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    const states = ev2.filter((e) => e.type === "lobby_state") as {
+      hostUserId: string;
+      participants: { userId: string }[];
+    }[];
+    expect(states).toHaveLength(2);
+    expect(states[1]).toMatchObject({
+      hostUserId: joined.myUserId,
+      participants: [{ userId: joined.myUserId }],
+    });
+
+    ws2.close();
+  });
 });
+
+/** Waits until a lobby_state shows `count` ready participants. */
+async function waitForReadyCount(events: AnyEvent[], count: number, timeoutMs = 2000): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const reached = events.some(
+      (e) => e.type === "lobby_state" && e.participants.filter((p) => p.ready).length === count,
+    );
+    if (reached) return;
+    await new Promise((r) => setTimeout(r, 20));
+  }
+  throw new Error(`timed out waiting for ${count} ready participants`);
+}

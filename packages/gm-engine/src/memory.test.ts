@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildMemoryBundle, formatFactForPrompt, type MemoryStore } from "./memory.js";
+import { buildMemoryBundle, DEFAULT_MEMORY_BUDGET, formatFactForPrompt, type MemoryStore } from "./memory.js";
 
 function makeStore(): MemoryStore {
   return {
@@ -285,6 +285,101 @@ describe("buildMemoryBundle", () => {
   });
 });
 
+describe("buildMemoryBundle source reservation and ordering", () => {
+  it("keeps the minimum recent turns even when facts and retrieved turns outscore them", async () => {
+    const store: MemoryStore = {
+      ...makeStore(),
+      criticalFacts: vi.fn(async (_campaignId: string, n: number) =>
+        Array.from({ length: n }, (_, i) => ({ turnNumber: i + 1, text: `fact-${i}`, importance: 1 })),
+      ),
+    };
+
+    const bundle = await buildMemoryBundle(store, {
+      campaignId: "crowded",
+      worldId: "w",
+      query: "anything",
+      turnCount: 3,
+    });
+
+    expect(bundle.recent.length).toBeGreaterThanOrEqual(DEFAULT_MEMORY_BUDGET.minimums.recentTurns);
+    expect(bundle.recent.length + bundle.retrieved.length + bundle.scenes.length + bundle.criticalFacts.length).toBe(7);
+  });
+
+  it("returns every source in chronological order", async () => {
+    const long = (label: string) => `${label} ${"the tide turns and the bells ring out ".repeat(5)}`;
+    const store: MemoryStore = {
+      // Short player lines score below the long GM narration around them.
+      recentTurns: vi.fn(async () => [
+        { turnNumber: 25, role: "player" as const, text: "look around" },
+        { turnNumber: 26, role: "gm" as const, text: long("gm-26") },
+        { turnNumber: 26, role: "player" as const, text: "open the door" },
+        { turnNumber: 27, role: "gm" as const, text: long("gm-27") },
+      ]),
+      sceneSummaries: vi.fn(async () => [
+        { sceneNumber: 1, summary: "The harbor", keyEvents: [] },
+        { sceneNumber: 2, summary: "The bell tower", keyEvents: [] },
+      ]),
+      // Relevance order, not story order.
+      searchTurns: vi.fn(async () => [
+        { turnNumber: 15, role: "gm" as const, text: "retrieved-15" },
+        { turnNumber: 3, role: "gm" as const, text: "retrieved-3" },
+        { turnNumber: 9, role: "player" as const, text: "retrieved-9" },
+      ]),
+      searchBible: vi.fn(async () => []),
+      criticalFacts: vi.fn(async () => [
+        { turnNumber: 20, text: "QUEST_START|Ring the bell", importance: 0.5 },
+        { turnNumber: 4, text: "QUEST_COMPLETE|Find the key", importance: 0.97 },
+      ]),
+    };
+
+    const bundle = await buildMemoryBundle(store, {
+      campaignId: "ordered",
+      worldId: "w",
+      query: "bell",
+      turnCount: 28,
+    });
+
+    expect(bundle.recent.map((t) => `${t.role}-${t.turnNumber}`)).toEqual([
+      "player-25",
+      "gm-26",
+      "player-26",
+      "gm-27",
+    ]);
+    expect(bundle.retrieved.map((t) => t.turnNumber)).toEqual([3, 9, 15]);
+    expect(bundle.scenes.map((s) => s.sceneNumber)).toEqual([1, 2]);
+    expect(bundle.criticalFacts.map((f) => f.turnNumber)).toEqual([4, 20]);
+  });
+
+  it("prefers the newest scene summary", async () => {
+    const store: MemoryStore = {
+      recentTurns: vi.fn(async () => []),
+      sceneSummaries: vi.fn(async () =>
+        Array.from({ length: 5 }, (_, i) => ({ sceneNumber: i + 1, summary: `scene-${i + 1}`, keyEvents: [] })),
+      ),
+      searchTurns: vi.fn(async () => []),
+      searchBible: vi.fn(async () => []),
+      criticalFacts: vi.fn(async () => []),
+    };
+
+    const bundle = await buildMemoryBundle(store, {
+      campaignId: "scenes",
+      worldId: "w",
+      query: "where are we",
+      turnCount: 80,
+      budget: {
+        ...DEFAULT_MEMORY_BUDGET,
+        recentTurns: { early: 0, mid: 0, late: 0 },
+        retrievedTurns: { early: 0, mid: 0, late: 0 },
+        sceneSummaries: { early: 1, mid: 1, late: 1 },
+        minimums: { recentTurns: 0, retrievedTurns: 0, sceneSummaries: 1, bibleHits: 0 },
+        memoryScoring: { ...scoring, sourceMinimums: { criticalFacts: 0, sceneSummaries: 1 } },
+      },
+    });
+
+    expect(bundle.scenes.map((s) => s.sceneNumber)).toEqual([5]);
+  });
+});
+
 describe("formatFactForPrompt", () => {
   it("converts pipe codes to human-readable strings", () => {
     expect(formatFactForPrompt("QUEST_START|Find the Relic")).toBe('Quest started: "Find the Relic"');
@@ -294,6 +389,9 @@ describe("formatFactForPrompt", () => {
     );
     expect(formatFactForPrompt("SCENE_CHANGE|The Docks")).toBe('Scene changed to: "The Docks"');
     expect(formatFactForPrompt("CODEX_UNLOCK|codex:gate|Gate Lore")).toBe('Codex unlocked: "Gate Lore"');
+    expect(formatFactForPrompt("ACHIEVEMENT_UNLOCK|first_blood|First Blood")).toBe(
+      'Achievement unlocked: "First Blood"',
+    );
     expect(formatFactForPrompt("FLAG_SET|boss_dead|true")).toBe("Flag set: boss_dead = true");
     expect(formatFactForPrompt("CONDITION_STATE|injury_broken_arm|true")).toBe(
       "Active condition: injury_broken_arm (true)",

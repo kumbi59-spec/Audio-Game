@@ -10,6 +10,7 @@ import { extractBibleText } from "../ingest/extract.js";
 import { embedWorldBible } from "../embeddings/runner.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
 import { requireTier } from "../auth/entitlements.js";
+import { extractJson } from "../gm/claude.js";
 
 const IMPORT_NOTES_PROMPT = `You are a game master assistant. Extract structured world-building information from the provided tabletop campaign session notes.
 
@@ -111,7 +112,8 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  app.post("/worlds", { preHandler: requireTier("creator") }, async (req, reply) => {
+  // The wizard is a storyteller entitlement (worldWizard), as are uploads.
+  app.post("/worlds", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     const body = CreateBody.safeParse(req.body);
     if (!body.success) {
       return reply.status(400).send({ error: body.error.flatten() });
@@ -174,7 +176,7 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
     }
   });
 
-  app.post("/worlds/import-notes", async (req, reply) => {
+  app.post("/worlds/import-notes", { preHandler: requireTier("storyteller") }, async (req, reply) => {
     const body = ImportNotesBody.safeParse(req.body);
     if (!body.success) {
       return reply.status(400).send({ error: body.error.flatten() });
@@ -184,10 +186,13 @@ export async function registerWorldRoutes(app: FastifyInstance): Promise<void> {
         system: IMPORT_NOTES_PROMPT,
         user: `--- SESSION NOTES ---\n${body.data.notes.slice(0, 12_000)}`,
       });
-      let extracted: Record<string, string>;
+      let extracted: unknown;
       try {
-        extracted = JSON.parse(raw.trim()) as Record<string, string>;
+        extracted = extractJson(raw);
       } catch {
+        return reply.status(502).send({ error: "AI returned non-JSON response" });
+      }
+      if (!extracted || typeof extracted !== "object" || Array.isArray(extracted)) {
         return reply.status(502).send({ error: "AI returned non-JSON response" });
       }
       const allowed = new Set(["title", "pitch", "genre", "setting", "toneVoice", "hardConstraint", "startingScenario"]);

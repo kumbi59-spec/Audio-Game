@@ -56,4 +56,53 @@ describe("side-effect handlers contract", () => {
 
     expect(processor.getDeadLetters()).toHaveLength(1);
   });
+
+  it("bounds the dedupe set and the dead-letter queue", async () => {
+    const bus = new InMemoryDomainEventBus();
+    const processor = new SideEffectProcessor(0, 1, 2, 2);
+    let runs = 0;
+    processor.register(bus, {
+      name: "analytics",
+      eventTypes: ["game.turn_committed"],
+      action: async () => {
+        runs += 1;
+      },
+    });
+    processor.register(bus, {
+      name: "email",
+      eventTypes: ["moderation.outcome_finalized"],
+      action: async () => {
+        throw new Error("poison");
+      },
+    });
+
+    const turn = (n: number) =>
+      createEventEnvelope({
+        eventType: "game.turn_committed",
+        aggregateId: "c1",
+        version: n,
+        dedupeKey: `turn:c1:${n}`,
+        payload: { campaignId: "c1", turnNumber: n },
+      });
+    await bus.publish(turn(1));
+    await bus.publish(turn(2));
+    await bus.publish(turn(1)); // a hit refreshes turn 1
+    await bus.publish(turn(3)); // evicts turn 2, the least recently seen
+    await bus.publish(turn(1));
+    await bus.publish(turn(2));
+    expect(runs).toBe(4);
+
+    for (let i = 0; i < 5; i += 1) {
+      await bus.publish(
+        createEventEnvelope({
+          eventType: "moderation.outcome_finalized",
+          aggregateId: `m${i}`,
+          version: 1,
+          dedupeKey: `mod:m${i}:1`,
+          payload: { outcome: "blocked" },
+        }),
+      );
+    }
+    expect(processor.getDeadLetters().map((e) => e.aggregateId)).toEqual(["m3", "m4"]);
+  });
 });

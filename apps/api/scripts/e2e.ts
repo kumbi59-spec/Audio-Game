@@ -18,6 +18,7 @@
 
 import WebSocket from "ws";
 import type { ClientEvent, ServerEvent } from "@audio-rpg/shared";
+import { deserializeServerEvent } from "../src/routes/session-compat.js";
 
 const BASE = process.env["AUDIO_RPG_API"] ?? "http://localhost:4000";
 
@@ -45,7 +46,7 @@ async function main(): Promise<void> {
   const bySeq = new Map<string, string>(); // turnId → accumulated narration
 
   ws.on("message", (raw: Buffer) => {
-    const evt = JSON.parse(raw.toString("utf8")) as ServerEvent;
+    const evt = parseServerEvent(raw);
     switch (evt.type) {
       case "session_ready":
         line(`— session_ready (turn ${evt.turnNumber})`);
@@ -85,7 +86,10 @@ async function main(): Promise<void> {
 
   const send = (event: ClientEvent) => ws.send(JSON.stringify(event));
 
-  send({ type: "join", campaignId, authToken });
+  // The server rejects input until the join has loaded the session.
+  await waitFor(ws, "session_ready", () => {
+    send({ type: "join", campaignId, authToken });
+  });
 
   // Three scripted turns.
   await waitFor(ws, "turn_complete", () => {
@@ -122,6 +126,11 @@ function line(s: string): void {
   console.log(s);
 }
 
+/** Server events arrive in a versioned transport envelope. */
+function parseServerEvent(raw: Buffer): ServerEvent {
+  return deserializeServerEvent(JSON.parse(raw.toString("utf8")));
+}
+
 function fail(msg: string): never {
   console.error(`FAIL: ${msg}`);
   process.exit(1);
@@ -147,7 +156,7 @@ function waitFor(
       reject(new Error(`timeout waiting for ${type}`));
     }, timeoutMs);
     const handler = (raw: Buffer) => {
-      const evt = JSON.parse(raw.toString("utf8")) as ServerEvent;
+      const evt = parseServerEvent(raw);
       if (evt.type === "choice_list") listenedLastChoices = evt.choices;
       if (evt.type === type) {
         clearTimeout(timer);

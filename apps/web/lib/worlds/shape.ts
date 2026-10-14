@@ -61,15 +61,19 @@ const PREBUILT_FALLBACK: PublicWorld[] = PREBUILT_WORLDS.map((w, i) => ({
   publishedAt: null,
 }));
 
+const PREBUILT_IDS = new Set(PREBUILT_WORLDS.map((w) => w.id));
+
 /**
- * Returns the public worlds list, auto-seeding prebuilt worlds on first use
- * if the DB is empty. Falls back to the in-process prebuilt list if Prisma
- * is unreachable (e.g. during static generation before migrations run).
+ * Returns the public worlds list, auto-seeding prebuilt worlds whenever the
+ * DB is missing any of them (a newly added prebuilt world, not just an empty
+ * DB). Falls back to the in-process prebuilt list if Prisma is unreachable
+ * (e.g. during static generation before migrations run).
  */
 export async function loadPublicWorlds(): Promise<PublicWorld[]> {
   try {
     const worlds = await listPublicWorlds();
-    if (!worlds.some((w) => w.isPrebuilt)) {
+    const prebuiltCount = worlds.filter((w) => w.isPrebuilt && PREBUILT_IDS.has(w.id)).length;
+    if (prebuiltCount < PREBUILT_WORLDS.length) {
       await seedPrebuiltWorldsIfNeeded();
       const seeded = await listPublicWorlds();
       return seeded.map(shapeWorld);

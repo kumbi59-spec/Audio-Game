@@ -11,6 +11,9 @@ import type { ItemMutation, QuestMutation } from "@/types/game";
 const KNOWN_STATS = ["hp", "maxHp", "strength", "dexterity", "intelligence", "charisma", "level", "experience"] as const;
 type KnownStat = (typeof KNOWN_STATS)[number];
 
+/** Most levels one experience delta can gain, as in packages/gm-engine/src/reducer.ts. */
+const MAX_LEVEL_UPS_PER_ADJUST = 100;
+
 let idCounter = 0;
 function defaultId(prefix: string): string {
   idCounter = (idCounter + 1) % 1_000_000;
@@ -43,10 +46,12 @@ export function xpToReachLevel(level: number): number {
  * curve:
  *   per level: +5 maxHp, +5 hp (capped at new maxHp)
  *   odd levels: +1 STR, +1 DEX; even levels: +1 INT, +1 CHA
- * The loop lets a large XP grant cross several levels in one turn. Level
- * itself only changes that way: a "level" delta from the GM is ignored, or a
- * level-up it also asked for would be applied twice. Unknown stat names go to
- * customStats (mp, stamina, sanity…).
+ * The loop lets a large XP grant cross several levels in one turn, up to
+ * MAX_LEVEL_UPS_PER_ADJUST so an absurd grant can't hang the page; any XP
+ * left over levels up on the next grant. Level itself only changes that way:
+ * a "level" delta from the GM is ignored, or a level-up it also asked for
+ * would be applied twice. An hp or maxHp change keeps hp within 0..maxHp.
+ * Unknown stat names go to customStats (mp, stamina, sanity…).
  */
 export function applyStatDelta(character: CharacterData, statName: string, delta: number): CharacterData {
   if (!finite(delta) || statName === "level") return character;
@@ -56,7 +61,7 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
     const stats: CharacterStats = { ...character.stats, [key]: Math.max(0, current + delta) };
 
     if (key === "experience") {
-      while (true) {
+      for (let i = 0; i < MAX_LEVEL_UPS_PER_ADJUST; i++) {
         const lvl = stats.level ?? 1;
         if ((stats.experience ?? 0) < xpToReachLevel(lvl + 1)) break;
         const next = lvl + 1;
@@ -71,6 +76,9 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
           stats.charisma = (stats.charisma ?? 10) + 1;
         }
       }
+    }
+    if ((key === "hp" || key === "maxHp") && finite(stats.hp) && finite(stats.maxHp)) {
+      stats.hp = Math.max(0, Math.min(stats.hp, stats.maxHp));
     }
     return { ...character, stats };
   }

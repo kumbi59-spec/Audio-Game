@@ -12,6 +12,7 @@ import {
   buildMemoryBundle,
   buildTurnUserPrompt,
   DEFAULT_MEMORY_BUDGET,
+  SCENE_SUMMARY_EVERY,
   type MemoryStore,
 } from "@audio-rpg/gm-engine";
 import { generateGmTurn, generateSceneSummary } from "./claude.js";
@@ -23,8 +24,6 @@ import { incrementSessionMetric } from "../observability/session-metrics.js";
 import { continuityHeuristics } from "./continuity.js";
 import { DEGRADED_MODE_COPY, ReliabilityErrorCode } from "@audio-rpg/shared";
 import type { CriticalFactRecord } from "../state/types.js";
-
-const SCENE_SUMMARY_EVERY = 15;
 
 type GmTurnOutcome = "success_first_try" | "success_on_retry" | "exhausted_retries";
 
@@ -45,6 +44,17 @@ const TURN_RELIABILITY_POLICY = {
 } as const;
 
 const circuitState = { failures: 0, openUntil: 0 };
+
+/**
+ * Failures that say the provider is unhealthy. Bad output or a refusal from
+ * a healthy model doesn't trip the breaker.
+ */
+const CIRCUIT_BREAKER_FAILURE_CLASSES: ReadonlySet<ProviderErrorClass> = new Set([
+  "timeout",
+  "rate_limit",
+  "network_failure",
+  "provider_error",
+]);
 
 function degradedMessage(errorClass: ProviderErrorClass): string {
   if (errorClass === "rate_limit") return "The game master is busy right now. We used a safe fallback turn.";
@@ -81,6 +91,8 @@ export type TurnGenerator = (args: {
   bible: GameBible;
   userPrompt: string;
   onText?: (chunk: string) => void;
+  /** Aborted when the attempt loses to its timeout. */
+  signal?: AbortSignal;
 }) => Promise<GmTurn>;
 
 export interface Session {
@@ -187,6 +199,15 @@ export function extractCriticalFacts(mutations: readonly StateMutation[], turnNu
   return facts;
 }
 
+/**
+ * Splits narration into sentence-sized narration_chunk texts. Whitespace
+ * stays on the preceding chunk, so the chunks join back into the exact
+ * narration.
+ */
+export function splitNarrationChunks(narration: string): string[] {
+  return narration.split(/(?<=[.!?…]["'”’)\]]*\s+)(?=\S)/).filter((part) => part.length > 0);
+}
+
 function buildContextualFallbackChoices(sceneName: string, characterClass?: string): string[] {
   const scene = sceneName || "the area";
   const classActions: Record<string, string> = {
@@ -216,9 +237,11 @@ export async function runTurn(
   emit: (e: ServerEvent) => void,
 ): Promise<Session> {
   const turnId = randomUUID();
+  // A choice is stored and embedded as the label the player picked.
   const inputText =
     input.kind === "choice"
-      ? `choice:${input.choiceId}`
+      ? (session.lastPresentedChoices.find((c) => c.id === input.choiceId)?.label ??
+        `choice:${input.choiceId}`)
       : input.kind === "freeform"
         ? input.text
         : `utility:${input.command}`;
@@ -244,7 +267,8 @@ export async function runTurn(
     turnCount: session.state.turn_number,
     budget: {
       ...DEFAULT_MEMORY_BUDGET,
-      estimatedPromptTokens: Math.floor(inputText.length / 4) + session.state.turn_number * 150,
+      // About 4 characters per token for the state and input the prompt carries.
+      estimatedPromptTokens: Math.ceil((JSON.stringify(session.state).length + inputText.length) / 4),
     },
   });
   const memoryComposition = {
@@ -274,29 +298,28 @@ export async function runTurn(
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const attemptNumber = attempt + 1;
-    const attemptChunks: string[] = [];
+    // No attempt may outlive the turn's deadline.
+    const attemptTimeoutMs = Math.min(TURN_RELIABILITY_POLICY.timeoutMs, deadlineAt - Date.now());
+    if (attemptTimeoutMs <= 0) break;
+    const controller = new AbortController();
+    let attemptTimer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const turnPromise = generate({
-        bible: session.bible,
-        userPrompt,
-        onText: (chunk) => {
-          attemptChunks.push(chunk);
-        },
-      });
-
+      // The model streams its whole JSON reply, so narration is emitted
+      // from the parsed turn below rather than from raw text deltas.
       turn = await Promise.race([
-        turnPromise,
-        new Promise<never>((_, reject) =>
-          setTimeout(
+        generate({
+          bible: session.bible,
+          userPrompt,
+          signal: controller.signal,
+        }),
+        new Promise<never>((_, reject) => {
+          attemptTimer = setTimeout(
             () => reject(new Error("gm_turn_timeout")),
-            TURN_RELIABILITY_POLICY.timeoutMs,
-          ),
-        ),
+            attemptTimeoutMs,
+          );
+        }),
       ]);
 
-      for (const chunk of attemptChunks) {
-        emit({ type: "narration_chunk", turnId, text: chunk, done: false });
-      }
       console.info(
         JSON.stringify({
           event: "gm_turn_attempt",
@@ -309,6 +332,8 @@ export async function runTurn(
       );
       break;
     } catch (error) {
+      // Stop the losing request so a timed-out stream doesn't keep running.
+      controller.abort();
       lastError = error instanceof Error ? error : new Error("gm_turn_failed");
       const errorClass = Date.now() >= deadlineAt ? "timeout" : classifyProviderError(lastError);
       recordFailureClass(errorClass);
@@ -332,6 +357,8 @@ export async function runTurn(
           await sleep(backoffMs);
         }
       }
+    } finally {
+      clearTimeout(attemptTimer);
     }
   }
 
@@ -345,9 +372,11 @@ export async function runTurn(
       recoverable: true,
       message: degraded,
     });
-    circuitState.failures += 1;
-    if (config.GM_CIRCUIT_BREAKER_ENABLED && circuitState.failures >= config.GM_CIRCUIT_BREAKER_FAILURE_THRESHOLD) {
-      circuitState.openUntil = Date.now() + config.GM_CIRCUIT_BREAKER_COOLDOWN_MS;
+    if (CIRCUIT_BREAKER_FAILURE_CLASSES.has(failureClass)) {
+      circuitState.failures += 1;
+      if (config.GM_CIRCUIT_BREAKER_ENABLED && circuitState.failures >= config.GM_CIRCUIT_BREAKER_FAILURE_THRESHOLD) {
+        circuitState.openUntil = Date.now() + config.GM_CIRCUIT_BREAKER_COOLDOWN_MS;
+      }
     }
     incrementSessionMetric("turnFallbackSafeContinueChoices");
     recordOutcome("exhausted_retries");
@@ -356,12 +385,28 @@ export async function runTurn(
       session.state.scene.name,
       session.state.character.background["class"],
     );
+    const fallbackChoices = fallbackLabels.map((label, i) => ({ id: `fallback_${i}`, label }));
     emit({
       type: "choice_list",
       turnId,
-      choices: fallbackLabels.map((label, i) => ({ id: `fallback_${i}`, label })),
+      choices: fallbackChoices,
       acceptsFreeform: true,
     });
+    // Keep the fallback choices so picking one resolves to its label next
+    // turn. The caller keeps this session object when the turn throws, so
+    // update it as well as the store.
+    session.lastPresentedChoices = fallbackChoices;
+    if (deps.persistPresentedChoices) {
+      try {
+        await deps.persistPresentedChoices(session.campaignId, fallbackChoices);
+      } catch (err) {
+        console.warn(JSON.stringify({
+          event: "fallback_choices_persist_failed",
+          campaignId: session.campaignId,
+          error: err instanceof Error ? err.message : String(err),
+        }));
+      }
+    }
     throw lastError ?? new Error("gm_turn_failed");
   }
 
@@ -392,6 +437,9 @@ export async function runTurn(
     recordOutcome("success_first_try");
   }
 
+  for (const text of splitNarrationChunks(turn.narration)) {
+    emit({ type: "narration_chunk", turnId, text, done: false });
+  }
   emit({ type: "narration_chunk", turnId, text: "", done: true });
   console.info(JSON.stringify({ event: "turn_structured_log", turnId, campaignId: session.campaignId, memoryAnchorIds }));
   emit({
@@ -467,16 +515,17 @@ export async function runTurn(
     void (async () => {
       try {
         const sceneNumber = Math.floor(nextState.turn_number / SCENE_SUMMARY_EVERY);
+        // Each turn stores a player row and a GM row, so this is the
+        // whole scene.
         const batch = await deps.memory.recentTurns(
           session.campaignId,
           SCENE_SUMMARY_EVERY * 2,
         );
-        const turnsToSummarize = batch.slice(0, SCENE_SUMMARY_EVERY);
-        if (turnsToSummarize.length === 0) return;
+        if (batch.length === 0) return;
         const result = await generateSceneSummary({
           sceneName: nextState.scene.name,
           sceneNumber,
-          turns: turnsToSummarize,
+          turns: batch,
         });
         await deps.persistSceneSummary!(session.campaignId, {
           sceneNumber,

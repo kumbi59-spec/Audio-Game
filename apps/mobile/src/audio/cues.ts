@@ -30,14 +30,25 @@ const PRESETS: Record<SoundCue, CuePreset> = {
   },
 };
 
-// Web Audio API synthesis — only available when running in a web browser (Expo web).
-function synthCue(cue: SoundCue): void {
-  if (typeof window === "undefined") return;
+// One shared context: browsers cap how many can be open, and each cue
+// creating its own would leak them.
+let audioContext: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  if (audioContext) return audioContext;
+  if (typeof window === "undefined") return null;
   // @ts-expect-error webkitAudioContext fallback for Safari
   const AudioCtx: typeof AudioContext = window.AudioContext ?? window.webkitAudioContext;
-  if (!AudioCtx) return;
+  if (!AudioCtx) return null;
+  audioContext = new AudioCtx();
+  return audioContext;
+}
 
-  const ac = new AudioCtx();
+// Web Audio API synthesis — only available when running in a web browser (Expo web).
+function synthCue(cue: SoundCue): void {
+  const context = getAudioContext();
+  if (!context) return;
+  const ac: AudioContext = context;
   if (ac.state === "suspended") void ac.resume();
 
   const t = ac.currentTime;

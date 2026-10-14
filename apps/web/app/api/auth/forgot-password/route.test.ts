@@ -18,4 +18,14 @@ describe("POST /api/auth/forgot-password throttling", () => {
     expect(res.status).toBe(429);
     expect(res.headers.get("Retry-After")).toBe("120");
   });
+
+  it("rejects a malformed JSON body with 400", async () => {
+    const req = new Request("http://localhost/api/auth/forgot-password", {
+      method: "POST",
+      body: "{not json",
+      headers: { "content-type": "application/json" },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+  });
 });

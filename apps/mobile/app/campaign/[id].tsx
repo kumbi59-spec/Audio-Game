@@ -17,6 +17,7 @@ import { feedNarration, speakAfterNarration, speakOnce, stopNarration } from "@/
 import { playCue } from "@/audio/cues";
 import { captureUtterance } from "@/voice/stt";
 import { usePrefs } from "@/prefs/store";
+import { getCampaign } from "@/api/rest";
 import { EQ, R, SPACE, FS, TOUCH_MIN, CHOICE_MIN } from "@/design/tokens";
 import { useCan } from "@/entitlements/store";
 import { AdBanner } from "@/entitlements/AdBanner";
@@ -38,6 +39,7 @@ export default function ActiveCampaign(): JSX.Element {
   const [upgradeVisible, setUpgradeVisible] = useState(false);
   const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [showFirstTurnTips, setShowFirstTurnTips] = useState(false);
+  const [connectAttempt, setConnectAttempt] = useState(0);
   const canAcceptInput = !session.awaitingGm;
 
   useLandmarkAnnounce(
@@ -65,6 +67,49 @@ export default function ActiveCampaign(): JSX.Element {
     return unsub;
   }, []);
 
+  // Resume, the lobby start and deep links land here without a socket, so
+  // the screen joins the campaign itself with the token saved when it was
+  // created.
+  useEffect(() => {
+    if (!id) return;
+    const current = useSession.getState();
+    if (current.campaignId === id && current.connected) return;
+    const token = usePrefs.getState().sessionTokens[id];
+    if (!token) {
+      current.setConnectionError(
+        "This campaign wasn't started on this device, so it can't be resumed here.",
+      );
+      return;
+    }
+    let cancelled = false;
+    current.setConnectionError(null);
+    void (async () => {
+      try {
+        const latest = useSession.getState();
+        if (latest.campaignId !== id || !latest.state) {
+          const campaign = await getCampaign(id);
+          if (cancelled) return;
+          latest.joined({
+            campaignId: id,
+            authToken: token,
+            title: campaign.title,
+            state: campaign.state,
+          });
+        }
+        await sessionConnection.connect({ campaignId: id, authToken: token });
+      } catch (e) {
+        if (!cancelled) {
+          useSession
+            .getState()
+            .setConnectionError(e instanceof Error ? e.message : "Could not connect to your campaign.");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, connectAttempt]);
+
   useEffect(() => {
     scrollRef.current?.scrollToEnd({ animated: true });
   }, [session.transcript.length]);
@@ -84,6 +129,8 @@ export default function ActiveCampaign(): JSX.Element {
 
   const leaveCampaign = useCallback(() => {
     sessionConnection.pause();
+    // Closing marks the drop as intentional, so it isn't reconnected.
+    void sessionConnection.close();
     session.reset();
     router.replace("/");
   }, [router, session]);
@@ -176,6 +223,36 @@ export default function ActiveCampaign(): JSX.Element {
     "do something else|custom action|speak": () => { void speakFreeform(); },
   });
 
+  if (session.connectionError && !session.connected) {
+    return (
+      <View style={styles.center} accessibilityRole="alert">
+        <Text style={styles.connectErrorTitle}>Unable to connect</Text>
+        <Text style={styles.connectingText} accessibilityLiveRegion="assertive">
+          {session.connectionError}
+        </Text>
+        <View style={styles.connectErrorActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retry connection"
+            onPress={() => setConnectAttempt((n) => n + 1)}
+            style={({ pressed }) => [styles.retryBtn, pressed && styles.dockBtnPressed]}
+          >
+            <Text style={styles.retryBtnText}>Retry</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Exit"
+            accessibilityHint="Return home"
+            onPress={leaveCampaign}
+            style={({ pressed }) => [styles.exitBtn, pressed && styles.dockBtnPressed]}
+          >
+            <Text style={styles.dockBtnText}>Exit</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
   if (!session.connected || !session.state) {
     return (
       <View style={styles.center}>
@@ -188,6 +265,7 @@ export default function ActiveCampaign(): JSX.Element {
   }
 
   const lastGm = [...session.transcript].reverse().find((t) => t.role === "gm");
+  const lastEntry = session.transcript[session.transcript.length - 1];
 
   return (
     <View style={styles.container}>
@@ -213,7 +291,7 @@ export default function ActiveCampaign(): JSX.Element {
             </Text>
           </View>
         ))}
-        {session.awaitingGm && !lastGm?.streaming && (
+        {session.awaitingGm && lastEntry?.role !== "gm" && (
           <Text style={styles.thinking} accessibilityLiveRegion="polite">
             The game master is responding…
           </Text>
@@ -333,6 +411,25 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: EQ.bg },
   center: { flex: 1, backgroundColor: EQ.bg, justifyContent: "center", alignItems: "center", gap: SPACE[3] },
   connectingText: { fontSize: FS.lg, color: EQ.textMuted, lineHeight: 26 },
+  connectErrorTitle: { fontSize: FS.xl, fontWeight: "700", color: EQ.text },
+  connectErrorActions: { flexDirection: "row", gap: SPACE[3] },
+  retryBtn: {
+    minHeight: TOUCH_MIN,
+    borderRadius: R.md,
+    backgroundColor: EQ.accent,
+    paddingHorizontal: SPACE[4],
+    justifyContent: "center",
+  },
+  retryBtnText: { color: "#fff", fontSize: FS.sm, fontWeight: "700" },
+  exitBtn: {
+    minHeight: TOUCH_MIN,
+    borderRadius: R.md,
+    backgroundColor: EQ.surface,
+    borderWidth: 1,
+    borderColor: EQ.border,
+    paddingHorizontal: SPACE[4],
+    justifyContent: "center",
+  },
 
   header: { padding: SPACE[4], paddingBottom: SPACE[2], borderBottomWidth: 1, borderBottomColor: EQ.border2 },
   h1: { fontSize: FS["2xl"], fontWeight: "700", color: EQ.text, letterSpacing: -0.3 },

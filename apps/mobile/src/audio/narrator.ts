@@ -77,11 +77,19 @@ function assignVoiceRole(npcName: string): "voice_a" | "voice_b" | "voice_c" {
 export function updateNpcVoiceMap(
   assignments: Record<string, "voice_a" | "voice_b" | "voice_c">,
 ): void {
-  const normalized: Record<string, "voice_a" | "voice_b" | "voice_c"> = {};
+  // The server numbers roles per turn, so a later plan can give a known NPC
+  // a different role. Keep the first assignment so voices stay stable.
+  const next = { ...npcVoiceMap };
   for (const [name, role] of Object.entries(assignments)) {
-    normalized[npcVoiceKey(name)] = role;
+    const key = npcVoiceKey(name);
+    if (!next[key]) next[key] = role;
   }
-  npcVoiceMap = { ...npcVoiceMap, ...normalized };
+  npcVoiceMap = next;
+}
+
+/** The voice role currently assigned to an NPC, if any. */
+export function npcVoiceRole(npcName: string): "voice_a" | "voice_b" | "voice_c" | undefined {
+  return npcVoiceMap[npcVoiceKey(npcName)];
 }
 
 export function resetNpcVoiceMap(): void {

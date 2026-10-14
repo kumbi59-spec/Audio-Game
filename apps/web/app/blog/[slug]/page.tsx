@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { blogCoverSrc } from "@/lib/blog/cover-src";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
 import { stripPlaceholderImages } from "@/lib/blog/placeholder-images";
 import { renderBlogMarkdown, serializeJsonLd } from "@/lib/blog/render-markdown";
@@ -36,8 +37,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   let post = null;
   try {
-    post = await prisma.blogPost.findUnique({
-      where: { slug },
+    // Drafts and scheduled posts 404 below; don't leak their title or excerpt here either.
+    post = await prisma.blogPost.findFirst({
+      where: { slug, publishedAt: { not: null, lte: new Date() } },
       include: { author: { select: { name: true } } },
     });
   } catch (err) { console.error("[blog] DB query failed:", err); }
@@ -158,9 +160,9 @@ export default async function BlogPostPage({ params }: Props) {
         {post.coverImageUrl && (
           <div className="border-b border-border">
             {/* Capped in width so the title stays above the fold. */}
-            {/* eslint-disable-next-line @next/next/no-img-element -- base64 data: URL, next/image would re-encode unnecessarily */}
+            {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/cover route, not a static asset */}
             <img
-              src={post.coverImageUrl}
+              src={blogCoverSrc(post.id, post.coverImageUrl)}
               alt=""
               className="mx-auto aspect-[16/9] w-full max-w-4xl object-cover"
               loading="eager"

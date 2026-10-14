@@ -1,4 +1,4 @@
-import { getUserPushTokens } from "./tokens";
+import { deletePushTokens, getUserPushTokens } from "./tokens";
 
 export interface PushPayload {
   title: string;
@@ -46,13 +46,27 @@ async function sendExpoNotifications(tokens: string[], payload: PushPayload): Pr
     chunks.push(messages.slice(i, i + 100));
   }
 
+  const unregistered: string[] = [];
   for (const chunk of chunks) {
-    await fetch("https://exp.host/--/api/v2/push/send", {
+    const res = await fetch("https://exp.host/--/api/v2/push/send", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(chunk),
     });
+    // One ticket per message, in order. DeviceNotRegistered means the app
+    // was uninstalled or the token expired, so it will never deliver again.
+    const tickets = ((await res.json().catch(() => null)) as {
+      data?: Array<{ status?: string; details?: { error?: string } }>;
+    } | null)?.data;
+    if (!Array.isArray(tickets)) continue;
+    tickets.forEach((ticket, i) => {
+      const to = chunk[i]?.to;
+      if (to && ticket?.status === "error" && ticket.details?.error === "DeviceNotRegistered") {
+        unregistered.push(to);
+      }
+    });
   }
+  await deletePushTokens(unregistered);
 }
 
 async function sendWebPushNotification(
@@ -64,10 +78,20 @@ async function sendWebPushNotification(
   if (!vapidConfigured) return;
 
   const keys = JSON.parse(authJson) as { p256dh: string; auth: string };
-  await webPushLib?.sendNotification(
-    { endpoint, keys },
-    JSON.stringify({ title: payload.title, body: payload.body, url: payload.url ?? "/" }),
-  );
+  try {
+    await webPushLib?.sendNotification(
+      { endpoint, keys },
+      JSON.stringify({ title: payload.title, body: payload.body, url: payload.url ?? "/" }),
+    );
+  } catch (err) {
+    // 404/410 from the push service: the subscription is gone for good.
+    const statusCode = (err as { statusCode?: unknown } | null)?.statusCode;
+    if (statusCode === 404 || statusCode === 410) {
+      await deletePushTokens([endpoint]);
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function sendPushToUser(userId: string, payload: PushPayload): Promise<void> {

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { ParsedGameBible } from "@/types/world";
 import { BIBLE_PARSE_SYSTEM } from "./prompts/bible-parse";
 import { getAnthropicClient, messageText, modelParams, MODEL } from "./client";
@@ -53,16 +54,108 @@ export async function parseGameBible(rawText: string): Promise<ParsedGameBible> 
     }
   }
 
-  let parsed: ParsedGameBible;
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(jsonText) as ParsedGameBible;
+    parsed = JSON.parse(jsonText);
   } catch {
     throw new Error(
       "Claude returned invalid JSON — please try a different file or rephrase your Game Bible."
     );
   }
 
-  return parsed;
+  return normalizeParsedBible(parsed);
+}
+
+type Loose = Record<string, unknown>;
+
+function isObject(v: unknown): v is Loose {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
+function str(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
+function strings(v: unknown): string[] {
+  return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+}
+
+/** Maps each object entry of a list through `pick`, dropping entries with no name. */
+function namedEntries<T extends { name: string }>(v: unknown, pick: (o: Loose) => T): T[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter(isObject).map(pick).filter((e) => e.name.trim() !== "");
+}
+
+function finiteNumber(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+/**
+ * The model's reply is only JSON, not necessarily the shape we asked for, and
+ * fields it leaves out would otherwise throw in buildSystemPromptFromBible or
+ * fail the world insert. Strings default to "", lists to [], and list entries
+ * without a name are dropped.
+ */
+export function normalizeParsedBible(raw: unknown): ParsedGameBible {
+  const b = isObject(raw) ? raw : {};
+
+  const statRulesRaw = isObject(b["statRules"]) ? b["statRules"] : null;
+  let statRules: ParsedGameBible["statRules"];
+  if (statRulesRaw) {
+    statRules = {};
+    const perStatMin = finiteNumber(statRulesRaw["perStatMin"]);
+    const perStatMax = finiteNumber(statRulesRaw["perStatMax"]);
+    const totalPointPool = statRulesRaw["totalPointPool"] === null ? null : finiteNumber(statRulesRaw["totalPointPool"]);
+    if (perStatMin !== undefined) statRules.perStatMin = perStatMin;
+    if (perStatMax !== undefined) statRules.perStatMax = perStatMax;
+    if (totalPointPool !== undefined) statRules.totalPointPool = totalPointPool;
+  }
+
+  return {
+    worldName: str(b["worldName"]).trim() || "Untitled World",
+    genre: str(b["genre"]),
+    tone: str(b["tone"]),
+    synopsis: str(b["synopsis"]),
+    systemPromptCore: str(b["systemPromptCore"]),
+    locations: namedEntries(b["locations"], (l) => ({
+      name: str(l["name"]),
+      description: str(l["description"]),
+      shortDesc: str(l["shortDesc"]),
+      ambientMood: str(l["ambientMood"]),
+      connections: strings(l["connections"]),
+    })),
+    npcs: namedEntries(b["npcs"], (n) => ({
+      name: str(n["name"]),
+      role: str(n["role"]),
+      personality: str(n["personality"]),
+      voiceDescription: str(n["voiceDescription"]),
+      homeLocation: str(n["homeLocation"]),
+    })),
+    factions: namedEntries(b["factions"], (f) => ({
+      name: str(f["name"]),
+      description: str(f["description"]),
+      disposition: str(f["disposition"]),
+    })),
+    startingLocation: str(b["startingLocation"]),
+    openingNarration: str(b["openingNarration"]),
+    campaignHooks: strings(b["campaignHooks"]),
+    importantItems: namedEntries(b["importantItems"], (i) => ({
+      name: str(i["name"]),
+      description: str(i["description"]),
+      significance: str(i["significance"]),
+    })),
+    rulesNotes: str(b["rulesNotes"]),
+    classes: namedEntries(b["classes"], (c) => ({
+      name: str(c["name"]),
+      description: str(c["description"]),
+      role: str(c["role"]),
+    })),
+    backgrounds: namedEntries(b["backgrounds"], (bg) => ({
+      name: str(bg["name"]),
+      description: str(bg["description"]),
+    })),
+    ...(statRules && { statRules }),
+  };
 }
 
 function mapAmbient(mood: string): string {
@@ -160,19 +253,29 @@ export async function createWorldFromBible(
   guestId: string,
   gameBibleId: string
 ): Promise<string> {
-  // Unique IDs derived from a timestamp so re-uploads don't conflict
-  const stamp = Date.now().toString(36);
+  // Unique IDs: a timestamp plus a random suffix, so re-uploads and
+  // concurrent creates don't conflict
+  const stamp = `${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
   const worldId = `world-${stamp}`;
 
-  const locationIdMap: Record<string, string> = {};
-  bible.locations.forEach((l, i) => {
-    locationIdMap[l.name] = `loc-${stamp}-${i}`;
-  });
+  // A game starts at the world's first location by id, so the bible's
+  // starting location goes first, and the index is zero-padded so the ids
+  // sort in this order.
+  const startKey = bible.startingLocation.trim().toLowerCase();
+  const startIdx = bible.locations.findIndex((l) => l.name.trim().toLowerCase() === startKey);
+  const locations =
+    startIdx > 0
+      ? [bible.locations[startIdx]!, ...bible.locations.filter((_, i) => i !== startIdx)]
+      : bible.locations;
+  const idWidth = Math.max(3, String(locations.length - 1).length);
+  const locationIds = locations.map((_, i) => `loc-${stamp}-${String(i).padStart(idWidth, "0")}`);
 
-  const startingLocId =
-    locationIdMap[bible.startingLocation] ??
-    Object.values(locationIdMap)[0] ??
-    null;
+  // Every location gets its own id; a name shared by several resolves to the
+  // first of them.
+  const locationIdByName = new Map<string, string>();
+  locations.forEach((l, i) => {
+    if (!locationIdByName.has(l.name)) locationIdByName.set(l.name, locationIds[i]!);
+  });
 
   const imageUrl = await resolveWorldCoverImage(bible.worldName, bible.genre, bible.tone);
 
@@ -200,14 +303,14 @@ export async function createWorldFromBible(
         },
       },
       locations: {
-        create: bible.locations.map((l) => ({
-          id: locationIdMap[l.name],
+        create: locations.map((l, i) => ({
+          id: locationIds[i]!,
           name: l.name,
           description: l.description,
           shortDesc: l.shortDesc,
           ambientSound: mapAmbient(l.ambientMood),
           connectedTo: JSON.stringify(
-            l.connections.map((name) => locationIdMap[name] ?? name)
+            l.connections.map((name) => locationIdByName.get(name) ?? name)
           ),
           properties: "{}",
         })),
@@ -221,7 +324,7 @@ export async function createWorldFromBible(
           voiceDescription: n.voiceDescription,
           relationship: "neutral" as const,
           isAlive: true,
-          locationId: locationIdMap[n.homeLocation] ?? null,
+          locationId: locationIdByName.get(n.homeLocation) ?? null,
           properties: "{}",
         })),
       },

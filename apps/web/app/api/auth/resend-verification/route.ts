@@ -3,10 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { createVerificationToken } from "@/lib/email/verification";
 import { sendVerificationEmail } from "@/lib/email";
+import { getPublicOrigin } from "@/lib/site-url";
 
-const APP_URL = process.env["NEXTAUTH_URL"] ?? "http://localhost:3000";
-
-export async function POST() {
+export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
@@ -21,7 +20,7 @@ export async function POST() {
 
   try {
     const token = await createVerificationToken(user.email);
-    const url = `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
+    const url = `${getPublicOrigin(req)}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
     await sendVerificationEmail(user.email, user.name ?? user.email.split("@")[0], url);
     return NextResponse.json({ ok: true });
   } catch {

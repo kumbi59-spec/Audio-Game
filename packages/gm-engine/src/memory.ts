@@ -85,6 +85,9 @@ export const DEFAULT_MEMORY_BUDGET: MemoryBudget = {
   },
 };
 
+/** Turns per scene summary: scene N is summarised at turn N × this. */
+export const SCENE_SUMMARY_EVERY = 15;
+
 type MemorySource = "recent" | "retrieved" | "scene" | "critical";
 
 interface UnifiedMemoryCandidate {
@@ -181,26 +184,30 @@ function selectTopMemoryCandidates(
   const selected: UnifiedMemoryCandidate[] = [];
   const minCritical = Math.min(budget.memoryScoring.sourceMinimums.criticalFacts, totalK);
   const minScenes = Math.min(budget.memoryScoring.sourceMinimums.sceneSummaries, Math.max(0, totalK - minCritical));
+  const minRecent = Math.min(budget.minimums.recentTurns, Math.max(0, totalK - minCritical - minScenes));
 
   pickSourceMinimum(sorted, selected, "critical", minCritical);
   pickSourceMinimum(sorted, selected, "scene", minScenes);
+  pickSourceMinimum(sorted, selected, "recent", minRecent);
 
   for (const candidate of sorted) {
     if (selected.length >= totalK) break;
     if (!selected.includes(candidate)) selected.push(candidate);
   }
 
+  // Selection runs in score order; the prompt reads each source in story
+  // order. Array sort is stable, so ties keep the store's own order.
+  const chosen = (source: MemorySource): Set<unknown> =>
+    new Set(selected.filter((c) => c.source === source).map((c) => c.payload));
+  const recent = chosen("recent");
+  const retrieved = chosen("retrieved");
+  const scenes = chosen("scene");
+  const critical = chosen("critical");
   return {
-    recent: selected.filter((c): c is UnifiedMemoryCandidate & { payload: MemoryTurn } => c.source === "recent").map((c) => c.payload),
-    retrieved: selected
-      .filter((c): c is UnifiedMemoryCandidate & { payload: MemoryTurn } => c.source === "retrieved")
-      .map((c) => c.payload),
-    scenes: selected
-      .filter((c): c is UnifiedMemoryCandidate & { payload: SceneSummary } => c.source === "scene")
-      .map((c) => c.payload),
-    criticalFacts: selected
-      .filter((c): c is UnifiedMemoryCandidate & { payload: CriticalFact } => c.source === "critical")
-      .map((c) => c.payload),
+    recent: inputs.recent.filter((t) => recent.has(t)).sort((a, b) => a.turnNumber - b.turnNumber),
+    retrieved: inputs.retrieved.filter((t) => retrieved.has(t)).sort((a, b) => a.turnNumber - b.turnNumber),
+    scenes: inputs.scenes.filter((s) => scenes.has(s)).sort((a, b) => a.sceneNumber - b.sceneNumber),
+    criticalFacts: inputs.criticalFacts.filter((f) => critical.has(f)).sort((a, b) => a.turnNumber - b.turnNumber),
     injectionState: buildNextInjectionState(selected, selection?.injectedState),
   };
 }
@@ -244,11 +251,14 @@ function buildCandidates(
       forced,
     ),
   );
-  const sceneCandidates = inputs.scenes.map((scene, idx) =>
+  // Newest scene ranks first; its recency is measured from the turn the
+  // summary was written at, not from the scene's ordinal.
+  const scenesNewestFirst = [...inputs.scenes].sort((a, b) => b.sceneNumber - a.sceneNumber);
+  const sceneCandidates = scenesNewestFirst.map((scene, idx) =>
     makeCandidate(
       "scene",
       `${scene.summary} ${scene.keyEvents.join(" ")}`,
-      scene.sceneNumber,
+      scene.sceneNumber * SCENE_SUMMARY_EVERY,
       scene,
       Math.max(0.3, 0.8 - idx * 0.08),
       0.8,
@@ -388,6 +398,8 @@ export function formatFactForPrompt(text: string): string {
       return `Scene changed to: "${rest[0] ?? ""}"`;
     case "CODEX_UNLOCK":
       return `Codex unlocked: "${rest[1] ?? rest[0] ?? ""}"`;
+    case "ACHIEVEMENT_UNLOCK":
+      return `Achievement unlocked: "${rest[1] ?? rest[0] ?? ""}"`;
     case "FLAG_SET":
       return `Flag set: ${rest[0] ?? ""} = ${rest[1] ?? ""}`;
     case "CONDITION_STATE":
