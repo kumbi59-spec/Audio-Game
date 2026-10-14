@@ -45,33 +45,95 @@ function tryParseObject(text: string): Record<string, unknown> | null {
   }
 }
 
-function toResponse(parsed: Partial<GMResponse>, fallbackChoices: string[] | null): GMResponse {
-  const choices = Array.isArray(parsed.choices)
-    ? parsed.choices.filter((c): c is string => typeof c === "string" && c.trim() !== "").map(stripEmDashes)
-    : [];
+/** Keys a reply sometimes uses for its choices instead of "choices". */
+const CHOICE_KEYS = ["choices", "options", "actions", "suggestedActions", "nextActions"] as const;
+
+/**
+ * Choice labels from whatever shape the GM wrote them in: plain strings, or
+ * objects like {"label": "..."} or {"text": "..."}.
+ */
+function choiceLabels(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((c) => {
+      if (typeof c === "string") return c;
+      if (c && typeof c === "object") {
+        const o = c as Record<string, unknown>;
+        const label = o.label ?? o.text ?? o.choice ?? o.action ?? o.title;
+        return typeof label === "string" ? label : "";
+      }
+      return "";
+    })
+    .map((c) => c.trim())
+    .filter((c) => c !== "")
+    .map(stripEmDashes);
+}
+
+function toResponse(parsed: Record<string, unknown>): GMResponse {
+  const choiceKey = CHOICE_KEYS.find((k) => choiceLabels(parsed[k]).length > 0);
   return {
     narration: stripOutOfCharacterNotes(stripEmDashes(typeof parsed.narration === "string" ? parsed.narration : "")),
-    choices: choices.length === 0 && fallbackChoices ? [...fallbackChoices] : choices,
-    soundCue: parsed.soundCue ?? null,
-    stateChanges: parsed.stateChanges && typeof parsed.stateChanges === "object" ? parsed.stateChanges : undefined,
-    npcAction: parsed.npcAction ?? null,
+    choices: choiceKey ? choiceLabels(parsed[choiceKey]) : [],
+    soundCue: typeof parsed.soundCue === "string" ? parsed.soundCue : null,
+    stateChanges:
+      parsed.stateChanges && typeof parsed.stateChanges === "object"
+        ? (parsed.stateChanges as GMResponse["stateChanges"])
+        : undefined,
+    npcAction:
+      parsed.npcAction && typeof parsed.npcAction === "object" ? (parsed.npcAction as GMResponse["npcAction"]) : null,
   };
 }
 
-// Parse the GM's JSON response, tolerating markdown code fences
-export function parseGMResponse(raw: string): GMResponse {
+/**
+ * Escapes raw newlines and tabs inside JSON strings. The GM often writes its
+ * paragraph breaks as real line breaks, which JSON.parse rejects.
+ */
+function escapeControlCharsInStrings(text: string): string {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      else if (ch === "\n") { out += "\\n"; continue; }
+      else if (ch === "\r") { out += "\\r"; continue; }
+      else if (ch === "\t") { out += "\\t"; continue; }
+    } else if (ch === '"') {
+      inString = true;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+export interface ParsedGMReply {
+  reply: GMResponse;
+  /** The whole reply was valid JSON (after light repair). */
+  wellFormed: boolean;
+  /** The reply carried no usable choices of its own. */
+  missingChoices: boolean;
+}
+
+/**
+ * Parses the GM's JSON reply, tolerating code fences, prose around the JSON,
+ * raw line breaks inside strings and a reply cut off part way through.
+ */
+export function parseGMReply(raw: string): ParsedGMReply {
   const cleaned = raw
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/g, "")
     .trim();
 
-  // Prose before or after the JSON object (a stray sentence, a second
-  // fence) is ignored rather than failing the whole reply.
   const first = cleaned.indexOf("{");
   const last = cleaned.lastIndexOf("}");
-  const parsed =
-    tryParseObject(cleaned) ?? (first >= 0 && last > first ? tryParseObject(cleaned.slice(first, last + 1)) : null);
-  if (parsed) return toResponse(parsed as Partial<GMResponse>, null);
+  const body = first >= 0 && last > first ? cleaned.slice(first, last + 1) : cleaned;
+  const parsed = tryParseObject(body) ?? tryParseObject(escapeControlCharsInStrings(body));
+  if (parsed) {
+    const reply = toResponse(parsed);
+    return { reply, wellFormed: true, missingChoices: reply.choices.length === 0 };
+  }
 
   // Truncated / malformed JSON — most commonly hit when the model runs into
   // MAX_TOKENS or the stream is cut. Dumping `raw` as narration leaked the
@@ -82,17 +144,63 @@ export function parseGMResponse(raw: string): GMResponse {
   // the narration, the scene's own choices and its state changes. Losing the
   // state changes left the sheet behind the story (still "in the lab" after
   // leaving it), and the GM then rewound the story to match the sheet.
+  const repaired = escapeControlCharsInStrings(cleaned);
   const extracted = extractNarrationField(cleaned);
-  return toResponse(
-    {
-      narration: extracted ?? raw,
-      choices: extractChoicesField(cleaned),
-      soundCue: extractJsonValue(cleaned, "soundCue") as string | null,
-      stateChanges: (extractJsonValue(cleaned, "stateChanges") ?? undefined) as GMResponse["stateChanges"],
-      npcAction: (extractJsonValue(cleaned, "npcAction") ?? null) as GMResponse["npcAction"],
-    },
-    UNREADABLE_REPLY_CHOICES,
+  const recoveredChoices = CHOICE_KEYS.map((k) => extractChoicesField(repaired, k)).find((c) => c.length > 0) ?? [];
+  const reply = toResponse({
+    narration: extracted ?? raw,
+    choices: recoveredChoices,
+    soundCue: extractJsonValue(repaired, "soundCue"),
+    stateChanges: extractJsonValue(repaired, "stateChanges") ?? undefined,
+    npcAction: extractJsonValue(repaired, "npcAction") ?? null,
+  });
+  return { reply, wellFormed: false, missingChoices: reply.choices.length === 0 };
+}
+
+/**
+ * The GM's reply for display and history. A reply with no usable choices
+ * gets the in-voice fallback choices, so the player is never left with none.
+ */
+export function parseGMResponse(raw: string): GMResponse {
+  const { reply, missingChoices } = parseGMReply(raw);
+  return missingChoices ? { ...reply, choices: [...UNREADABLE_REPLY_CHOICES] } : reply;
+}
+
+/**
+ * A reply as clean JSON, in the key order the GM is asked to write, for the
+ * saved history. A malformed or truncated reply left in the history is read
+ * back by the GM on every later turn, and it copies the broken shape.
+ */
+export function canonicalReplyText(reply: GMResponse, speakers: unknown = []): string {
+  return JSON.stringify({
+    soundCue: reply.soundCue ?? null,
+    speakers: Array.isArray(speakers) ? speakers : [],
+    narration: reply.narration,
+    choices: reply.choices,
+    ...(reply.stateChanges ? { stateChanges: reply.stateChanges } : {}),
+    npcAction: reply.npcAction ?? null,
+  });
+}
+
+/**
+ * A stored GM reply ready to send back as history: unchanged when it was
+ * well-formed JSON, otherwise rewritten as clean JSON (see canonicalReplyText).
+ */
+export function historyReplyText(raw: string): string {
+  // Plain text (an older save's format) has nothing to repair.
+  if (!raw.includes('"narration"')) return raw;
+  const { reply, wellFormed, missingChoices } = parseGMReply(raw);
+  if (wellFormed) return raw;
+  return canonicalReplyText(
+    missingChoices ? { ...reply, choices: [...UNREADABLE_REPLY_CHOICES] } : reply,
+    replySpeakers(raw),
   );
+}
+
+/** The "speakers" list of a raw reply, or [] when it can't be read. */
+export function replySpeakers(raw: string): unknown[] {
+  const speakers = extractJsonValue(escapeControlCharsInStrings(raw), "speakers");
+  return Array.isArray(speakers) ? speakers : [];
 }
 
 /**
@@ -147,10 +255,10 @@ function valueEnd(text: string, start: number): number | null {
 }
 
 /** The complete choice strings in a possibly truncated `"choices": [...]`. */
-function extractChoicesField(text: string): string[] {
-  const whole = extractJsonValue(text, "choices");
-  if (Array.isArray(whole)) return whole.filter((c): c is string => typeof c === "string");
-  const match = /"choices"\s*:\s*\[/.exec(text);
+function extractChoicesField(text: string, key: string = "choices"): string[] {
+  const whole = extractJsonValue(text, key);
+  if (Array.isArray(whole)) return choiceLabels(whole);
+  const match = new RegExp(`"${key}"\\s*:\\s*\\[`).exec(text);
   if (!match) return [];
   const choices: string[] = [];
   let i = match.index + match[0].length;

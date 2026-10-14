@@ -2,7 +2,7 @@ import type { HistoryMessage, InMemorySession } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { xpToReachLevel } from "@/lib/game/character-reducer";
-import { stripOutOfCharacterParentheticals } from "@/lib/ai/gm-response";
+import { historyReplyText, stripOutOfCharacterParentheticals } from "@/lib/ai/gm-response";
 
 const APPROX_CHARS_PER_TOKEN = 4;
 const MAX_HISTORY_TOKENS = 40_000;
@@ -64,9 +64,11 @@ export function buildContextMessages(
   // too. Filtered after the trim so the cut matches the client's.
   const messages = trimHistoryForContext(session.history)
     .filter((m) => m.content.trim() !== "")
-    // An out-of-character note in an old reply would teach the GM to keep
-    // writing them.
-    .map((m) => (m.role === "assistant" ? { ...m, content: stripOutOfCharacterParentheticals(m.content) } : m));
+    // A malformed reply, or an out-of-character note in an old one, would
+    // teach the GM to keep writing them, so both are cleaned up here.
+    .map((m) =>
+      m.role === "assistant" ? { ...m, content: stripOutOfCharacterParentheticals(historyReplyText(m.content)) } : m,
+    );
 
   // Anthropic requires the first message to have role "user"; drop any leading
   // assistant messages that may have been stored from the opening narration.
