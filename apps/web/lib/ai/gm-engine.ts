@@ -302,7 +302,12 @@ export async function runGMTurn(
     messages,
   });
 
-  return parseGMResponse(messageText(response));
+  if (response.stop_reason === "refusal") throw new GMRefusalError();
+  const reply = parseGMResponse(messageText(response));
+  // An opening with no narration would become a blank first message in the
+  // game's history, so it's an error, not a scene.
+  if (!reply.narration.trim()) throw new Error("gm_empty_reply");
+  return reply;
 }
 
 /**

@@ -3,9 +3,45 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { CONTACT_TOPICS, MAX_CONTACT_MESSAGE_CHARS, type ContactTopic } from "@/lib/email/contact-form";
 
 export default function ContactUsPage() {
+  const [topic, setTopic] = useState<ContactTopic>(CONTACT_TOPICS[0]);
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  // An address to write to instead, when the server can't send the form.
+  const [fallbackEmail, setFallbackEmail] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setSubmitted(false);
+    setError("");
+    setFallbackEmail(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, message, ...(email.trim() ? { email: email.trim() } : {}) }),
+      });
+      const data = await res.json().catch(() => ({})) as { error?: string; email?: string };
+      if (!res.ok) {
+        setError(data.error ?? "Your message couldn't be sent. Please try again.");
+        setFallbackEmail(typeof data.email === "string" ? data.email : null);
+      } else {
+        setSubmitted(true);
+        setMessage("");
+      }
+    } catch {
+      setError("Your message couldn't be sent. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <SiteHeader />
@@ -89,32 +125,65 @@ export default function ContactUsPage() {
           <h2 className="text-xl font-semibold text-foreground">Send us a message</h2>
           <form
             className="mt-4 rounded-xl border p-5 border-border bg-surface"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSubmitted(true);
-            }}
+            onSubmit={handleSubmit}
           >
             <label className="block text-sm" htmlFor="issue-type">Issue Type</label>
-            <select id="issue-type" className="mt-1 w-full rounded border px-3 py-2 border-border bg-bg">
-              <option>Bug report</option>
-              <option>Having a problem</option>
-              <option>Suggestion</option>
+            <select
+              id="issue-type"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value as ContactTopic)}
+              className="mt-1 w-full rounded border px-3 py-2 border-border bg-bg"
+            >
+              {CONTACT_TOPICS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
+            <label className="mt-4 block text-sm" htmlFor="contact-email">Your email (optional)</label>
+            <input
+              id="contact-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              maxLength={254}
+              aria-describedby="contact-email-hint"
+              className="mt-1 w-full rounded border px-3 py-2 border-border bg-bg"
+            />
+            <p id="contact-email-hint" className="mt-2 text-xs text-muted">
+              Include your email if you want a reply. We don&rsquo;t use it
+              for marketing.
+            </p>
             <label className="mt-4 block text-sm" htmlFor="message">Message</label>
             <textarea
               id="message"
               required
               rows={6}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              maxLength={MAX_CONTACT_MESSAGE_CHARS}
               className="mt-1 w-full rounded border px-3 py-2 border-border bg-bg"
             />
-            <p className="mt-2 text-xs text-muted">
-              Include your email if you want a reply. We don&rsquo;t use it
-              for marketing.
-            </p>
-            <button className="mt-4 rounded px-4 py-2 text-sm font-semibold text-on-accent bg-accent-solid" type="submit">
-              Send message
+            <button
+              className="mt-4 rounded px-4 py-2 text-sm font-semibold text-on-accent bg-accent-solid disabled:opacity-50"
+              type="submit"
+              disabled={busy}
+            >
+              {busy ? "Sending…" : "Send message"}
             </button>
-            {submitted && <p className="mt-3 text-sm text-green-400">Thanks &mdash; we received your message and will reply within two business days.</p>}
+            <div aria-live="polite">
+              {submitted && <p className="mt-3 text-sm text-green-400">Thanks &mdash; we received your message and will reply within two business days.</p>}
+            </div>
+            {error && (
+              <p role="alert" className="mt-3 text-sm" style={{ color: "var(--danger, #ef4444)" }}>
+                {error}
+                {fallbackEmail && (
+                  <>
+                    {" "}
+                    <a href={`mailto:${fallbackEmail}`} className="underline text-accent">Email {fallbackEmail}</a>
+                  </>
+                )}
+              </p>
+            )}
           </form>
         </section>
       </main>

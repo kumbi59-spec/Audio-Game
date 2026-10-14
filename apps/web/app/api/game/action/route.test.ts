@@ -170,6 +170,41 @@ describe("POST /api/game/action", () => {
     expect(mocks.streamGMTurn).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["globalFlags with too many keys", { session: { ...basePayload.session, globalFlags: Object.fromEntries(Array.from({ length: 1_001 }, (_, i) => [`f${i}`, true])) } }],
+    ["globalFlags too large to send", { session: { ...basePayload.session, globalFlags: { lore: "x".repeat(100_001) } } }],
+    ["a world flag with an oversized key", { session: { ...basePayload.session, globalFlags: { ["k".repeat(201)]: true } } }],
+    ["a relationship with oversized notes", {
+      session: { ...basePayload.session, relationships: [{ npcId: "voss", name: "Voss", standing: 10, notes: "x".repeat(2_001), lastSeenTurn: 1 }] },
+    }],
+    ["a relationship that isn't one", { session: { ...basePayload.session, relationships: ["x".repeat(50_000)] } }],
+    ["a codex entry with an oversized title", {
+      session: { ...basePayload.session, codex: [{ key: "chapel", title: "x".repeat(201), body: "", unlockedAt: 1 }] },
+    }],
+    ["a custom stat with an oversized name", { character: { ...basePayload.character, customStats: { ["s".repeat(201)]: 1 } } }],
+  ])("rejects %s", async (_, override) => {
+    const res = await POST(asGuest({ ...basePayload, ...override }) as never);
+    expect(res.status).toBe(400);
+    expect(mocks.streamGMTurn).not.toHaveBeenCalled();
+  });
+
+  it("accepts the progress a client keeps", async () => {
+    const res = await POST(asGuest({
+      ...basePayload,
+      session: {
+        ...basePayload.session,
+        globalFlags: { gate_open: true, passiveBonuses: [{ sourceStat: "luck", value: 2, reason: "r", targetRoll: "general_risk" }] },
+        achievements: [{ key: "first_blood", title: "First Blood", description: "Won a fight", unlockedAt: 2 }],
+        relationships: [{ npcId: "voss", name: "Voss", standing: 40, notes: "Let us pass", lastSeenTurn: 3, gender: "male" }],
+        codex: [{ key: "chapel", title: "The Drowned Chapel", body: "Sunk in the flood.", unlockedAt: 3 }],
+      },
+      character: { ...basePayload.character, customStats: { sanity: 8 } },
+    }) as never);
+    await readStream(res);
+    expect(res.status).toBe(200);
+    expect(mocks.streamGMTurn.mock.calls[0]![1].relationships[0]).toMatchObject({ name: "Voss", standing: 40 });
+  });
+
   it("rejects an anonymous caller once guest creation is rate limited", async () => {
     mocks.consumeRateLimit.mockResolvedValue({ allowed: false, retryAfterSeconds: 120 });
 
@@ -336,8 +371,103 @@ describe("POST /api/game/action", () => {
       const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
       const body = await readStream(res);
       expect(body).toContain("event: turn_conflict");
+      expect(body).not.toContain("event: turn_not_saved");
       expect(body).not.toContain("event: character_sync");
       expect(mocks.summarizeHistory).not.toHaveBeenCalled();
+    });
+
+    it("tells the client when a turn couldn't be saved, so it reloads the save", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.commitTurn.mockRejectedValueOnce(new Error("connection reset"));
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      const body = await readStream(res);
+      expect(body).toMatch(/event: turn_not_saved\ndata: \{"message":"[^"]+"\}/);
+      expect(body).not.toContain("event: turn_conflict");
+      expect(body).not.toContain("event: character_sync");
+      expect(body).not.toContain("event: error");
+    });
+
+    it("only moves the player to a location the world has", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "state_change", data: { locationId: "the_moon", flags: { seen: true } } };
+        yield { type: "done", data: null };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      const body = await readStream(res);
+
+      expect(body).toContain('event: state_change\ndata: {"flags":{"seen":true}}');
+      expect(mocks.commitTurn).toHaveBeenCalledWith("sess", GUEST_ID, expect.objectContaining({
+        gameState: expect.objectContaining({ currentLocationId: "l1", globalFlags: { seen: true } }),
+      }));
+
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "state_change", data: { locationId: "l2" } };
+        yield { type: "done", data: null };
+      });
+      mocks.resolvePlayableWorld.mockResolvedValue({
+        ok: true,
+        world: { ...serverWorld, locations: [...serverWorld.locations, { ...serverWorld.locations[0]!, id: "l2", name: "Forest" }] },
+      });
+      await readStream(await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never));
+      expect(mocks.commitTurn).toHaveBeenLastCalledWith("sess", GUEST_ID, expect.objectContaining({
+        gameState: expect.objectContaining({ currentLocationId: "l2" }),
+      }));
+    });
+
+    it("stores time of day and weather as text, and drops values that aren't", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "state_change", data: { timeOfDay: { hour: 9 }, weather: 7, flags: "not an object" } };
+        yield { type: "done", data: null };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      const body = await readStream(res);
+
+      expect(body).toContain('event: state_change\ndata: {"weather":"7"}');
+      const commit = mocks.commitTurn.mock.calls[0]![2];
+      expect(commit.gameState).toMatchObject({ timeOfDay: "night", weather: "7", globalFlags: undefined });
+    });
+
+    it("doesn't save a turn whose narration fails the output check", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      mocks.moderateGMOutput.mockReturnValue({ safe: false, reason: "hard_block" });
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        yield { type: "narration_chunk", data: { text: '{"narration":"something awful"}' } };
+        yield { type: "done", data: null };
+      });
+      const res = await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never);
+      const body = await readStream(res);
+      expect(body).toContain("event: content_warning");
+      expect(mocks.commitTurn).not.toHaveBeenCalled();
+      expect(body).not.toContain("event: character_sync");
+    });
+
+    it("frees the turn's stream slot before the post-turn summary runs", async () => {
+      mocks.getOwnedSession.mockResolvedValue(ownedSession());
+      let finishSummary!: (summary: string) => void;
+      mocks.summarizeHistory.mockReturnValueOnce(new Promise<string>((resolve) => { finishSummary = resolve; }));
+
+      await readStream(await POST(asGuest({ ...basePayload, dbSessionId: "sess" }) as never));
+      await vi.waitFor(() => expect(mocks.summarizeHistory).toHaveBeenCalled());
+
+      // Both of the player's slots are free while the summary is still out.
+      mocks.getOwnedSession.mockResolvedValue(null);
+      let finishTurns!: () => void;
+      const gate = new Promise<void>((resolve) => { finishTurns = resolve; });
+      mocks.streamGMTurn.mockImplementation(async function* () {
+        await gate;
+        yield { type: "done", data: null };
+      });
+      const second = await POST(asGuest(basePayload) as never);
+      const third = await POST(asGuest(basePayload) as never);
+      expect(second.status).toBe(200);
+      expect(third.status).toBe(200);
+
+      finishTurns();
+      finishSummary("new summary");
+      await Promise.all([readStream(second), readStream(third)]);
+      await vi.waitFor(() => expect(mocks.markSummarized).toHaveBeenCalled());
     });
 
     it("persists only the narration that survived a reset", async () => {

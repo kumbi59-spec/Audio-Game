@@ -6,6 +6,13 @@ const client = new Anthropic();
 const SUMMARY_MODEL =
   process.env["CLAUDE_SUMMARY_MODEL"] ?? "claude-haiku-4-5-20251001";
 
+/**
+ * A summary that doesn't come back in this long is given up on, with no
+ * retry: nothing is marked summarised, so a later turn tries again. Without
+ * it the SDK default (minutes, with retries) holds the request open.
+ */
+export const SUMMARY_TIMEOUT_MS = 20_000;
+
 export interface HistoryEntry {
   role: "user" | "assistant";
   content: string;
@@ -56,7 +63,7 @@ ${existingSummary ? `\nPrevious summary to extend:\n${existingSummary}` : ""}`;
         content: `Summarize the following game history:\n\n${historyText}`,
       },
     ],
-  });
+  }, { timeout: SUMMARY_TIMEOUT_MS, maxRetries: 0 });
 
   const text = response.content[0];
   if (text.type !== "text") return existingSummary;

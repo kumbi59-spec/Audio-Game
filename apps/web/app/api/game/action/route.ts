@@ -12,6 +12,7 @@ import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
 import { applyCharacterChanges } from "@/lib/game/character-reducer";
 import { stripEmDashes } from "@/lib/ai/style";
 import { applySessionProgress } from "@/lib/game/session-progress";
+import { sanitizeStateChanges } from "@/lib/game/state-changes";
 import type { GameStatePatch } from "@/lib/db/queries/sessions";
 import {
   CharacterSchema,
@@ -153,15 +154,22 @@ export async function POST(req: NextRequest) {
       let afterResponse: (() => Promise<void>) | null = null;
       let stateChanges: Record<string, unknown> = {};
       // Only a turn that ran to completion is persisted. A degraded (fallback)
-      // turn is rolled back on the client, and an abandoned one (the player
-      // disconnected) never reached its history, so neither is saved or
-      // counted here.
+      // turn is rolled back on the client, an abandoned one (the player
+      // disconnected) never reached its history, and one whose narration
+      // failed the output check is replaced on the client, so none of them
+      // is saved or counted here.
       let completed = false;
       let degraded = false;
+      let flagged = false;
 
       try {
         for await (const evt of streamGMTurn(action, session, character, world, { signal: req.signal })) {
-          send(evt.type, evt.data);
+          // State changes are GM output: checked against the world and the
+          // save's column types before the client or the save sees them.
+          const data = evt.type === "state_change" && evt.data && typeof evt.data === "object"
+            ? sanitizeStateChanges(evt.data as Record<string, unknown>, world)
+            : evt.data;
+          send(evt.type, data);
 
           if (evt.type === "narration_chunk" && evt.data && typeof (evt.data as { text?: string }).text === "string") {
             fullNarration += (evt.data as { text: string }).text;
@@ -175,19 +183,24 @@ export async function POST(req: NextRequest) {
           if (evt.type === "done") {
             completed = true;
           }
-          if (evt.type === "state_change" && evt.data && typeof evt.data === "object") {
-            stateChanges = { ...stateChanges, ...(evt.data as Record<string, unknown>) };
+          if (evt.type === "state_change" && data && typeof data === "object") {
+            stateChanges = { ...stateChanges, ...(data as Record<string, unknown>) };
           }
         }
 
         if (fullNarration) {
           const outputCheck = moderateGMOutput(fullNarration);
           if (!outputCheck.safe) {
+            flagged = true;
             send("content_warning", { reason: outputCheck.reason, fallback: SAFETY_FALLBACK });
           }
         }
 
-        if (ownedSession && completed && !degraded) {
+        if (ownedSession && completed && !degraded && !flagged) {
+          // A failure before the turn is written, other than losing the race
+          // to another save, sends turn_not_saved.
+          let saved = false;
+          let conflicted = false;
           try {
             const { commitTurn, TurnConflictError, getHistoryEntriesInTurnRange, markSummarized } =
               await import("@/lib/db/queries/sessions");
@@ -253,13 +266,14 @@ export async function POST(req: NextRequest) {
                 gmReply: fullNarration ? stripEmDashes(fullNarration) : null,
                 gameState,
               });
+              saved = true;
             } catch (commitErr) {
               if (commitErr instanceof TurnConflictError) {
                 // Another tab or device saved a turn on this game while this
                 // one was being written; this turn isn't kept, and the client
                 // reloads the save.
+                conflicted = true;
                 send("turn_conflict", { message: "This game moved on somewhere else, so this turn wasn't saved." });
-                throw commitErr;
               }
               throw commitErr;
             }
@@ -293,8 +307,13 @@ export async function POST(req: NextRequest) {
               };
             }
           } catch (dbErr) {
-            // DB persistence is best-effort; don't fail the game turn
+            // The player was shown this turn but the save doesn't have it:
+            // the client reloads the save, as it does after a conflict, so
+            // the two don't drift apart.
             console.error("DB persistence error:", dbErr);
+            if (!saved && !conflicted) {
+              send("turn_not_saved", { message: "That turn couldn't be saved, so the game is picking up from your last save." });
+            }
           }
         }
 
@@ -330,12 +349,14 @@ export async function POST(req: NextRequest) {
         } catch {
           // Stream already closed by the client.
         }
+        // The turn is over once the response has closed, so its stream slot
+        // is free for the player's next turn while the summary runs.
+        grant.release();
         try {
           await afterResponse?.();
         } catch (afterErr) {
           console.error("[action] post-turn summary failed:", afterErr);
         }
-        grant.release();
       }
     },
   });

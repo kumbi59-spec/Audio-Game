@@ -58,7 +58,10 @@ export function buildContextMessages(
   character: CharacterData,
   world: WorldData
 ): HistoryMessage[] {
-  const messages = [...trimHistoryForContext(session.history)];
+  // A blank message (an empty opening or reply) gets the whole request
+  // rejected, and it stays in the history, so every later turn would fail
+  // too. Filtered after the trim so the cut matches the client's.
+  const messages = trimHistoryForContext(session.history).filter((m) => m.content.trim() !== "");
 
   // Anthropic requires the first message to have role "user"; drop any leading
   // assistant messages that may have been stored from the opening narration.
@@ -139,8 +142,13 @@ export function buildWorldStateBlock(session: InMemorySession, world: WorldData)
       ? session.codex.map((c) => c.title).join(", ")
       : "none";
 
+  // The GM is told to move the player with a locationId from this block, and
+  // only these ids are accepted.
+  const locationIds = world.locations.map((l) => `${l.id} (${l.name})`).join(", ") || "none";
+
   return [
     `Current Location: ${location?.name ?? "Unknown"} — ${location?.shortDesc ?? ""}`,
+    `Location IDs: ${locationIds}`,
     `Time of Day: ${session.timeOfDay}`,
     `Weather: ${session.weather}`,
     `World Flags: ${flagsStr}`,
