@@ -16,7 +16,13 @@ import {
   buildCharacterStateBlock,
   buildWorldStateBlock,
 } from "./memory/context-window";
-import { parseGMResponse } from "./gm-response";
+import {
+  UNREADABLE_REPLY_CHOICES,
+  canonicalReplyText,
+  parseGMReply,
+  replySpeakers,
+} from "./gm-response";
+import { stripEmDashes } from "./style";
 import { NarrationStreamTap } from "./narration-stream";
 import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus, SkillCheckResult } from "@/types/game";
 import type { CharacterData } from "@/types/character";
@@ -33,6 +39,9 @@ export interface GMStreamEvent {
     // Text streamed so far this turn has been discarded (a retry, or a round
     // that ended in a tool call). Clients drop what they buffered.
     | "narration_reset"
+    // The reply as clean JSON, replacing the streamed raw text in history
+    // when that text was malformed or had no choices.
+    | "reply_text"
     | "skill_check_result"
     | "choices_ready"
     | "sound_cue"
@@ -232,6 +241,64 @@ function buildFallbackChoices(character: CharacterData): string[] {
   ];
 }
 
+/**
+ * Choices for a scene whose reply lost its own: a small follow-up request
+ * given the narration. Returns [] when that fails, so the caller can fall
+ * back to the generic choices.
+ */
+async function generateSceneChoices(
+  narration: string,
+  character: CharacterData,
+  world: WorldData,
+  signal: AbortSignal | undefined,
+): Promise<string[]> {
+  const objective = character.quests
+    .find((q) => q.status === "active")
+    ?.objectives.find((o) => !o.completed)?.text;
+  const items = character.inventory.map((i) => i.name).join(", ") || "nothing";
+  try {
+    const response = await getAnthropicClient().messages.create(
+      {
+        model: MODEL,
+        max_tokens: 400,
+        ...modelParams(),
+        system:
+          "You are the Game Master of an audio story game. Write the player's choices for the moment the scene ends on. " +
+          "Each choice is short and concrete, in the world's own words, and names the people, places or things in the scene. " +
+          'Give 3 or 4 choices; the last one is open-ended, like "Something else: tell me what you do". ' +
+          "Never use generic labels like \"Keep going\" or \"Look around\". Reply with only a JSON array of strings.",
+        messages: [
+          {
+            role: "user",
+            content: [
+              `World: ${world.name}`,
+              `Character: ${character.name}. Carrying: ${items}.`,
+              objective ? `Current objective: ${objective}` : "",
+              `The scene so far:\n${narration.slice(-4000)}`,
+            ]
+              .filter(Boolean)
+              .join("\n\n"),
+          },
+        ],
+      },
+      { signal },
+    );
+    const text = messageText(response);
+    const start = text.indexOf("[");
+    const end = text.lastIndexOf("]");
+    if (start < 0 || end <= start) return [];
+    const parsed = JSON.parse(text.slice(start, end + 1)) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((c): c is string => typeof c === "string" && c.trim() !== "")
+      .map((c) => stripEmDashes(c.trim()))
+      .slice(0, 5);
+  } catch (err) {
+    if (!signal?.aborted) console.warn("[gm] scene choices request failed:", err);
+    return [];
+  }
+}
+
 function degradedMessage(errorClass: ProviderErrorClass): string {
   if (errorClass === "safety_refusal") {
     return "I'm not going to run the story down that road. Try coming at it from another angle.";
@@ -303,11 +370,13 @@ export async function runGMTurn(
   });
 
   if (response.stop_reason === "refusal") throw new GMRefusalError();
-  const reply = parseGMResponse(messageText(response));
+  const { reply, missingChoices } = parseGMReply(messageText(response));
   // An opening with no narration would become a blank first message in the
   // game's history, so it's an error, not a scene.
   if (!reply.narration.trim()) throw new Error("gm_empty_reply");
-  return reply;
+  if (!missingChoices) return reply;
+  const choices = await generateSceneChoices(reply.narration, character, world, undefined);
+  return { ...reply, choices: choices.length > 0 ? choices : [...UNREADABLE_REPLY_CHOICES] };
 }
 
 /**
@@ -448,7 +517,26 @@ export async function* streamGMTurn(
         );
       }
 
-      const gmResponse = parseGMResponse(final ? messageText(final) : "");
+      const rawReply = final ? messageText(final) : "";
+      if (final?.stop_reason === "max_tokens") {
+        console.warn(`[gm] reply hit max_tokens (${MAX_TOKENS}); recovering what came through`);
+      }
+      const parsedReply = parseGMReply(rawReply);
+      let gmResponse = parsedReply.reply;
+      if (parsedReply.missingChoices) {
+        // The reply was cut off before its choices, or wrote them in a shape
+        // the parser can't read. Ask for this scene's choices on their own
+        // rather than offering the generic fallback ones.
+        const choices = gmResponse.narration.trim()
+          ? await generateSceneChoices(gmResponse.narration, character, world, signal)
+          : [];
+        gmResponse = { ...gmResponse, choices: choices.length > 0 ? choices : [...UNREADABLE_REPLY_CHOICES] };
+      }
+      if (!parsedReply.wellFormed || parsedReply.missingChoices) {
+        // Saved and sent back as history in place of the broken raw text,
+        // which the GM would otherwise copy on every later turn.
+        yield { type: "reply_text", data: { text: canonicalReplyText(gmResponse, replySpeakers(rawReply)) } };
+      }
 
       // Usually already sent while streaming, ahead of the narration.
       if (gmResponse.soundCue && gmResponse.soundCue !== tap.cueSent) {

@@ -39,8 +39,10 @@ export function modelParams(model: string = MODEL): {
 }
 // A ceiling, not a target — billing is for the tokens actually generated. At
 // 1024 the JSON reply (narration + choices + stateChanges + codex) was often
-// cut off, which lost that turn's state changes to the parse fallback.
-export const MAX_TOKENS = 4096;
+// cut off, which lost that turn's state changes to the parse fallback. Any
+// thinking after a skill-check roll counts against it too, so it has room
+// to spare.
+export const MAX_TOKENS = 8192;
 
 /**
  * The reply's text. Read by block type, never as content[0]: a reply can

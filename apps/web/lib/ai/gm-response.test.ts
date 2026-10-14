@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   UNREADABLE_REPLY_CHOICES,
   extractNarrationField,
+  historyReplyText,
+  parseGMReply,
   parseGMResponse,
   stripOutOfCharacterNotes,
   stripOutOfCharacterParentheticals,
@@ -61,6 +63,51 @@ describe("parseGMResponse", () => {
       }),
     );
     expect(res.narration).toBe("The dark takes you.");
+  });
+});
+
+describe("parseGMReply", () => {
+  const narration = 'The humming stops.\n\n[The Hunter]: "Number Seven. There you are."\n\nWhat do you do?';
+
+  it("reads a reply written with real line breaks inside its strings", () => {
+    const raw = `{"soundCue": null, "narration": "${narration.replace(/"/g, '\\"')}", "choices": ["Run for the drain", "Talk"]}`;
+    expect(() => JSON.parse(raw)).toThrow();
+    const { reply, wellFormed, missingChoices } = parseGMReply(raw);
+    expect(wellFormed).toBe(true);
+    expect(missingChoices).toBe(false);
+    expect(reply.narration).toBe(narration);
+    expect(reply.choices).toEqual(["Run for the drain", "Talk"]);
+  });
+
+  it("accepts choices written as objects or under another key", () => {
+    expect(parseGMReply(JSON.stringify({ narration: "x", choices: [{ label: "Hide" }, { text: "Run" }] })).reply.choices)
+      .toEqual(["Hide", "Run"]);
+    expect(parseGMReply(JSON.stringify({ narration: "x", options: ["Hide"] })).reply.choices).toEqual(["Hide"]);
+  });
+
+  it("reports a reply with no choices so the caller can ask for them", () => {
+    const res = parseGMReply(JSON.stringify({ narration: "x" }));
+    expect(res.missingChoices).toBe(true);
+    expect(res.reply.choices).toEqual([]);
+  });
+});
+
+describe("historyReplyText", () => {
+  it("leaves a well-formed reply untouched", () => {
+    const raw = JSON.stringify({ narration: "x", choices: ["Go"] });
+    expect(historyReplyText(raw)).toBe(raw);
+  });
+
+  it("rewrites a cut-off reply as clean JSON in the prompt's key order", () => {
+    const raw = '{"soundCue": "danger_near", "speakers": [{"name": "Kakashi", "gender": "male"}], "narration": "Dark.", "choices": ["Wake"], "stateCh';
+    const clean = historyReplyText(raw);
+    expect(Object.keys(JSON.parse(clean))).toEqual(["soundCue", "speakers", "narration", "choices", "npcAction"]);
+    expect(JSON.parse(clean)).toMatchObject({
+      soundCue: "danger_near",
+      speakers: [{ name: "Kakashi", gender: "male" }],
+      narration: "Dark.",
+      choices: ["Wake"],
+    });
   });
 });
 

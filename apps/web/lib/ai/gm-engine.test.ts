@@ -18,6 +18,7 @@ import {
   streamGMTurn,
   type GMStreamEvent,
 } from "./gm-engine";
+import { UNREADABLE_REPLY_CHOICES } from "./gm-response";
 
 interface Script {
   text?: string[];
@@ -222,6 +223,40 @@ describe("streamGMTurn", () => {
     expect(params.tool_choice).toEqual({ type: "auto", disable_parallel_tool_use: true });
     expect(eventData<{ narration: string }>(events, "choices_ready").narration).toBe("The gate groans and gives way.");
     expect(eventData<Record<string, unknown>>(events, "state_change").passiveBonusNarration).toBeUndefined();
+  });
+
+  it("asks for the scene's choices when the reply is cut off before them", async () => {
+    const cut = '{"soundCue": null, "speakers": [], "narration": "The hunter steps into the archway.", "choi';
+    mocks.stream.mockReturnValueOnce(fakeStream({ text: [cut], final: { stop_reason: "max_tokens" } }));
+    mocks.create.mockResolvedValueOnce({
+      content: [{ type: "text", text: '["Dive behind the vats", "Answer the hunter", "Something else: tell me what you do"]' }],
+    });
+
+    const events = await collect(streamGMTurn(action, session, character, world));
+
+    const choices = eventData<{ choices: string[] }>(events, "choices_ready").choices;
+    expect(choices).toEqual(["Dive behind the vats", "Answer the hunter", "Something else: tell me what you do"]);
+    expect(mocks.create.mock.calls[0]![0].messages[0].content).toContain("The hunter steps into the archway.");
+    // History keeps a clean copy, not the cut-off text.
+    const saved = JSON.parse(eventData<{ text: string }>(events, "reply_text").text);
+    expect(saved).toMatchObject({ narration: "The hunter steps into the archway.", choices });
+  });
+
+  it("falls back to the generic choices only when the follow-up request fails too", async () => {
+    mocks.stream.mockReturnValueOnce(fakeStream({ text: ['{"narration": "Rain.", "choices": ['] }));
+    mocks.create.mockRejectedValueOnce(new Error("overloaded"));
+
+    const events = await collect(streamGMTurn(action, session, character, world));
+
+    expect(eventData<{ choices: string[] }>(events, "choices_ready").choices).toEqual(UNREADABLE_REPLY_CHOICES);
+    expect(types(events)).toContain("done");
+  });
+
+  it("sends no clean copy for a well-formed reply", async () => {
+    mocks.stream.mockReturnValueOnce(fakeStream({ text: [REPLY] }));
+    const events = await collect(streamGMTurn(action, session, character, world));
+    expect(types(events)).not.toContain("reply_text");
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 
   it("sends the sound cue and speakers written ahead of the narration before any prose", async () => {

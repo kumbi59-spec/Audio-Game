@@ -177,6 +177,10 @@ export async function POST(req: NextRequest) {
           if (evt.type === "narration_reset") {
             fullNarration = "";
           }
+          if (evt.type === "reply_text" && evt.data && typeof (evt.data as { text?: string }).text === "string") {
+            // A clean copy of a malformed reply: it's what gets saved.
+            fullNarration = (evt.data as { text: string }).text;
+          }
           if (evt.type === "error") {
             degraded = true;
           }

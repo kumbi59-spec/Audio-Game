@@ -428,6 +428,10 @@ export function useGameSession() {
 
             if (eventType === "narration_chunk") {
               accumulatedNarration += data.text;
+            } else if (eventType === "reply_text") {
+              // A clean copy of a malformed reply, kept in history in place
+              // of the raw text so the GM doesn't copy the broken shape.
+              accumulatedNarration = data.text as string;
             } else if (eventType === "narration_delta") {
               narrator.push(data.text as string);
             } else if (eventType === "speakers") {
