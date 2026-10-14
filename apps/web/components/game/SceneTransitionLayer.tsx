@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SceneTransition } from "@/types/game";
 
 interface SceneTransitionLayerProps {
@@ -20,6 +20,10 @@ export function SceneTransitionLayer({
 }: SceneTransitionLayerProps) {
   const [mountedTransition, setMountedTransition] = useState<SceneTransition | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  // The parent passes a new inline onComplete on every render; reading it
+  // through a ref keeps those renders from restarting the timer.
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   const durationMs = useMemo(() => {
     if (!transition) return 0;
@@ -42,12 +46,12 @@ export function SceneTransitionLayer({
   useEffect(() => {
     if (!mountedTransition) return;
     if (durationMs <= 0) {
-      onComplete();
+      onCompleteRef.current();
       return;
     }
-    const timeout = window.setTimeout(onComplete, durationMs);
+    const timeout = window.setTimeout(() => onCompleteRef.current(), durationMs);
     return () => window.clearTimeout(timeout);
-  }, [mountedTransition, durationMs, onComplete]);
+  }, [mountedTransition, durationMs]);
 
   return (
     <>

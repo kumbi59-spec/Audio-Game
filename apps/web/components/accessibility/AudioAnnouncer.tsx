@@ -9,7 +9,6 @@ import {
   useState,
 } from "react";
 import { isTTSAudible, speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 
 interface AnnouncerContextValue {
   announce: (message: string, priority?: "polite" | "assertive") => void;
@@ -77,8 +76,9 @@ export function AudioAnnouncer({ children }: { children: React.ReactNode }) {
   const narrate = useCallback(
     (message: string, priority: "polite" | "assertive" = "polite") => {
       if (isTTSAudible()) {
-        const { ttsSpeed, volume } = useAudioStore.getState();
-        void speak(message, { rate: ttsSpeed, volume });
+        // speak() reads the speed and the volume (on its perceptual curve)
+        // from the audio store itself.
+        void speak(message);
       } else {
         announce(message, priority);
       }

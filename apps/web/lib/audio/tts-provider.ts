@@ -166,12 +166,26 @@ export function stopSpeech(): void {
   _sessions.clear();
 }
 
+// Premium narration reads a line it can't fetch in the browser voice, so the
+// voice talking isn't always the selected one: pause, resume and the
+// speaking/paused checks look at every provider in use.
+
 export function pauseSpeech(): void {
-  getTTSProvider().pause();
+  const selected = getTTSProvider();
+  for (const inst of Object.values(instances)) {
+    if (!inst || inst.isPaused()) continue;
+    // Premium narration also pauses between two sentences, so the next clip
+    // waits for resume(). The browser voice only pauses while it's talking:
+    // speechSynthesis.pause() while idle wedges Chrome until resume().
+    if (inst.isSpeaking() || (inst === selected && inst !== instances.browser)) inst.pause();
+  }
 }
 
 export function resumeSpeech(): void {
-  getTTSProvider().resume();
+  const selected = getTTSProvider();
+  for (const inst of Object.values(instances)) {
+    if (inst && (inst === selected || inst.isPaused())) inst.resume();
+  }
 }
 
 export function getVoices(provider?: TTSProviderType): TTSVoice[] {
@@ -183,11 +197,11 @@ export function isSpeaking(): boolean {
   // network gap in between. The provider's _speaking goes false in that gap
   // even though the narration as a whole is still going — without the session
   // guard, ambient ducking and choice focus bounce on every voice change.
-  return _sessions.size > 0 || getTTSProvider().isSpeaking();
+  return _sessions.size > 0 || Object.values(instances).some((inst) => inst?.isSpeaking());
 }
 
 export function isPaused(): boolean {
-  return getTTSProvider().isPaused();
+  return Object.values(instances).some((inst) => inst?.isPaused());
 }
 
 /**

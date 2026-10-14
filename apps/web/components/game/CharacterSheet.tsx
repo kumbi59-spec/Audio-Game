@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, type RefObject } from "react";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
 import type { CharacterData } from "@/types/character";
 import type { AchievementUnlock, NpcRelationship, CodexEntry } from "@/types/game";
@@ -576,23 +574,27 @@ export function CharacterSheet({
   headingRef,
 }: CharacterSheetProps) {
   const [uncontrolledTab, setUncontrolledTab] = useState<Tab>(initialTab);
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { announce, narrate } = useAnnouncer();
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // The parent passes a new inline onClose on every render. Read through a
+  // ref, it doesn't re-run the effect below, which moved focus back to the
+  // close button on each of those renders.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const tab = activeTab ?? uncontrolledTab;
 
   useEffect(() => {
     if (!activeTab) setUncontrolledTab(initialTab);
   }, [initialTab, activeTab]);
 
-  // Trap focus inside dialog
+  // Trap focus inside dialog. Focus starts on the close button, once.
   useEffect(() => {
     closeRef.current?.focus();
     const el = dialogRef.current;
     if (!el) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") { onCloseRef.current(); return; }
       if (e.key !== "Tab" || !el) return;
       const focusable = Array.from(
         el.querySelectorAll<HTMLElement>(
@@ -602,7 +604,10 @@ export function CharacterSheet({
       if (focusable.length === 0) return;
       const first = focusable[0]!;
       const last = focusable[focusable.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) {
+      // Focus on the heading (not in the list) counts as the first element,
+      // so Shift+Tab from it wraps instead of leaving the dialog.
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && (active === first || !active || !focusable.includes(active))) {
         e.preventDefault();
         last.focus();
       } else if (!e.shiftKey && document.activeElement === last) {
@@ -612,7 +617,7 @@ export function CharacterSheet({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   function switchTab(t: Tab) {
     if (!activeTab) setUncontrolledTab(t);
@@ -650,8 +655,7 @@ export function CharacterSheet({
       `Inventory: ${inv}.`,
       `Active quests: ${active}.`,
     ].filter(Boolean).join(" ");
-    announce(text, "assertive");
-    speak(text, { rate: ttsSpeed, volume });
+    narrate(text, "assertive");
   }
 
   const s = character.stats;

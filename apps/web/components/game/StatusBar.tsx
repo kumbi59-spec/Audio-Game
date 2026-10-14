@@ -1,8 +1,6 @@
 "use client";
 
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { speak } from "@/lib/audio/tts-provider";
-import { useAudioStore } from "@/store/audio-store";
 import type { CharacterData } from "@/types/character";
 import type { InMemorySession } from "@/types/game";
 import type { WorldData } from "@/types/world";
@@ -37,8 +35,7 @@ function buildUniqueShortLabel(label: string, used: Set<string>): string {
 }
 
 export function StatusBar({ character, session, world, id = "status-bar" }: StatusBarProps) {
-  const { announce } = useAnnouncer();
-  const { ttsSpeed, volume } = useAudioStore();
+  const { narrate } = useAnnouncer();
   const location = world.locations.find((l) => l.id === session.currentLocationId);
   const s = character.stats;
   const hpPercent = Math.round((s.hp / s.maxHp) * 100);
@@ -70,8 +67,7 @@ export function StatusBar({ character, session, world, id = "status-bar" }: Stat
     : [];
 
   function readStatusAloud() {
-    announce(statusText);
-    speak(statusText, { rate: ttsSpeed, volume });
+    narrate(statusText);
   }
 
   return (

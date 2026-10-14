@@ -16,6 +16,7 @@ import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { inferAmbientTrack, inferAmbientTrackSticky } from "@/lib/audio/ambient-inference";
 import { queueUpgradeNudge } from "@/components/entitlements/UpgradeNudge";
 import { KeyboardShortcuts } from "@/components/accessibility/KeyboardShortcuts";
+import type { VoiceCommandHandle } from "@/components/accessibility/VoiceCommandListener";
 import { OperationsManual } from "@/components/game/OperationsManual";
 import { SceneTransitionLayer } from "@/components/game/SceneTransitionLayer";
 import { useGameSession } from "@/hooks/useGameSession";
@@ -24,20 +25,30 @@ import { useGameStore } from "@/store/game-store";
 import { useAudioStore } from "@/store/audio-store";
 import { useAccessibilityStore } from "@/store/accessibility-store";
 import { useReducedMotion } from "@/lib/a11y/use-reduced-motion";
-import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, stopSpeech } from "@/lib/audio/tts-provider";
+import { speak, isSpeaking, onTtsNotice, pauseSpeech, resumeSpeech, speechStopCount, stopSpeech } from "@/lib/audio/tts-provider";
 import { canPlayAudioNow, whenAudioUnlocked } from "@/lib/audio/unlock";
 import type { PlayerAction, SceneTransition } from "@/types/game";
 
+// A readout still waiting for the narrator after this long is dropped.
+const QUIET_WAIT_MS = 30_000;
+
 /**
  * Speaks a short readout (location, status) once the narrator is quiet, so it
- * doesn't cut a sentence off or get cut off by the next one.
+ * doesn't cut a sentence off or get cut off by the next one. A stop (a new
+ * turn, Escape, leaving the play screen) drops it too.
  */
 function speakWhenQuiet(text: string): void {
   if (!isSpeaking()) {
     void speak(text);
     return;
   }
+  const stops = speechStopCount();
+  const giveUpAt = Date.now() + QUIET_WAIT_MS;
   const timer = setInterval(() => {
+    if (speechStopCount() !== stops || Date.now() > giveUpAt) {
+      clearInterval(timer);
+      return;
+    }
     if (isSpeaking()) return;
     clearInterval(timer);
     void speak(text);
@@ -81,6 +92,7 @@ export function GameShell() {
   const [sheetTab, setSheetTab] = useState<"stats" | "inventory" | "quests" | "bio">("stats");
   const [choicesMinimized, setChoicesMinimized] = useState(false);
   const panelHeadingRef = useRef<HTMLSpanElement>(null);
+  const voiceRef = useRef<VoiceCommandHandle>(null);
   const openingSpokenRef = useRef(false);
   const previousLocationIdRef = useRef<string | null>(null);
   const [sceneTransition, setSceneTransition] = useState<SceneTransition | null>(null);
@@ -165,28 +177,41 @@ export function GameShell() {
 
   // Speak the most recent narration that was pre-loaded before navigation.
   // This ensures resumed sessions continue from the latest narrated section.
+  // Only narration already in the log when the game opened counts: a game
+  // that opens empty gets its first narration from a turn, which speaks it.
   useEffect(() => {
-    if (openingSpokenRef.current) return;
-    const latestNarration = [...(session?.narrationLog ?? [])]
+    if (openingSpokenRef.current || !session) return;
+    openingSpokenRef.current = true;
+    const latestNarration = [...session.narrationLog]
       .reverse()
       .find((entry) => entry.type === "narration");
-    if (latestNarration) {
-      openingSpokenRef.current = true;
-      // After a reload the browser won't play sound until the player
-      // interacts with the page, so the scene waits for that first tap.
-      if (!canPlayAudioNow()) announce("Press any key or tap anywhere to hear the story.", "polite");
-      void whenAudioUnlocked().then(() => speakNarration(latestNarration.text));
-    }
+    if (!latestNarration) return;
+    const { id: openedId, turnCount: openedTurn } = session;
+    // After a reload the browser won't play sound until the player
+    // interacts with the page, so the scene waits for that first tap.
+    if (!canPlayAudioNow()) announce("Press any key or tap anywhere to hear the story.", "polite");
+    void whenAudioUnlocked()
+      // The tap may also pick a choice: let it start its turn first.
+      .then(() => new Promise((resolve) => setTimeout(resolve, 0)))
+      .then(() => {
+        // A turn has started since: replaying now would stop its narration.
+        const current = useGameStore.getState().session;
+        if (current?.id !== openedId || current.isGenerating || current.turnCount !== openedTurn) return;
+        void speakNarration(latestNarration.text);
+      });
   }, [session, speakNarration, announce]);
 
   // First-time players: a non-blocking hint announces help availability and
   // shows a dismissable toast. Previously this auto-opened the modal, which
   // forced every new user to dismiss a dialog before they could start playing.
+  // Once per game: keyed on every session change, it was re-announced over
+  // each turn's own announcements.
+  const sessionId = session?.id;
   useEffect(() => {
-    if (!session || operationsManualSeen) return;
+    if (!sessionId || operationsManualSeen) return;
     setHelpHintVisible(true);
     announce("Press H or use the Help button at any time to open the Operations Manual.", "polite");
-  }, [session, operationsManualSeen, announce]);
+  }, [sessionId, operationsManualSeen, announce]);
 
   // Auto-save every AUTO_SAVE_INTERVAL turns. Tracks last-saved turn in a
   // ref so a turn count change in either direction (undo can decrease it
@@ -310,14 +335,16 @@ export function GameShell() {
   }, [session?.isGenerating, replayLast, handleReadLocation, handleReadStatus, handleManualSave]);
 
   // Headset and lock-screen buttons: play/pause the narrator, "previous"
-  // replays the last scene, "next" skips the rest of it.
+  // replays the last scene (not during a turn, as R), "next" skips the rest
+  // of it.
+  const isGenerating = session?.isGenerating ?? false;
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
     const ms = navigator.mediaSession;
     const handlers: Array<[MediaSessionAction, MediaSessionActionHandler]> = [
       ["play", () => resumeSpeech()],
       ["pause", () => pauseSpeech()],
-      ["previoustrack", () => replayLast()],
+      ["previoustrack", () => { if (!isGenerating) replayLast(); }],
       ["nexttrack", () => stopSpeech()],
     ];
     for (const [action, handler] of handlers) {
@@ -331,7 +358,7 @@ export function GameShell() {
         try { ms.setActionHandler(action, null); } catch { /* unsupported action */ }
       }
     };
-  }, [replayLast, world]);
+  }, [replayLast, world, isGenerating]);
 
   const focusPanelHeading = useCallback(() => {
     requestAnimationFrame(() => panelHeadingRef.current?.focus());
@@ -400,9 +427,11 @@ export function GameShell() {
         onToggleCharacterSheet={() => setSheetOpen((o) => !o)}
         onToggleInventory={() => handleOpenSheetTab("inventory")}
         onToggleQuestLog={() => handleOpenSheetTab("quests")}
+        onToggleVoice={() => voiceRef.current?.toggle()}
         onToggleHelpManual={handleToggleOperationsManual}
         onUndo={canUndo ? undoLastTurn : undefined}
         isSpeaking={speaking}
+        sheetOpen={sheetOpen}
       />
       <OperationsManual
         open={operationsManualOpen}
@@ -508,6 +537,7 @@ export function GameShell() {
           }}
         >
           <ActionInput
+            voiceRef={voiceRef}
             onAction={handleAction}
             onMeta={handleVoiceMeta}
             choices={session.choices}

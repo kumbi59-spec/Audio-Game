@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { VoiceCommandListener } from "@/components/accessibility/VoiceCommandListener";
+import { useRef, useState, type Ref } from "react";
+import { VoiceCommandListener, type VoiceCommandHandle } from "@/components/accessibility/VoiceCommandListener";
 import type { PlayerAction } from "@/types/game";
 
 /** Longest action the server accepts (app/api/game/action ActionSchema). */
@@ -17,9 +17,11 @@ interface ActionInputProps {
   onMeta?: (command: VoiceMetaCommand) => void;
   disabled?: boolean;
   id?: string;
+  /** Handle on the mic, for the V shortcut. */
+  voiceRef?: Ref<VoiceCommandHandle>;
 }
 
-export function ActionInput({ onAction, choices = [], onMeta, disabled = false, id = "action-input" }: ActionInputProps) {
+export function ActionInput({ onAction, choices = [], onMeta, disabled = false, id = "action-input", voiceRef }: ActionInputProps) {
   const [text, setText] = useState("");
   const [voiceActive, setVoiceActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +74,7 @@ export function ActionInput({ onAction, choices = [], onMeta, disabled = false, 
       </form>
       <div className="mt-2 flex justify-center">
         <VoiceCommandListener
+          ref={voiceRef}
           onAction={handleVoiceAction}
           onChoiceSelect={(i) => {
             const label = choices[i];

@@ -40,6 +40,166 @@ interface KeyboardShortcutsProps {
   onToggleHelpManual?: () => void;
   onUndo?: () => void;
   isSpeaking?: boolean;
+  /** The character sheet is open: only C (which closes it) still works. */
+  sheetOpen?: boolean;
+}
+
+/** What the key handler reads: the props plus the store state it acts on. */
+export interface ShortcutContext extends KeyboardShortcutsProps {
+  keyboardHelpOpen: boolean;
+  setKeyboardHelpOpen: (open: boolean) => void;
+  operationsManualOpen: boolean;
+  ttsSpeed: number;
+  setTTSSpeed: (speed: number) => void;
+  ambientEnabled: boolean;
+  setAmbientEnabled: (enabled: boolean) => void;
+  announce: (message: string, priority?: "polite" | "assertive") => void;
+}
+
+/** The game's keydown handler, kept outside the component so it can be tested. */
+export function handleShortcutKey(e: KeyboardEvent, ctx: ShortcutContext): void {
+  const {
+    onChoiceSelect,
+    onReplayLast,
+    onToggleInventory,
+    onToggleQuestLog,
+    onToggleCharacterSheet,
+    onFocusInput,
+    onToggleVoice,
+    onReadLocation,
+    onReadStatus,
+    onToggleHelpManual,
+    onUndo,
+    isSpeaking = false,
+    sheetOpen = false,
+    keyboardHelpOpen,
+    setKeyboardHelpOpen,
+    operationsManualOpen,
+    ttsSpeed,
+    setTTSSpeed,
+    ambientEnabled,
+    setAmbientEnabled,
+    announce,
+  } = ctx;
+  const target = e.target as HTMLElement;
+  const tag = target.tagName.toLowerCase();
+  const isInput = tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable === true;
+
+  // Allow Escape from inputs
+  if (e.key === "Escape") {
+    if (keyboardHelpOpen) {
+      setKeyboardHelpOpen(false);
+      return;
+    }
+    (document.activeElement as HTMLElement)?.blur();
+    return;
+  }
+
+  // Leave browser and OS shortcuts (Ctrl/Cmd+C copy, Ctrl+R reload) alone.
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  // Don't intercept while typing
+  if (isInput) return;
+
+  // Behind the character sheet only C (which closes it) still works; the
+  // sheet handles Escape and Tab itself.
+  if (sheetOpen && e.key !== "c" && e.key !== "C") return;
+
+  // "?" (Shift + /) toggles the shortcut list. While it's open, the game
+  // keys behind it stay inactive.
+  if (e.key === "?") {
+    e.preventDefault();
+    setKeyboardHelpOpen(!keyboardHelpOpen);
+    return;
+  }
+  if (keyboardHelpOpen) return;
+  // Behind the Help manual only H (which closes it) still works.
+  if (operationsManualOpen && e.key !== "h" && e.key !== "H") return;
+
+  switch (e.key) {
+    case " ":
+    case "p":
+    case "P": {
+      // Space on a focused button or link (the choices, after a turn)
+      // presses it; leave that to the browser.
+      if (e.key === " " && (tag === "button" || tag === "a" || tag === "summary" || target.getAttribute("role") === "button")) {
+        return;
+      }
+      e.preventDefault();
+      // Paused narration still counts as speaking, so check paused first.
+      if (isPaused()) resumeSpeech();
+      else if (isSpeaking || narratorSpeaking()) pauseSpeech();
+      break;
+    }
+    case "r":
+    case "R":
+      e.preventDefault();
+      onReplayLast?.();
+      break;
+    case "[":
+    case "]": {
+      e.preventDefault();
+      const next = Math.round(Math.max(0.5, Math.min(2, ttsSpeed + (e.key === "[" ? -0.1 : 0.1))) * 10) / 10;
+      setTTSSpeed(next);
+      announce(`Speech speed ${next.toFixed(1)}`, "polite");
+      break;
+    }
+    case "m":
+    case "M":
+      e.preventDefault();
+      setAmbientEnabled(!ambientEnabled);
+      break;
+    case "h":
+    case "H":
+      e.preventDefault();
+      onToggleHelpManual?.();
+      break;
+    case "t":
+    case "T":
+      e.preventDefault();
+      onFocusInput?.();
+      break;
+    case "v":
+    case "V":
+      e.preventDefault();
+      onToggleVoice?.();
+      break;
+    case "c":
+    case "C":
+      e.preventDefault();
+      onToggleCharacterSheet?.();
+      break;
+    case "i":
+    case "I":
+      e.preventDefault();
+      onToggleInventory?.();
+      break;
+    case "q":
+    case "Q":
+      e.preventDefault();
+      onToggleQuestLog?.();
+      break;
+    case "l":
+    case "L":
+      e.preventDefault();
+      onReadLocation?.();
+      break;
+    case "s":
+    case "S":
+      e.preventDefault();
+      onReadStatus?.();
+      break;
+    case "u":
+    case "U":
+      e.preventDefault();
+      onUndo?.();
+      break;
+    default:
+      if (e.key >= "1" && e.key <= "9") {
+        e.preventDefault();
+        onChoiceSelect?.(parseInt(e.key) - 1);
+      }
+  }
 }
 
 export function KeyboardShortcuts({
@@ -55,127 +215,23 @@ export function KeyboardShortcuts({
   onToggleHelpManual,
   onUndo,
   isSpeaking = false,
+  sheetOpen = false,
 }: KeyboardShortcutsProps) {
   const { keyboardHelpOpen, setKeyboardHelpOpen, operationsManualOpen } = useAccessibilityStore();
   const { ttsSpeed, setTTSSpeed, ambientEnabled, setAmbientEnabled } = useAudioStore();
   const { announce } = useAnnouncer();
 
   const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName.toLowerCase();
-      const isInput = tag === "input" || tag === "textarea" || tag === "select";
-
-      // Allow Escape from inputs
-      if (e.key === "Escape") {
-        if (keyboardHelpOpen) {
-          setKeyboardHelpOpen(false);
-          return;
-        }
-        (document.activeElement as HTMLElement)?.blur();
-        return;
-      }
-
-      // Don't intercept while typing
-      if (isInput) return;
-
-      // "?" (Shift + /) toggles the shortcut list. While it's open, the game
-      // keys behind it stay inactive.
-      if (e.key === "?") {
-        e.preventDefault();
-        setKeyboardHelpOpen(!keyboardHelpOpen);
-        return;
-      }
-      if (keyboardHelpOpen) return;
-      // Behind the Help manual only H (which closes it) still works.
-      if (operationsManualOpen && e.key !== "h" && e.key !== "H") return;
-
-      switch (e.key) {
-        case " ":
-        case "p":
-        case "P": {
-          // Space on a focused button or link (the choices, after a turn)
-          // presses it; leave that to the browser.
-          const target = e.target as HTMLElement;
-          if (e.key === " " && (tag === "button" || tag === "a" || tag === "summary" || target.getAttribute("role") === "button")) {
-            return;
-          }
-          e.preventDefault();
-          // Paused narration still counts as speaking, so check paused first.
-          if (isPaused()) resumeSpeech();
-          else if (isSpeaking || narratorSpeaking()) pauseSpeech();
-          break;
-        }
-        case "r":
-        case "R":
-          e.preventDefault();
-          onReplayLast?.();
-          break;
-        case "[":
-        case "]": {
-          e.preventDefault();
-          const next = Math.round(Math.max(0.5, Math.min(2, ttsSpeed + (e.key === "[" ? -0.1 : 0.1))) * 10) / 10;
-          setTTSSpeed(next);
-          announce(`Speech speed ${next.toFixed(1)}`, "polite");
-          break;
-        }
-        case "m":
-        case "M":
-          e.preventDefault();
-          setAmbientEnabled(!ambientEnabled);
-          break;
-        case "h":
-        case "H":
-          e.preventDefault();
-          onToggleHelpManual?.();
-          break;
-        case "t":
-        case "T":
-          e.preventDefault();
-          onFocusInput?.();
-          break;
-        case "v":
-        case "V":
-          e.preventDefault();
-          onToggleVoice?.();
-          break;
-        case "c":
-        case "C":
-          e.preventDefault();
-          onToggleCharacterSheet?.();
-          break;
-        case "i":
-        case "I":
-          e.preventDefault();
-          onToggleInventory?.();
-          break;
-        case "q":
-          e.preventDefault();
-          onToggleQuestLog?.();
-          break;
-        case "l":
-        case "L":
-          e.preventDefault();
-          onReadLocation?.();
-          break;
-        case "s":
-        case "S":
-          e.preventDefault();
-          onReadStatus?.();
-          break;
-        case "u":
-        case "U":
-          e.preventDefault();
-          onUndo?.();
-          break;
-        default:
-          if (e.key >= "1" && e.key <= "9") {
-            e.preventDefault();
-            onChoiceSelect?.(parseInt(e.key) - 1);
-          }
-      }
-    },
+    (e: KeyboardEvent) =>
+      handleShortcutKey(e, {
+        onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
+        onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
+        onToggleHelpManual, onUndo, isSpeaking, sheetOpen,
+        keyboardHelpOpen, setKeyboardHelpOpen, operationsManualOpen,
+        ttsSpeed, setTTSSpeed, ambientEnabled, setAmbientEnabled, announce,
+      }),
     [
-      isSpeaking, ttsSpeed, ambientEnabled,
+      isSpeaking, sheetOpen, ttsSpeed, ambientEnabled,
       onChoiceSelect, onReplayLast, onToggleInventory, onToggleQuestLog,
       onToggleCharacterSheet, onFocusInput, onToggleVoice, onReadLocation, onReadStatus,
       setTTSSpeed, setAmbientEnabled, onToggleHelpManual, keyboardHelpOpen, setKeyboardHelpOpen, operationsManualOpen, onUndo, announce,

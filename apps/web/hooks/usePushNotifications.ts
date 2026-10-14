@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
+/** "granted" means this browser is subscribed; "default" that it can be. */
 export type PushState = "unsupported" | "denied" | "granted" | "default" | "loading";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
@@ -32,7 +33,18 @@ export function usePushNotifications() {
       setState("unsupported");
       return;
     }
-    setState(Notification.permission as PushState);
+    if (Notification.permission !== "granted") {
+      setState(Notification.permission as PushState);
+      return;
+    }
+    // Permission alone isn't a subscription: it outlives one (unsubscribed,
+    // site data cleared, a failed subscribe), so ask the push manager.
+    let cancelled = false;
+    navigator.serviceWorker.getRegistration()
+      .then((reg) => reg?.pushManager?.getSubscription() ?? null)
+      .then((sub) => { if (!cancelled) setState(sub ? "granted" : "default"); })
+      .catch(() => { if (!cancelled) setState("default"); });
+    return () => { cancelled = true; };
   }, []);
 
   async function subscribe(): Promise<boolean> {
@@ -40,8 +52,10 @@ export function usePushNotifications() {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return false;
 
     const permission = await Notification.requestPermission();
-    setState(permission as PushState);
-    if (permission !== "granted") return false;
+    if (permission !== "granted") {
+      setState(permission as PushState);
+      return false;
+    }
 
     const vapidKey = await getVapidKey();
     if (!vapidKey) return false;
@@ -56,11 +70,17 @@ export function usePushNotifications() {
     const json = sub.toJSON() as { endpoint: string; keys?: { p256dh: string; auth: string } };
     if (!json.keys) return false;
 
-    await fetch("/api/push/subscribe", {
+    const res = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ type: "web", endpoint: json.endpoint, keys: json.keys }),
     });
+    if (!res.ok) {
+      // The server didn't store it, so nothing would ever be sent to it:
+      // drop a subscription made just now rather than show it as on.
+      if (!existing) await sub.unsubscribe().catch(() => undefined);
+      return false;
+    }
 
     setState("granted");
     return true;
