@@ -24,9 +24,12 @@ export function NarrationPanel({ entries, isGenerating }: NarrationPanelProps) {
   // spoken aloud; muted or unsupported, the screen reader reads it instead.
   const voiced = canSpeak && volume > 0;
 
+  // Keyed on the newest entry, not the count: the log is capped, so once
+  // it's full a new entry leaves the length unchanged.
+  const lastEntryId = entries[entries.length - 1]?.id;
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [entries.length]);
+  }, [lastEntryId]);
 
   return (
     <section

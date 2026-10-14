@@ -14,12 +14,22 @@ type ApiThread = {
   comments: ApiComment[];
 };
 
+/** One page of threads, newest first; the next page's cursor is in X-Next-Cursor. */
+async function fetchThreads(cursor: string | null): Promise<{ threads: ApiThread[]; nextCursor: string | null }> {
+  const r = await fetch(`/api/discussion/threads${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`);
+  if (!r.ok) throw new Error(`threads request failed: ${r.status}`);
+  return { threads: (await r.json()) as ApiThread[], nextCursor: r.headers.get("X-Next-Cursor") };
+}
+
 export default function DiscussionPage() {
   const { data: session } = useSession();
   const emailVerified = Boolean((session?.user as { emailVerified?: Date | null } | undefined)?.emailVerified);
   const [agreed, setAgreed] = useState(false);
   const [threads, setThreads] = useState<ApiThread[]>([]);
   const [loading, setLoading] = useState(true);
+  // Cursor for the next (older) page of threads; null when there are no more.
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
@@ -33,15 +43,30 @@ export default function DiscussionPage() {
   }, [emailVerified, agreed]);
 
   useEffect(() => {
-    fetch("/api/discussion/threads")
-      .then((r) => {
-        if (!r.ok) throw new Error(`threads request failed: ${r.status}`);
-        return r.json() as Promise<ApiThread[]>;
+    fetchThreads(null)
+      .then((page) => {
+        setThreads(page.threads);
+        setNextCursor(page.nextCursor);
       })
-      .then((data) => setThreads(data))
       .catch((err) => console.error("[discussion] failed to load threads:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  async function loadOlderThreads() {
+    if (!nextCursor || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const page = await fetchThreads(nextCursor);
+      // Pages don't overlap, but never list a thread twice.
+      setThreads((prev) => [...prev, ...page.threads.filter((t) => !prev.some((p) => p.id === t.id))]);
+      setNextCursor(page.nextCursor);
+    } catch (err) {
+      console.error("[discussion] failed to load older threads:", err);
+      setPostError("Could not load older threads. Please try again.");
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
 
   async function errorMessage(res: Response): Promise<string> {
     try {
@@ -165,6 +190,15 @@ export default function DiscussionPage() {
               </div>
             </article>
           ))}
+          {nextCursor && (
+            <button
+              className="w-full rounded border px-3 py-2 text-sm disabled:opacity-50 border-border"
+              disabled={loadingOlder}
+              onClick={() => { void loadOlderThreads(); }}
+            >
+              {loadingOlder ? "Loading older threads…" : "Load older threads"}
+            </button>
+          )}
         </section>
       </main>
     </div>

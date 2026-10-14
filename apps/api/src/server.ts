@@ -35,7 +35,9 @@ export async function buildServer(options: BuildServerOptions = {}) {
       level: options.logLevel ?? process.env["LOG_LEVEL"] ?? "info",
     },
     // req.ip is the client behind the proxy, so per-IP limits are per user.
-    trustProxy: config.TRUST_PROXY_HOPS,
+    // Same as passing the hop count (Fastify's types no longer accept a
+    // number, though the runtime still does).
+    trustProxy: (_address: string, hop: number) => hop < config.TRUST_PROXY_HOPS,
   });
   const domainEvents = new InMemoryDomainEventBus();
   const sideEffects = new SideEffectProcessor();

@@ -2,8 +2,10 @@ import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useEffect, useRef } from "react";
-import { registerCommands } from "@/voice/commandBus";
+import { listCommandPhrases, registerCommands } from "@/voice/commandBus";
 import { installSpeechRecognizer } from "@/voice/install";
+import { describeFocusedScreen } from "@/a11y/useLandmarkAnnounce";
+import { speakOnce } from "@/audio/narrator";
 import { addNotificationResponseListener } from "@/notifications/register";
 // Loading the prefs store at app startup applies the default narrator
 // and cue settings to the underlying engines.
@@ -24,10 +26,12 @@ export default function RootLayout(): JSX.Element {
     // Global utility commands available on every screen.
     const unregister = registerCommands({
       "help|what can i do|list commands": () => {
-        // UI surfaces a spoken reference list in the Accessibility Center.
+        // Commands are registered per focused screen, so this lists what
+        // works right here plus these global ones.
+        void speakOnce(`You can say: ${listCommandPhrases().join(", ")}.`);
       },
       "describe screen": () => {
-        // Each screen's useLandmarkAnnounce re-announces when this fires.
+        if (!describeFocusedScreen()) void speakOnce("Nothing to describe yet.");
       },
     });
 

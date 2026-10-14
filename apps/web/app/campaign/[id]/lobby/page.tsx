@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { enterAdFreeRoute } from "@/components/ads/social-bar";
 import type {
   LobbyParticipant,
   MultiplayerServerEvent,
@@ -29,7 +30,11 @@ const LOBBY_ACCESS_ERRORS: Record<string, string> = {
 };
 
 function useLobbySocket(campaignId: string, invite: string | null) {
-  const { data: authSession } = useSession();
+  const { data: authSession, status: authStatus } = useSession();
+  // The socket depends on who is signed in, not on the session object, which
+  // is replaced on every refresh and would tear the lobby connection down.
+  const userId = authSession?.user?.id ?? null;
+  const displayName = authSession?.user?.name ?? "Player";
   const [status, setStatus] = useState<LobbyStatus>("connecting");
   const [lobby, setLobby] = useState<LobbyState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,14 +59,27 @@ function useLobbySocket(campaignId: string, invite: string | null) {
 
   const leave = useCallback(() => {
     send({ type: "lobby_leave", v: "v1", campaignId });
-    wsRef.current?.close();
+    // Detach first so the socket's close isn't reported as a lost connection.
+    const ws = wsRef.current;
+    wsRef.current = null;
+    ws?.close();
     router.push("/library");
   }, [send, campaignId, router]);
 
+  // An invitee who isn't signed in can't get lobby credentials: send them to
+  // sign in and bring them back to this invite link.
   useEffect(() => {
-    if (!authSession?.user) return;
+    if (authStatus !== "unauthenticated") return;
+    const here = `${window.location.pathname}${window.location.search}`;
+    router.replace(`/auth/sign-in?callbackUrl=${encodeURIComponent(here)}`);
+  }, [authStatus, router]);
+
+  useEffect(() => {
+    if (!userId) return;
 
     let cancelled = false;
+    // Set once the game starts, when the socket closing is expected.
+    let started = false;
 
     async function connect() {
       // Fetch an HMAC-signed session token from the web API proxy (requires auth).
@@ -122,7 +140,7 @@ function useLobbySocket(campaignId: string, invite: string | null) {
           v: "v1",
           campaignId,
           authToken: token,
-          displayName: authSession!.user?.name ?? "Player",
+          displayName,
         };
         ws.send(JSON.stringify(joinEvent));
       };
@@ -179,7 +197,8 @@ function useLobbySocket(campaignId: string, invite: string | null) {
             setStatus("starting");
             break;
           case "turn_request":
-            router.push(`/play?campaign=${encodeURIComponent(msg.campaignId)}`);
+            started = true;
+            enterAdFreeRoute(router, `/play?campaign=${encodeURIComponent(msg.campaignId)}`);
             break;
         }
       };
@@ -194,9 +213,13 @@ function useLobbySocket(campaignId: string, invite: string | null) {
       };
 
       ws.onclose = () => {
-        if (!cancelled) {
-          setStatus((curr) => (curr === "starting" || curr === "error" ? curr : "connecting"));
-        }
+        // Leaving, unmounting and the game starting all close the socket on
+        // purpose. Any other close is a lost connection, so offer Retry
+        // rather than sitting on "Connecting…" forever. An error already
+        // shown (from the server or onerror) keeps its message.
+        if (cancelled || started || wsRef.current !== ws) return;
+        setStatus("error");
+        setError((prev) => prev ?? "Lost the connection to the lobby. Check your connection and try again.");
       };
     }
 
@@ -208,7 +231,7 @@ function useLobbySocket(campaignId: string, invite: string | null) {
       wsRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignId, invite, authSession]);
+  }, [campaignId, invite, userId]);
 
   return { status, lobby, error, markReady, leave, myUserId, inviteCode };
 }
@@ -286,7 +309,8 @@ export default function LobbyPage() {
   const me = myUserId ? lobby?.participants.find((p) => p.userId === myUserId) : undefined;
   const readyCount = lobby?.participants.filter((p) => p.ready).length ?? 0;
   const totalCount = lobby?.participants.length ?? 0;
-  const allReady = totalCount > 0 && readyCount === totalCount;
+  // The game needs at least two players; the server won't start a solo lobby.
+  const allReady = totalCount >= 2 && readyCount === totalCount;
 
   return (
     <div className="min-h-screen bg-bg">

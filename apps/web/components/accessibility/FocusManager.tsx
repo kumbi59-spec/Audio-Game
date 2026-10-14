@@ -26,16 +26,24 @@ export function FocusManager() {
 
 // Helper: trap focus inside a container (use for modals/dialogs)
 export function trapFocus(container: HTMLElement): () => void {
-  const focusable = container.querySelectorAll<HTMLElement>(
+  const focusable = Array.from(container.querySelectorAll<HTMLElement>(
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-  );
+  ));
   const first = focusable[0];
   const last = focusable[focusable.length - 1];
 
   function handler(e: KeyboardEvent) {
     if (e.key !== "Tab") return;
+    if (!first || !last) {
+      e.preventDefault();
+      return;
+    }
     if (e.shiftKey) {
-      if (document.activeElement === first) {
+      // Focus on something that isn't in the list (the dialog's title, where
+      // useDialogFocus starts) counts as the first element, so Shift+Tab
+      // from it wraps instead of leaving the dialog.
+      const active = document.activeElement as HTMLElement | null;
+      if (active === first || !active || !focusable.includes(active)) {
         e.preventDefault();
         last.focus();
       }

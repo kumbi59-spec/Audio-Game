@@ -16,13 +16,27 @@ interface EntitlementsStore {
   clearAdPreview: () => void;
 }
 
-function getInitialEntitlements(): Entitlements {
-  if (typeof window === "undefined") return TIER_ENTITLEMENTS.free;
-  const stored = localStorage.getItem("echoquest-tier");
-  if (stored && Object.prototype.hasOwnProperty.call(TIER_ENTITLEMENTS, stored)) {
-    return TIER_ENTITLEMENTS[stored as Tier];
+const TIER_KEY = "echoquest-tier";
+
+/**
+ * The tier remembered from the last visit, if it's a real one. Storage can be
+ * blocked (privacy settings, some embedded browsers), where reading it
+ * throws, and this runs when the module loads, so it falls back to null.
+ */
+function storedTier(): Tier | null {
+  try {
+    const stored = localStorage.getItem(TIER_KEY);
+    if (stored && Object.prototype.hasOwnProperty.call(TIER_ENTITLEMENTS, stored)) return stored as Tier;
+  } catch {
+    // Storage blocked — start from the free tier.
   }
-  return TIER_ENTITLEMENTS.free;
+  return null;
+}
+
+export function getInitialEntitlements(): Entitlements {
+  if (typeof window === "undefined") return TIER_ENTITLEMENTS.free;
+  const stored = storedTier();
+  return stored ? TIER_ENTITLEMENTS[stored] : TIER_ENTITLEMENTS.free;
 }
 
 const AD_PREVIEW_KEY = "echoquest-adpreview";
@@ -74,9 +88,19 @@ export function useCanWeb() {
 }
 
 export function loadEntitlementsFromStorage() {
-  const stored = localStorage.getItem("echoquest-tier");
+  const stored = storedTier();
   if (stored) {
     const { setTier } = useEntitlementsStore.getState();
-    setTier(stored as Tier);
+    setTier(stored);
+  }
+}
+
+/** Remembers the signed-in tier for the next visit; null forgets it. */
+export function saveTierToStorage(tier: Tier | null): void {
+  try {
+    if (tier) localStorage.setItem(TIER_KEY, tier);
+    else localStorage.removeItem(TIER_KEY);
+  } catch {
+    // Storage blocked — the tier still applies for this visit.
   }
 }

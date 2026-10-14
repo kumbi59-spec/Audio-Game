@@ -89,6 +89,7 @@ export default function AdminPage() {
   const [toggling, setToggling] = useState<string | null>(null);
   const [generatingCovers, setGeneratingCovers] = useState(false);
   const [coverResult, setCoverResult] = useState("");
+  const [worldActionError, setWorldActionError] = useState("");
   const [generatingBlogCovers, setGeneratingBlogCovers] = useState(false);
   const [blogCoverResult, setBlogCoverResult] = useState("");
 
@@ -291,6 +292,7 @@ export default function AdminPage() {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [blogSaving, setBlogSaving] = useState(false);
   const [blogError, setBlogError] = useState("");
+  const [postActionError, setPostActionError] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState("");
   const [seoFixing, setSeoFixing] = useState(false);
@@ -383,13 +385,21 @@ export default function AdminPage() {
 
   async function toggleWorldPublic(world: AdminWorld) {
     setToggling(world.id);
+    setWorldActionError("");
     try {
-      await fetch("/api/admin/worlds", {
+      const res = await fetch("/api/admin/worlds", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ worldId: world.id, isPublic: !world.isPublic }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        setWorldActionError(err.error ?? `Could not ${world.isPublic ? "unpublish" : "publish"} ${world.name} (${res.status}).`);
+        return;
+      }
       setWorlds((prev) => prev.map((w) => w.id === world.id ? { ...w, isPublic: !world.isPublic } : w));
+    } catch {
+      setWorldActionError(`Could not ${world.isPublic ? "unpublish" : "publish"} ${world.name}. Check your connection.`);
     } finally {
       setToggling(null);
     }
@@ -460,22 +470,41 @@ export default function AdminPage() {
 
   async function deletePost(id: string) {
     if (!window.confirm("Delete this post? This cannot be undone.")) return;
-    await fetch(`/api/admin/blog/${id}`, { method: "DELETE" });
+    setPostActionError("");
+    try {
+      const res = await fetch(`/api/admin/blog/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        setPostActionError(err.error ?? `Delete failed (${res.status}).`);
+        return;
+      }
+    } catch {
+      setPostActionError("Delete failed. Check your connection.");
+      return;
+    }
     setPosts((prev) => prev.filter((p) => p.id !== id));
     if (editingPost?.id === id) { setEditingPost(null); setDraft(EMPTY_DRAFT); }
   }
 
   async function togglePublish(post: BlogPost) {
     const publishedAt = post.publishedAt ? null : new Date().toISOString();
-    const res = await fetch(`/api/admin/blog/${post.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ publishedAt }),
-    });
-    if (res.ok) {
+    setPostActionError("");
+    try {
+      const res = await fetch(`/api/admin/blog/${post.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publishedAt }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string };
+        setPostActionError(err.error ?? `${post.publishedAt ? "Unpublish" : "Publish"} failed (${res.status}).`);
+        return;
+      }
       const saved = await res.json() as BlogPost;
       setPosts((prev) => prev.map((p) => p.id === saved.id ? saved : p));
       if (editingPost?.id === saved.id) setEditingPost(saved);
+    } catch {
+      setPostActionError(`${post.publishedAt ? "Unpublish" : "Publish"} failed. Check your connection.`);
     }
   }
 
@@ -618,6 +647,9 @@ export default function AdminPage() {
               {coverResult && (
                 <p className="text-xs text-muted">{coverResult}</p>
               )}
+              {worldActionError && (
+                <p className="text-xs text-danger" role="alert">{worldActionError}</p>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm" aria-label="Community worlds">
@@ -732,6 +764,7 @@ export default function AdminPage() {
               {blogCoverResult && <p className="mb-3 text-xs text-muted">{blogCoverResult}</p>}
               {sectionImageResult && <p className="mb-3 text-xs text-muted">{sectionImageResult}</p>}
               {seedResult && <p className="mb-3 text-xs text-muted">{seedResult}</p>}
+              {postActionError && <p className="mb-3 text-xs text-danger" role="alert">{postActionError}</p>}
               <div className="space-y-3">
                 {posts.map((p) => (
                   <div key={p.id} className="flex items-start justify-between rounded-lg border p-3 border-border bg-surface"

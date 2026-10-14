@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useAnnouncer } from "./AudioAnnouncer";
 import { isPaused, isSpeaking, pauseSpeech, resumeSpeech } from "@/lib/audio/tts-provider";
 
@@ -11,6 +11,11 @@ interface VoiceCommandListenerProps {
   /** How many choices are on offer, so "option 7" with four choices is caught. */
   choiceCount?: number;
   isActive: boolean;
+}
+
+/** Lets the V shortcut start (or stop) listening, as the mic button does. */
+export interface VoiceCommandHandle {
+  toggle: () => void;
 }
 
 interface SpeechRecognitionLike extends EventTarget {
@@ -100,13 +105,64 @@ export function parseVoiceInput(transcript: string): { type: "choice" | "meta" |
 // can hit Cancel; short enough not to feel sluggish for clean transcripts.
 const FREE_TEXT_CONFIRM_MS = 3500;
 
-export function VoiceCommandListener({
+export interface PendingVoiceAction {
+  /** Holds `text` (replacing anything held) and sends it after the delay. */
+  stage: (text: string) => void;
+  /** Sends the held text now, if there is any. */
+  send: () => void;
+  /** Drops the held text without sending it. */
+  cancel: () => void;
+}
+
+/**
+ * A free-text voice action waiting for confirmation. It is sent at most once,
+ * from the timer or send(), and never from inside a state updater (StrictMode
+ * runs those twice). `onChange` gets the text to show, or null once it's gone.
+ */
+export function createPendingVoiceAction(
+  delayMs: number,
+  onSend: (text: string) => void,
+  onChange: (text: string | null) => void,
+): PendingVoiceAction {
+  let held: string | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const take = (): string | null => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    const text = held;
+    held = null;
+    if (text !== null) onChange(null);
+    return text;
+  };
+
+  return {
+    stage(text) {
+      take();
+      held = text;
+      onChange(text);
+      timer = setTimeout(() => {
+        const due = take();
+        if (due) onSend(due);
+      }, delayMs);
+    },
+    send() {
+      const text = take();
+      if (text) onSend(text);
+    },
+    cancel() {
+      take();
+    },
+  };
+}
+
+export const VoiceCommandListener = forwardRef<VoiceCommandHandle, VoiceCommandListenerProps>(function VoiceCommandListener({
   onAction,
   onChoiceSelect,
   onMeta,
   choiceCount,
   isActive,
-}: VoiceCommandListenerProps) {
+}, ref) {
   const { announce, announceError } = useAnnouncer();
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -114,7 +170,19 @@ export function VoiceCommandListener({
   // commands still fire immediately — they're short and unambiguous, so the
   // confirmation friction isn't worth it there.
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The timer sends through the latest onAction, not the one from when the
+  // transcript arrived.
+  const onActionRef = useRef(onAction);
+  onActionRef.current = onAction;
+  const pendingRef = useRef<PendingVoiceAction | null>(null);
+  if (!pendingRef.current) {
+    pendingRef.current = createPendingVoiceAction(
+      FREE_TEXT_CONFIRM_MS,
+      (text) => onActionRef.current(text),
+      setPendingAction,
+    );
+  }
+  const pending = pendingRef.current;
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   // Narration the mic paused, so it can pick up again if nothing was said.
   const pausedForMicRef = useRef(false);
@@ -125,20 +193,9 @@ export function VoiceCommandListener({
     setListening(false);
   }, []);
 
-  const clearPending = useCallback(() => {
-    if (pendingTimerRef.current !== null) {
-      clearTimeout(pendingTimerRef.current);
-      pendingTimerRef.current = null;
-    }
-    setPendingAction(null);
-  }, []);
+  const clearPending = useCallback(() => pending.cancel(), [pending]);
 
-  const sendPending = useCallback(() => {
-    if (!pendingAction) return;
-    const text = pendingAction;
-    clearPending();
-    onAction(text);
-  }, [pendingAction, clearPending, onAction]);
+  const sendPending = useCallback(() => pending.send(), [pending]);
 
   const startListening = useCallback(() => {
     if (!SpeechRecognitionClass) {
@@ -185,6 +242,11 @@ export function VoiceCommandListener({
             onChoiceSelect(index);
           }
         } else if (parsed.type === "meta" && onMeta) {
+          // "pause", "continue" and "replay" decide the narration themselves,
+          // so the mic closing mustn't resume what it paused.
+          if (parsed.value === "pause" || parsed.value === "resume" || parsed.value === "replay") {
+            pausedForMicRef.current = false;
+          }
           onMeta(parsed.value as string);
         } else {
           // Free-text action: stage for confirmation rather than firing
@@ -192,15 +254,7 @@ export function VoiceCommandListener({
           // AI turn. Auto-sends after FREE_TEXT_CONFIRM_MS unless cancelled.
           const value = parsed.value as string;
           announce(`Heard: ${value}. Sending in ${Math.round(FREE_TEXT_CONFIRM_MS / 1000)} seconds. Press Cancel to stop.`);
-          setPendingAction(value);
-          if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
-          pendingTimerRef.current = setTimeout(() => {
-            pendingTimerRef.current = null;
-            setPendingAction((current) => {
-              if (current) onAction(current);
-              return null;
-            });
-          }, FREE_TEXT_CONFIRM_MS);
+          pending.stage(value);
         }
       }
     };
@@ -221,7 +275,13 @@ export function VoiceCommandListener({
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [SpeechRecognitionClass, listening, announce, announceError, onAction, onChoiceSelect, onMeta, choiceCount, stopListening]);
+  }, [SpeechRecognitionClass, listening, announce, announceError, pending, onChoiceSelect, onMeta, choiceCount, stopListening]);
+
+  useImperativeHandle(ref, () => ({
+    toggle: () => {
+      if (isActive) startListening();
+    },
+  }), [isActive, startListening]);
 
   useEffect(() => {
     if (!isActive && listening) stopListening();
@@ -236,7 +296,7 @@ export function VoiceCommandListener({
   // Clean up on unmount: the pending timer, and the mic if it's still open.
   useEffect(() => {
     return () => {
-      if (pendingTimerRef.current !== null) clearTimeout(pendingTimerRef.current);
+      pending.cancel();
       const recognition = recognitionRef.current;
       if (recognition) {
         recognition.onresult = null;
@@ -244,7 +304,7 @@ export function VoiceCommandListener({
         recognition.stop();
       }
     };
-  }, []);
+  }, [pending]);
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -305,4 +365,4 @@ export function VoiceCommandListener({
       )}
     </div>
   );
-}
+});

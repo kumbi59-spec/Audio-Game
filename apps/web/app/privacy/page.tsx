@@ -88,11 +88,12 @@ export default function PrivacyPage() {
             Your choices
           </h2>
           <p>
-            You can delete your account and all associated session data at any time from{" "}
-            <a href="/account" className="hover:underline text-accent">
-              your account settings
-            </a>
-            . You can also request a copy of your data by contacting us.
+            To delete your account and all associated session data, or to request a copy of your
+            data,{" "}
+            <a href="/contact-us" className="hover:underline text-accent">
+              contact us
+            </a>{" "}
+            from the email address on your account.
           </p>
 
           <h2 className="mt-6 text-xl font-semibold text-foreground">

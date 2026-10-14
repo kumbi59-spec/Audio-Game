@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -14,10 +14,16 @@ export function VerificationBanner() {
   const [resendMsg, setResendMsg] = useState<string | null>(null);
 
   // Trigger a session refresh after successful email verification so the
-  // banner disappears without requiring a sign-out/sign-in cycle.
+  // banner disappears without requiring a sign-out/sign-in cycle. Once only:
+  // update() changes identity whenever the session does, so re-running on it
+  // would refresh forever. The payload makes the token re-read emailVerified
+  // from the database (a bare update() keeps the cached value).
+  const refreshedRef = useRef(false);
   useEffect(() => {
-    if (justVerified) update();
-  }, [justVerified, update]);
+    if (!justVerified || status !== "authenticated" || refreshedRef.current) return;
+    refreshedRef.current = true;
+    void update({});
+  }, [justVerified, status, update]);
 
   if (status !== "authenticated") return null;
 
@@ -71,7 +77,7 @@ export function VerificationBanner() {
           </button>
         )}
         <button
-          onClick={() => void update().then(() => window.location.reload())}
+          onClick={() => void update({}).then(() => window.location.reload())}
           className="inline-flex items-center text-xs text-accent underline hover:opacity-80"
         >
           Already verified?

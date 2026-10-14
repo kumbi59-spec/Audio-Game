@@ -92,12 +92,12 @@ export function mergeCodexEntry(
   return [...codex, { ...entry, unlockedAt: entry.unlockedAt ?? turn }];
 }
 
-function isAchievement(v: unknown): v is Omit<AchievementUnlock, "unlockedAt"> {
+export function isAchievement(v: unknown): v is Omit<AchievementUnlock, "unlockedAt"> {
   const a = v as Partial<AchievementUnlock> | null;
   return !!a && typeof a.key === "string" && !!a.key && typeof a.title === "string";
 }
 
-function isRelationshipChange(v: unknown): v is RelationshipChange {
+export function isRelationshipChange(v: unknown): v is RelationshipChange {
   const r = v as Partial<RelationshipChange> | null;
   return (
     !!r &&
@@ -109,7 +109,7 @@ function isRelationshipChange(v: unknown): v is RelationshipChange {
   );
 }
 
-function isCodexEntry(v: unknown): v is Omit<CodexEntry, "unlockedAt"> {
+export function isCodexEntry(v: unknown): v is Omit<CodexEntry, "unlockedAt"> {
   const c = v as Partial<CodexEntry> | null;
   return !!c && typeof c.key === "string" && !!c.key && typeof c.title === "string" && typeof c.body === "string";
 }

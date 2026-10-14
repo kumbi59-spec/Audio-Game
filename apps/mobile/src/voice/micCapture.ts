@@ -13,8 +13,9 @@ import { ExpoAudioStreamModule, addAudioEventListener } from "./audioStream";
  * stays platform-agnostic.
  *
  *  - Web (Chrome, Firefox, Safari): AudioWorklet pulls Float32 samples
- *    straight out of the audio graph, converts to Int16 LE, and posts
- *    each render quantum to the main thread. No native deps.
+ *    straight out of the audio graph, downsamples them to 16 kHz,
+ *    converts to Int16 LE, and posts each render quantum to the main
+ *    thread. No native deps.
  *  - iOS + Android: @siteed/expo-audio-stream's native module emits
  *    PCM chunks every 100 ms via addAudioEventListener. We decode the
  *    base64 payload and forward the raw bytes to the recognizer —
@@ -36,6 +37,27 @@ function createWebMicCapture(): MicCapture {
   let stream: MediaStream | null = null;
   let workletUrl: string | null = null;
 
+  async function release(): Promise<void> {
+    try {
+      node?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    try {
+      source?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    stream?.getTracks().forEach((t) => t.stop());
+    await audioCtx?.close().catch(() => undefined);
+    if (workletUrl) URL.revokeObjectURL(workletUrl);
+    audioCtx = null;
+    source = null;
+    node = null;
+    stream = null;
+    workletUrl = null;
+  }
+
   return {
     async start(onChunk) {
       if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
@@ -44,59 +66,74 @@ function createWebMicCapture(): MicCapture {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          sampleRate: 16000,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
         },
         video: false,
       });
-      audioCtx = new AudioContext({ sampleRate: 16000 });
-      workletUrl = makePcmWorkletUrl();
-      await audioCtx.audioWorklet.addModule(workletUrl);
-      source = audioCtx.createMediaStreamSource(stream);
-      node = new AudioWorkletNode(audioCtx, "pcm-streamer");
-      node.port.onmessage = (e: MessageEvent) => {
-        if (e.data instanceof ArrayBuffer) onChunk(e.data);
-      };
-      source.connect(node);
-      // Intentionally not connected to destination — we don't want to
-      // hear ourselves.
+      try {
+        // The context runs at the device rate: Firefox can't connect a mic
+        // stream to a context at a different rate. The worklet downsamples.
+        audioCtx = new AudioContext();
+        workletUrl = makePcmWorkletUrl();
+        await audioCtx.audioWorklet.addModule(workletUrl);
+        source = audioCtx.createMediaStreamSource(stream);
+        node = new AudioWorkletNode(audioCtx, "pcm-streamer");
+        node.port.onmessage = (e: MessageEvent) => {
+          if (e.data instanceof ArrayBuffer) onChunk(e.data);
+        };
+        source.connect(node);
+        // Intentionally not connected to destination — we don't want to
+        // hear ourselves.
+      } catch (err) {
+        // Don't leave the mic live (and its indicator on) after a failed start.
+        await release();
+        throw err;
+      }
     },
     async stop() {
-      try {
-        node?.disconnect();
-      } catch {
-        /* ignore */
-      }
-      try {
-        source?.disconnect();
-      } catch {
-        /* ignore */
-      }
-      stream?.getTracks().forEach((t) => t.stop());
-      await audioCtx?.close().catch(() => undefined);
-      if (workletUrl) URL.revokeObjectURL(workletUrl);
-      audioCtx = null;
-      source = null;
-      node = null;
-      stream = null;
-      workletUrl = null;
+      await release();
     },
   };
 }
 
 function makePcmWorkletUrl(): string {
   const code = `
+    const TARGET_RATE = 16000;
     class PcmStreamer extends AudioWorkletProcessor {
+      constructor() {
+        super();
+        // sampleRate is the context's rate (usually 44.1 or 48 kHz).
+        this.step = Math.max(1, sampleRate / TARGET_RATE);
+        this.pos = 0;
+        this.sum = 0;
+        this.count = 0;
+      }
       process(inputs) {
         const input = inputs[0];
         if (!input || !input[0]) return true;
         const ch = input[0]; // Float32Array, mono, render quantum (usually 128)
-        const buf = new ArrayBuffer(ch.length * 2);
-        const view = new DataView(buf);
+        // Average each step's worth of input into one output sample: a
+        // box filter that downsamples to 16 kHz and damps aliasing.
+        const out = new Float32Array(Math.ceil(ch.length / this.step) + 1);
+        let n = 0;
         for (let i = 0; i < ch.length; i++) {
-          const s = Math.max(-1, Math.min(1, ch[i]));
+          this.sum += ch[i];
+          this.count += 1;
+          this.pos += 1;
+          if (this.pos >= this.step) {
+            this.pos -= this.step;
+            out[n++] = this.sum / this.count;
+            this.sum = 0;
+            this.count = 0;
+          }
+        }
+        if (n === 0) return true;
+        const buf = new ArrayBuffer(n * 2);
+        const view = new DataView(buf);
+        for (let i = 0; i < n; i++) {
+          const s = Math.max(-1, Math.min(1, out[i]));
           view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true /* little-endian */);
         }
         this.port.postMessage(buf, [buf]);
@@ -152,7 +189,14 @@ function createNativeMicCapture(): MicCapture {
       };
 
       active = true;
-      await ExpoAudioStreamModule.startRecording(config);
+      try {
+        await ExpoAudioStreamModule.startRecording(config);
+      } catch (err) {
+        active = false;
+        subscription?.remove();
+        subscription = null;
+        throw err;
+      }
     },
     async stop() {
       active = false;

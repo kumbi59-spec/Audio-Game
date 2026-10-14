@@ -9,9 +9,18 @@ const NUMBER_WORD_TO_INDEX: Record<string, number> = {
   "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 6, "8": 7, "9": 8,
 };
 
+/**
+ * Maps a spoken choice ("two", "choice two", "option 3") to a choice index.
+ * The whole utterance has to be the choice: "two guards attack" is a
+ * freeform action, not choice 2.
+ */
 export function parseChoiceCommand(text: string): number | null {
-  const normalized = buildPlayerTranscript(text).toLowerCase();
-  const matchedNumber = normalized.match(/^(?:choice\s*)?(one|two|three|four|five|six|seven|eight|nine|1|2|3|4|5|6|7|8|9)\b/i);
+  const normalized = buildPlayerTranscript(text)
+    .toLowerCase()
+    .replace(/^[\s"'.,!?]+|[\s"'.,!?]+$/g, "");
+  const matchedNumber = normalized.match(
+    /^(?:(?:choice|option|number)\s*)?(one|two|three|four|five|six|seven|eight|nine|1|2|3|4|5|6|7|8|9)$/,
+  );
   if (!matchedNumber?.[1]) return null;
   return NUMBER_WORD_TO_INDEX[matchedNumber[1]] ?? null;
 }

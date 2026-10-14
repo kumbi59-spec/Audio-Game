@@ -5,11 +5,21 @@ import {
   Text,
   View,
 } from "react-native";
-import { AI_MINUTE_PACKS, type AiMinutePack } from "@audio-rpg/shared";
+import { AI_MINUTE_PACKS, PRICING, type AiMinutePack } from "@audio-rpg/shared";
 import { EQ, R, SPACE, FS, TOUCH_MIN } from "@/design/tokens";
 import { speakOnce } from "@/audio/narrator";
 import { useEntitlements } from "./store";
 import { purchaseMinutePack } from "./purchases";
+
+function packPrice(pack: AiMinutePack): string {
+  return `$${(pack.priceCents / 100).toFixed(2)}`;
+}
+
+// Spoken pack list, built from the shared catalogue so it can't drift
+// from the prices on the buttons.
+const PACKS_SPOKEN = AI_MINUTE_PACKS.map((pack) => `${pack.label} for ${packPrice(pack)}`)
+  .join(", ")
+  .replace(/, ([^,]*)$/, ", or $1");
 
 interface Props {
   visible: boolean;
@@ -29,7 +39,7 @@ export function AiMinutesSheet({ visible, onDismiss, onPurchase }: Props) {
 
   const announce = () => {
     void speakOnce(
-      `You have ${remaining ?? 0} AI minutes remaining. Buy a pack to keep playing. Choose 60 minutes for $1.99, 3 hours for $4.99, or 10 hours for $14.99.`,
+      `You have ${remaining ?? 0} AI minutes remaining. Buy a pack to keep playing. Choose ${PACKS_SPOKEN}.`,
     );
   };
 
@@ -63,7 +73,7 @@ export function AiMinutesSheet({ visible, onDismiss, onPurchase }: Props) {
             <Pressable
               key={pack.id}
               accessibilityRole="button"
-              accessibilityLabel={`Buy ${pack.label} for $${(pack.priceCents / 100).toFixed(2)}`}
+              accessibilityLabel={`Buy ${pack.label} for ${packPrice(pack)}`}
               onPress={() => {
                 onDismiss();
                 if (onPurchase) {
@@ -80,16 +90,14 @@ export function AiMinutesSheet({ visible, onDismiss, onPurchase }: Props) {
                 </View>
               )}
               <Text style={styles.packMinutes}>{pack.label}</Text>
-              <Text style={styles.packPrice}>
-                ${(pack.priceCents / 100).toFixed(2)}
-              </Text>
+              <Text style={styles.packPrice}>{packPrice(pack)}</Text>
               <Text style={styles.packUnit}>one-time</Text>
             </Pressable>
           ))}
         </View>
 
         <Text style={styles.note}>
-          Or upgrade to Storyteller ($9/mo) for unlimited AI time and no ads.
+          Or upgrade to Storyteller (${PRICING.storyteller.monthly}/mo) for unlimited AI time and no ads.
         </Text>
 
         <Pressable

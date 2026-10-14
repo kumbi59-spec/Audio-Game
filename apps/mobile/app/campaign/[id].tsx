@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
-import { useVoiceCommands } from "@/voice/commandBus";
+import { dispatchTranscript, useVoiceCommands } from "@/voice/commandBus";
 import { useSession } from "@/session/store";
 import { sessionConnection } from "@/session/connection";
 import { feedNarration, speakAfterNarration, speakOnce, stopNarration } from "@/audio/narrator";
@@ -39,13 +39,17 @@ export default function ActiveCampaign(): JSX.Element {
   const [upgradeVisible, setUpgradeVisible] = useState(false);
   const [statusSheetVisible, setStatusSheetVisible] = useState(false);
   const [showFirstTurnTips, setShowFirstTurnTips] = useState(false);
+  const [tipsDismissed, setTipsDismissed] = useState(false);
+  const capturingRef = useRef(false);
   const [connectAttempt, setConnectAttempt] = useState(0);
   const canAcceptInput = !session.awaitingGm;
 
+  // The summary must not track the choice count: a new summary
+  // re-announces, which cut off the narration on every choice_list.
   useLandmarkAnnounce(
     "Active campaign",
     session.title
-      ? `Playing ${session.title}. ${session.choices.length ? `${session.choices.length} choices available.` : "Listen for the next scene."}`
+      ? `Playing ${session.title}. Listen for the next scene.`
       : "Connecting to your campaign.",
     headingRef,
   );
@@ -117,8 +121,8 @@ export default function ActiveCampaign(): JSX.Element {
   useEffect(() => {
     const hasPlayerActed = session.transcript.some((t) => t.role === "player");
     const isEarlyTurn = (session.state?.turn_number ?? 0) <= 1;
-    setShowFirstTurnTips(isEarlyTurn && !hasPlayerActed);
-  }, [session.state?.turn_number, session.transcript]);
+    setShowFirstTurnTips(!tipsDismissed && isEarlyTurn && !hasPlayerActed);
+  }, [session.state?.turn_number, session.transcript, tipsDismissed]);
 
   useEffect(() => {
     return () => {
@@ -180,10 +184,21 @@ export default function ActiveCampaign(): JSX.Element {
     if (hapticsEnabled) {
       void Haptics.selectionAsync();
     }
+    // One capture at a time: a second start would orphan the first socket.
+    if (capturingRef.current) return;
+    capturingRef.current = true;
     stopNarration();
     void speakOnce("Listening.");
-    const transcript = await captureUtterance();
+    let transcript: string | null;
+    try {
+      transcript = await captureUtterance();
+    } finally {
+      capturingRef.current = false;
+    }
     if (!transcript) return;
+    // A bare command phrase ("repeat", "inventory") runs that command;
+    // anything longer is the player's action.
+    if (await dispatchTranscript(transcript, { exact: true })) return;
     const idx = parseChoiceCommand(transcript);
     if (idx !== null) {
       const choice = session.choices[idx];
@@ -308,7 +323,7 @@ export default function ActiveCampaign(): JSX.Element {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Dismiss quick start tips"
-            onPress={() => setShowFirstTurnTips(false)}
+            onPress={() => setTipsDismissed(true)}
             style={({ pressed }) => [styles.tipsDismissBtn, pressed && styles.dockBtnPressed]}
           >
             <Text style={styles.tipsDismissText}>Got it</Text>

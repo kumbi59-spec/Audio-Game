@@ -36,4 +36,18 @@ describe("session domain use-cases", () => {
     expect(parseChoiceCommand("pick ten")).toBeNull();
     expect(parseChoiceCommand("   ")).toBeNull();
   });
+
+  it("parses a bare number or choice/option/number N", () => {
+    expect(parseChoiceCommand("2")).toBe(1);
+    expect(parseChoiceCommand("two")).toBe(1);
+    expect(parseChoiceCommand("choice two")).toBe(1);
+    expect(parseChoiceCommand("option 3")).toBe(2);
+    expect(parseChoiceCommand("Number four.")).toBe(3);
+  });
+
+  it("treats an action that starts with a number as freeform", () => {
+    expect(parseChoiceCommand("two guards attack")).toBeNull();
+    expect(parseChoiceCommand("one more look at the door")).toBeNull();
+    expect(parseChoiceCommand("choice two please")).toBeNull();
+  });
 });

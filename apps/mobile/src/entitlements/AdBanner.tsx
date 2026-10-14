@@ -24,12 +24,15 @@ export function AdBanner({ onUpgradePress }: Props) {
   if (!can.showAds) return null;
 
   return (
-    <View
-      style={styles.bar}
-      accessibilityRole="none"
-      importantForAccessibility="no-hide-descendants"
-    >
-      <Text style={styles.label} numberOfLines={1}>
+    <View style={styles.bar} accessibilityRole="none">
+      {/* Decorative: the buttons carry their own labels. Hiding the whole
+          bar with no-hide-descendants would hide them from TalkBack too. */}
+      <Text
+        style={styles.label}
+        numberOfLines={1}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      >
         🎮 EchoQuest — Upgrade to remove ads
       </Text>
       <Pressable

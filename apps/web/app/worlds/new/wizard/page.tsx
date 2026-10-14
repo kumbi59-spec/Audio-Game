@@ -8,6 +8,8 @@ import { stopSpeech } from "@/lib/audio/tts-provider";
 import { useCanWeb } from "@/store/entitlements-store";
 import { UpgradeModal } from "@/components/entitlements/UpgradeModal";
 import { STEPS, EMPTY_DRAFT, type Draft, type WizardStep } from "@/lib/wizard/steps";
+import type { WorldData } from "@/types/world";
+import { wizardKeyHandledElsewhere } from "./wizard-keys";
 
 const IMPORT_KEY = "echoquest_import_draft";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -15,6 +17,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 export default function WorldWizardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const forkFrom = searchParams.get("forkFrom");
   const forkName = searchParams.get("forkName");
   const { narrate } = useAnnouncer();
   const can = useCanWeb();
@@ -24,11 +27,12 @@ export default function WorldWizardPage() {
   const [draft, setDraft] = useState<Draft>(() => {
     // Seed from import-notes if the user arrived via /worlds/new/import.
     // Consumed once and cleared so Back → wizard doesn't re-seed.
+    // Storage can be blocked (reading it throws), and the JSON can be bad.
     if (typeof window === "undefined") return EMPTY_DRAFT;
-    const raw = sessionStorage.getItem(IMPORT_KEY);
-    if (!raw) return EMPTY_DRAFT;
-    sessionStorage.removeItem(IMPORT_KEY);
     try {
+      const raw = sessionStorage.getItem(IMPORT_KEY);
+      if (!raw) return EMPTY_DRAFT;
+      sessionStorage.removeItem(IMPORT_KEY);
       const seeded = JSON.parse(raw) as Partial<Draft>;
       return { ...EMPTY_DRAFT, ...seeded };
     } catch {
@@ -46,6 +50,35 @@ export default function WorldWizardPage() {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const promptRef = useRef<HTMLHeadingElement>(null);
   const recognitionRef = useRef<{ abort: () => void; start: () => void } | null>(null);
+
+  // Forking starts from the original world's answers. Anything already
+  // answered (or seeded from import) is kept.
+  useEffect(() => {
+    if (!forkFrom) return;
+    let cancelled = false;
+    fetch(`/api/worlds/${encodeURIComponent(forkFrom)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`world request failed: ${r.status}`);
+        return r.json() as Promise<WorldData>;
+      })
+      .then((world) => {
+        if (cancelled) return;
+        setDraft((d) => ({
+          ...d,
+          title: d.title || world.name || "",
+          pitch: d.pitch || world.description || "",
+          genre: d.genre || world.genre || "",
+          setting: d.setting || world.locations?.[0]?.name || "",
+          toneVoice: d.toneVoice || world.tone || "",
+        }));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[wizard] fork source failed to load:", err);
+        setError("Couldn't load the world you're forking. You can still answer the questions yourself.");
+      });
+    return () => { cancelled = true; };
+  }, [forkFrom]);
 
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
@@ -213,7 +246,7 @@ export default function WorldWizardPage() {
   // Keyboard shortcuts
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (wizardKeyHandledElsewhere(e)) return;
       if (e.key === "ArrowRight" || e.key === "Enter") {
         if (!isLast) advance(textInput);
       } else if (e.key === "ArrowLeft") {
@@ -585,7 +618,7 @@ export default function WorldWizardPage() {
 
       <UpgradeModal
         open={paywallOpen}
-        requiredTier="creator"
+        requiredTier="storyteller"
         featureName="World Builder Wizard"
         onClose={() => setPaywallOpen(false)}
       />

@@ -9,7 +9,12 @@
  * Options (used by scripts/security-release-gate.test.mjs):
  *   --audit-json <file>  gate on saved `pnpm audit --prod --json` output
  *                        instead of running pnpm audit; no OSV fallback
+ *   --osv-json <file>    gate on saved `osv-scanner --format json` output
+ *                        instead of running pnpm audit and osv-scanner
  *   --waivers <file>     waivers file (default: security-release-waivers.json)
+ *
+ * Waivers apply to both sources: by package name, or by advisory URL
+ * (https://github.com/advisories/GHSA-…), which only hides that advisory.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -24,6 +29,7 @@ function argValue(name) {
 }
 
 const auditJsonFile = argValue("--audit-json");
+const osvJsonFile = argValue("--osv-json");
 const waiversFile = resolve(argValue("--waivers") ?? resolve(repoRoot, "security-release-waivers.json"));
 
 function fail(message) {
@@ -44,7 +50,14 @@ function which(cmd) {
 }
 
 // ───────────────────────────── OSV-Scanner ──────────────────────────────
-function runOsvScanner() {
+function readOsvScanner() {
+  if (osvJsonFile) {
+    try {
+      return { ok: true, stdout: readFileSync(resolve(osvJsonFile), "utf8") };
+    } catch (e) {
+      fail(`cannot read --osv-json file ${osvJsonFile}: ${e.message}`);
+    }
+  }
   const bin = which("osv-scanner");
   if (!bin) return { ran: false };
 
@@ -60,33 +73,49 @@ function runOsvScanner() {
 
   // osv-scanner exits 1 when it finds vulns, 0 when clean, 127 etc on errors.
   if (run.status !== 0 && run.status !== 1) {
-    return {
-      ran: true,
-      ok: false,
-      reason: `osv-scanner exited ${run.status}: ${run.stderr || run.stdout}`,
-    };
+    return { ok: false, reason: `osv-scanner exited ${run.status}: ${run.stderr || run.stdout}` };
   }
+  return { ok: true, stdout: run.stdout };
+}
+
+/** GitHub advisory URLs for an OSV entry (its id or GHSA aliases), as waivers name them. */
+function advisoryUrlsOf(vuln) {
+  const ids = [vuln.id, ...(vuln.aliases ?? [])].filter((id) => /^GHSA-/.test(String(id)));
+  return [...new Set(ids)].map((id) => `https://github.com/advisories/${id}`);
+}
+
+function runOsvScanner() {
+  const read = readOsvScanner();
+  if (read.ran === false) return { ran: false };
+  if (!read.ok) return { ran: true, ok: false, reason: read.reason };
 
   let parsed;
   try {
-    parsed = JSON.parse(run.stdout || "{}");
+    parsed = JSON.parse(read.stdout || "{}");
   } catch (e) {
     return { ran: true, ok: false, reason: `osv-scanner JSON parse failed: ${e.message}` };
   }
 
-  const counts = { critical: 0, high: 0, moderate: 0, low: 0, unknown: 0 };
-  const results = parsed.results ?? [];
-
-  for (const result of results) {
+  const findings = [];
+  for (const result of parsed.results ?? []) {
     for (const pkg of result.packages ?? []) {
       for (const vuln of pkg.vulnerabilities ?? []) {
-        const sev = severityOf(vuln);
-        counts[sev] += 1;
+        const urls = advisoryUrlsOf(vuln);
+        findings.push({
+          name: String(pkg.package?.name ?? "unknown"),
+          severity: severityOf(vuln),
+          via: (urls.length ? urls : [undefined]).map((url) => ({
+            source: vuln.id,
+            title: vuln.summary,
+            url,
+          })),
+          range: pkg.package?.version,
+        });
       }
     }
   }
 
-  return { ran: true, ok: true, counts };
+  return { ran: true, ok: true, findings };
 }
 
 function severityOf(vuln) {
@@ -333,7 +362,7 @@ function evaluate(source, counts) {
 }
 
 // ───────────────────────────── main ────────────────────────────────────
-const audit = runPnpmAudit();
+const audit = osvJsonFile ? { ran: false, ok: false, reason: "skipped for --osv-json" } : runPnpmAudit();
 if (audit.ok && !audit.findings) {
   console.warn("pnpm audit returned totals without advisories; waivers cannot apply.");
   evaluate("pnpm-audit", audit.counts);
@@ -353,11 +382,18 @@ if (auditJsonFile) {
   fail(`could not evaluate --audit-json file ${auditJsonFile} (${audit.reason}).`);
 }
 
-console.warn(`pnpm audit could not produce a result (${audit.reason}); falling back to osv-scanner.`);
+if (!osvJsonFile) {
+  console.warn(`pnpm audit could not produce a result (${audit.reason}); falling back to osv-scanner.`);
+}
 
 const osv = runOsvScanner();
 if (osv.ran && osv.ok) {
-  evaluate("osv-scanner", osv.counts);
+  const { active, waived } = applyWaiversToFindings(osv.findings, loadWaivers());
+  if (waived.length) {
+    printFindings("Waived", waived);
+  }
+  printFindings("Active", active.filter((f) => ["critical", "high"].includes(f.severity)));
+  evaluate("osv-scanner", countsFromFindings(active));
 }
 if (osv.ran && !osv.ok) {
   console.warn(`osv-scanner could not produce a result (${osv.reason}).`);

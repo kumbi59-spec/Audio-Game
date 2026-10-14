@@ -1,11 +1,13 @@
+import { Platform } from "react-native";
 import { Audio } from "expo-av";
 import { apiBaseUrl } from "@/api/config";
 
 /**
  * ElevenLabs narration playback. Sentences are POSTed to the server's
  * /tts/stream proxy (which holds the ElevenLabs key and adds edge
- * caching) and played through expo-av. If the server returns 503 we
- * fall back to expo-speech via the caller.
+ * caching) and played through expo-av. Any failure (503 without a key,
+ * 401/403 without a storyteller tier token, network) hands the unplayed
+ * sentences to the caller's `onFallback`, which speaks them on-device.
  *
  * We keep a queue of sentences so that when a new chunk arrives we can
  * start buffering the next one while the current one is still playing,
@@ -21,14 +23,28 @@ interface EnqueuedClip {
   uri?: string;
 }
 
+/** A sentence premium playback could not play, for on-device fallback. */
+export interface UnplayedClip {
+  text: string;
+  voiceRole?: string;
+}
+
 export class ElevenLabsNarrator {
   private queue: EnqueuedClip[] = [];
   private playing = false;
   private voiceId: string;
   private rate = 1.0;
+  // Bumped by stop() so a drain loop that is mid-fetch or mid-clip quits.
+  private generation = 0;
+  private current: { sound: Audio.Sound; finish: () => void } | null = null;
+  private readonly onFallback: ((clips: UnplayedClip[]) => void) | undefined;
 
-  constructor(voiceId = "21m00Tcm4TlvDq8ikWAM") {
+  constructor(
+    voiceId = "21m00Tcm4TlvDq8ikWAM",
+    onFallback?: (clips: UnplayedClip[]) => void,
+  ) {
     this.voiceId = voiceId;
+    this.onFallback = onFallback;
   }
 
   setVoice(voiceId: string): void {
@@ -47,51 +63,75 @@ export class ElevenLabsNarrator {
   }
 
   async stop(): Promise<void> {
+    this.generation += 1;
     this.queue = [];
     this.playing = false;
-    // expo-av does not let us cancel in-flight decode, but unloading the
-    // current sound stops playback immediately.
+    const current = this.current;
+    this.current = null;
+    if (!current) return;
+    current.finish();
     try {
-      await Audio.setIsEnabledAsync(false);
-      await Audio.setIsEnabledAsync(true);
+      await current.sound.stopAsync();
     } catch {
       /* best effort */
     }
+    await current.sound.unloadAsync().catch(() => undefined);
   }
 
   private async drain(): Promise<void> {
+    const generation = this.generation;
     this.playing = true;
-    while (this.queue.length > 0) {
-      const clip = this.queue.shift();
-      if (!clip) break;
-      try {
-        const uri = await this.fetchClip(clip);
-        // ElevenLabs handles speed in its 0.7–1.2 window; the rest is realised
-        // here via expo-av's rate control so the user's full 0.5–2.0 setting works.
-        const apiSpeed = Math.max(0.7, Math.min(1.2, clip.speed));
-        const playbackRate = clip.speed / apiSpeed;
-        const { sound } = await Audio.Sound.createAsync(
-          { uri },
-          { shouldPlay: true, rate: playbackRate, shouldCorrectPitch: false },
-        );
-        await new Promise<void>((resolve) => {
-          sound.setOnPlaybackStatusUpdate((status) => {
-            if (!status.isLoaded) return;
-            if (status.didJustFinish) {
-              void sound.unloadAsync();
-              resolve();
-            }
+    try {
+      while (generation === this.generation && this.queue.length > 0) {
+        const clip = this.queue.shift();
+        if (!clip) break;
+        let uri: string | null = null;
+        try {
+          uri = await this.fetchClip(clip);
+          if (generation !== this.generation) return;
+          // ElevenLabs handles speed in its 0.7–1.2 window; the rest is realised
+          // here via expo-av's rate control so the user's full 0.5–2.0 setting works.
+          const apiSpeed = Math.max(0.7, Math.min(1.2, clip.speed));
+          const playbackRate = clip.speed / apiSpeed;
+          const { sound } = await Audio.Sound.createAsync(
+            { uri },
+            { shouldPlay: true, rate: playbackRate, shouldCorrectPitch: false },
+          );
+          if (generation !== this.generation) {
+            void sound.unloadAsync().catch(() => undefined);
+            return;
+          }
+          await new Promise<void>((resolve, reject) => {
+            this.current = { sound, finish: resolve };
+            sound.setOnPlaybackStatusUpdate((status) => {
+              if (!status.isLoaded) {
+                if (status.error) reject(new Error(status.error));
+                return;
+              }
+              if (status.didJustFinish) resolve();
+            });
           });
-        });
-      } catch (err) {
-        if (__DEV__) console.warn("ElevenLabs clip failed", err);
-        // Surface the failure by dropping the rest of the queue — the
-        // caller's `onFallback` reroutes to expo-speech.
-        this.queue = [];
-        throw err;
+          if (this.current?.sound === sound) this.current = null;
+          void sound.unloadAsync().catch(() => undefined);
+        } catch (err) {
+          if (generation !== this.generation) return;
+          if (__DEV__) console.warn("ElevenLabs clip failed", err);
+          // Hand this sentence and the rest of the queue back so the caller
+          // can speak them on-device instead of going silent.
+          const unplayed = [clip, ...this.queue].map((c) => ({
+            text: c.text,
+            ...(c.voiceRole ? { voiceRole: c.voiceRole } : {}),
+          }));
+          this.queue = [];
+          this.onFallback?.(unplayed);
+          return;
+        } finally {
+          if (uri) releaseClipUri(uri);
+        }
       }
+    } finally {
+      if (generation === this.generation) this.playing = false;
     }
-    this.playing = false;
   }
 
   private async fetchClip(clip: EnqueuedClip): Promise<string> {
@@ -106,13 +146,18 @@ export class ElevenLabsNarrator {
       throw new Error(`TTS proxy returned ${res.status}`);
     }
     const blob = await res.blob();
-    // React Native's URL.createObjectURL is not supported; use a data URL.
-    if (typeof URL !== "undefined" && "createObjectURL" in URL) {
+    // Only the browser can play a blob: URL; React Native's
+    // URL.createObjectURL throws, so native gets a data URL.
+    if (Platform.OS === "web") {
       return URL.createObjectURL(blob);
     }
     const buffer = await blobToBase64(blob);
     return `data:audio/mpeg;base64,${buffer}`;
   }
+}
+
+function releaseClipUri(uri: string): void {
+  if (uri.startsWith("blob:")) URL.revokeObjectURL(uri);
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {
@@ -131,18 +176,15 @@ async function blobToBase64(blob: Blob): Promise<string> {
 }
 
 /**
- * Server-capability probe. The narrator chooses ElevenLabs only when
- * the server reports credentials are available; otherwise the on-device
- * expo-speech path owns narration.
+ * Server-capability probe. The narrator chooses ElevenLabs only when the
+ * server's TTS routes answer; otherwise the on-device expo-speech path
+ * owns narration. It reads the voice list rather than synthesizing, so a
+ * launch never spends a paid clip. /tts/voices can't say whether a key or
+ * tier token will be accepted, so the first refused clip still falls back.
  */
 export async function elevenLabsAvailable(): Promise<boolean> {
   try {
-    const res = await fetch(
-      `${apiBaseUrl()}/tts/stream?text=${encodeURIComponent("probe")}`,
-      { method: "GET" },
-    );
-    if (res.status === 503) return false;
-    // Close the body so we don't leak the probe audio.
+    const res = await fetch(`${apiBaseUrl()}/tts/voices`, { method: "GET" });
     void res.body?.cancel?.();
     return res.ok;
   } catch {
