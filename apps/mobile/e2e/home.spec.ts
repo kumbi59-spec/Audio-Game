@@ -10,12 +10,19 @@ import { expect, test } from "@playwright/test";
  *  - No serious or critical axe-core a11y violations on first paint
  */
 
+// Uncaught errors in the page, collected per test and asserted empty, so a
+// screen that renders but throws (a bad import, an undefined global) fails.
+let pageErrors: string[] = [];
+
 test.beforeEach(async ({ page }) => {
-  // The web bundle hits /campaigns during voice commands; fail loudly on
-  // any network error from the static asset load path.
+  pageErrors = [];
   page.on("pageerror", (err) => {
-    console.error("page error:", err);
+    pageErrors.push(err instanceof Error ? (err.stack ?? err.message) : String(err));
   });
+});
+
+test.afterEach(async () => {
+  expect(pageErrors, "uncaught page errors").toEqual([]);
 });
 
 test("home renders with an accessible heading and primary actions", async ({ page }) => {

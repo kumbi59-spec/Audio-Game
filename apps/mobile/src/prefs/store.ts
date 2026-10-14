@@ -16,6 +16,8 @@ export interface PrefsSlice {
   highContrast: boolean;
   reduceMotion: boolean;
   audioOnly: boolean;
+  /** Session auth token per campaign, issued when the campaign was created. */
+  sessionTokens: Record<string, string>;
 
   setNarratorEnabled: (v: boolean) => void;
   setSpeechRate: (v: number) => void;
@@ -24,6 +26,7 @@ export interface PrefsSlice {
   setHighContrast: (v: boolean) => void;
   setReduceMotion: (v: boolean) => void;
   setAudioOnly: (v: boolean) => void;
+  setSessionToken: (campaignId: string, token: string) => void;
 }
 
 function applyAudio(narratorEnabled: boolean, speechRate: number, sound: boolean, haptics: boolean): void {
@@ -39,6 +42,7 @@ export const usePrefs = create<PrefsSlice>((set, get) => ({
   highContrast: false,
   reduceMotion: false,
   audioOnly: false,
+  sessionTokens: {},
 
   setNarratorEnabled(v) {
     set({ narratorEnabled: v });
@@ -69,6 +73,9 @@ export const usePrefs = create<PrefsSlice>((set, get) => ({
   },
   setAudioOnly(v) {
     set({ audioOnly: v });
+  },
+  setSessionToken(campaignId, token) {
+    set((s) => ({ sessionTokens: { ...s.sessionTokens, [campaignId]: token } }));
   },
 }));
 

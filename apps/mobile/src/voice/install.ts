@@ -11,9 +11,8 @@ import { setRecognizer } from "./stt";
  * mock recognizer so existing tests and typed-input flows keep working.
  */
 export async function installSpeechRecognizer(): Promise<void> {
-  const deepgramFlag = (
-    globalThis as { process?: { env?: Record<string, string | undefined> } }
-  ).process?.env?.["EXPO_PUBLIC_ENABLE_DEEPGRAM"];
+  // Static form so babel-preset-expo inlines it at build time.
+  const deepgramFlag = process.env.EXPO_PUBLIC_ENABLE_DEEPGRAM;
   if (deepgramFlag === "false") return;
   try {
     const res = await fetch(`${apiBaseUrl()}/stt/token`, { method: "POST" });

@@ -25,6 +25,10 @@ export interface CampaignSummary {
   createdAt: number;
 }
 
+export interface CampaignDetail extends CampaignSummary {
+  state: CampaignState;
+}
+
 export interface WorldDetail {
   worldId: string;
   kind: "official" | "uploaded" | "created";
@@ -89,6 +93,10 @@ export async function listWorlds(): Promise<WorldSummary[]> {
 
 export async function listCampaigns(): Promise<CampaignSummary[]> {
   return http<CampaignSummary[]>("/campaigns");
+}
+
+export async function getCampaign(campaignId: string): Promise<CampaignDetail> {
+  return http<CampaignDetail>(`/campaigns/${encodeURIComponent(campaignId)}`);
 }
 
 export async function getWorld(worldId: string): Promise<WorldDetail> {
