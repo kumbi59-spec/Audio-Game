@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { ACCEPTED_EXTENSIONS, MAX_FILE_BYTES } from "@/lib/upload/constants";
 
 interface Props {
-  onFileSelected: (file: File) => void;
+  /** Called with the accepted file, or null when a pick is rejected. */
+  onFileSelected: (file: File | null) => void;
   disabled?: boolean;
 }
 
@@ -26,6 +27,8 @@ export function BibleUploader({ onFileSelected, disabled = false }: Props) {
     if (err) {
       setError(err);
       setSelectedName(null);
+      // Disarm the previous pick too, or Upload would send that one.
+      onFileSelected(null);
       return;
     }
     setError(null);

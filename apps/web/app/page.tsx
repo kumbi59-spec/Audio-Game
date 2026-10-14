@@ -325,7 +325,9 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
+                  {/* A plain <a>, not next/link: checkout is a GET that creates a
+                      Stripe session, and next/link would prefetch it. */}
+                  <a
                     href={p.href}
                     className="block rounded-lg py-3 text-center text-sm font-semibold transition-opacity hover:opacity-90"
                     style={{
@@ -336,7 +338,7 @@ export default function LandingPage() {
                     aria-label={`${p.cta} — ${p.tier} plan at ${p.price}${p.period}`}
                   >
                     {p.cta}
-                  </Link>
+                  </a>
                 </article>
               ))}
             </div>

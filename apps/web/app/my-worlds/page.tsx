@@ -10,6 +10,7 @@ import { useGameStore } from "@/store/game-store";
 import { useShallow } from "zustand/react/shallow";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
 import { SiteHeader } from "@/components/SiteHeader";
+import { enterAdFreeRoute } from "@/components/ads/social-bar";
 
 interface EngagementSeries {
   days: string[];
@@ -61,17 +62,24 @@ export default function MyWorldsPage() {
   const [trends, setTrends] = useState<Record<string, EngagementSeries>>({});
   const [trendsLoading, setTrendsLoading] = useState(false);
   const [trendsRequested, setTrendsRequested] = useState(false);
+  const [trendsError, setTrendsError] = useState<string | null>(null);
 
   async function loadTrends() {
     if (trendsRequested || !can.publicPublishing) return;
     setTrendsRequested(true);
     setTrendsLoading(true);
+    setTrendsError(null);
     try {
       const res = await fetch("/api/my-worlds/trends?days=30");
-      if (res.ok) {
-        const data = (await res.json()) as { days: number; trends: Record<string, EngagementSeries> };
-        setTrends(data.trends ?? {});
-      }
+      if (!res.ok) throw new Error(`trends request failed: ${res.status}`);
+      const data = (await res.json()) as { days: number; trends: Record<string, EngagementSeries> };
+      setTrends(data.trends ?? {});
+    } catch {
+      // Bring the button back so the player can try again.
+      const msg = "Could not load engagement trends. Please try again.";
+      setTrendsRequested(false);
+      setTrendsError(msg);
+      announce(msg, "assertive");
     } finally {
       setTrendsLoading(false);
     }
@@ -290,15 +298,19 @@ export default function MyWorldsPage() {
                           playerTurns={trends[world.id]!.playerTurns}
                         />
                       ) : (
-                        !trendsRequested && (
-                          <button
-                            type="button"
-                            onClick={loadTrends}
-                            className="mb-4 w-full rounded-lg border py-2 text-xs font-medium transition-opacity hover:opacity-80 border-border text-muted"
-                            aria-label={`Show 30-day engagement trend for ${world.name}`}
-                          >
-                            {trendsLoading ? "Loading trend…" : "Show 30-day engagement trend"}
-                          </button>
+                        (!trendsRequested || trendsLoading) && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={loadTrends}
+                              disabled={trendsLoading}
+                              className="mb-4 w-full rounded-lg border py-2 text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-60 border-border text-muted"
+                              aria-label={`Show 30-day engagement trend for ${world.name}`}
+                            >
+                              {trendsLoading ? "Loading trend…" : "Show 30-day engagement trend"}
+                            </button>
+                            {trendsError && <p className="-mt-2 mb-4 text-xs text-danger">{trendsError}</p>}
+                          </>
                         )
                       )}
                     </>
@@ -308,7 +320,7 @@ export default function MyWorldsPage() {
                     {activeWorldId === world.id && (
                       <button
                         type="button"
-                        onClick={() => router.push("/play")}
+                        onClick={() => enterAdFreeRoute(router, "/play")}
                         aria-label={`Resume your active session in ${world.name}`}
                         className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 border-accent bg-accent-solid text-on-accent"
                       >

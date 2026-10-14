@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useCanWeb } from "@/store/entitlements-store";
 import { ADSTERRA, ADSTERRA_ENABLED, ADSTERRA_EXCLUDED_PREFIXES } from "./adsterra-config";
+import { SOCIAL_BAR_SCRIPT_ID } from "./social-bar";
 
 function injectOnce(id: string, src: string) {
   if (document.getElementById(id)) return;
@@ -15,7 +16,8 @@ function injectOnce(id: string, src: string) {
 
 /**
  * Loads Adsterra's page-level format (the social bar) for free-tier users,
- * once per page load, outside of gameplay/admin/auth routes.
+ * once per page load, outside of gameplay/admin/auth routes. It can't be
+ * unloaded, so links into gameplay use enterAdFreeRoute (./social-bar).
  */
 export function AdsterraGlobal() {
   const { showAds } = useCanWeb();
@@ -24,7 +26,7 @@ export function AdsterraGlobal() {
 
   useEffect(() => {
     if (!ADSTERRA_ENABLED || !showAds || excluded) return;
-    injectOnce("adsterra-social-bar", ADSTERRA.socialBarSrc);
+    injectOnce(SOCIAL_BAR_SCRIPT_ID, ADSTERRA.socialBarSrc);
   }, [showAds, excluded]);
 
   return null;

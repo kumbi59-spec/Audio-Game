@@ -140,7 +140,7 @@ export default function VoiceSettingsPage() {
           Voice Settings
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Choose voices for the narrator, your character, and NPCs. Settings save automatically across devices.
+          Choose voices for the narrator, your character, and NPCs. Settings save automatically. Your narrator voice, speed, pitch and volume follow your account to other devices; your character&apos;s voice, the NPC voice pool and ambient sound stay on this device.
         </p>
       </header>
 
@@ -262,7 +262,7 @@ export default function VoiceSettingsPage() {
                 Your character&apos;s voice
               </h2>
               <p className="mb-3 text-xs text-muted">
-                Heard when your character speaks out loud during the story.
+                Heard when your character speaks out loud during the story. Saved on this device only.
               </p>
               <div className="flex gap-2">
                 <select
@@ -299,7 +299,7 @@ export default function VoiceSettingsPage() {
                 NPC voice pool
               </h2>
               <p className="mb-4 text-xs text-muted">
-                Each named NPC is automatically assigned a voice from the pool below — gender-matched when the GM tells us the character&apos;s gender, biased toward voices the session hasn&apos;t used yet. Assignments stick to that NPC across all your sessions and devices. Untick a voice to remove it from the rotation.
+                Each named NPC is automatically assigned a voice from the pool below — gender-matched when the GM tells us the character&apos;s gender, biased toward voices the session hasn&apos;t used yet. Assignments stick to that NPC across all your sessions and devices. Untick a voice to remove it from the rotation; the pool itself is saved on this device only.
               </p>
               {(() => {
                 const catalogVoices = availableVoices.filter((v) => v.provider === "elevenlabs");
@@ -473,9 +473,10 @@ export default function VoiceSettingsPage() {
           aria-label="Ambient sound"
           className="mb-6 rounded-xl border p-5 border-border bg-surface"
         >
-          <h2 className="mb-3 text-base font-semibold text-foreground">
+          <h2 className="mb-1 text-base font-semibold text-foreground">
             Ambient sound
           </h2>
+          <p className="mb-3 text-xs text-muted">Saved on this device only.</p>
 
           <label className="mb-4 flex items-center gap-3">
             <input

@@ -21,6 +21,7 @@ import {
 } from "@/lib/character/stat-rules";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { enterAdFreeRoute } from "@/components/ads/social-bar";
 
 type Step = "name" | "class" | "backstory" | "starting";
 
@@ -35,6 +36,18 @@ const CLASSLESS_STARTING_STATS: CharacterData["stats"] = {
   experience: 0,
 };
 
+/**
+ * The built-in class a world-defined class is, when its name is one of them
+ * ("Mage" in a bible is the Mage). Any other world class starts from neutral
+ * stats with no class kit.
+ */
+function matchingBaseClass(worldClassName: string): CharacterClass | null {
+  const wanted = worldClassName.trim().toLowerCase();
+  const match = (Object.keys(CLASS_DESCRIPTIONS) as CharacterClass[]).find(
+    (cls) => cls === wanted || CLASS_DESCRIPTIONS[cls].name.toLowerCase() === wanted,
+  );
+  return match ?? null;
+}
 
 function parseCustomStatNames(rulesNotes?: string): string[] {
   if (!rulesNotes) return [];
@@ -68,7 +81,9 @@ function CreateCharacterPage() {
   const [step, setStep] = useState<Step>("name");
   // Prefilled from the world wizard, which already asked for the character's name.
   const [name, setName] = useState(() => searchParams.get("name")?.trim() ?? "");
-  const [selectedClass, setSelectedClass] = useState<CharacterClass>("warrior");
+  // The built-in class behind the chosen world class, if it matches one.
+  // Drives starting stats and items; null means neutral stats and no kit.
+  const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
   const [selectedWorldClass, setSelectedWorldClass] = useState<string | null>(null);
   const [customRoleTitle, setCustomRoleTitle] = useState("");
   const [pronouns, setPronouns] = useState("");
@@ -76,9 +91,9 @@ function CreateCharacterPage() {
   const [shortDescription, setShortDescription] = useState("");
   const [backstory, setBackstory] = useState("");
   const [isStarting, setIsStarting] = useState(false);
-  const [coreStatOverrides, setCoreStatOverrides] = useState(CLASS_DESCRIPTIONS[selectedClass].startingStats);
+  const [coreStatOverrides, setCoreStatOverrides] = useState(CLASSLESS_STARTING_STATS);
   const [draftCoreStats, setDraftCoreStats] = useState<Record<CoreStatKey, string>>(
-    () => Object.fromEntries(CORE_STAT_KEYS.map((k) => [k, String(CLASS_DESCRIPTIONS[selectedClass].startingStats[k])])) as Record<CoreStatKey, string>,
+    () => Object.fromEntries(CORE_STAT_KEYS.map((k) => [k, String(CLASSLESS_STARTING_STATS[k])])) as Record<CoreStatKey, string>,
   );
   const [customStatOverrides, setCustomStatOverrides] = useState<Record<string, number>>({});
   const [draftCustomStats, setDraftCustomStats] = useState<Record<string, string>>({});
@@ -129,7 +144,7 @@ function CreateCharacterPage() {
         isPrebuilt: world?.isPrebuilt,
         rulesNotes: world?.rulesNotes,
         statRules: world?.statRules,
-        characterClass: worldDefinesClasses ? selectedClass : null,
+        characterClass: selectedClass,
         worldDefinesClasses,
       }),
     [world?.isPrebuilt, world?.rulesNotes, world?.statRules, worldDefinesClasses, selectedClass],
@@ -137,7 +152,7 @@ function CreateCharacterPage() {
 
   useEffect(() => {
     if (!world) return;
-    const starting = worldDefinesClasses ? CLASS_DESCRIPTIONS[selectedClass].startingStats : CLASSLESS_STARTING_STATS;
+    const starting = selectedClass ? CLASS_DESCRIPTIONS[selectedClass].startingStats : CLASSLESS_STARTING_STATS;
     setCoreStatOverrides({ ...starting });
     setDraftCoreStats(
       Object.fromEntries(CORE_STAT_KEYS.map((k) => [k, String(starting[k])])) as Record<CoreStatKey, string>,
@@ -159,7 +174,7 @@ function CreateCharacterPage() {
       setCustomStatOverrides({});
       setDraftCustomStats({});
     }
-  }, [selectedClass, world, worldDefinesClasses]);
+  }, [selectedClass, world]);
 
   const corePointsSpent = sumCoreStats(coreStatOverrides);
   const corePointsBudget = statRules.totalPointPool;
@@ -208,16 +223,16 @@ function CreateCharacterPage() {
 
   function handleWorldClassSelect(cls: { name: string; description: string }) {
     setSelectedWorldClass(cls.name);
+    setSelectedClass(matchingBaseClass(cls.name));
     narrate(`${cls.name} selected. ${cls.description}. Press Continue to proceed or choose a different class.`);
   }
 
   function handleClassSubmit() {
-    const displayClass =
-      selectedWorldClass ??
-      customRoleTitle.trim() ??
-      CLASS_DESCRIPTIONS[selectedClass].name;
+    // `||`, not `??`: an untouched role field is "", which would be spoken as
+    // an empty class name.
+    const displayClass = selectedWorldClass || customRoleTitle.trim();
     narrate(
-      `Class confirmed as ${displayClass}. Step 3 of 3: Optional character details. ` +
+      `${displayClass ? `Class confirmed as ${displayClass}.` : "No role set."} Step 3 of 3: Optional character details. ` +
       `You can fill in pronouns, age, appearance, and a written backstory, or skip them entirely. ` +
       `Empty fields are fine — the Game Master will let your character be discovered through play.`,
     );
@@ -229,10 +244,8 @@ function CreateCharacterPage() {
     setIsStarting(true);
     narrate("Starting your adventure. The Game Master is preparing your world…");
 
-    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
-    const classData = CLASS_DESCRIPTIONS[selectedClass];
     const startingStats = { ...coreStatOverrides };
-    const startingItems = worldDefinesClasses ? classData.startingItems : [];
+    const startingItems = selectedClass ? CLASS_DESCRIPTIONS[selectedClass].startingItems : [];
     const parsedAge = Number.parseInt(age.trim(), 10);
     const character: CharacterData = {
       id: `char-${Date.now()}`,
@@ -240,7 +253,7 @@ function CreateCharacterPage() {
       pronouns: pronouns.trim() || null,
       age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
       shortDescription: shortDescription.trim() || null,
-      class: selectedClass,
+      class: selectedClass ?? "warrior",
       roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
       backstory: opts.skipBackstory ? "" : backstory.trim(),
       stats: { ...startingStats },
@@ -336,7 +349,7 @@ function CreateCharacterPage() {
       // If opening generation fails, start with an empty log
     }
 
-    router.push("/play");
+    enterAdFreeRoute(router, "/play");
   }
 
   async function handleStartMultiplayer() {
@@ -354,10 +367,8 @@ function CreateCharacterPage() {
     }
 
     const sessionId = `session-${Date.now()}`;
-    const worldDefinesClasses = Boolean(world.classes && world.classes.length > 0);
-    const classData = CLASS_DESCRIPTIONS[selectedClass];
     const startingStats = { ...coreStatOverrides };
-    const startingItems = worldDefinesClasses ? classData.startingItems : [];
+    const startingItems = selectedClass ? CLASS_DESCRIPTIONS[selectedClass].startingItems : [];
     const parsedAge = Number.parseInt(age.trim(), 10);
     const character: CharacterData = {
       id: `char-${Date.now()}`,
@@ -365,7 +376,7 @@ function CreateCharacterPage() {
       pronouns: pronouns.trim() || null,
       age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : null,
       shortDescription: shortDescription.trim() || null,
-      class: selectedClass,
+      class: selectedClass ?? "warrior",
       roleTitle: (selectedWorldClass ?? customRoleTitle.trim()) || null,
       backstory: backstory.trim(),
       stats: { ...startingStats },
