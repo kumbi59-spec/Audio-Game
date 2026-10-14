@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { applySessionProgress, mergeRelationship, type SessionProgress } from "./session-progress";
+import {
+  applySessionProgress,
+  isAchievement,
+  isCodexEntry,
+  isRelationshipChange,
+  mergeRelationship,
+  type SessionProgress,
+} from "./session-progress";
 
 const empty: SessionProgress = { achievements: [], relationships: [], codex: [] };
 
@@ -37,5 +44,23 @@ describe("mergeRelationship", () => {
   it("clamps standing to -100..100", () => {
     expect(mergeRelationship([], { npcId: "a", name: "A", standing: 250 }, 1)[0]!.standing).toBe(100);
     expect(mergeRelationship([], { npcId: "a", name: "A", standing: -999 }, 1)[0]!.standing).toBe(-100);
+  });
+});
+
+describe("GM progress entry guards", () => {
+  // The play hook runs these over raw GM output before touching the store.
+  it("reject null and malformed entries", () => {
+    for (const bad of [null, undefined, 3, "x", {}, { key: "" }]) {
+      expect(isAchievement(bad)).toBe(false);
+      expect(isCodexEntry(bad)).toBe(false);
+      expect(isRelationshipChange(bad)).toBe(false);
+    }
+    expect(isRelationshipChange({ npcId: "mara", name: "Mara", standing: Number.NaN })).toBe(false);
+  });
+
+  it("accept well-formed entries", () => {
+    expect(isAchievement({ key: "first-blood", title: "First Blood" })).toBe(true);
+    expect(isCodexEntry({ key: "bell", title: "The Bell", body: "It rings." })).toBe(true);
+    expect(isRelationshipChange({ npcId: "mara", name: "Mara", standing: 10 })).toBe(true);
   });
 });

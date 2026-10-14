@@ -28,6 +28,7 @@ import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
 import { loadServerSave } from "@/lib/game/server-saves";
 import { isItemMutation } from "@/lib/game/character-reducer";
+import { isAchievement, isCodexEntry, isRelationshipChange } from "@/lib/game/session-progress";
 import { SseParser } from "@/lib/game/sse";
 import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
 
@@ -494,21 +495,22 @@ export function useGameSession() {
                 updateFlags(change.flags as Record<string, unknown>);
               }
               if (Array.isArray(change.achievementUnlocks)) {
-                for (const ach of change.achievementUnlocks as AchievementUnlock[]) {
+                for (const ach of change.achievementUnlocks as unknown[]) {
+                  // GM output: skip anything malformed, as the server does.
+                  if (!isAchievement(ach)) continue;
                   const alreadyUnlocked = useGameStore.getState().session?.achievements?.some((a) => a.key === ach.key);
                   if (alreadyUnlocked) continue;
                   // Stamped with the turn being played, as the server stamps it.
                   unlockAchievement({ ...ach, unlockedAt: (useGameStore.getState().session?.turnCount ?? 0) + 1 });
-                  const achMsg = `🏆 Achievement unlocked: ${ach.title}. ${ach.description}`;
+                  const achMsg = `🏆 Achievement unlocked: ${ach.title}.${typeof ach.description === "string" && ach.description ? ` ${ach.description}` : ""}`;
                   announce(achMsg, "assertive");
                   speakAfterNarration.push({ text: achMsg, cue: "discovery" });
                   addNarrationEntry({ id: `ach-${ach.key}-${Date.now()}`, text: achMsg, type: "system", timestamp: new Date() });
                 }
               }
               if (Array.isArray(change.npcRelationshipChanges)) {
-                for (const rel of change.npcRelationshipChanges as Array<{
-                  npcId: string; name: string; standing: number; notes?: string; gender?: VoiceGender;
-                }>) {
+                for (const rel of change.npcRelationshipChanges as unknown[]) {
+                  if (!isRelationshipChange(rel)) continue;
                   updateNpcRelationship(rel);
                   // Record the GM-emitted gender keyed by the same npcKey
                   // the voice auto-assigner uses, so a voice picked later
@@ -520,7 +522,8 @@ export function useGameSession() {
                 narrator.nudge();
               }
               if (Array.isArray(change.codexEntries)) {
-                for (const entry of change.codexEntries as CodexEntry[]) {
+                for (const entry of change.codexEntries as unknown[]) {
+                  if (!isCodexEntry(entry)) continue;
                   if (useGameStore.getState().session?.codex?.some((c) => c.key === entry.key)) continue;
                   addCodexEntry({ ...entry, unlockedAt: (useGameStore.getState().session?.turnCount ?? 0) + 1 });
                   const loreMsg = `📖 Lore discovered: ${entry.title}`;
