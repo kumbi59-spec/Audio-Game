@@ -2,6 +2,7 @@ import type { HistoryMessage, InMemorySession } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
 import { xpToReachLevel } from "@/lib/game/character-reducer";
+import { rollableStats, statModifier, type StatRange } from "@/lib/game/stat-modifier";
 import { historyReplyText, stripOutOfCharacterParentheticals } from "@/lib/ai/gm-response";
 
 const APPROX_CHARS_PER_TOKEN = 4;
@@ -79,7 +80,11 @@ export function buildContextMessages(
   return messages;
 }
 
-export function buildCharacterStateBlock(character: CharacterData): string {
+function signedModifier(n: number): string {
+  return n >= 0 ? `+${n}` : `${n}`;
+}
+
+export function buildCharacterStateBlock(character: CharacterData, range?: StatRange): string {
   const s = character.stats;
   const activeQuests = character.quests
     .filter((q) => q.status === "active")
@@ -108,6 +113,9 @@ export function buildCharacterStateBlock(character: CharacterData): string {
     s.hp <= 0 ? "Condition: DOWN (0 HP)" : "",
     `STR:${s.strength} DEX:${s.dexterity} INT:${s.intelligence} CHA:${s.charisma}`,
     customStatLines || "",
+    `Roll Modifiers: ${rollableStats(character)
+      .map(({ name, value }) => `${name} ${signedModifier(statModifier(value, range))}`)
+      .join(", ")}`,
     `Inventory: ${items}`,
     `Active Quests: ${activeQuests}`,
     character.backstory ? `Backstory: ${character.backstory}` : "",

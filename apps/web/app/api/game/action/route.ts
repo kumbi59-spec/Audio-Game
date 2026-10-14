@@ -10,6 +10,7 @@ import { resolvePlayableWorld } from "@/lib/worlds/resolve-playable-world";
 import { getOwnedSession } from "@/lib/db/queries/sessions";
 import { characterSnapshotFromRow } from "@/lib/db/queries/characters";
 import { applyCharacterChanges } from "@/lib/game/character-reducer";
+import { worldStatRange } from "@/lib/game/stat-modifier";
 import { stripEmDashes } from "@/lib/ai/style";
 import { applySessionProgress } from "@/lib/game/session-progress";
 import { sanitizeStateChanges } from "@/lib/game/state-changes";
@@ -216,7 +217,7 @@ export async function POST(req: NextRequest) {
 
             // Apply this turn's HP/stat/inventory/quest changes to the stored
             // character with the same rules the client uses.
-            const nextCharacter = applyCharacterChanges(character, stateChanges);
+            const nextCharacter = applyCharacterChanges(character, stateChanges, undefined, worldStatRange(world));
 
             let gameState: GameStatePatch | null = null;
             if (Object.keys(stateChanges).length > 0 || session.currentLocationId !== null) {

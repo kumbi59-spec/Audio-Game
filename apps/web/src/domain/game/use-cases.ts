@@ -227,7 +227,13 @@ function signed(n: number): string {
  * "🎲 STR check — Force the gate: rolled 14 +2 = 16 vs DC 12 — Success!".
  * Passive bonuses appear as their own term so the arithmetic adds up.
  */
+const CORE_STATS = new Set(["strength", "dexterity", "intelligence", "charisma"]);
+
 export function formatSkillCheckLine(sc: SkillCheckResult): string {
   const bonus = sc.bonus ? ` ${signed(sc.bonus)} bonus` : "";
-  return `🎲 ${sc.stat.toUpperCase()} check — ${sc.label}: rolled ${sc.roll} ${signed(sc.modifier)}${bonus} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`;
+  // The world's own stats keep their names ("Ninjutsu"); the stat's value
+  // shows the player which number the modifier came from.
+  const stat = CORE_STATS.has(sc.stat) ? sc.stat.toUpperCase() : sc.stat;
+  const value = sc.statValue !== undefined ? ` ${sc.statValue}` : "";
+  return `🎲 ${stat}${value} check — ${sc.label}: rolled ${sc.roll} ${signed(sc.modifier)}${bonus} = ${sc.total} vs DC ${sc.dc} — ${sc.success ? "Success!" : "Failure."}`;
 }

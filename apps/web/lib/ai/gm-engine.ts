@@ -23,6 +23,7 @@ import {
   replySpeakers,
 } from "./gm-response";
 import { stripEmDashes } from "./style";
+import { findRollStat, rollableStats, statModifier, worldStatRange, type StatRange } from "@/lib/game/stat-modifier";
 import { NarrationStreamTap } from "./narration-stream";
 import type { InMemorySession, GMResponse, PlayerAction, PassiveBonus, SkillCheckResult } from "@/types/game";
 import type { CharacterData } from "@/types/character";
@@ -84,8 +85,6 @@ class GMRefusalError extends Error {
 
 // ── Skill checks ────────────────────────────────────────────────────────────
 
-const SKILL_STATS = ["strength", "dexterity", "intelligence", "charisma"] as const satisfies readonly SkillCheckResult["stat"][];
-
 export const SKILL_CHECK_TOOL_NAME = "roll_skill_check";
 /** Model requests per turn: the roll, the narration, and one spare. */
 const MAX_TOOL_ROUNDS = 3;
@@ -94,19 +93,20 @@ const SKILL_CHECK_TOOL: Anthropic.Tool = {
   name: SKILL_CHECK_TOOL_NAME,
   description:
     "Roll a d20 skill check for a player action that carries a meaningful risk of failure. " +
-    "Call it BEFORE writing your JSON response. The system rolls d20 + the character's modifier " +
-    "against the DC and returns whether the attempt succeeded; narrate exactly that outcome. " +
-    "Call it at most once per turn, and never for routine actions.",
+    "Call it BEFORE writing your JSON response. The system rolls d20 + the modifier of the stat you name " +
+    "(CHARACTER STATE lists every stat's modifier) against the DC and returns whether the attempt succeeded; " +
+    "narrate exactly that outcome. Call it at most once per turn, and never for routine actions.",
   strict: true,
   input_schema: {
     type: "object",
     properties: {
       stat: {
         type: "string",
-        enum: [...SKILL_STATS],
         description:
-          "strength = forcing/lifting/melee, dexterity = stealth/acrobatics/ranged, " +
-          "intelligence = puzzles/lore/investigation, charisma = persuasion/deception/performance.",
+          "The character stat the attempt depends on, named exactly as CHARACTER STATE's Roll Modifiers line lists it. " +
+          "Core stats: strength = forcing/lifting/melee, dexterity = stealth/acrobatics/ranged, " +
+          "intelligence = puzzles/lore/investigation, charisma = persuasion/deception/performance. " +
+          "When the world has its own stat that fits better (a magic, technique or skill stat), name that one.",
       },
       dc: {
         type: "integer",
@@ -124,7 +124,7 @@ const SKILL_CHECK_TOOL: Anthropic.Tool = {
 };
 
 const SkillCheckInputSchema = z.object({
-  stat: z.enum(SKILL_STATS),
+  stat: z.string().transform((stat) => stat.trim().slice(0, 40)).pipe(z.string().min(1)),
   dc: z.number().int().transform((dc) => Math.min(30, Math.max(5, dc))),
   label: z.string().transform((label) => label.trim().slice(0, 80)),
 });
@@ -132,26 +132,31 @@ export type SkillCheckInput = z.infer<typeof SkillCheckInputSchema>;
 
 /**
  * Rolls d20 + stat modifier + applicable passive bonuses against the DC. The
- * passive bonuses are the same ones narrated to the player as "STR granted +2",
- * so what they're told is what the roll uses.
+ * modifier comes from the named stat (a core stat or one of the world's own)
+ * on the world's stat scale, so a stronger stat always means a better roll.
+ * The passive bonuses are the same ones narrated to the player as "STR
+ * granted +2", so what they're told is what the roll uses.
  */
 export function resolveSkillCheck(
   input: SkillCheckInput,
   character: CharacterData,
   passiveBonuses: PassiveBonus[],
   rng: () => number = Math.random,
+  range?: StatRange,
 ): SkillCheckResult {
-  const statValue = character.stats[input.stat];
-  const base = typeof statValue === "number" && Number.isFinite(statValue) ? statValue : 10;
-  const modifier = Math.floor((base - 10) / 2);
+  // A stat the character doesn't have rolls flat rather than failing the turn.
+  const stat = findRollStat(character, input.stat);
+  const statName = stat?.name ?? input.stat;
+  const modifier = stat ? statModifier(stat.value, range) : 0;
   const bonus = passiveBonuses
-    .filter((b) => b.sourceStat === input.stat || b.targetRoll === "general_risk")
+    .filter((b) => b.sourceStat === statName || b.targetRoll === "general_risk")
     .reduce((sum, b) => sum + b.value, 0);
   const r = Math.min(Math.max(rng(), 0), 0.999999);
   const roll = Math.floor(r * 20) + 1;
   const total = roll + modifier + bonus;
   return {
-    stat: input.stat,
+    stat: statName,
+    ...(stat ? { statValue: stat.value } : {}),
     label: input.label,
     dc: input.dc,
     roll,
@@ -336,7 +341,7 @@ function buildTurnRequest(
       : { role: m.role, content: m.content },
   );
   const turnContext = buildTurnContext(
-    buildCharacterStateBlock(character),
+    buildCharacterStateBlock(character, worldStatRange(world)),
     buildWorldStateBlock(session, world),
     session.memorySummary,
   );
@@ -492,8 +497,19 @@ export async function* streamGMTurn(
           const parsed = block.name === SKILL_CHECK_TOOL_NAME && !skillCheck
             ? SkillCheckInputSchema.safeParse(block.input)
             : null;
-          if (parsed?.success) {
-            skillCheck = resolveSkillCheck(parsed.data, character, passive.bonuses, rng);
+          if (parsed?.success && !findRollStat(character, parsed.data.stat)) {
+            // A stat the character doesn't have: no roll, and the GM is
+            // told which stats it can use so it can call again.
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              is_error: true,
+              content:
+                `The character has no "${parsed.data.stat}" stat, so no roll was made. ` +
+                `Call roll_skill_check again with one of: ${rollableStats(character).map((st) => st.name).join(", ")}.`,
+            });
+          } else if (parsed?.success) {
+            skillCheck = resolveSkillCheck(parsed.data, character, passive.bonuses, rng, worldStatRange(world));
             yield { type: "skill_check_result", data: skillCheck };
             toolResults.push({
               type: "tool_result",

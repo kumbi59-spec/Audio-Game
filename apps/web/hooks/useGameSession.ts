@@ -27,7 +27,7 @@ import type { WorldData } from "@/types/world";
 import type { InMemorySession } from "@/types/game";
 import { readLegacyGuestId } from "@/lib/game/legacy-guest-id";
 import { loadServerSave } from "@/lib/game/server-saves";
-import { isItemMutation } from "@/lib/game/character-reducer";
+import { isItemMutation, levelUpGains } from "@/lib/game/character-reducer";
 import { isAchievement, isCodexEntry, isRelationshipChange } from "@/lib/game/session-progress";
 import { SseParser } from "@/lib/game/sse";
 import { pendingSummaryFor, trimHistoryForContext } from "@/lib/ai/memory/context-window";
@@ -478,13 +478,16 @@ export function useGameSession() {
                 else if (delta > 0) announce(`Recovered ${delta} health.`, "polite");
               }
               if (change.statDeltas && typeof change.statDeltas === "object") {
-                const levelBefore = useGameStore.getState().character?.stats.level ?? 1;
+                const characterBefore = useGameStore.getState().character;
+                const levelBefore = characterBefore?.stats.level ?? 1;
                 for (const [stat, delta] of Object.entries(change.statDeltas as Record<string, unknown>)) {
                   if (typeof delta === "number" && Number.isFinite(delta)) updateStat(stat, delta);
                 }
-                const levelAfter = useGameStore.getState().character?.stats.level ?? 1;
+                const characterAfter = useGameStore.getState().character;
+                const levelAfter = characterAfter?.stats.level ?? 1;
                 if (levelAfter > levelBefore) {
-                  const levelUpMsg = `Level up! You are now level ${levelAfter}.`;
+                  const gains = characterBefore && characterAfter ? levelUpGains(characterBefore, characterAfter) : [];
+                  const levelUpMsg = `Level up! You are now level ${levelAfter}.${gains.length > 0 ? ` ${gains.join(", ")}.` : ""}`;
                   announce(levelUpMsg, "assertive");
                   speakAfterNarration.push({ text: levelUpMsg, cue: "level_up" });
                   addNarrationEntry({

@@ -123,6 +123,19 @@ afterEach(() => {
 });
 
 describe("resolveSkillCheck", () => {
+  it("uses the world's own stats and scale", () => {
+    const ninja = { ...character, customStats: { Ninjutsu: 5 } };
+    const input = { stat: "ninjutsu", dc: 12, label: "Form the seal" };
+    const result = resolveSkillCheck(input, ninja, [], () => 0.45, { min: 1, max: 5 });
+    expect(result).toMatchObject({ stat: "Ninjutsu", statValue: 5, modifier: 4, roll: 10, total: 14, success: true });
+  });
+
+  it("rolls flat for a stat the character doesn't have", () => {
+    const result = resolveSkillCheck({ stat: "Sailing", dc: 12, label: "Tack" }, character, [], () => 0.45);
+    expect(result).toMatchObject({ stat: "Sailing", modifier: 0, total: 10 });
+    expect(result.statValue).toBeUndefined();
+  });
+
   it("adds the stat modifier and luck to a d20 roll", () => {
     const result = resolveSkillCheck(
       { stat: "strength", dc: 12, label: "Force the gate" },
@@ -135,6 +148,7 @@ describe("resolveSkillCheck", () => {
     );
     expect(result).toEqual({
       stat: "strength",
+      statValue: 14,
       label: "Force the gate",
       dc: 12,
       roll: 14,
@@ -350,6 +364,8 @@ describe("streamGMTurn", () => {
     expect(types(events)).not.toContain("skill_check_result");
     const toolResult = mocks.stream.mock.calls[1]![0].messages.at(-1).content[0];
     expect(toolResult).toMatchObject({ tool_use_id: "toolu_2", is_error: true });
+    // Told which stats it can roll instead.
+    expect(toolResult.content).toContain("strength, dexterity, intelligence, charisma, luck");
   });
 
   it("ignores a skill_check the model writes into its JSON instead of calling the tool", async () => {

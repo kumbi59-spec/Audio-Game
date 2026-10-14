@@ -1,5 +1,7 @@
 import type { CharacterData, CharacterStats } from "@/types/character";
 import type { ItemMutation, QuestMutation } from "@/types/game";
+import { CORE_STAT_KEYS } from "@/lib/character/stat-rules";
+import { BASE_RANGE, rollableStats, type StatRange } from "@/lib/game/stat-modifier";
 
 /**
  * How a GM turn's stateChanges change the character: HP, stats (with
@@ -46,6 +48,12 @@ export function xpToReachLevel(level: number): number {
  * curve:
  *   per level: +5 maxHp, +5 hp (capped at new maxHp)
  *   odd levels: +1 STR, +1 DEX; even levels: +1 INT, +1 CHA
+ *   the world's own skill stats (see growingCustomStats) take turns the same
+ *   way: odd levels raise the 1st, 3rd, 5th…, even levels the 2nd, 4th…
+ * Those +1s are for the default 6 to 18 stat scale. On a world with its own
+ * scale (`range`) a raise is worth the same share of that scale, so a 1 to 5
+ * world gains a point a third as often and a 0 to 100 world about 8 at a time
+ * (see levelUpGain).
  * The loop lets a large XP grant cross several levels in one turn, up to
  * MAX_LEVEL_UPS_PER_ADJUST so an absurd grant can't hang the page; any XP
  * left over levels up on the next grant. Level itself only changes that way:
@@ -53,14 +61,21 @@ export function xpToReachLevel(level: number): number {
  * would be applied twice. An hp or maxHp change keeps hp within 0..maxHp.
  * Unknown stat names go to customStats (mp, stamina, sanity…).
  */
-export function applyStatDelta(character: CharacterData, statName: string, delta: number): CharacterData {
+export function applyStatDelta(
+  character: CharacterData,
+  statName: string,
+  delta: number,
+  range?: StatRange,
+): CharacterData {
   if (!finite(delta) || statName === "level") return character;
   if ((KNOWN_STATS as readonly string[]).includes(statName)) {
     const key = statName as KnownStat;
     const current = character.stats[key] ?? 0;
     const stats: CharacterStats = { ...character.stats, [key]: Math.max(0, current + delta) };
 
+    let customStats = character.customStats;
     if (key === "experience") {
+      const growing = growingCustomStats(character);
       for (let i = 0; i < MAX_LEVEL_UPS_PER_ADJUST; i++) {
         const lvl = stats.level ?? 1;
         if ((stats.experience ?? 0) < xpToReachLevel(lvl + 1)) break;
@@ -68,25 +83,91 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
         stats.level = next;
         stats.maxHp = (stats.maxHp ?? 10) + 5;
         stats.hp = Math.min((stats.hp ?? 0) + 5, stats.maxHp);
-        if (next % 2 !== 0) {
-          stats.strength = (stats.strength ?? 10) + 1;
-          stats.dexterity = (stats.dexterity ?? 10) + 1;
-        } else {
-          stats.intelligence = (stats.intelligence ?? 10) + 1;
-          stats.charisma = (stats.charisma ?? 10) + 1;
+        const turn = next % 2 !== 0 ? 0 : 1;
+        const gain = levelUpGain(next, range);
+        if (gain > 0) {
+          if (turn === 0) {
+            stats.strength = (stats.strength ?? 10) + gain;
+            stats.dexterity = (stats.dexterity ?? 10) + gain;
+          } else {
+            stats.intelligence = (stats.intelligence ?? 10) + gain;
+            stats.charisma = (stats.charisma ?? 10) + gain;
+          }
+          const raised = growing.filter((_, idx) => idx % 2 === turn);
+          if (raised.length > 0) {
+            customStats = { ...customStats };
+            for (const name of raised) customStats[name] = (customStats[name] ?? 0) + gain;
+          }
         }
       }
     }
     if ((key === "hp" || key === "maxHp") && finite(stats.hp) && finite(stats.maxHp)) {
       stats.hp = Math.max(0, Math.min(stats.hp, stats.maxHp));
     }
-    return { ...character, stats };
+    return customStats === character.customStats ? { ...character, stats } : { ...character, stats, customStats };
   }
   const current = character.customStats?.[statName] ?? 0;
   return {
     ...character,
     customStats: { ...character.customStats, [statName]: Math.max(0, current + delta) },
   };
+}
+
+/**
+ * Points each stat raised on reaching `level` gains. Odd levels raise one
+ * half of the stats (levels 3, 5, 7…), even levels the other (2, 4, 6…). On
+ * the default scale each raise is +1; on another scale it's worth the same
+ * share of that scale, and the fractions carry over: a stat's total from its
+ * first n raises is floor(n × share), so a 1 to 5 world's stats gain a point
+ * every third raise and a 0 to 100 world's gain 8 or 9 at a time.
+ */
+function levelUpGain(level: number, range?: StatRange): number {
+  const raises = level % 2 !== 0 ? Math.floor((level - 1) / 2) : Math.floor(level / 2);
+  if (raises < 1) return 0;
+  const baseSpan = BASE_RANGE.max - BASE_RANGE.min;
+  const span = range ? range.max - range.min : baseSpan;
+  const share = span > 0 && Number.isFinite(span) ? span / baseSpan : 1;
+  // The epsilon keeps 3 × (4/12) from flooring to 0.
+  const total = (n: number) => Math.floor(n * share + 1e-9);
+  return total(raises) - total(raises - 1);
+}
+
+/**
+ * The world's own stats that grow with level: the ones a skill check can use
+ * (not pools with a matching "...Max", HP or XP), in name order so the turn
+ * they grow on never depends on the order they were saved in.
+ */
+export function growingCustomStats(character: Pick<CharacterData, "stats" | "customStats">): string[] {
+  const core = new Set<string>(CORE_STAT_KEYS);
+  return rollableStats(character)
+    .map((s) => s.name)
+    .filter((name) => !core.has(name))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+const CORE_STAT_LABELS: Record<string, string> = {
+  maxHp: "max HP",
+  strength: "Strength",
+  dexterity: "Dexterity",
+  intelligence: "Intelligence",
+  charisma: "Charisma",
+};
+
+/**
+ * What a level-up raised, for the announcement: "Strength +1", "Ninjutsu +1",
+ * "max HP +5". Compares the character before and after the stat changes.
+ */
+export function levelUpGains(before: CharacterData, after: CharacterData): string[] {
+  const gains: string[] = [];
+  for (const [key, label] of Object.entries(CORE_STAT_LABELS)) {
+    const diff = (after.stats[key as keyof CharacterStats] ?? 0) - (before.stats[key as keyof CharacterStats] ?? 0);
+    if (diff > 0) gains.push(`${label} +${diff}`);
+  }
+  for (const name of growingCustomStats(after)) {
+    const diff = (after.customStats?.[name] ?? 0) - (before.customStats?.[name] ?? 0);
+    if (diff > 0) gains.push(`${name} +${diff}`);
+  }
+  return gains;
 }
 
 export function applyInventoryMutation(
@@ -210,12 +291,13 @@ export function applyCharacterChanges(
   character: CharacterData,
   changes: Record<string, unknown>,
   makeId: (prefix: string) => string = defaultId,
+  range?: StatRange,
 ): CharacterData {
   let next = character;
   if (finite(changes.hp)) next = applyHpDelta(next, changes.hp);
   if (changes.statDeltas && typeof changes.statDeltas === "object") {
     for (const [stat, delta] of Object.entries(changes.statDeltas as Record<string, unknown>)) {
-      if (finite(delta)) next = applyStatDelta(next, stat, delta);
+      if (finite(delta)) next = applyStatDelta(next, stat, delta, range);
     }
   }
   if (Array.isArray(changes.inventoryChanges)) {

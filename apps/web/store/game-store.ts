@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { InMemorySession, NarrationEntry, PlayerAction, ItemMutation, QuestMutation, AchievementUnlock, NpcRelationship, CodexEntry } from "@/types/game";
 import type { CharacterData } from "@/types/character";
 import type { WorldData } from "@/types/world";
+import { worldStatRange } from "@/lib/game/stat-modifier";
 import { normalizeChoiceList } from "@/src/domain/game/use-cases";
 import { trimHistoryForContext } from "@/lib/ai/memory/context-window";
 import { mergeAchievement, mergeCodexEntry, mergeRelationship, type RelationshipChange } from "@/lib/game/session-progress";
@@ -206,7 +207,18 @@ export const useGameStore = create<GameStore>()(
         set((state) => (state.character ? { character: applyHpDelta(state.character, delta) } : {})),
 
       updateStat: (statName, delta) =>
-        set((state) => (state.character ? { character: applyStatDelta(state.character, statName, delta) } : {})),
+        set((state) =>
+          state.character
+            ? {
+                character: applyStatDelta(
+                  state.character,
+                  statName,
+                  delta,
+                  state.world ? worldStatRange(state.world) : undefined,
+                ),
+              }
+            : {},
+        ),
 
       applyInventoryMutation: (mutation) =>
         set((state) =>
