@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "EchoQuest — Narrated AI RPG Adventures";
+export const alt = "EchoQuest TTRPG — audio RPG with an AI Game Master";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -75,7 +75,7 @@ export default function OgImage() {
             letterSpacing: "0.5px",
           }}
         >
-          Narrated AI RPG Adventures
+          Audio TTRPG with an AI Game Master
         </div>
 
         {/* Subtext */}

@@ -17,11 +17,12 @@ export function SiteFooter() {
   if (NO_FOOTER.some((p) => pathname === p || pathname.startsWith(p))) return null;
   return (
     <footer className="border-t border-border px-6 py-6 text-center text-xs text-subtle">
-      <p className="mb-2">EchoQuest · audio-first interactive stories, narrated by an AI Game Master</p>
+      <p className="mb-2">EchoQuest TTRPG · audio-first interactive stories, narrated by an AI Game Master</p>
       <nav aria-label="Footer" className="flex flex-wrap justify-center gap-x-4 gap-y-1">
         <Link href="/about" className="inline-flex items-center hover:underline">About</Link>
         <Link href="/library" className="inline-flex items-center hover:underline">Library</Link>
         <Link href="/blog" className="inline-flex items-center hover:underline">Blog</Link>
+        <Link href="/seo" className="inline-flex items-center hover:underline">Guides</Link>
         <Link href="/settings/display" className="inline-flex items-center hover:underline">Accessibility settings</Link>
         <Link href="/privacy" className="inline-flex items-center hover:underline">Privacy</Link>
         <Link href="/terms" className="inline-flex items-center hover:underline">Terms</Link>

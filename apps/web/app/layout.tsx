@@ -25,6 +25,7 @@ import { ADSENSE_ENABLED, ADSENSE_LOADER_SRC } from "@/components/ads/adsense-co
 import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
 import { cookies, headers } from "next/headers";
 import { auth } from "@/auth";
+import { BRAND_DEFINITION, BRAND_NAME, BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -35,42 +36,40 @@ const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap"
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "EchoQuest — Narrated AI RPG Adventures",
-    template: "%s | EchoQuest",
+    default: "EchoQuest TTRPG — Audio RPG With an AI Game Master",
+    template: `%s | ${BRAND_TTRPG}`,
   },
-  description:
-    "An audio-first AI tabletop RPG platform. Play narrated adventures with an AI Game Master — fully accessible for blind and visually impaired players. Free to start.",
+  description: `${BRAND_DEFINITION} Play with an AI Game Master by voice or keyboard. Free to start.`,
   keywords: [
-    "audio RPG", "AI game master", "accessible RPG", "blind gaming",
-    "text adventure", "AI storytelling", "narrated adventure", "EchoQuest",
-    "tabletop RPG", "interactive fiction", "AI dungeon master",
+    "EchoQuest TTRPG", "EchoQuest audio RPG", "audio RPG", "AI game master RPG",
+    "play TTRPG with AI GM", "accessible TTRPG screen reader", "audio games for the blind",
+    "blind accessible RPG games", "audio tabletop game", "audio first RPG",
+    "interactive audio stories game", "AI dungeon master", "tabletop RPG", "interactive fiction",
   ],
-  authors: [{ name: "EchoQuest" }],
-  creator: "EchoQuest",
-  publisher: "EchoQuest",
+  authors: [{ name: BRAND_NAME }],
+  creator: BRAND_NAME,
+  publisher: BRAND_NAME,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "EchoQuest",
+    title: BRAND_NAME,
   },
   openGraph: {
     type: "website",
-    siteName: "EchoQuest",
+    siteName: BRAND_TTRPG,
     locale: "en_US",
-    title: "EchoQuest — Narrated AI RPG Adventures",
-    description:
-      "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible for blind and visually impaired players. Free to start.",
+    title: "EchoQuest TTRPG — Audio RPG With an AI Game Master",
+    description: `${BRAND_DEFINITION} Live AI Game Master, built for blind players. Free to start.`,
     url: SITE_URL,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "EchoQuest — Narrated AI Adventures" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "EchoQuest TTRPG — audio RPG with an AI Game Master" }],
   },
   twitter: {
     card: "summary_large_image",
     site: "@echoquestapp",
     creator: "@echoquestapp",
-    title: "EchoQuest — Narrated AI RPG Adventures",
-    description:
-      "Play AI-narrated tabletop RPG adventures with a live AI Game Master. Fully accessible. Free to start.",
+    title: "EchoQuest TTRPG — Audio RPG With an AI Game Master",
+    description: `${BRAND_DEFINITION} Fully accessible. Free to start.`,
     images: ["/opengraph-image"],
   },
   robots: {

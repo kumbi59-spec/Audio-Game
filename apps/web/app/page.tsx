@@ -3,8 +3,11 @@ import Link from "next/link";
 import { MobileAdSlot } from "@/components/ads/MobileAdSlot";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LandingEffects } from "@/components/landing/LandingEffects";
+import { serializeJsonLd } from "@/lib/blog/render-markdown";
+import { getSiteUrl } from "@/lib/site-url";
+import { BRAND_ALTERNATE_NAMES, BRAND_DEFINITION, BRAND_NAME, BRAND_TTRPG, SAME_AS } from "@/lib/seo/brand";
 
-const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
+const SITE_URL = getSiteUrl();
 
 export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
@@ -70,18 +73,32 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
-      name: "EchoQuest",
+      name: BRAND_NAME,
+      alternateName: BRAND_TTRPG,
       url: SITE_URL,
       logo: { "@type": "ImageObject", url: `${SITE_URL}/opengraph-image` },
-      sameAs: [],
+      sameAs: SAME_AS,
     },
     {
-      "@type": "SoftwareApplication",
+      "@type": ["VideoGame", "SoftwareApplication"],
       "@id": `${SITE_URL}/#app`,
-      name: "EchoQuest",
+      name: BRAND_NAME,
+      alternateName: BRAND_ALTERNATE_NAMES,
+      disambiguatingDescription:
+        "The audio-first, AI-narrated tabletop RPG at echoquest.us. Not affiliated with other games that share the EchoQuest name.",
       url: SITE_URL,
       applicationCategory: "GameApplication",
       operatingSystem: "Web",
+      genre: ["Tabletop role-playing game", "Audio game", "Interactive fiction"],
+      gamePlatform: ["Web browser"],
+      playMode: ["SinglePlayer", "MultiPlayer"],
+      accessMode: ["auditory", "textual"],
+      accessModeSufficient: ["auditory", "textual"],
+      accessibilityFeature: ["highContrastDisplay", "largePrint", "structuralNavigation", "readingOrder"],
+      accessibilityControl: ["fullKeyboardControl", "fullVoiceControl", "fullMouseControl", "fullTouchControl"],
+      accessibilityAPI: ["ARIA"],
+      accessibilitySummary:
+        "Every scene is narrated aloud and every menu works by keyboard and voice. Tested with NVDA, JAWS, VoiceOver and TalkBack; high contrast, large text and reduced motion settings are built in.",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -89,8 +106,7 @@ const jsonLd = {
         availability: "https://schema.org/InStock",
         description: "Free to start. Premium plans from $15/month.",
       },
-      description:
-        "An audio-first AI tabletop RPG platform with a live AI Game Master. Fully accessible for blind and visually impaired players.",
+      description: `${BRAND_DEFINITION} Players adventure with a live AI Game Master, and the whole game is accessible to blind and visually impaired players.`,
       screenshot: `${SITE_URL}/opengraph-image`,
       featureList: [
         "AI Game Master powered by Claude",
@@ -105,7 +121,8 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
-      name: "EchoQuest",
+      name: BRAND_NAME,
+      alternateName: BRAND_TTRPG,
       publisher: { "@id": `${SITE_URL}/#organization` },
     },
     {
@@ -173,7 +190,7 @@ export default function LandingPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <LandingEffects />
       <div className="flex min-h-screen flex-col bg-bg">
@@ -186,7 +203,7 @@ export default function LandingPage() {
               className="mb-3 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-widest bg-surface text-accent border border-border"
               aria-hidden="true"
             >
-              Audio-First Interactive Fiction
+              EchoQuest · Audio AI TTRPG
             </p>
             <h1
               id="hero-heading"
@@ -199,7 +216,7 @@ export default function LandingPage() {
               by an AI Game Master.
             </h1>
             <p className="mb-8 max-w-lg text-base md:text-lg text-muted">
-              Fully accessible. Plays entirely by voice and keyboard. Built for blind and sighted
+              {BRAND_DEFINITION} Fully accessible. Plays entirely by voice and keyboard. Built for blind and sighted
               adventurers alike. Powered by Claude AI.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
