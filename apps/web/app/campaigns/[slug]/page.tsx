@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SEO_CAMPAIGNS, getSeoCampaign } from "@/lib/seo-campaigns";
 import { serializeJsonLd } from "@/lib/blog/render-markdown";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -22,12 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${campaign.name} — ${campaign.intentKeyword}`,
     description: `${campaign.hook} Read a sample narration transcript and start this ${campaign.genre} campaign.`,
     alternates: { canonical },
-    openGraph: {
-      title: `${campaign.name} | EchoQuest Campaign`,
+    ...socialMetadata({
+      title: `${campaign.name} | ${BRAND_TTRPG} campaign`,
       description: campaign.hook,
       url: canonical,
       type: "article",
-    },
+    }),
   };
 }
 

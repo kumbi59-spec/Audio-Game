@@ -26,7 +26,7 @@ import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
 import { cookies, headers } from "next/headers";
 import { auth } from "@/auth";
 import { getSiteUrl } from "@/lib/site-url";
-import { BRAND_TTRPG, SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo/brand";
+import { BRAND_TTRPG, DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo/brand";
 
 const SITE_URL = getSiteUrl();
 
@@ -66,7 +66,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "EchoQuest TTRPG — audio AI Game Master RPG" }],
+    images: [DEFAULT_OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -9,13 +11,13 @@ export const metadata: Metadata = {
   description:
     "The terms that govern your use of EchoQuest — acceptable use, paid subscriptions, user-created worlds, AI content, and our obligations to you.",
   alternates: { canonical: `${SITE_URL}/terms` },
-  openGraph: {
-    title: "Terms of Use | EchoQuest",
+  ...socialMetadata({
+    title: `Terms of Use | ${BRAND_TTRPG}`,
     description:
       "The terms that govern your use of EchoQuest — acceptable use, paid subscriptions, user-created worlds, and AI content.",
     url: `${SITE_URL}/terms`,
     type: "article",
-  },
+  }),
 };
 
 export default function TermsPage() {

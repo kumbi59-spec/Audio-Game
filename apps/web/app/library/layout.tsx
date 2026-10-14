@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -7,18 +9,13 @@ export const metadata: Metadata = {
   description:
     "Browse official EchoQuest campaigns and community-created worlds. Find your next AI-narrated RPG adventure — free to start.",
   alternates: { canonical: `${SITE_URL}/library` },
-  openGraph: {
-    title: "Adventure Library | EchoQuest",
+  ...socialMetadata({
+    title: `Adventure Library | ${BRAND_TTRPG}`,
     description:
       "Browse official EchoQuest campaigns and community-created worlds. Free AI-narrated RPG adventures.",
     url: `${SITE_URL}/library`,
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Adventure Library | EchoQuest",
-    description: "Browse official and community AI-narrated RPG worlds. Free to start.",
-  },
+  }),
 };
 
 export default function LibraryLayout({ children }: { children: React.ReactNode }) {

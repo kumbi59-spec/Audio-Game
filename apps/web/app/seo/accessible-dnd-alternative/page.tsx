@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export const metadata: Metadata = {
   title: "Accessible D&D Alternative",
   description:
-    "Looking for an accessible alternative to D&D you can play solo, by voice, or with a screen reader? EchoQuest delivers narrated, GM-led tabletop adventures without a battle map.",
+    "An accessible D&D alternative you can play solo, by voice or with a screen reader. EchoQuest TTRPG runs narrated, GM-led adventures without a battle map.",
   alternates: { canonical: `${SITE_URL}/seo/accessible-dnd-alternative` },
-  openGraph: {
-    title: "Accessible D&D Alternative | EchoQuest",
+  ...socialMetadata({
+    title: `Accessible D&D Alternative | ${BRAND_TTRPG}`,
     description:
       "An accessible, AI-narrated alternative to D&D — solo or with friends, fully playable with a screen reader.",
     url: `${SITE_URL}/seo/accessible-dnd-alternative`,
     type: "article",
-  },
+  }),
 };
 
 const breadcrumbJsonLd = {

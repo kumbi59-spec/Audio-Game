@@ -6,6 +6,7 @@ import { seedPostSlug } from "@/lib/blog/seed-posts/types";
 import { BRAND_TTRPG } from "@/lib/seo/brand";
 import { guideBreadcrumbJsonLd, guideFaqJsonLd, type GuideFaq } from "@/lib/seo/guide-jsonld";
 import { getSiteUrl } from "@/lib/site-url";
+import { socialMetadata } from "@/lib/seo/social";
 
 const PATH = "/seo/audio-games-for-the-blind";
 const SITE_URL = getSiteUrl();
@@ -15,13 +16,13 @@ export const metadata: Metadata = {
   description:
     "EchoQuest TTRPG is an audio game for blind and low-vision players: a screen-reader friendly tabletop RPG narrated by an AI Game Master. Free to start.",
   alternates: { canonical: `${SITE_URL}${PATH}` },
-  openGraph: {
+  ...socialMetadata({
     title: `Audio Games for the Blind | ${BRAND_TTRPG}`,
     description:
       "A tabletop RPG you play entirely by ear, with NVDA, JAWS, VoiceOver or TalkBack, narrated by an AI Game Master.",
     url: `${SITE_URL}${PATH}`,
     type: "article",
-  },
+  }),
 };
 
 const FAQS: GuideFaq[] = [
@@ -73,7 +74,7 @@ export default function Page() {
           Built to be played without sight
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-6 text-base text-muted">
-          <li>Every scene is narrated aloud, from the opening to each turn&rsquo;s choices.</li>
+          <li>Every scene is narrated aloud, and each turn&rsquo;s choices are read out to your screen reader.</li>
           <li>Every menu and control is reachable by keyboard, with single-key shortcuts during play.</li>
           <li>Tested with NVDA, JAWS, VoiceOver and TalkBack on every release.</li>
           <li>Damage, items and discoveries are announced to your screen reader as they happen.</li>
@@ -86,8 +87,8 @@ export default function Page() {
         <p className="mt-3 text-base text-muted">
           If you play with some sight, the{" "}
           <Link href="/settings/display" className="hover:underline text-accent">display settings</Link>{" "}
-          offer a high-contrast theme, larger text and reduced motion, and they follow your
-          system preferences by default. The narration is also shown as text, so you can read
+          offer a high-contrast theme, larger text and reduced motion. The theme, contrast and
+          motion settings follow your system preferences by default. The narration is also shown as text, so you can read
           along while it plays.
         </p>
 
