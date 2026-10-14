@@ -1,5 +1,6 @@
 import * as Speech from "expo-speech";
-import { ElevenLabsNarrator, elevenLabsAvailable } from "./elevenlabs";
+import { useEntitlements } from "@/entitlements/store";
+import { ElevenLabsNarrator, elevenLabsAvailable, type UnplayedClip } from "./elevenlabs";
 
 /**
  * Narration playback. Prefers the server-side ElevenLabs proxy when
@@ -35,8 +36,34 @@ export function configureNarrator(next: Partial<NarratorPrefs>): void {
   }
 }
 
+// Premium narration is the premiumTts entitlement; free players never
+// touch the paid proxy.
+function premiumTtsEntitled(): boolean {
+  return useEntitlements.getState().entitlements.premiumTts;
+}
+
+function usingElevenLabs(): boolean {
+  return useElevenLabs && elevenLabs !== null && premiumTtsEntitled();
+}
+
+// The proxy refused or failed a clip (403 without a storyteller tier token,
+// 503 without a key, network). Stay on-device for the rest of the session
+// and speak what premium playback didn't get to, ahead of newer narration.
+function fallBackToDeviceSpeech(clips: UnplayedClip[]): void {
+  useElevenLabs = false;
+  elevenLabs = null;
+  queue.unshift(...clips.map((c) => ({ text: c.text, role: toVoiceRole(c.voiceRole) })));
+  if (!speaking) void drain();
+}
+
+function toVoiceRole(role: string | undefined): "voice_a" | "voice_b" | "voice_c" | undefined {
+  return role === "voice_a" || role === "voice_b" || role === "voice_c" ? role : undefined;
+}
+
 async function ensureProbed(): Promise<void> {
   if (probed) return;
+  // Not probed until entitled, so an upgrade mid-session still gets probed.
+  if (!premiumTtsEntitled()) return;
   if (probePromise) {
     await probePromise;
     return;
@@ -46,7 +73,7 @@ async function ensureProbed(): Promise<void> {
     try {
       useElevenLabs = await elevenLabsAvailable();
       if (useElevenLabs) {
-        elevenLabs = new ElevenLabsNarrator(prefs.elevenLabsVoiceId);
+        elevenLabs = new ElevenLabsNarrator(prefs.elevenLabsVoiceId, fallBackToDeviceSpeech);
         elevenLabs.setRate(prefs.rate);
       }
     } catch {
@@ -119,16 +146,25 @@ export async function speakOnce(text: string): Promise<void> {
   // Start capability probing in the background so first-use narration is
   // immediate on screen load instead of waiting on a network round-trip.
   void ensureProbed();
-  if (useElevenLabs && elevenLabs) {
-    elevenLabs.speak(text);
+  if (usingElevenLabs()) {
+    elevenLabs?.speak(text);
     return;
   }
+  // Stopping cuts off the narration sentence in progress (its onStopped
+  // clears `speaking`). Resume the rest of the queue once this line ends,
+  // or narration stays stalled until the next chunk arrives.
   await Speech.stop();
   Speech.speak(text, {
     rate: prefs.rate,
     pitch: prefs.pitch,
     voice: prefs.voice,
+    onDone: resumeNarration,
+    onError: resumeNarration,
   });
+}
+
+function resumeNarration(): void {
+  if (!speaking && queue.length > 0) void drain();
 }
 
 export function speakAfterNarration(text: string): void {
@@ -214,7 +250,7 @@ async function drain(): Promise<void> {
   }
   speaking = true;
 
-  if (useElevenLabs && elevenLabs) {
+  if (usingElevenLabs() && elevenLabs) {
     try {
       elevenLabs.speak(next.text, next.role);
       // ElevenLabs plays the clip internally; its own queue keeps playback

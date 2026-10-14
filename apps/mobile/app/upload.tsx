@@ -71,6 +71,7 @@ export default function UploadBible(): JSX.Element {
         uri: asset.uri,
         name: asset.name,
         ...(asset.mimeType ? { mimeType: asset.mimeType } : {}),
+        ...(asset.file ? { file: asset.file } : {}),
       });
       setResult(r);
     } catch (e) {
@@ -78,7 +79,7 @@ export default function UploadBible(): JSX.Element {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [can.bibleUpload]);
 
   const submit = useCallback(async () => {
     if (!can.bibleUpload) {
@@ -102,7 +103,7 @@ export default function UploadBible(): JSX.Element {
     } finally {
       setBusy(false);
     }
-  }, [text, titleHint]);
+  }, [can.bibleUpload, text, titleHint]);
 
   const startCampaign = useCallback(async () => {
     if (!result) return;

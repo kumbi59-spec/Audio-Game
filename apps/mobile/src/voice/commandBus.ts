@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 
 /**
  * Global voice-command bus. Every screen registers its own command handlers;
@@ -10,9 +11,13 @@ import { useEffect } from "react";
 
 export type CommandHandler = (transcript: string) => void | Promise<void>;
 
-interface Registration {
+interface Command {
   phrases: string[];
   handler: CommandHandler;
+}
+
+interface Registration {
+  commands: Command[];
 }
 
 const registrations = new Set<Registration>();
@@ -22,18 +27,10 @@ export function registerCommands(
   handlers: Record<string, CommandHandler>,
 ): () => void {
   const reg: Registration = {
-    phrases: Object.keys(handlers).flatMap((phrase) =>
-      phrase.split("|").map((s) => s.trim().toLowerCase()),
-    ),
-    handler: (transcript) => {
-      const normalized = transcript.trim().toLowerCase();
-      for (const [pattern, handler] of Object.entries(handlers)) {
-        const alts = pattern.split("|").map((s) => s.trim().toLowerCase());
-        if (alts.some((a) => normalized === a || normalized.startsWith(`${a} `))) {
-          return handler(transcript);
-        }
-      }
-    },
+    commands: Object.entries(handlers).map(([pattern, handler]) => ({
+      phrases: pattern.split("|").map((s) => s.trim().toLowerCase()),
+      handler,
+    })),
   };
   registrations.add(reg);
   return () => {
@@ -41,28 +38,64 @@ export function registerCommands(
   };
 }
 
+/**
+ * Registers a screen's commands while it is focused. A stack keeps
+ * screens mounted underneath the current one, and their commands must
+ * not fire from there.
+ */
 export function useVoiceCommands(handlers: Record<string, CommandHandler>): void {
-  useEffect(() => registerCommands(handlers), [handlers]);
+  useFocusEffect(useCallback(() => registerCommands(handlers), [handlers]));
+}
+
+export interface DispatchOptions {
+  /**
+   * Match only a transcript that is exactly a command phrase, not one that
+   * merely starts with it. Screens use this for speech that is otherwise a
+   * player's answer, so "speak to the guard" isn't the "speak" command.
+   */
+  exact?: boolean;
 }
 
 /** Entry point for the STT pipeline to dispatch recognized speech. */
-export async function dispatchTranscript(transcript: string): Promise<boolean> {
-  const normalized = transcript.trim().toLowerCase();
+export async function dispatchTranscript(
+  transcript: string,
+  options: DispatchOptions = {},
+): Promise<boolean> {
+  const normalized = normalizeTranscript(transcript);
   if (!normalized) return false;
 
   for (const listener of listeners) listener(transcript);
 
+  const matches = (p: string): boolean =>
+    normalized === p || (!options.exact && normalized.startsWith(`${p} `));
   for (const reg of Array.from(registrations).reverse()) {
-    if (
-      reg.phrases.some(
-        (p) => normalized === p || normalized.startsWith(`${p} `),
-      )
-    ) {
-      await reg.handler(transcript);
+    const command = reg.commands.find((c) => c.phrases.some(matches));
+    if (command) {
+      await command.handler(transcript);
       return true;
     }
   }
   return false;
+}
+
+/** The first phrase of every active command, newest registration first. */
+export function listCommandPhrases(): string[] {
+  const phrases: string[] = [];
+  for (const reg of Array.from(registrations).reverse()) {
+    for (const command of reg.commands) {
+      const phrase = command.phrases[0];
+      if (phrase && !phrases.includes(phrase)) phrases.push(phrase);
+    }
+  }
+  return phrases;
+}
+
+// Recognizers punctuate ("Repeat."), which would defeat exact matching.
+function normalizeTranscript(transcript: string): string {
+  return transcript
+    .trim()
+    .toLowerCase()
+    .replace(/^[\s"'.,!?]+|[\s"'.,!?]+$/g, "");
 }
 
 export function onAnyTranscript(

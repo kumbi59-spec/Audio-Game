@@ -1,4 +1,6 @@
+import { Platform } from "react-native";
 import type { CampaignState, GameBible } from "@audio-rpg/shared";
+import { chunkIds, MAX_ANALYTICS_IDS_PER_REQUEST } from "@/domain/worlds/use-cases";
 import { apiBaseUrl } from "./config";
 
 export interface CreateCampaignResponse {
@@ -117,14 +119,23 @@ export async function uploadWorldFromFile(args: {
   uri: string;
   name: string;
   mimeType?: string;
+  /** The picked file itself; the document picker provides it on web. */
+  file?: Blob;
 }): Promise<WorldDetail & { warnings: string[]; extracted?: { format: string; meta: { pages?: number; bytesIn: number } } }> {
   const form = new FormData();
-  // React Native's FormData accepts { uri, name, type } objects.
-  form.append("file", {
-    uri: args.uri,
-    name: args.name,
-    type: args.mimeType ?? "application/octet-stream",
-  } as unknown as Blob);
+  if (Platform.OS === "web") {
+    // A browser FormData serializes a { uri } object as "[object Object]";
+    // it needs the bytes as a Blob.
+    const blob = args.file ?? (await (await fetch(args.uri)).blob());
+    form.append("file", blob, args.name);
+  } else {
+    // React Native's FormData accepts { uri, name, type } objects.
+    form.append("file", {
+      uri: args.uri,
+      name: args.name,
+      type: args.mimeType ?? "application/octet-stream",
+    } as unknown as Blob);
+  }
   const res = await fetch(`${apiBaseUrl()}/worlds/upload-file`, {
     method: "POST",
     body: form,
@@ -164,7 +175,13 @@ export async function importWorldFromNotes(notes: string): Promise<Record<string
 
 export async function getWorldsAnalytics(worldIds: string[]): Promise<WorldAnalyticsSummary[]> {
   if (worldIds.length === 0) return [];
-  return http<WorldAnalyticsSummary[]>(`/worlds/analytics?ids=${worldIds.map(encodeURIComponent).join(",")}`);
+  // The API rejects more than 50 ids per request.
+  const pages = await Promise.all(
+    chunkIds(worldIds, MAX_ANALYTICS_IDS_PER_REQUEST).map((ids) =>
+      http<WorldAnalyticsSummary[]>(`/worlds/analytics?ids=${ids.map(encodeURIComponent).join(",")}`),
+    ),
+  );
+  return pages.flat();
 }
 
 export async function getLobbyToken(campaignId: string): Promise<string> {

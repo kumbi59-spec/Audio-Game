@@ -4,7 +4,7 @@ import { createPlatformMicCapture } from "./micCapture";
 import { setRecognizer } from "./stt";
 
 /**
- * At app startup, probe the server for Deepgram availability and install
+ * At app startup, ask the server whether Deepgram is configured and install
  * the real recognizer if it's up. The mic capture adapter is now real on
  * every supported platform (web via AudioWorklet, iOS + Android via
  * @siteed/expo-audio-stream). Without server credentials we keep the
@@ -15,13 +15,13 @@ export async function installSpeechRecognizer(): Promise<void> {
   const deepgramFlag = process.env.EXPO_PUBLIC_ENABLE_DEEPGRAM;
   if (deepgramFlag === "false") return;
   try {
-    const res = await fetch(`${apiBaseUrl()}/stt/token`, { method: "POST" });
-    if (res.status === 503) return;
+    // The status probe mints nothing, so it doesn't spend the per-IP mint
+    // budget before the first utterance. createDeepgramRecognizer mints a
+    // fresh token on each start().
+    const res = await fetch(`${apiBaseUrl()}/stt/status`);
     if (!res.ok) return;
-    // Token is minted; we discard this one — createDeepgramRecognizer mints
-    // a fresh one each start() so we don't leak long-lived tokens across
-    // sessions.
-    void res.body?.cancel?.();
+    const status = (await res.json()) as { available?: boolean };
+    if (status.available !== true) return;
     setRecognizer(createDeepgramRecognizer(createPlatformMicCapture()));
   } catch {
     /* fall back to the mock recognizer */

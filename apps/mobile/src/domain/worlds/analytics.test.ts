@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeAnalytics, hasActivity } from "./use-cases";
+import { chunkIds, mergeAnalytics, hasActivity, MAX_ANALYTICS_IDS_PER_REQUEST } from "./use-cases";
 import type { WorldAnalyticsSummary } from "./use-cases";
 
 describe("worlds analytics helpers", () => {
@@ -22,5 +22,13 @@ describe("worlds analytics helpers", () => {
     expect(hasActivity({ worldId: "w1", sessionCount: 1, totalTurns: 0 })).toBe(true);
     expect(hasActivity({ worldId: "w1", sessionCount: 0, totalTurns: 10 })).toBe(true);
     expect(hasActivity({ worldId: "w1", sessionCount: 0, totalTurns: 0 })).toBe(false);
+  });
+
+  it("chunks ids into groups of at most the per-request limit", () => {
+    const ids = Array.from({ length: 120 }, (_, i) => `w${i}`);
+    const chunks = chunkIds(ids, MAX_ANALYTICS_IDS_PER_REQUEST);
+    expect(chunks.map((c) => c.length)).toEqual([50, 50, 20]);
+    expect(chunks.flat()).toEqual(ids);
+    expect(chunkIds([], 50)).toEqual([]);
   });
 });

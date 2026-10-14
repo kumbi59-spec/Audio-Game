@@ -136,37 +136,42 @@ function WorldCard({
 }): JSX.Element {
   const { analytics } = world;
   return (
-    <View
-      style={styles.card}
-      accessible
-      accessibilityRole="none"
-      accessibilityLabel={[
-        world.title,
-        world.kind === "uploaded" ? "Uploaded world" : "Created world",
-        analytics
-          ? `${analytics.sessionCount} session${analytics.sessionCount === 1 ? "" : "s"}, ${analytics.totalTurns} turns played`
-          : "",
-      ]
-        .filter(Boolean)
-        .join(". ")}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{world.title}</Text>
-        <Text style={styles.kindBadge}>{kindLabel(world.kind)}</Text>
-      </View>
-
-      {analytics && (analytics.sessionCount > 0 || analytics.totalTurns > 0) ? (
-        <View
-          style={styles.statsRow}
-          accessible={false}
-        >
-          <StatBox label="Sessions" value={analytics.sessionCount} />
-          <View style={styles.statDivider} />
-          <StatBox label="Turns" value={analytics.totalTurns} />
+    <View style={styles.card}>
+      {/* The summary is one accessible element; the Play button stays
+          outside it, since an accessible container hides its children
+          from VoiceOver. */}
+      <View
+        style={styles.cardSummary}
+        accessible
+        accessibilityRole="none"
+        accessibilityLabel={[
+          world.title,
+          world.kind === "uploaded" ? "Uploaded world" : "Created world",
+          analytics
+            ? `${analytics.sessionCount} session${analytics.sessionCount === 1 ? "" : "s"}, ${analytics.totalTurns} turns played`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(". ")}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>{world.title}</Text>
+          <Text style={styles.kindBadge}>{kindLabel(world.kind)}</Text>
         </View>
-      ) : (
-        <Text style={styles.noStats}>No sessions played yet.</Text>
-      )}
+
+        {analytics && (analytics.sessionCount > 0 || analytics.totalTurns > 0) ? (
+          <View
+            style={styles.statsRow}
+            accessible={false}
+          >
+            <StatBox label="Sessions" value={analytics.sessionCount} />
+            <View style={styles.statDivider} />
+            <StatBox label="Turns" value={analytics.totalTurns} />
+          </View>
+        ) : (
+          <Text style={styles.noStats}>No sessions played yet.</Text>
+        )}
+      </View>
 
       <Pressable
         accessibilityRole="button"
@@ -235,6 +240,7 @@ const styles = StyleSheet.create({
     padding: SPACE[4],
     gap: SPACE[3],
   },
+  cardSummary: { gap: SPACE[3] },
   cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: SPACE[2] },
   cardTitle: { fontSize: FS.base, fontWeight: "700", color: EQ.text, flex: 1 },
   kindBadge: {

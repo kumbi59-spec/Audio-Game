@@ -26,3 +26,15 @@ export function mergeAnalytics(
 export function hasActivity(summary: WorldAnalyticsSummary): boolean {
   return summary.sessionCount > 0 || summary.totalTurns > 0;
 }
+
+/** The API's `/worlds/analytics` accepts at most this many ids per call. */
+export const MAX_ANALYTICS_IDS_PER_REQUEST = 50;
+
+/** Splits ids into consecutive chunks of at most `size`. */
+export function chunkIds(ids: string[], size: number): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += size) {
+    chunks.push(ids.slice(i, i + size));
+  }
+  return chunks;
+}

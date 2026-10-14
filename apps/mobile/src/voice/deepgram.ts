@@ -30,11 +30,33 @@ async function fetchDeepgramToken(): Promise<DeepgramToken | null> {
   return (await res.json()) as DeepgramToken;
 }
 
+/** One start()..stop() cycle; handlers only ever touch their own session. */
+interface ListenSession {
+  ws: WebSocket;
+  finalTranscript: string;
+  waitForFinal: ((t: string | null) => void) | null;
+  utteranceDone: (() => void) | null;
+  speechEnded: boolean;
+}
+
 export function createDeepgramRecognizer(mic: MicCapture): SpeechRecognizer {
-  let ws: WebSocket | null = null;
+  let current: ListenSession | null = null;
   let listening = false;
-  let finalTranscript = "";
-  let waitForFinal: ((t: string | null) => void) | null = null;
+
+  function endUtterance(session: ListenSession): void {
+    session.speechEnded = true;
+    const done = session.utteranceDone;
+    session.utteranceDone = null;
+    done?.();
+  }
+
+  function closeSocket(session: ListenSession): void {
+    try {
+      session.ws.close();
+    } catch {
+      /* ignore */
+    }
+  }
 
   return {
     async start() {
@@ -50,63 +72,101 @@ export function createDeepgramRecognizer(mic: MicCapture): SpeechRecognizer {
       url.searchParams.set("endpointing", "500");
 
       // React Native's WebSocket supports protocols as a second arg.
-      ws = new WebSocket(url.toString(), ["token", token.token]);
-      finalTranscript = "";
+      const ws = new WebSocket(url.toString(), ["token", token.token]);
+      const session: ListenSession = {
+        ws,
+        finalTranscript: "",
+        waitForFinal: null,
+        utteranceDone: null,
+        speechEnded: false,
+      };
+      current = session;
 
       ws.onmessage = (evt) => {
         try {
           const msg = JSON.parse(typeof evt.data === "string" ? evt.data : "{}") as {
             type?: string;
             is_final?: boolean;
+            speech_final?: boolean;
             channel?: { alternatives?: { transcript?: string }[] };
           };
           const text = msg.channel?.alternatives?.[0]?.transcript ?? "";
           if (msg.is_final && text) {
-            finalTranscript = `${finalTranscript} ${text}`.trim();
+            session.finalTranscript = `${session.finalTranscript} ${text}`.trim();
           }
+          // speech_final marks the endpoint (a pause after speech). Leading
+          // silence can endpoint too, so only end once something was heard.
+          if (msg.speech_final && session.finalTranscript) endUtterance(session);
         } catch {
           /* ignore parse errors */
         }
       };
+      let rejectOpen: ((err: Error) => void) | null = null;
       ws.onclose = () => {
-        if (waitForFinal) {
-          waitForFinal(finalTranscript || null);
-          waitForFinal = null;
+        // A socket that closes before opening would otherwise hang start().
+        rejectOpen?.(new Error("Deepgram connection closed."));
+        endUtterance(session);
+        if (session.waitForFinal) {
+          session.waitForFinal(session.finalTranscript || null);
+          session.waitForFinal = null;
         }
       };
 
-      await new Promise<void>((resolve, reject) => {
-        if (!ws) return reject(new Error("ws null"));
-        ws.onopen = () => resolve();
-        ws.onerror = () => reject(new Error("Deepgram connection failed."));
-      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          rejectOpen = reject;
+          ws.onopen = () => resolve();
+          ws.onerror = () => reject(new Error("Deepgram connection failed."));
+        });
 
-      listening = true;
-      await mic.start((pcm) => {
-        if (ws?.readyState === WebSocket.OPEN) ws.send(pcm);
+        listening = true;
+        await mic.start((pcm) => {
+          if (ws.readyState === WebSocket.OPEN) ws.send(pcm);
+        });
+      } catch (err) {
+        // Token, socket or mic failure: release everything this start took.
+        listening = false;
+        if (current === session) current = null;
+        await mic.stop().catch(() => undefined);
+        closeSocket(session);
+        throw err;
+      }
+    },
+
+    waitForUtterance(maxMs) {
+      const session = current;
+      if (!session || !listening || session.speechEnded) return Promise.resolve();
+      return new Promise<void>((resolve) => {
+        const timer = setTimeout(() => endUtterance(session), maxMs);
+        session.utteranceDone = () => {
+          clearTimeout(timer);
+          resolve();
+        };
       });
     },
 
     async stop() {
-      if (!listening) return null;
+      const session = current;
+      if (!listening || !session) return null;
       listening = false;
+      current = null;
+      endUtterance(session);
       await mic.stop();
+      if (session.ws.readyState === WebSocket.CLOSED) {
+        return session.finalTranscript || null;
+      }
       // Send close-stream frame so Deepgram flushes its final transcript.
-      if (ws?.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "CloseStream" }));
+      if (session.ws.readyState === WebSocket.OPEN) {
+        session.ws.send(JSON.stringify({ type: "CloseStream" }));
       }
       return new Promise<string | null>((resolve) => {
-        waitForFinal = resolve;
+        session.waitForFinal = resolve;
         setTimeout(() => {
-          if (waitForFinal) {
-            waitForFinal(finalTranscript || null);
-            waitForFinal = null;
+          if (session.waitForFinal) {
+            session.waitForFinal(session.finalTranscript || null);
+            session.waitForFinal = null;
           }
-          try {
-            ws?.close();
-          } catch {
-            /* ignore */
-          }
+          closeSocket(session);
         }, 2000);
       });
     },

@@ -12,9 +12,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useLandmarkAnnounce } from "@/a11y/useLandmarkAnnounce";
-import { useVoiceCommands } from "@/voice/commandBus";
+import { dispatchTranscript, useVoiceCommands } from "@/voice/commandBus";
 import { speakOnce, stopNarration } from "@/audio/narrator";
-import { captureUtterance } from "@/voice/stt";
+import { cancelUtterance, captureUtterance } from "@/voice/stt";
 import {
   EMPTY_DRAFT,
   STEPS,
@@ -45,6 +45,11 @@ export default function CreateWorld(): JSX.Element {
   const [textInput, setTextInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const listeningRef = useRef(false);
+  const finishingRef = useRef(false);
+  // Spoken ahead of the first question, so starting the wizard doesn't
+  // cut it off.
+  const wizardIntroRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -100,10 +105,14 @@ export default function CreateWorld(): JSX.Element {
   }, [listening, micPulse, reduceMotion]);
 
   useEffect(() => {
-    if (!step) return;
-    void speakOnce(`${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`);
+    // The mode picker speaks its own instructions; the first question is
+    // read once the wizard actually starts.
+    if (!step || mode !== "fresh") return;
+    const intro = wizardIntroRef.current;
+    wizardIntroRef.current = null;
+    void speakOnce(`${intro ? `${intro} ` : ""}${step.prompt}${step.kind === "freeform" && step.helper ? ` ${step.helper}` : ""}`);
     return () => { stopNarration(); };
-  }, [step, stepIndex]);
+  }, [step, stepIndex, mode]);
 
   useEffect(() => {
     if (!step) return;
@@ -152,15 +161,26 @@ export default function CreateWorld(): JSX.Element {
     setStepIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  const finish = useCallback(async () => {
+  const finish = useCallback(async (value: string) => {
+    if (finishingRef.current) return;
+    // The last answer lives only in the text field until now; advance()
+    // never runs for the final step.
+    const trimmed = value.trim();
+    if (step?.kind === "freeform" && step.required && !trimmed) {
+      setError("This step needs an answer to continue.");
+      return;
+    }
+    const finalDraft: Draft = step ? { ...draft, [step.id]: trimmed } : draft;
+    setDraft(finalDraft);
+    finishingRef.current = true;
     setBusy(true);
     setError(null);
     try {
-      const bible = draftToBible(draft);
+      const bible = draftToBible(finalDraft);
       const world = await createWorldFromBible(bible);
       const campaign = await createCampaign({
         worldId: world.worldId,
-        characterName: draft.characterName.trim() || "Wren",
+        characterName: finalDraft.characterName.trim() || "Wren",
       });
       useSession.getState().joined({
         campaignId: campaign.campaignId,
@@ -177,9 +197,10 @@ export default function CreateWorld(): JSX.Element {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create world.");
     } finally {
+      finishingRef.current = false;
       setBusy(false);
     }
-  }, [draft, router]);
+  }, [draft, router, step]);
 
   const extractImportNotes = useCallback(async () => {
     if (importNotes.trim().length < 20) {
@@ -196,7 +217,7 @@ export default function CreateWorld(): JSX.Element {
         return;
       }
       setDraft((d) => ({ ...d, ...(extracted as Partial<Draft>) }));
-      void speakOnce(`Extracted ${fieldCount} field${fieldCount === 1 ? "" : "s"} from your notes. Starting the wizard.`);
+      wizardIntroRef.current = `Extracted ${fieldCount} field${fieldCount === 1 ? "" : "s"} from your notes. Starting the wizard.`;
       setMode("fresh");
     } catch (e) {
       setImportError(e instanceof Error ? e.message : "Extraction failed. Please try again.");
@@ -206,22 +227,33 @@ export default function CreateWorld(): JSX.Element {
   }, [importNotes]);
 
   const speakAnswer = useCallback(async () => {
+    // The mic button reads "tap to cancel" while listening.
+    if (listeningRef.current) {
+      cancelUtterance();
+      return;
+    }
+    listeningRef.current = true;
     setListening(true);
     void speakOnce("Listening.");
+    let transcript: string | null;
     try {
-      const transcript = await captureUtterance();
-      if (!transcript) return;
-      if (step?.kind === "choice") {
-        const matched = matchChoice(step, transcript);
-        if (matched) advance(matched);
-        else void speakOnce("I didn't catch that. Please pick one of the listed options.");
-        return;
-      }
-      setTextInput(transcript);
-      advance(transcript);
+      transcript = await captureUtterance();
     } finally {
+      listeningRef.current = false;
       setListening(false);
     }
+    if (!transcript) return;
+    // A bare command phrase ("next", "back", "skip") runs that command;
+    // anything else is the answer.
+    if (await dispatchTranscript(transcript, { exact: true })) return;
+    if (step?.kind === "choice") {
+      const matched = matchChoice(step, transcript);
+      if (matched) advance(matched);
+      else void speakOnce("I didn't catch that. Please pick one of the listed options.");
+      return;
+    }
+    setTextInput(transcript);
+    advance(transcript);
   }, [advance, step]);
 
   useVoiceCommands({
@@ -505,7 +537,7 @@ export default function CreateWorld(): JSX.Element {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={isLast ? "Finish and start adventure" : "Next step"}
-            onPress={() => (isLast ? void finish() : advance(textInput))}
+            onPress={() => (isLast ? void finish(textInput) : advance(textInput))}
             disabled={busy}
             style={({ pressed }) => [
               styles.primaryBtn,
