@@ -97,15 +97,12 @@ const jsonLd = {
       // shared play after the lobby doesn't yet, so SinglePlayer only.
       gamePlatform: ["Web browser"],
       playMode: "SinglePlayer",
-      accessibilityFeature: [
-        "readingOrder",
-        "structuralNavigation",
-        "displayTransformability",
-        "highContrastDisplay",
-        "largePrint",
-      ],
+      // High contrast and large text are opt-in settings, which the
+      // vocabulary covers with displayTransformability rather than
+      // highContrastDisplay/largePrint. "ARIA" belongs here, not in the
+      // deprecated accessibilityAPI value.
+      accessibilityFeature: ["ARIA", "readingOrder", "structuralNavigation", "displayTransformability"],
       accessibilityControl: ["fullKeyboardControl", "fullVoiceControl", "fullMouseControl", "fullTouchControl"],
-      accessibilityAPI: ["ARIA"],
       accessMode: ["auditory", "textual", "visual"],
       accessModeSufficient: [
         { "@type": "ItemList", itemListElement: ["auditory"] },

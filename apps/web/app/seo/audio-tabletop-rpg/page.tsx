@@ -82,7 +82,7 @@ export default function Page() {
           Hear how a session goes
         </h2>
         <p className="mt-3 text-base text-muted">
-          Each official campaign page has a sample narration transcript, so you can see how the
+          Each of these campaign pages has a sample narration transcript, so you can see how the
           Game Master and the player trade turns before you start:
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-6 text-base">
