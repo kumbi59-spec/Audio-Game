@@ -10,6 +10,7 @@ type Rows = { rows: unknown[] };
 
 const fake = vi.hoisted(() => ({
   pools: [] as {
+    options: { max?: number };
     queries: { sql: string; params: unknown[] }[];
     listeners: Map<string, ((...args: unknown[]) => void)[]>;
   }[],
@@ -23,7 +24,7 @@ vi.mock("pg", () => {
     queries: { sql: string; params: unknown[] }[] = [];
     listeners = new Map<string, ((...args: unknown[]) => void)[]>();
     private connectFailures = fake.nextPoolConnectFailures;
-    constructor() {
+    constructor(readonly options: { max?: number } = {}) {
       fake.nextPoolConnectFailures = 0;
       fake.pools.push(this);
     }
@@ -76,6 +77,11 @@ describe("PostgresCampaignStore", () => {
     const store = new PostgresCampaignStore("postgres://test");
     await expect(store.listWorlds()).rejects.toThrow("ECONNREFUSED");
     await expect(store.listWorlds()).resolves.toEqual([]);
+  });
+
+  it("sizes the pool from the poolMax option", () => {
+    new PostgresCampaignStore("postgres://test", { poolMax: 5 });
+    expect(latestPool().options.max).toBe(5);
   });
 
   it("runs the schema in one transaction behind an advisory lock", async () => {

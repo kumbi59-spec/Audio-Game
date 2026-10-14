@@ -6,7 +6,8 @@
  *
  *   IMAGE_GEN_PROVIDER=bfl                      (recommended)
  *   BFL_API_KEY=bfl_...
- *   MODEL_NAME=black-forest-labs/flux-dev        (default; "flux-dev" / "flux-pro" / "flux-pro-1.1")
+ *   BFL_MODEL_NAME=black-forest-labs/flux-dev    (default; "flux-dev" / "flux-pro" / "flux-pro-1.1";
+ *                                                MODEL_NAME is still read as a fallback)
  *
  *   IMAGE_GEN_PROVIDER=replicate                 (fallback)
  *   REPLICATE_API_TOKEN=r8_...
@@ -17,7 +18,8 @@
  */
 
 const TIMEOUT_MS = 60_000;
-const BFL_BASE = process.env["BFL_API_BASE"] ?? "https://api.bfl.ai/v1";
+// `||` so an empty value (as .env.example ships it) keeps the default.
+const BFL_BASE = process.env["BFL_API_BASE"] || "https://api.bfl.ai/v1";
 
 export interface BlogCoverInput {
   title: string;
@@ -139,7 +141,8 @@ async function generateViaBFL(prompt: string): Promise<BlogCoverResult> {
   const apiKey = process.env["BFL_API_KEY"];
   if (!apiKey) return { error: "BFL_API_KEY is not set" };
 
-  const modelEnv = process.env["MODEL_NAME"] ?? "black-forest-labs/flux-dev";
+  const modelEnv =
+    process.env["BFL_MODEL_NAME"] || process.env["MODEL_NAME"] || "black-forest-labs/flux-dev";
   const modelName = modelEnv.includes("/") ? modelEnv.split("/").pop()! : modelEnv;
 
   const controller = new AbortController();
@@ -199,7 +202,7 @@ async function generateViaBFL(prompt: string): Promise<BlogCoverResult> {
 // ── Replicate ──────────────────────────────────────────────────────────────
 
 const REPLICATE_DEFAULT_MODEL =
-  process.env["REPLICATE_IMAGE_MODEL"] ?? "black-forest-labs/flux-schnell";
+  process.env["REPLICATE_IMAGE_MODEL"] || "black-forest-labs/flux-schnell";
 
 interface ReplicatePrediction {
   id: string;

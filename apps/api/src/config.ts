@@ -46,6 +46,12 @@ const Env = z.object({
    */
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(1),
   /**
+   * Size of the Postgres connection pool. Keep it small on a pooled host
+   * (e.g. ~5 on small Supabase compute) so the web app's pool and this one
+   * stay under the pooler's limit.
+   */
+  DATABASE_POOL_MAX: z.coerce.number().int().min(1).default(10),
+  /**
    * Per-attempt timeout budget for a GM turn generation call.
    * Intended SLO: the first attempt should satisfy most requests
    * within this budget; retries are a short-tail mitigation.

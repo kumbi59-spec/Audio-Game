@@ -51,6 +51,12 @@ describe("parseConfig", () => {
     expect(parseConfig({}).TRUST_PROXY_HOPS).toBe(1);
     expect(parseConfig({ TRUST_PROXY_HOPS: "0" }).TRUST_PROXY_HOPS).toBe(0);
   });
+
+  it("parses DATABASE_POOL_MAX with pg's default of ten", () => {
+    expect(parseConfig({}).DATABASE_POOL_MAX).toBe(10);
+    expect(parseConfig({ DATABASE_POOL_MAX: "5" }).DATABASE_POOL_MAX).toBe(5);
+    expect(() => parseConfig({ DATABASE_POOL_MAX: "0" })).toThrow();
+  });
 });
 
 describe("loadDotEnv", () => {

@@ -5,6 +5,7 @@ import { MemoryCampaignStore } from "./memory.js";
 import { PostgresCampaignStore } from "./postgres.js";
 import type { CampaignStore } from "./types.js";
 import { getServerEmbedder } from "../embeddings/voyage.js";
+import { config } from "../config.js";
 
 export type StorageBackend = "memory" | "postgres";
 
@@ -24,7 +25,7 @@ export function getStore(): CampaignStore {
   if (singleton) return singleton;
   const databaseUrl = process.env["DATABASE_URL"];
   if (databaseUrl) {
-    const pg = new PostgresCampaignStore(databaseUrl);
+    const pg = new PostgresCampaignStore(databaseUrl, { poolMax: config.DATABASE_POOL_MAX });
     const { embedder, available } = getServerEmbedder();
     if (available) {
       const { embedder: queryEmbedder } = getServerEmbedder("query");

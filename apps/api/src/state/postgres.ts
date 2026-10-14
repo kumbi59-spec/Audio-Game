@@ -38,8 +38,8 @@ export class PostgresCampaignStore implements CampaignStore {
   private pool: Pool;
   private ready: Promise<void> | null;
 
-  constructor(databaseUrl: string) {
-    this.pool = new pg.Pool({ connectionString: databaseUrl });
+  constructor(databaseUrl: string, options: { poolMax?: number } = {}) {
+    this.pool = new pg.Pool({ connectionString: databaseUrl, max: options.poolMax });
     // An idle client dropped by a DB restart or pgbouncer emits 'error' on
     // the pool; with no listener that is an uncaught exception.
     this.pool.on("error", (err) => {
