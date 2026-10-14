@@ -6,18 +6,27 @@ const SENTENCE_END_RE = /[.!?…]["'”’)\]]*\s+/g;
 
 /**
  * Index just past a sentence boundary in `text` that lies outside any open
- * `"…"` quote, so a `[Name]: "…"` dialogue line is never split between two
- * segments. "first" returns the earliest boundary at or past `minChars`,
- * "last" the latest. Returns -1 when there is none.
+ * `"…"` or `“…”` quote, so a `[Name]: "…"` dialogue line is never split
+ * between two segments. "first" returns the earliest boundary at or past
+ * `minChars`, "last" the latest. Returns -1 when there is none.
  */
 export function findSegmentCut(text: string, mode: "first" | "last", minChars = 1): number {
   let best = -1;
   let quotes = 0;
+  // Curly quotes say which way they face, so “ opens and ” closes. A
+  // flag rather than a count: a quote running over several paragraphs
+  // opens each of them but only closes the last.
+  let inCurly = false;
   let counted = 0;
   for (const m of text.matchAll(SENTENCE_END_RE)) {
     const end = m.index! + m[0].length;
-    for (; counted < end; counted++) if (text[counted] === '"') quotes++;
-    if (end < minChars || quotes % 2 !== 0) continue;
+    for (; counted < end; counted++) {
+      const ch = text[counted];
+      if (ch === '"') quotes++;
+      else if (ch === "\u201C") inCurly = true;
+      else if (ch === "\u201D") inCurly = false;
+    }
+    if (end < minChars || quotes % 2 !== 0 || inCurly) continue;
     if (mode === "first") return end;
     best = end;
   }

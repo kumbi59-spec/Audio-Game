@@ -34,6 +34,19 @@ describe("character reducer", () => {
     expect(next.stats).toMatchObject({ level: 3, maxHp: 30, hp: 20, strength: 13, dexterity: 11, intelligence: 11, charisma: 11 });
   });
 
+  it("keeps HP within 0..maxHp after an hp or maxHp delta", () => {
+    expect(applyStatDelta(base, "hp", 50).stats.hp).toBe(20);
+    expect(applyStatDelta(base, "hp", -50).stats.hp).toBe(0);
+    expect(applyStatDelta({ ...base, stats: { ...base.stats, hp: 20 } }, "maxHp", -8).stats).toMatchObject({ hp: 12, maxHp: 12 });
+    expect(applyCharacterChanges(base, { statDeltas: { hp: 30 } }, ids).stats.hp).toBe(20);
+  });
+
+  it("gains at most 100 levels from one huge XP grant, the rest on the next", () => {
+    const next = applyStatDelta(base, "experience", 1e30);
+    expect(next.stats.level).toBe(101);
+    expect(applyStatDelta(next, "experience", 0).stats.level).toBe(201);
+  });
+
   it("tracks unknown stats as custom stats, never below zero", () => {
     expect(applyStatDelta(base, "sanity", -3).customStats).toEqual({ sanity: 0 });
     expect(applyStatDelta({ ...base, customStats: { mp: 5 } }, "mp", 2).customStats).toEqual({ mp: 7 });
