@@ -1,5 +1,7 @@
 import type { CharacterData, CharacterStats } from "@/types/character";
 import type { ItemMutation, QuestMutation } from "@/types/game";
+import { CORE_STAT_KEYS } from "@/lib/character/stat-rules";
+import { rollableStats } from "@/lib/game/stat-modifier";
 
 /**
  * How a GM turn's stateChanges change the character: HP, stats (with
@@ -46,6 +48,8 @@ export function xpToReachLevel(level: number): number {
  * curve:
  *   per level: +5 maxHp, +5 hp (capped at new maxHp)
  *   odd levels: +1 STR, +1 DEX; even levels: +1 INT, +1 CHA
+ *   the world's own skill stats (see growingCustomStats) take turns the same
+ *   way: odd levels raise the 1st, 3rd, 5th…, even levels the 2nd, 4th…
  * The loop lets a large XP grant cross several levels in one turn, up to
  * MAX_LEVEL_UPS_PER_ADJUST so an absurd grant can't hang the page; any XP
  * left over levels up on the next grant. Level itself only changes that way:
@@ -60,7 +64,9 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
     const current = character.stats[key] ?? 0;
     const stats: CharacterStats = { ...character.stats, [key]: Math.max(0, current + delta) };
 
+    let customStats = character.customStats;
     if (key === "experience") {
+      const growing = growingCustomStats(character);
       for (let i = 0; i < MAX_LEVEL_UPS_PER_ADJUST; i++) {
         const lvl = stats.level ?? 1;
         if ((stats.experience ?? 0) < xpToReachLevel(lvl + 1)) break;
@@ -75,18 +81,62 @@ export function applyStatDelta(character: CharacterData, statName: string, delta
           stats.intelligence = (stats.intelligence ?? 10) + 1;
           stats.charisma = (stats.charisma ?? 10) + 1;
         }
+        const turn = next % 2 !== 0 ? 0 : 1;
+        const raised = growing.filter((_, idx) => idx % 2 === turn);
+        if (raised.length > 0) {
+          customStats = { ...customStats };
+          for (const name of raised) customStats[name] = (customStats[name] ?? 0) + 1;
+        }
       }
     }
     if ((key === "hp" || key === "maxHp") && finite(stats.hp) && finite(stats.maxHp)) {
       stats.hp = Math.max(0, Math.min(stats.hp, stats.maxHp));
     }
-    return { ...character, stats };
+    return customStats === character.customStats ? { ...character, stats } : { ...character, stats, customStats };
   }
   const current = character.customStats?.[statName] ?? 0;
   return {
     ...character,
     customStats: { ...character.customStats, [statName]: Math.max(0, current + delta) },
   };
+}
+
+/**
+ * The world's own stats that grow with level: the ones a skill check can use
+ * (not pools with a matching "...Max", HP or XP), in name order so the turn
+ * they grow on never depends on the order they were saved in.
+ */
+export function growingCustomStats(character: Pick<CharacterData, "stats" | "customStats">): string[] {
+  const core = new Set<string>(CORE_STAT_KEYS);
+  return rollableStats(character)
+    .map((s) => s.name)
+    .filter((name) => !core.has(name))
+    .sort((a, b) => a.localeCompare(b));
+}
+
+const CORE_STAT_LABELS: Record<string, string> = {
+  maxHp: "max HP",
+  strength: "Strength",
+  dexterity: "Dexterity",
+  intelligence: "Intelligence",
+  charisma: "Charisma",
+};
+
+/**
+ * What a level-up raised, for the announcement: "Strength +1", "Ninjutsu +1",
+ * "max HP +5". Compares the character before and after the stat changes.
+ */
+export function levelUpGains(before: CharacterData, after: CharacterData): string[] {
+  const gains: string[] = [];
+  for (const [key, label] of Object.entries(CORE_STAT_LABELS)) {
+    const diff = (after.stats[key as keyof CharacterStats] ?? 0) - (before.stats[key as keyof CharacterStats] ?? 0);
+    if (diff > 0) gains.push(`${label} +${diff}`);
+  }
+  for (const name of growingCustomStats(after)) {
+    const diff = (after.customStats?.[name] ?? 0) - (before.customStats?.[name] ?? 0);
+    if (diff > 0) gains.push(`${name} +${diff}`);
+  }
+  return gains;
 }
 
 export function applyInventoryMutation(

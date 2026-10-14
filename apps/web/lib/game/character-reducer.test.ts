@@ -6,6 +6,7 @@ import {
   applyInventoryMutation,
   applyQuestMutation,
   applyStatDelta,
+  levelUpGains,
   xpToReachLevel,
 } from "./character-reducer";
 
@@ -32,6 +33,30 @@ describe("character reducer", () => {
     const next = applyStatDelta(base, "experience", 450);
     // 100 → level 2 (even: INT/CHA), 400 → level 3 (odd: STR/DEX)
     expect(next.stats).toMatchObject({ level: 3, maxHp: 30, hp: 20, strength: 13, dexterity: 11, intelligence: 11, charisma: 11 });
+  });
+
+  it("grows the world's own skill stats on level-ups, taking turns like the core stats", () => {
+    const ninja = { ...base, customStats: { Taijutsu: 3, Ninjutsu: 4, chakra: 30, chakraMax: 30 } };
+    // Level 2 (even) raises the 2nd in name order, level 3 (odd) the 1st.
+    const lvl2 = applyStatDelta(ninja, "experience", 100);
+    expect(lvl2.customStats).toEqual({ Taijutsu: 4, Ninjutsu: 4, chakra: 30, chakraMax: 30 });
+    const lvl3 = applyStatDelta(lvl2, "experience", 300);
+    expect(lvl3.customStats).toEqual({ Taijutsu: 4, Ninjutsu: 5, chakra: 30, chakraMax: 30 });
+    // A plain XP grant with no level-up leaves them alone.
+    expect(applyStatDelta(ninja, "experience", 10).customStats).toBe(ninja.customStats);
+  });
+
+  it("says what a level-up raised", () => {
+    const ninja = { ...base, customStats: { Ninjutsu: 4 } };
+    const after = applyStatDelta(ninja, "experience", 400);
+    expect(levelUpGains(ninja, after)).toEqual([
+      "max HP +10",
+      "Strength +1",
+      "Dexterity +1",
+      "Intelligence +1",
+      "Charisma +1",
+      "Ninjutsu +1",
+    ]);
   });
 
   it("keeps HP within 0..maxHp after an hp or maxHp delta", () => {
