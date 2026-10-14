@@ -1,0 +1,23 @@
+/**
+ * Brand wording shared by the site metadata, the homepage structured data and
+ * the /seo landing pages, so it reads the same everywhere.
+ *
+ * Another game called "EchoQuest" lives on itch.io and wins bare branded
+ * searches, so the brand is always paired with a modifier ("EchoQuest TTRPG").
+ */
+export const BRAND_NAME = "EchoQuest";
+export const BRAND_TTRPG = "EchoQuest TTRPG";
+export const BRAND_ALTERNATE_NAMES = ["EchoQuest TTRPG", "EchoQuest Audio RPG", "EchoQuest AI Game Master"];
+
+/** One plain definitional sentence that search snippets and AI answers can quote as-is. */
+export const BRAND_DEFINITION =
+  "EchoQuest is a screen-reader friendly, AI-narrated audio tabletop role-playing game (TTRPG).";
+
+/** Default meta description: the definition, then the AI GM, access, and price (under 160 characters). */
+export const SITE_DESCRIPTION = `${BRAND_DEFINITION} An AI Game Master for blind and low-vision players. Free to start.`;
+
+export const SITE_TITLE = "EchoQuest TTRPG — Audio AI Game Master RPG";
+
+// TODO: add the official itch.io page (echoquest-ttrpg), Reddit and other
+// profiles here as they go live; schema.org sameAs ties them to this site.
+export const SAME_AS: string[] = ["https://x.com/echoquestapp"];

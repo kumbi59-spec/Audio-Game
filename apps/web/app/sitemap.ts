@@ -6,6 +6,8 @@ import { getSiteUrl } from "@/lib/site-url";
 // per-request. Using `new Date()` here would emit a fresh "now" on every
 // sitemap fetch and signal Google that nothing is ever stable.
 const BUILD_DATE = new Date("2026-05-08");
+// When the audio-games, AI-GM and audio-tabletop guides went live.
+const GUIDES_DATE = new Date("2026-10-14");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
@@ -25,6 +27,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/seo/play-audio-rpg-with-screen-reader`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/seo/accessible-dnd-alternative`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/seo/ai-text-adventure-with-voice`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/audio-games-for-the-blind`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/ai-game-master-rpg`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/audio-tabletop-rpg`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
   ];
 
   let blogRoutes: MetadataRoute.Sitemap = [];

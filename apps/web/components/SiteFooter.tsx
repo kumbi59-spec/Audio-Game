@@ -22,6 +22,7 @@ export function SiteFooter() {
         <Link href="/about" className="inline-flex items-center hover:underline">About</Link>
         <Link href="/library" className="inline-flex items-center hover:underline">Library</Link>
         <Link href="/blog" className="inline-flex items-center hover:underline">Blog</Link>
+        <Link href="/seo" className="inline-flex items-center hover:underline">Guides</Link>
         <Link href="/settings/display" className="inline-flex items-center hover:underline">Accessibility settings</Link>
         <Link href="/privacy" className="inline-flex items-center hover:underline">Privacy</Link>
         <Link href="/terms" className="inline-flex items-center hover:underline">Terms</Link>
