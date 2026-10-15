@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -8,13 +10,13 @@ export const metadata: Metadata = {
   description:
     "How EchoQuest collects, uses, and protects your data — including session content, account info, and payments.",
   alternates: { canonical: `${SITE_URL}/privacy` },
-  openGraph: {
-    title: "Privacy Policy | EchoQuest",
+  ...socialMetadata({
+    title: `Privacy Policy | ${BRAND_TTRPG}`,
     description:
       "How EchoQuest collects, uses, and protects your data — including session content, account info, and payments.",
     url: `${SITE_URL}/privacy`,
     type: "article",
-  },
+  }),
 };
 
 export default function PrivacyPage() {

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -9,13 +11,13 @@ export const metadata: Metadata = {
   description:
     "The terms that govern your use of EchoQuest — acceptable use, paid subscriptions, user-created worlds, AI content, and our obligations to you.",
   alternates: { canonical: `${SITE_URL}/terms` },
-  openGraph: {
-    title: "Terms of Use | EchoQuest",
+  ...socialMetadata({
+    title: `Terms of Use | ${BRAND_TTRPG}`,
     description:
       "The terms that govern your use of EchoQuest — acceptable use, paid subscriptions, user-created worlds, and AI content.",
     url: `${SITE_URL}/terms`,
     type: "article",
-  },
+  }),
 };
 
 export default function TermsPage() {
@@ -49,7 +51,7 @@ export default function TermsPage() {
 
           <h2 className="mt-8 text-xl font-semibold text-foreground">2. Accounts</h2>
           <p>
-            You can play three official campaigns without an account. Paid
+            You can play every official campaign without an account. Paid
             features and saving sessions require an account. You&rsquo;re
             responsible for keeping your sign-in credentials safe and for
             anything that happens on your account. If we suspect abuse — for

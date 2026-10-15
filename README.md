@@ -313,7 +313,7 @@ Sign in at `http://localhost:3000/auth/sign-in` with the email + password you se
 
 | Tier | Price | Key features |
 |---|---|---|
-| Free | $0 | 3 official campaigns, browser TTS, keyboard + voice nav, 60 AI turns/day (1 turn = 1 minute credit) |
+| Free | $0 | All official campaigns, browser TTS, keyboard + voice nav, 60 AI turns/day (1 turn = 1 minute credit) |
 | Storyteller | $15/mo | ElevenLabs voices, Game Bible upload, unlimited saves |
 | Creator | $29/mo | World Builder Wizard, public publishing, creator analytics |
 | Enterprise | Custom | Institutional licensing, priority support |

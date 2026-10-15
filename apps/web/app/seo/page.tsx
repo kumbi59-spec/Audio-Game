@@ -3,11 +3,22 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BRAND_TTRPG } from "@/lib/seo/brand";
 import { getSiteUrl } from "@/lib/site-url";
+import { socialMetadata } from "@/lib/seo/social";
+
+const SITE_URL = getSiteUrl();
+const TITLE = "Accessible Audio TTRPG Guides";
+const DESCRIPTION = `Guides to ${BRAND_TTRPG}: playing an audio tabletop RPG with a screen reader, audio games for blind players, and running a TTRPG with an AI Game Master.`;
 
 export const metadata: Metadata = {
-  title: "Accessible Audio TTRPG Guides",
-  description: `Guides to ${BRAND_TTRPG}: playing an audio tabletop RPG with a screen reader, audio games for blind players, and running a TTRPG with an AI Game Master.`,
-  alternates: { canonical: `${getSiteUrl()}/seo` },
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: `${SITE_URL}/seo` },
+  ...socialMetadata({
+    title: `${TITLE} | ${BRAND_TTRPG}`,
+    description: DESCRIPTION,
+    url: `${SITE_URL}/seo`,
+    type: "website",
+  }),
 };
 
 const pages = [

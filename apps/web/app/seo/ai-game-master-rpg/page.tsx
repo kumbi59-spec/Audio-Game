@@ -6,6 +6,7 @@ import { seedPostSlug } from "@/lib/blog/seed-posts/types";
 import { BRAND_TTRPG } from "@/lib/seo/brand";
 import { guideBreadcrumbJsonLd, guideFaqJsonLd, type GuideFaq } from "@/lib/seo/guide-jsonld";
 import { getSiteUrl } from "@/lib/site-url";
+import { socialMetadata } from "@/lib/seo/social";
 
 const PATH = "/seo/ai-game-master-rpg";
 const SITE_URL = getSiteUrl();
@@ -15,13 +16,13 @@ export const metadata: Metadata = {
   description:
     "Play a tabletop RPG with an AI Game Master, solo and on demand. EchoQuest TTRPG narrates every scene, runs the world's rules and answers anything you say.",
   alternates: { canonical: `${SITE_URL}${PATH}` },
-  openGraph: {
+  ...socialMetadata({
     title: `AI Game Master RPG | ${BRAND_TTRPG}`,
     description:
       "A tabletop RPG run by an AI Game Master: no DM, no schedule, fully narrated and screen-reader accessible.",
     url: `${SITE_URL}${PATH}`,
     type: "article",
-  },
+  }),
 };
 
 const FAQS: GuideFaq[] = [

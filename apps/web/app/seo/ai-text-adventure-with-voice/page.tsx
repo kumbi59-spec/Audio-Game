@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -9,13 +11,13 @@ export const metadata: Metadata = {
   description:
     "Play an AI text adventure with live narration and voice input. EchoQuest turns natural-language choices into adaptive story beats in real time.",
   alternates: { canonical: `${SITE_URL}/seo/ai-text-adventure-with-voice` },
-  openGraph: {
-    title: "AI Text Adventure with Voice | EchoQuest",
+  ...socialMetadata({
+    title: `AI Text Adventure with Voice | ${BRAND_TTRPG}`,
     description:
       "Speak your actions, hear them narrated. EchoQuest is an AI text adventure that listens and responds.",
     url: `${SITE_URL}/seo/ai-text-adventure-with-voice`,
     type: "article",
-  },
+  }),
 };
 
 const breadcrumbJsonLd = {
