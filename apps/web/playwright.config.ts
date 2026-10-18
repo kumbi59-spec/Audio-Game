@@ -41,7 +41,6 @@ export default defineConfig({
       DATABASE_URL: "postgresql://e2e:e2e@127.0.0.1:1/e2e",
       AUTH_SECRET: "e2e-only-secret-not-for-production-use",
       NEXTAUTH_URL: baseURL,
-      NEXT_PUBLIC_ADSTERRA_DISABLED: "1",
       NEXT_TELEMETRY_DISABLED: "1",
     },
   },

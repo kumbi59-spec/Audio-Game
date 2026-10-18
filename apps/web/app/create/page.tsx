@@ -21,7 +21,6 @@ import {
 } from "@/lib/character/stat-rules";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
-import { enterAdFreeRoute } from "@/components/ads/social-bar";
 
 type Step = "name" | "class" | "backstory" | "starting";
 
@@ -349,7 +348,7 @@ function CreateCharacterPage() {
       // If opening generation fails, start with an empty log
     }
 
-    enterAdFreeRoute(router, "/play");
+    router.push("/play");
   }
 
   async function handleStartMultiplayer() {

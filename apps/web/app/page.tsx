@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MobileAdSlot } from "@/components/ads/MobileAdSlot";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LandingEffects } from "@/components/landing/LandingEffects";
 import { serializeJsonLd } from "@/lib/blog/render-markdown";
@@ -289,8 +288,6 @@ export default function LandingPage() {
           </section>
 
           {/* Accessibility callout */}
-          <MobileAdSlot />
-
           <section aria-labelledby="a11y-heading" className="px-6 py-12 bg-surface">
             <div className="mx-auto max-w-3xl rounded-xl border p-8 border-border bg-bg">
               <h2 id="a11y-heading" className="mb-2 text-xs font-semibold uppercase tracking-widest text-accent">

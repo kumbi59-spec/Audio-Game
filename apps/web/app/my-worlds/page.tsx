@@ -10,7 +10,6 @@ import { useGameStore } from "@/store/game-store";
 import { useShallow } from "zustand/react/shallow";
 import { EngagementSparkline } from "@/components/analytics/EngagementSparkline";
 import { SiteHeader } from "@/components/SiteHeader";
-import { enterAdFreeRoute } from "@/components/ads/social-bar";
 
 interface EngagementSeries {
   days: string[];
@@ -320,7 +319,7 @@ export default function MyWorldsPage() {
                     {activeWorldId === world.id && (
                       <button
                         type="button"
-                        onClick={() => enterAdFreeRoute(router, "/play")}
+                        onClick={() => router.push("/play")}
                         aria-label={`Resume your active session in ${world.name}`}
                         className="w-full rounded-lg border py-3 text-sm font-semibold transition-opacity hover:opacity-90 border-accent bg-accent-solid text-on-accent"
                       >

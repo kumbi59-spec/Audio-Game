@@ -15,15 +15,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ThemeApplier } from "@/components/accessibility/ThemeApplier";
 import { A11Y_STORAGE_KEY, displayModesBootScript } from "@/lib/a11y/display-prefs";
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
-import { AdsterraGlobal } from "@/components/ads/AdsterraGlobal";
-import { AdRails } from "@/components/ads/AdRails";
 import { AdPreviewBadge } from "@/components/ads/AdPreviewBadge";
-import { AdsServerProvider } from "@/components/ads/AdsServerContext";
-import { ADSTERRA, ADSTERRA_ENABLED, ADSTERRA_EXCLUDED_PREFIXES } from "@/components/ads/adsterra-config";
-import { HIDE_ADS_COOKIE } from "@/lib/ads/hide-ads";
 import { ADSENSE_ENABLED, ADSENSE_LOADER_SRC } from "@/components/ads/adsense-config";
-import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import { BRAND_TTRPG, SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo/brand";
@@ -95,24 +89,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-
-  // Free-tier (and signed-out) visitors get Adsterra's page-level script in
-  // the server HTML, where "View page source" shows it and it runs as the
-  // page loads. Paid/admin sessions, anyone who switched on "Hide ads" in the
-  // accessibility settings, and the gameplay/admin/auth/account routes never do.
-  const sessionUser = session?.user as { tier?: string; isAdmin?: boolean } | undefined;
-  // Admins never get ads, whatever tier their session token carries.
-  const tier = (sessionUser?.isAdmin ? "creator" : sessionUser?.tier ?? "free") as Tier;
-  const adsHidden = (await cookies()).get(HIDE_ADS_COOKIE)?.value === "1";
-  const serverShowsAds = ADSTERRA_ENABLED && !adsHidden && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
   // Reading the request headers (the per-request CSP nonce, the session) makes
   // every page render per request, so page-level `revalidate` and
   // Cache-Control rules for pages have no effect; none are set.
   const requestHeaders = await headers();
-  const pathname = requestHeaders.get("x-pathname") ?? "";
   // Set by middleware; every script we render carries it (lib/security/csp.ts).
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
-  const pageLevelAds = serverShowsAds && !ADSTERRA_EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
 
   return (
     // The boot script sets display classes on <html> before React hydrates,
@@ -138,30 +120,19 @@ export default async function RootLayout({
         </Suspense>
         <AudioUnlocker />
         <AuthProvider session={session}>
-          <AdsServerProvider value={serverShowsAds}>
-            <AudioAnnouncer>
-              <ServiceWorkerRegistrar />
-              <Suspense>
-                <AdsterraGlobal />
-              </Suspense>
-              <SkipLinks />
-              <FocusManager />
-              <Suspense>
-                <VerificationBanner />
-              </Suspense>
-              {children}
-              <SiteFooter />
-              <Suspense>
-                <AdRails />
-              </Suspense>
-              <AdPreviewBadge />
-            </AudioAnnouncer>
-          </AdsServerProvider>
+          <AudioAnnouncer>
+            <ServiceWorkerRegistrar />
+            <SkipLinks />
+            <FocusManager />
+            <Suspense>
+              <VerificationBanner />
+            </Suspense>
+            {children}
+            <SiteFooter />
+            <AdPreviewBadge />
+          </AudioAnnouncer>
         </AuthProvider>
         </NonceProvider>
-        {pageLevelAds && (
-          <script id="adsterra-social-bar" async data-cfasync="false" src={ADSTERRA.socialBarSrc} nonce={nonce} />
-        )}
       </body>
     </html>
   );
