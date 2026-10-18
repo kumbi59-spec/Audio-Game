@@ -1,13 +1,9 @@
 /**
- * Google AdSense is off unless NEXT_PUBLIC_ADSENSE_ENABLED=1 at build time.
- *
- * With AdSense loaded but not serving, Google's auto ads (anchor, side rails)
- * and the in-page units rendered an empty ad box and then collapsed it as
- * "unfilled" — ads that showed for a split second and vanished, on desktop
- * and mobile. With it off, the loader script isn't requested and AdBanner
- * renders nothing.
+ * Google AdSense is on for free-tier visitors. Set
+ * NEXT_PUBLIC_ADSENSE_ENABLED=0 at build time to turn it off; the loader
+ * script is then never requested and AdBanner renders nothing.
  */
-export const ADSENSE_ENABLED = process.env["NEXT_PUBLIC_ADSENSE_ENABLED"] === "1";
+export const ADSENSE_ENABLED = process.env["NEXT_PUBLIC_ADSENSE_ENABLED"] !== "0";
 
 export const ADSENSE_LOADER_SRC =
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9267788778991046";

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useCanWeb } from "@/store/entitlements-store";
 import { ADSENSE_ENABLED } from "./adsense-config";
 
@@ -26,26 +25,6 @@ declare global {
   interface Window {
     adsbygoogle: unknown[];
   }
-}
-
-/** House-ad fallback shown when AdSense isn't configured. */
-function HouseAd() {
-  return (
-    <div
-      className="flex items-center justify-between gap-4 px-4 py-2 text-xs bg-surface border-t border-border"
-      aria-label="Advertisement — upgrade to remove ads"
-    >
-      <span className="text-muted">
-        Playing free — ads keep EchoQuest running.
-      </span>
-      <Link
-        href="/account"
-        className="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-semibold hover:opacity-90 bg-accent-solid text-on-accent"
-      >
-        Upgrade to remove ads
-      </Link>
-    </div>
-  );
 }
 
 /**
@@ -98,17 +77,12 @@ function AdSenseUnit({ pubId, slot }: { pubId: string; slot: string }) {
 }
 
 /**
- * In-content ad slot for free-tier users. Renders nothing unless AdSense is
- * enabled (adsense-config.ts); then it shows an AdSense unit (or, with no
- * unit configured, the built-in house banner). Returns null for paid users.
+ * In-content AdSense unit for free-tier users, shown when an ad unit is
+ * configured (NEXT_PUBLIC_ADSENSE_SLOT). Without one, AdSense Auto ads place
+ * the ads and this renders nothing. Returns null for paid users.
  */
 export function AdBanner({ visible = true }: { visible?: boolean }) {
   const { showAds } = useCanWeb();
-  if (!showAds || !visible || !ADSENSE_ENABLED) return null;
-
-  if (PUB_ID && AD_SLOT) {
-    return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;
-  }
-
-  return <HouseAd />;
+  if (!showAds || !visible || !ADSENSE_ENABLED || !PUB_ID || !AD_SLOT) return null;
+  return <AdSenseUnit pubId={PUB_ID} slot={AD_SLOT} />;
 }

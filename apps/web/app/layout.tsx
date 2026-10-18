@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Inter, Lora } from "next/font/google";
 import { NonceProvider } from "@/components/security/NonceContext";
 import { Suspense } from "react";
@@ -17,7 +16,9 @@ import { A11Y_STORAGE_KEY, displayModesBootScript } from "@/lib/a11y/display-pre
 import { AudioUnlocker } from "@/components/audio/AudioUnlocker";
 import { AdPreviewBadge } from "@/components/ads/AdPreviewBadge";
 import { ADSENSE_ENABLED, ADSENSE_LOADER_SRC } from "@/components/ads/adsense-config";
-import { headers } from "next/headers";
+import { HIDE_ADS_COOKIE } from "@/lib/ads/hide-ads";
+import { TIER_ENTITLEMENTS, type Tier } from "@audio-rpg/shared";
+import { cookies, headers } from "next/headers";
 import { auth } from "@/auth";
 import { getSiteUrl } from "@/lib/site-url";
 import { BRAND_TTRPG, SITE_DESCRIPTION, SITE_TITLE } from "@/lib/seo/brand";
@@ -89,6 +90,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+
+  // Free-tier (and signed-out) visitors get the AdSense loader in <head>, where
+  // Google's site check looks for it. Paid/admin sessions and anyone who
+  // switched on "Hide ads" in the accessibility settings never do.
+  const sessionUser = session?.user as { tier?: string; isAdmin?: boolean } | undefined;
+  // Admins never get ads, whatever tier their session token carries.
+  const tier = (sessionUser?.isAdmin ? "creator" : sessionUser?.tier ?? "free") as Tier;
+  const adsHidden = (await cookies()).get(HIDE_ADS_COOKIE)?.value === "1";
+  const loadAdSense = ADSENSE_ENABLED && !adsHidden && (TIER_ENTITLEMENTS[tier]?.showAds ?? true);
   // Reading the request headers (the per-request CSP nonce, the session) makes
   // every page render per request, so page-level `revalidate` and
   // Cache-Control rules for pages have no effect; none are set.
@@ -102,18 +112,10 @@ export default async function RootLayout({
     <html lang="en" className={`${inter.variable} ${lora.variable}`} suppressHydrationWarning>
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: displayModesBootScript(A11Y_STORAGE_KEY) }} />
+        {loadAdSense && <script async src={ADSENSE_LOADER_SRC} crossOrigin="anonymous" nonce={nonce} />}
       </head>
       <body className="min-h-screen antialiased bg-bg text-foreground">
         <ThemeApplier />
-        {ADSENSE_ENABLED && (
-          <Script
-            id="adsense-loader"
-            strategy="beforeInteractive"
-            src={ADSENSE_LOADER_SRC}
-            crossOrigin="anonymous"
-            nonce={nonce}
-          />
-        )}
         <NonceProvider nonce={nonce}>
         <Suspense>
           <GoogleAnalytics />

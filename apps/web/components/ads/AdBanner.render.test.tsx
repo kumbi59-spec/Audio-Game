@@ -11,7 +11,7 @@ beforeAll(async () => {
   ({ AdBanner } = await import("./AdBanner"));
 });
 
-describe("AdBanner (AdSense off)", () => {
+describe("AdBanner (no ad unit configured)", () => {
   it("renders nothing", () => {
     expect(renderToStaticMarkup(React.createElement(AdBanner))).toBe("");
     expect(renderToStaticMarkup(React.createElement(AdBanner, { visible: false }))).toBe("");
