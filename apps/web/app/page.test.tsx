@@ -13,7 +13,6 @@ vi.mock("next/link", async () => {
 });
 vi.mock("@/components/SiteHeader", () => ({ SiteHeader: () => null }));
 vi.mock("@/components/landing/LandingEffects", () => ({ LandingEffects: () => null }));
-vi.mock("@/components/ads/MobileAdSlot", () => ({ MobileAdSlot: () => null }));
 
 // The app compiles JSX with the classic runtime, so render with a global React.
 let LandingPage: typeof import("./page").default;

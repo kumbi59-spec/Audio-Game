@@ -58,8 +58,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong className="text-foreground">Advertising.</strong> Free-tier pages may show
-              Google AdSense and Adsterra ad units, which set their own cookies subject to those
-              providers&rsquo; policies.
+              Google AdSense ad units, which set their own cookies subject to Google&rsquo;s
+              policies.
             </li>
           </ul>
 
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
           <p>
             We share the minimum data required with: Anthropic (AI inference), ElevenLabs (premium
             text-to-speech for paid tiers), Stripe (payments), Resend (transactional email),
-            Google (analytics + AdSense on free tier), and Adsterra (advertising on free tier).
+            and Google (analytics + AdSense on free tier).
           </p>
 
           <h2 className="mt-6 text-xl font-semibold text-foreground">

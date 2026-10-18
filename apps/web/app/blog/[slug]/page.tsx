@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { prisma } from "@/lib/db";
 import { AdBanner } from "@/components/ads/AdBanner";
-import { AdsterraNativeBanner } from "@/components/ads/AdsterraNativeBanner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { blogCoverSrc } from "@/lib/blog/cover-src";
 import { planSectionImages } from "@/lib/blog/section-image-plan";
@@ -90,12 +89,9 @@ export default async function BlogPostPage({ params }: Props) {
   const htmlContent = await renderBlogMarkdown(markdown);
   const sections = splitHtmlOnH2(htmlContent);
 
-  // Ad slots follow the 2nd and 5th H2-bounded sections (skipped on shorter
-  // posts) and the end of the post. Adsterra allows each banner code once per
-  // page, so only the first slot gets the display banner (AdSense, when on,
-  // fills all of them).
+  // Ad slots (AdSense, when on) follow the 2nd and 5th H2-bounded sections
+  // (skipped on shorter posts) and the end of the post.
   const adAfter = [1, 4].filter((i) => i < sections.length - 1);
-  const displayAt = adAfter.length > 0 ? adAfter[0] : "end";
 
   // Map "section index to render the image after" → image record. The plan
   // (shared with the generator) tells us which H2 each image idx targets.
@@ -190,39 +186,33 @@ export default async function BlogPostPage({ params }: Props) {
 
         <main id="main-content" className="mx-auto max-w-3xl px-6 py-12">
           <article className="blog-content">
-            {(() => {
-              // Adsterra native banner goes right after the intro so it sits
-              // near the top of the post.
-              const nativeAfter = 0;
-              return sections.map((s, i) => {
-                const img = imageBySectionIndex.get(i);
-                return (
-                  <Fragment key={i}>
-                    <div dangerouslySetInnerHTML={{ __html: s }} />
-                    {img && (
-                      <figure className="my-8">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/image route, not a static asset */}
-                        <img
-                          src={`/api/blog/image/${img.id}`}
-                          alt={img.alt}
-                          className="aspect-[16/9] w-full rounded-xl object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </figure>
-                    )}
-                    {i === nativeAfter && <AdsterraNativeBanner />}
-                    {adAfter.includes(i) && (
-                      <div className="ad-slot my-8">
-                        <AdBanner fallback={i === displayAt ? "display" : "none"} />
-                      </div>
-                    )}
-                  </Fragment>
-                );
-              });
-            })()}
+            {sections.map((s, i) => {
+              const img = imageBySectionIndex.get(i);
+              return (
+                <Fragment key={i}>
+                  <div dangerouslySetInnerHTML={{ __html: s }} />
+                  {img && (
+                    <figure className="my-8">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- served from our own cached /api/blog/image route, not a static asset */}
+                      <img
+                        src={`/api/blog/image/${img.id}`}
+                        alt={img.alt}
+                        className="aspect-[16/9] w-full rounded-xl object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </figure>
+                  )}
+                  {adAfter.includes(i) && (
+                    <div className="ad-slot my-8">
+                      <AdBanner />
+                    </div>
+                  )}
+                </Fragment>
+              );
+            })}
             <div className="ad-slot mt-8">
-              <AdBanner fallback={displayAt === "end" ? "display" : "none"} />
+              <AdBanner />
             </div>
           </article>
           <div className="mt-12 border-t pt-8 border-border">

@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { enterAdFreeRoute } from "@/components/ads/social-bar";
 import { useCanWeb } from "@/store/entitlements-store";
 import { useGameStore } from "@/store/game-store";
 import { useShallow } from "zustand/react/shallow";
@@ -110,7 +109,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => { saveCurrentCampaign(); enterAdFreeRoute(router, "/play"); }}
+                  onClick={() => { saveCurrentCampaign(); router.push("/play"); }}
                   className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90 bg-accent-solid text-on-accent"
                 >
                   Resume →
@@ -153,7 +152,7 @@ export function LibraryClient({ initialWorlds }: { initialWorlds: PublicWorld[] 
                       <p className="text-xs text-muted">Turn {save.session.turnCount} · {new Date(save.savedAt).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button onClick={() => { loadSavedCampaign(save.id); enterAdFreeRoute(router, "/play"); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs">Resume</button>
+                      <button onClick={() => { loadSavedCampaign(save.id); router.push("/play"); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs">Resume</button>
                       <button onClick={async () => { const lobby = await createLobbyPath(); if (!lobby.ok) { narrate(lobby.message, "assertive"); return; } loadSavedCampaign(save.id); router.push(lobby.path); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs" aria-label={`Start multiplayer lobby for ${save.world.name}`}>Multiplayer</button>
                       <button onClick={async () => { const url = `${window.location.origin}/create?worldId=${save.world.id}`; const text = `Continue my ${save.world.name} campaign on EchoQuest`; if (navigator.share) await navigator.share({ title: `${save.world.name} save`, text, url }); else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer'); }} className="min-h-[44px] rounded border border-border px-3 py-2 text-xs">Share</button>
                       <DeleteSaveButton

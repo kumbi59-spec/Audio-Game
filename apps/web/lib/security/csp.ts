@@ -2,8 +2,7 @@
  * Strict, nonce-based script policy (https://csp.withgoogle.com/docs/strict-csp.html).
  *
  * Every page gets a fresh nonce from middleware. Next.js applies it to its own
- * scripts; the root layout passes it to ours (including the ad snippets and
- * the srcdoc ad iframes, which inherit this policy). 'strict-dynamic' lets
+ * scripts; the root layout passes it to ours (including the ad loader). 'strict-dynamic' lets
  * trusted scripts load further scripts, which ad networks rely on; the
  * `https:` and 'unsafe-inline' entries are ignored by CSP3 browsers and only
  * keep older browsers working.

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { SiteHeader } from "@/components/SiteHeader";
-import { enterAdFreeRoute } from "@/components/ads/social-bar";
 import type {
   LobbyParticipant,
   MultiplayerServerEvent,
@@ -198,7 +197,7 @@ function useLobbySocket(campaignId: string, invite: string | null) {
             break;
           case "turn_request":
             started = true;
-            enterAdFreeRoute(router, `/play?campaign=${encodeURIComponent(msg.campaignId)}`);
+            router.push(`/play?campaign=${encodeURIComponent(msg.campaignId)}`);
             break;
         }
       };

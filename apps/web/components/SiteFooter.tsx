@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AdsterraSmartlink } from "@/components/ads/AdsterraSmartlink";
 
 /** Ko-fi / Buy Me a Coffee page, set in the deployment's environment. */
 const SUPPORT_URL = process.env["NEXT_PUBLIC_SUPPORT_URL"];
@@ -33,7 +32,6 @@ export function SiteFooter() {
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         )}
-        <AdsterraSmartlink />
       </nav>
     </footer>
   );

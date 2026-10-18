@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAnnouncer } from "@/components/accessibility/AudioAnnouncer";
-import { enterAdFreeRoute } from "@/components/ads/social-bar";
 import { DeleteSaveButton } from "@/components/game/DeleteSaveButton";
 import { deleteServerSave, fetchServerSaves, loadServerSave, type ServerSaveSummary } from "@/lib/game/server-saves";
 
@@ -42,7 +41,7 @@ export function ServerSaves({ excludeSessionIds }: { excludeSessionIds: string[]
       narrate(result.message, "assertive");
       return;
     }
-    enterAdFreeRoute(router, "/play");
+    router.push("/play");
   }
 
   async function remove(save: ServerSaveSummary): Promise<boolean> {
