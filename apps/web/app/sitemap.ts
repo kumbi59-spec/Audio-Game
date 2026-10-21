@@ -6,30 +6,31 @@ import { getSiteUrl } from "@/lib/site-url";
 // per-request. Using `new Date()` here would emit a fresh "now" on every
 // sitemap fetch and signal Google that nothing is ever stable.
 const BUILD_DATE = new Date("2026-05-08");
-// When the audio-games, AI-GM and audio-tabletop guides went live.
-const GUIDES_DATE = new Date("2026-10-14");
+// The EchoQuest TTRPG rebrand: the three new guides went live, and the
+// homepage, guides hub and campaign list were rewritten.
+const SEO_REFRESH_DATE = new Date("2026-10-14");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: siteUrl, lastModified: BUILD_DATE, changeFrequency: "weekly", priority: 1.0 },
+    { url: siteUrl, lastModified: SEO_REFRESH_DATE, changeFrequency: "weekly", priority: 1.0 },
     { url: `${siteUrl}/library`, lastModified: BUILD_DATE, changeFrequency: "daily", priority: 0.9 },
     { url: `${siteUrl}/blog`, lastModified: BUILD_DATE, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${siteUrl}/campaigns`, lastModified: BUILD_DATE, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/campaigns`, lastModified: SEO_REFRESH_DATE, changeFrequency: "weekly", priority: 0.8 },
     { url: `${siteUrl}/discussion`, lastModified: BUILD_DATE, changeFrequency: "daily", priority: 0.6 },
     { url: `${siteUrl}/forks`, lastModified: BUILD_DATE, changeFrequency: "weekly", priority: 0.5 },
     { url: `${siteUrl}/about`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/contact-us`, lastModified: BUILD_DATE, changeFrequency: "yearly", priority: 0.4 },
     { url: `${siteUrl}/privacy`, lastModified: BUILD_DATE, changeFrequency: "yearly", priority: 0.3 },
     { url: `${siteUrl}/terms`, lastModified: BUILD_DATE, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${siteUrl}/seo`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${siteUrl}/seo`, lastModified: SEO_REFRESH_DATE, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/seo/play-audio-rpg-with-screen-reader`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/seo/accessible-dnd-alternative`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/seo/ai-text-adventure-with-voice`, lastModified: BUILD_DATE, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/seo/audio-games-for-the-blind`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/seo/ai-game-master-rpg`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/seo/audio-tabletop-rpg`, lastModified: GUIDES_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/audio-games-for-the-blind`, lastModified: SEO_REFRESH_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/ai-game-master-rpg`, lastModified: SEO_REFRESH_DATE, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/seo/audio-tabletop-rpg`, lastModified: SEO_REFRESH_DATE, changeFrequency: "monthly", priority: 0.7 },
   ];
 
   let blogRoutes: MetadataRoute.Sitemap = [];

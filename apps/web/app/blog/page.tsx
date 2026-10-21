@@ -3,6 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { SiteHeader } from "@/components/SiteHeader";
 import { blogCoverSrc } from "@/lib/blog/cover-src";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -15,17 +17,13 @@ export const metadata: Metadata = {
       "application/rss+xml": [{ url: `${SITE_URL}/blog/feed.xml`, title: "EchoQuest Blog RSS" }],
     },
   },
-  openGraph: {
-    title: "EchoQuest Blog",
-    description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
+  ...socialMetadata({
+    title: `${BRAND_TTRPG} Blog`,
+    description:
+      "Tips, updates, world-building guides, and stories from the EchoQuest team.",
     url: `${SITE_URL}/blog`,
     type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "EchoQuest Blog",
-    description: "Tips, updates, world-building guides, and stories from the EchoQuest team.",
-  },
+  }),
 };
 
 export default async function BlogPage() {

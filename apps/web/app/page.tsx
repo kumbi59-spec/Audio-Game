@@ -5,6 +5,7 @@ import { LandingEffects } from "@/components/landing/LandingEffects";
 import { serializeJsonLd } from "@/lib/blog/render-markdown";
 import { getSiteUrl } from "@/lib/site-url";
 import { BRAND_ALTERNATE_NAMES, BRAND_DEFINITION, BRAND_NAME, BRAND_TTRPG, SAME_AS } from "@/lib/seo/brand";
+import { OFFICIAL_CAMPAIGN_COUNT } from "@/lib/seo/official-campaigns";
 
 const SITE_URL = getSiteUrl();
 
@@ -42,7 +43,7 @@ const PRICING = [
     price: "$0",
     period: "",
     highlight: false,
-    features: ["3 official campaigns", "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support", "Ads you can switch off anytime"],
+    features: [`All ${OFFICIAL_CAMPAIGN_COUNT} official campaigns`, "Browser text-to-speech", "60 AI turns/day (1 turn = 1 minute credit)", "Full keyboard & screen-reader support", "Ads you can switch off anytime"],
     cta: "Start Playing",
     href: "/library",
   },
@@ -95,15 +96,12 @@ const jsonLd = {
       // shared play after the lobby doesn't yet, so SinglePlayer only.
       gamePlatform: ["Web browser"],
       playMode: "SinglePlayer",
-      accessibilityFeature: [
-        "readingOrder",
-        "structuralNavigation",
-        "displayTransformability",
-        "highContrastDisplay",
-        "largePrint",
-      ],
+      // High contrast and large text are opt-in settings, which the
+      // vocabulary covers with displayTransformability rather than
+      // highContrastDisplay/largePrint. "ARIA" belongs here, not in the
+      // deprecated accessibilityAPI value.
+      accessibilityFeature: ["ARIA", "readingOrder", "structuralNavigation", "displayTransformability"],
       accessibilityControl: ["fullKeyboardControl", "fullVoiceControl", "fullMouseControl", "fullTouchControl"],
-      accessibilityAPI: ["ARIA"],
       accessMode: ["auditory", "textual", "visual"],
       accessModeSufficient: [
         { "@type": "ItemList", itemListElement: ["auditory"] },
@@ -133,8 +131,10 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       url: SITE_URL,
-      name: BRAND_NAME,
-      alternateName: BRAND_TTRPG,
+      // Google takes the site name shown in results from WebSite.name, so it
+      // carries the modifier (matching og:site_name and the title).
+      name: BRAND_TTRPG,
+      alternateName: BRAND_NAME,
       publisher: { "@id": `${SITE_URL}/#organization` },
     },
     {
@@ -162,7 +162,7 @@ const jsonLd = {
           acceptedAnswer: {
             "@type": "Answer",
             text:
-              "Yes. The Free tier includes three official campaigns, browser text-to-speech, 60 AI turns per day, and full keyboard and screen-reader support. Premium plans (Storyteller from $15/month) unlock unlimited campaigns, ElevenLabs narration, unlimited saves, and uploading your own Game Bible.",
+              `Yes. The Free tier includes all ${OFFICIAL_CAMPAIGN_COUNT} official campaigns, browser text-to-speech, 60 AI turns per day, and full keyboard and screen-reader support. Premium plans (Storyteller from $15/month) unlock unlimited campaigns, ElevenLabs narration, unlimited saves, and uploading your own Game Bible.`,
           },
         },
         {

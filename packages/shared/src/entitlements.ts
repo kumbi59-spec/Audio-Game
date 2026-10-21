@@ -110,7 +110,7 @@ export type AiMinutePack = (typeof AI_MINUTE_PACKS)[number];
 /** What each tier unlocks over the previous tier (for upgrade UI copy). */
 export const TIER_HIGHLIGHTS: Record<Tier, string[]> = {
   free: [
-    "3 prebuilt campaigns",
+    "Every official campaign",
     "60 free AI turns per day (1 turn = 1 minute credit)",
     "Buy more AI minutes any time",
     "Browser TTS narration",

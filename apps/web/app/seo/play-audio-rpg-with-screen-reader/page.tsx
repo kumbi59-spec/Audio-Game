@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
@@ -9,13 +11,13 @@ export const metadata: Metadata = {
   description:
     "How to play EchoQuest's audio-first AI RPG with NVDA, JAWS, VoiceOver, or TalkBack. Keyboard controls, narration tuning, and tips for blind players.",
   alternates: { canonical: `${SITE_URL}/seo/play-audio-rpg-with-screen-reader` },
-  openGraph: {
-    title: "Play an Audio RPG with a Screen Reader | EchoQuest",
+  ...socialMetadata({
+    title: `Play an Audio RPG with a Screen Reader | ${BRAND_TTRPG}`,
     description:
       "How to play EchoQuest's audio-first AI RPG with NVDA, JAWS, VoiceOver, or TalkBack.",
     url: `${SITE_URL}/seo/play-audio-rpg-with-screen-reader`,
     type: "article",
-  },
+  }),
 };
 
 const breadcrumbJsonLd = {

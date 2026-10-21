@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { socialMetadata } from "@/lib/seo/social";
+import { BRAND_TTRPG } from "@/lib/seo/brand";
 
 const SITE_URL = process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://echoquest.us";
 
 export const metadata: Metadata = {
-  title: "About EchoQuest",
+  // Absolute, or the title template would print the brand twice.
+  title: { absolute: `About ${BRAND_TTRPG}` },
   description:
-    "EchoQuest is an audio-first AI tabletop RPG built so blind, low-vision, and sighted players can share the same adventures. Learn what we make, who it's for, and how we got here.",
+    "EchoQuest is an audio-first AI tabletop RPG built so blind, low-vision and sighted players can share the same adventures. What we make and who it's for.",
   alternates: { canonical: `${SITE_URL}/about` },
-  openGraph: {
-    title: "About EchoQuest",
+  ...socialMetadata({
+    title: `About ${BRAND_TTRPG}`,
     description:
       "An audio-first AI tabletop RPG built so blind, low-vision, and sighted players can share the same adventures.",
     url: `${SITE_URL}/about`,
     type: "article",
-  },
+  }),
 };
 
 export default function AboutPage() {
@@ -48,7 +51,7 @@ export default function AboutPage() {
           to touch a token, a grid, or a dice tower.
         </p>
         <p className="mt-3 text-base text-muted">
-          The free tier lets you play three official campaigns with the
+          The free tier lets you play every official campaign with the
           browser&rsquo;s built-in text-to-speech and sixty AI minutes per
           day. Paid tiers unlock ElevenLabs premium narration, unlimited
           campaigns, uploading your own Game Bible PDF, and the World Builder

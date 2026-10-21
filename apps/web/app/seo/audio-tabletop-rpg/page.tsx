@@ -7,6 +7,7 @@ import { SEO_CAMPAIGNS } from "@/lib/seo-campaigns";
 import { BRAND_TTRPG } from "@/lib/seo/brand";
 import { guideBreadcrumbJsonLd, guideFaqJsonLd, type GuideFaq } from "@/lib/seo/guide-jsonld";
 import { getSiteUrl } from "@/lib/site-url";
+import { socialMetadata } from "@/lib/seo/social";
 
 const PATH = "/seo/audio-tabletop-rpg";
 const SITE_URL = getSiteUrl();
@@ -16,13 +17,13 @@ export const metadata: Metadata = {
   description:
     "EchoQuest TTRPG is an audio-first tabletop RPG: an AI narrator voices every scene and you decide what happens next. Interactive audio stories, free to start.",
   alternates: { canonical: `${SITE_URL}${PATH}` },
-  openGraph: {
+  ...socialMetadata({
     title: `Audio Tabletop RPG | ${BRAND_TTRPG}`,
     description:
       "An audio-first RPG narrated by an AI Game Master: interactive audio stories where your choices drive the plot.",
     url: `${SITE_URL}${PATH}`,
     type: "article",
-  },
+  }),
 };
 
 const FAQS: GuideFaq[] = [
@@ -81,8 +82,8 @@ export default function Page() {
           Hear how a session goes
         </h2>
         <p className="mt-3 text-base text-muted">
-          Each official campaign page has a short transcript of real play, so you can see how
-          the Game Master and the player trade turns before you start:
+          Each of these campaign pages has a sample narration transcript, so you can see how the
+          Game Master and the player trade turns before you start:
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-6 text-base">
           {SEO_CAMPAIGNS.map((campaign) => (
